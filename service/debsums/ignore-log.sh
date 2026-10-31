@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/debsums/ignore-log.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
 set -euo pipefail
 W_BASE="${W_BASE:-/opt/liltress-workstation}"
 if [[ "${EUID}" -ne 0 ]]; then
-    printf 'Lancez cette commande avec sudo.\n' >&2
+    printf "$(get_text log.run-this-command-with-sudo-n)" >&2
     exit 1
 fi
 if [[ $# -ne 1 || ! -f "$1" ]]; then
-    printf 'Indiquez le journal debsums cité dans l'\''e-mail.\n' >&2
-    printf 'Exemple : sudo bash %s/bin/debsums-ignore-log.sh %s/cron/security_logs/debsums-DATE.log\n' \
-        "${W_BASE}" "${W_BASE}" >&2
+    printf "$(get_text log.enter-the-journal-debsums-named-in-l)"\''e-mail.\n' >&2
+    printf "$(get_text log.example-sudo-bash-bin-debsums-ignore-log-sh-cron "${W_BASE}" "${W_BASE}")" >&2
     exit 1
 fi
 

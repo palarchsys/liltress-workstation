@@ -1,24 +1,27 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/postfix/configure.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
-G_INSTALL_DIRECTORY="${1}"
+INSTALL_WATCHER="${1:-BASH}"
+INSTALL_DIRECTORY="${2:-}"
+export INSTALL_WATCHER INSTALL_DIRECTORY
+G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
 export G_INSTALL_DIRECTORY
 
 source "${G_INSTALL_DIRECTORY}/core/lib.sh"
 source "${G_INSTALL_DIRECTORY}/config/global.conf"
-g_require_root
+require_root
 
 if [[ "${G_MAIL_ALERTS:-0}" != "1" ]]; then
-    g_log_info "Alertes e-mail coupées : Postfix n'est pas configuré."
+    log_info         "${INSTALL_WATCHER}" "configure.alerts-email-off-postfix-is-not-configured"
     exit 0
 fi
 
-g_log_title "Identifiants SMTP"
-g_log_info "Enregistrement de la carte SASL"
+log_subtitle     "${INSTALL_WATCHER}" "configure.credentials-smtp"
+log_info         "${INSTALL_WATCHER}" "configure.record-of-the-card-sasl"
 relay_host="${G_POSTFIX_MAIL_SMTP%:*}"
 relay_port="${G_POSTFIX_MAIL_SMTP##*:}"
 relayhost="[${relay_host}]:${relay_port}"
@@ -27,31 +30,31 @@ umask 077
 printf '%s %s:%s\n' "${relayhost}" "${G_POSTFIX_SMTP_LOGIN}" "${G_POSTFIX_MAIL_PASSWORD}" \
     > /etc/postfix/sasl_passwd
 umask 022
-sasl_type="$(g_get_sasl_map_type)"
+sasl_type="$(get_sasl_map_type)"
 case "${sasl_type}" in
     hash) sasl_index="/etc/postfix/sasl_passwd.db" ;;
     cdb) sasl_index="/etc/postfix/sasl_passwd.cdb" ;;
     lmdb) sasl_index="/etc/postfix/sasl_passwd.lmdb" ;;
 esac
-g_run_silent postmap "${sasl_type}:/etc/postfix/sasl_passwd"
+run_silent       "${INSTALL_WATCHER}" "configure.postfix.error" postmap "${sasl_type}:/etc/postfix/sasl_passwd"
 if [[ ! -f "${sasl_index}" ]]; then
-    g_log_error "Carte SASL absente après postmap."
+    log_error        "${INSTALL_WATCHER}" "configure.card-sasl-absent-after-postmap"
 fi
 chmod 600 /etc/postfix/sasl_passwd "${sasl_index}"
-g_log_success "Carte SASL enregistrée (lecture root seulement)"
+log_success      "${INSTALL_WATCHER}" "configure.card-sasl-saved-reading-root-only"
 
-g_log_title "Nom de courrier"
-g_log_info "Configuration du nom de courrier"
+log_subtitle     "${INSTALL_WATCHER}" "configure.name-of-mail"
+log_info         "${INSTALL_WATCHER}" "configure.configuration-of-the-name-of-mail"
 printf '%s\n' "$(hostname -f)" > /etc/mailname
 chmod 644 /etc/mailname
-g_log_success "mailname enregistré ($(hostname -f))"
+log_success      "${INSTALL_WATCHER}" "configure.mailname-saved" "$(hostname -f)"
 
-g_log_title "Relais et réécriture de l'expéditeur"
-g_log_info "Configuration du relais et de l'expéditeur"
+log_subtitle     "${INSTALL_WATCHER}" "configure.relay-and-rewrite-of-the-sender"
+log_info         "${INSTALL_WATCHER}" "configure.configuration-of-the-relay-and-of-the-sender"
 printf '/.*/ %s\n' "${G_POSTFIX_MAIL_ADDRESS}" > /etc/postfix/sender_canonical
 chmod 644 /etc/postfix/sender_canonical
 
-w_apply_postfix() {
+apply_postfix() {
     local line key value host
     host="$(hostname -f)"
     while IFS= read -r line || [[ -n "${line}" ]]; do
@@ -63,14 +66,14 @@ w_apply_postfix() {
         value="${value//__PROJECT_NAME__/${G_PROJECT_NAME}}"
         value="${value//__SASL_TYPE__/${sasl_type}}"
         postconf -e "${key} = ${value}"
-    done < "$(g_locate_config_file postfix/main.keys)"
+    done < "$(locate_config_file postfix/main.keys)"
 }
-w_apply_postfix
-g_log_success "Expéditeur local réécrit, tout part comme ${G_POSTFIX_MAIL_ADDRESS}"
+apply_postfix
+log_success      "${INSTALL_WATCHER}" "configure.local-sender-rewritten-all-part-as" "${G_POSTFIX_MAIL_ADDRESS}"
 
-g_log_info "Redémarrage de Postfix"
-g_run_silent systemctl restart postfix
+log_info         "${INSTALL_WATCHER}" "configure.restart-of-postfix"
+run_silent       "${INSTALL_WATCHER}" "configure.postfix.error" systemctl restart postfix
 if ! systemctl is-active --quiet postfix; then
-    g_log_error "Postfix n'est pas actif après la configuration."
+    log_error        "${INSTALL_WATCHER}" "configure.postfix-is-not-active-after-the-configuration"
 fi
-g_log_success "Postfix activé, écoute limitée à localhost"
+log_success      "${INSTALL_WATCHER}" "configure.postfix-enabled-listens-limited-to-localhost"

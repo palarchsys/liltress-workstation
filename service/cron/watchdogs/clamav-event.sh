@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/clamav-event.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
@@ -35,6 +35,6 @@ if [[ -f "${LOG_DIR}/clamav-response-${STAMP}.path" ]]; then
     W_CLAMAV_QUARANTINE="$(cat "${LOG_DIR}/clamav-response-${STAMP}.path")"
     export W_CLAMAV_QUARANTINE
 fi
-g_arm_crash_mail "ClamAV accès"
+arm_crash_mail "ClamAV accès"
 logger -t liltress-workstation -p auth.warning "ClamAV ${virus} origine=${file} quarantaine=${W_CLAMAV_QUARANTINE:-inconnue}"
-g_log_alert "ClamAV : ${virus} dans ${file}"
+log_alert "$(get_text watchdog.clamav-in "${virus}" "${file}")"

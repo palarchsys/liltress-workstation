@@ -1,0 +1,1081 @@
+# =============================================================================
+# File       : core/text/de/alert.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[alert.aide.accounts.benign]
+=== UID 0
+root:x:0:0:root:/root:/usr/bin/bash
+=== Feld Passwort leer
+=== Shell außerhalb /etc/shells
+640 root:shadow /etc/shadow
+644 root:root /etc/passwd
+
+[alert.aide.accounts.malicious]
+toor:x:0:0::/root:/usr/bin/bash
+ein zweiter UID 0
+ein Name von Konto auf die Zeile des Passwort leer
+/tmp/evilsh für ein Shell
+
+[alert.aide.accounts.title]
+Konten und Gruppen
+
+[alert.aide.alternatives.benign]
+777 root:root lien symbolique
+die Ziel ist unter /usr, /bin oder /sbin
+update-alternatives montre diese Ziel
+
+[alert.aide.alternatives.malicious]
+die Ziel ist unter /tmp, /dev/shm oder /home
+Eigentümer anders als root:root
+reguläre Datei anstelle eines Verknüpfung
+
+[alert.aide.alternatives.title]
+Alternative System
+
+[alert.aide.apt.benign]
+500 http://archive.ubuntu.com/ubuntu
+oder ein Depot dass Sie hinzugefügt
+644 root:root
+oder 600 root:root für eine Schlüssel
+
+[alert.aide.apt.malicious]
+ein Spiegel oder eine Schlüssel dass Sie erkennen nicht
+Eigentümer anders als root:root
+Modus lesbar durch alle auf eine Schlüssel private
+
+[alert.aide.apt.title]
+Quellen und Schlüssel APT
+
+[alert.aide.certs.benign]
+ca-certificates: /etc/ssl/certs/ca-certificates.crt
+dpkg -V: keine Zeile für dieses Pfad
+644 root:root
+
+[alert.aide.certs.malicious]
+HORS PAQUET /usr/local/share/ca-certificates/inconnu.crt
+dpkg -V cite der Pfad
+Eigentümer anders als root:root
+
+[alert.aide.certs.title]
+Zertifizierungsstelle
+
+[alert.aide.conffile.benign]
+644 root:root
+der Pfad erscheint in die conffiles des Paket
+dpkg -V: keine Zeile für dieses Pfad
+oder Sie erkennen eine Änderung dass Sie gemacht während eine Aktualisierung
+
+[alert.aide.conffile.malicious]
+HORS PAQUET
+nicht ein conffile erklärt, und Sie erkennen nicht der Datei
+dpkg -V cite der Pfad ohne Aktualisierung und ohne Änderung von Ihr Teil
+
+[alert.aide.conffile.title]
+Konfigurationsdatei von Paket
+
+[alert.aide.cron.benign]
+644 root:root
+cron: /etc/cron.d/foo
+oder ein Skript dass Sie geschrieben, ohne curl noch wget zu ein Shell
+
+[alert.aide.cron.malicious]
+666 root:root
+curl http://... | bash
+wget ... | sh
+base64 -d | bash
+Eigentümer anders als root:root
+
+[alert.aide.cron.title]
+Aufgabe geplante
+
+[alert.aide.crowdsec.benign]
+644 root:root
+crowdsec: /etc/crowdsec/config.yaml
+oder ein Einstellung dass Sie geschrieben
+
+[alert.aide.crowdsec.malicious]
+HORS PAQUET
+command: /tmp/evil
+ein binär außerhalb der Pakets
+
+[alert.aide.crowdsec.title]
+CrowdSec
+
+[alert.aide.dbus.benign]
+dbus: /etc/dbus-1/system.d/foo.conf
+dpkg -V: keine Zeile für dieses Pfad
+644 root:root
+
+[alert.aide.dbus.malicious]
+HORS PAQUET /etc/dbus-1/system.d/evil.conf
+dpkg -V cite der Pfad
+
+[alert.aide.dbus.title]
+Policy D-Bus
+
+[alert.aide.fail2ban.benign]
+644 root:root
+fail2ban: /etc/fail2ban/jail.conf
+oder ein Einstellung dass Sie geschrieben in jail.lokal
+
+[alert.aide.fail2ban.malicious]
+HORS PAQUET
+actionban = /tmp/evil
+ein binär außerhalb der Pakets in eine Aktion
+
+[alert.aide.fail2ban.title]
+Fail2Ban
+
+[alert.aide.firmware.benign]
+linux-firmware: /usr/lib/firmware/foo.bin
+dpkg -V: keine Zeile für dieses Pfad
+644 root:root
+
+[alert.aide.firmware.malicious]
+HORS PAQUET /usr/lib/firmware/evil.bin
+dpkg -V cite der Pfad
+
+[alert.aide.firmware.title]
+Firmware
+
+[alert.aide.grub.benign]
+grub2-common: /etc/default/grub
+kein Parameter von contournement
+oder eine Zeile GRUB_CMDLINE dass Sie geschrieben
+
+[alert.aide.grub.malicious]
+init=/bin/bash
+apparmor=0
+security=none dass Sie nicht geschrieben
+HORS PAQUET
+
+[alert.aide.grub.title]
+Parameter GRUB
+
+[alert.aide.hosts.benign]
+127.0.0.1 localhost
+::1 localhost
+die andere Zeilen sind der Namen dass Sie geschrieben
+
+[alert.aide.hosts.malicious]
+eine Adresse private für ein Name von Aktualisierung, von banque oder von Paket
+ein Name dass Sie nicht geschrieben
+
+[alert.aide.hosts.title]
+Datei hosts
+
+[alert.aide.kernel-boot.benign]
+uname -r
+6.8.0-00-generic
+ii  linux-image-6.8.0-00-generic
+linux-image-6.8.0-00-generic: /boot/vmlinuz-6.8.0-00-generic
+dpkg -V: keine Zeile für dieses Pfad
+Journal apt/dpkg: eine Zeile install oder upgrade von dieses Paket
+
+[alert.aide.kernel-boot.malicious]
+HORS PAQUET /boot/vmlinuz-inconnu
+dpkg -l montre nicht diese Version
+dpkg -V cite der Pfad
+
+[alert.aide.kernel-boot.title]
+Kernel und Start
+
+[alert.aide.ldso.benign]
+644 root:root
+die Datum von /etc/ld.so.cache ist die einer Zeile install oder upgrade des Journal dpkg
+
+[alert.aide.ldso.malicious]
+Journal dpkg: keine Installation
+der Cache a geändert ohne Installation von Paket
+
+[alert.aide.ldso.title]
+Cache von Linker
+
+[alert.aide.letsencrypt.benign]
+600 root:root
+oder 644 root:root
+Certificate Name: ein Domain dass Sie hosten
+certbot fehlt, und der Name des Datei ist ein Domain zu Sie
+
+[alert.aide.letsencrypt.malicious]
+Certificate Name: ein Domain dass Sie connaissez nicht
+Eigentümer anders als root:root
+mode 666
+
+[alert.aide.letsencrypt.title]
+Zertifikat Let's Encrypt
+
+[alert.aide.locale.benign]
+644 root:root
+/var/log/dpkg.log:... install locales:amd64
+die Datum des Datei ist die von diese Zeile, oder gerade nach
+
+[alert.aide.locale.malicious]
+Journal dpkg: keine Zeile lokale
+der Datei a geändert ohne Installation des Paket lokale
+
+[alert.aide.locale.title]
+Lokale erzeugt
+
+[alert.aide.machine-id.benign]
+eine einzige Zeile von 32 Hex-Ziffern
+444 root:root
+33 /etc/machine-id
+
+[alert.aide.machine-id.malicious]
+die Zeile a geändert
+der Datei getan eine andere Größe
+dieses ist nicht eine Aktualisierung von Paket
+
+[alert.aide.machine-id.notice]
+Das ist kein üblicher Fehlalarm. Starten Sie den abschließenden Befehl nicht.
+
+[alert.aide.machine-id.title]
+Kennung von die Rechner
+
+[alert.aide.modules-load.benign]
+644 root:root
+kmod: /etc/modules-load.d/modules.conf
+dpkg -V: keine Zeile für dieses Pfad
+jede Name von Modul a ein Datei in /lib/modules/$(uname -r) geliefert durch linux-modules
+
+[alert.aide.modules-load.malicious]
+HORS PAQUET
+ein Name von Modul der hat kein Datei.KO von Paket
+
+[alert.aide.modules-load.title]
+Module geladen zum Start
+
+[alert.aide.modules.benign]
+der Verzeichnis /lib/modules entspricht zu uname -r
+linux-modules-6.8.0-00-generic: /lib/modules/6.8.0-00-generic/kernel/foo.ko
+dpkg -V: keine Zeile für dieses Pfad
+
+[alert.aide.modules.malicious]
+HORS PAQUET /lib/modules/6.8.0-00-generic/kernel/evil.ko
+die Version des Verzeichnis hat kein Paket linux-image noch linux-modules
+
+[alert.aide.modules.title]
+Module des Kernel installiert
+
+[alert.aide.netplan.benign]
+600 root:root für ein Datei /etc/netplan
+644 root:root für NetworkManager
+der Netz und der Resolver sind die Ihre
+
+[alert.aide.netplan.malicious]
+644 auf ein Datei netplan der enthält ein Geheimnis
+ein Resolver dass Sie nicht geschrieben
+Eigentümer anders als root:root
+
+[alert.aide.netplan.title]
+Konfiguration Netz
+
+[alert.aide.package.benign]
+coreutils: /usr/bin/echo
+dpkg -V: keine Zeile für dieses Pfad
+Journal apt/dpkg: eine Zeile install oder upgrade von dieses Paket zu die Datum des Datei
+755 root:root
+
+[alert.aide.package.malicious]
+HORS PAQUET /usr/bin/echo
+dpkg -V cite der Pfad
+Journal apt/dpkg: keine Zeile für dieses Pfad
+
+[alert.aide.package.title]
+Datei von Paket
+
+[alert.aide.pam.benign]
+login: /etc/pam.d/login
+dpkg -V: keine Zeile für dieses Pfad
+keine Zeile pam_exec.so
+
+[alert.aide.pam.malicious]
+pam_exec.so /tmp/evil
+auth sufficient pam_permit.so
+HORS PAQUET
+dpkg -V cite der Pfad und Sie haben nicht geändert dieses Datei
+
+[alert.aide.pam.title]
+Modul PAM
+
+[alert.aide.polkit.benign]
+polkitd: /usr/share/polkit-1/actions/org.foo.policy
+dpkg -V: keine Zeile für dieses Pfad
+644 root:root
+
+[alert.aide.polkit.malicious]
+HORS PAQUET /etc/polkit-1/rules.d/99-evil.rules
+eine Regel yes für nicht importe welcher Benutzer
+dpkg -V cite der Pfad
+
+[alert.aide.polkit.title]
+Regel polkit
+
+[alert.aide.preload.benign]
+absent
+oder
+vorhanden
+libc6:amd64: /usr/lib/x86_64-linux-gnu/libexemple.so
+eine einzige Bibliothek von Paket dass Sie installiert
+
+[alert.aide.preload.malicious]
+HORS PAQUET /tmp/evil.so
+HORS PAQUET /dev/shm/evil.so
+ein Pfad der nicht appartient zu kein Paket
+
+[alert.aide.preload.notice]
+Starten Sie den abschließenden Befehl nicht, wenn eine .so-Datei außerhalb des Pakets liegt.
+
+[alert.aide.preload.title]
+Bibliothek vorgeladen
+
+[alert.aide.product.benign]
+644 root:root
+oder 600 root:root
+ein Konfigurationsdatei dass Sie bearbeitet
+nicht ein Programmdatei neu unter cron/bin
+
+[alert.aide.product.malicious]
+777
+ein Programmdatei neu unter cron/bin dass Sie nicht installiert
+Eigentümer anders als root:root
+
+[alert.aide.product.title]
+Datei des erzeugt
+
+[alert.aide.python.benign]
+python3.12-minimal: /usr/lib/python3.12/os.py
+dpkg -V: keine Zeile für dieses Pfad
+644 root:root
+
+[alert.aide.python.malicious]
+HORS PAQUET /usr/lib/python3.12/evil.py
+dpkg -V cite der Pfad
+
+[alert.aide.python.title]
+Bibliothek Python des System
+
+[alert.aide.removed.benign]
+/var/log/dpkg.log:... remove paquet:amd64
+oder eine Zeile upgrade der entfernt dieses alt Pfad
+Sie haben gestartet diese Entfernung
+
+[alert.aide.removed.malicious]
+Journal apt/dpkg: keine Zeile für dieses Pfad
+der Datei a disparu ohne remove in der Journal
+
+[alert.aide.removed.title]
+Datei entfernt
+
+[alert.aide.resolved.benign]
+/etc/resolv.conf lien symbolique vers ../run/systemd/resolve/stub-resolv.conf
+644 root:root
+Current DNS Server: eine Adresse dass Sie gewählt
+
+[alert.aide.resolved.malicious]
+reguläre Datei /etc/resolv.conf
+eine Adresse von Resolver dass Sie nicht gewählt
+Eigentümer anders als root:root
+
+[alert.aide.resolved.title]
+Resolver DNS
+
+[alert.aide.shells.benign]
+passwd: /etc/shells
+dpkg -V: keine Zeile für dieses Pfad
+jede Zeile von /etc/shells ist ein binär unter /usr oder /bin
+
+[alert.aide.shells.malicious]
+/tmp/evilsh
+/dev/shm/evilsh
+dpkg -V cite der Pfad und Sie haben nicht hinzugefügt diese Zeile
+
+[alert.aide.shells.title]
+Shells autorisiert
+
+[alert.aide.snap-apparmor.benign]
+644 root:root
+snapd: /etc/apparmor.d/usr.lib.snapd.snap-confine
+publisher: canonical
+ein Profil aa-status porte der Name eines snap installiert
+
+[alert.aide.snap-apparmor.malicious]
+HORS PAQUET /etc/apparmor.d/snap.inconnu
+kein snap von dieses Name in snap list
+Eigentümer anders als root:root
+
+[alert.aide.snap-apparmor.title]
+Profil AppArmor eines snap
+
+[alert.aide.snap-mount.benign]
+f 644 root:root /etc/systemd/system/snap-gnome\x2d46\x2d2404-177.mount
+l 777 root:root /etc/systemd/system/multi-user.target.wants/snap-gnome\x2d46\x2d2404-177.mount
+publisher: canonical
+tracking: latest/stable
+status: Done
+
+[alert.aide.snap-mount.malicious]
+644 nobody:nogroup
+publisher absent
+error: no snap found
+kein snap von dieses Name
+
+[alert.aide.snap-mount.title]
+snapd-Einhängeeinheit
+
+[alert.aide.ssh-keys.benign]
+600 root:root /etc/ssh/ssh_host_ed25519_key
+256 SHA256:... root@hote (ED25519)
+Sie haben erzeugt diese Schlüssel, oder sie Datum von Installation des System
+
+[alert.aide.ssh-keys.malicious]
+644 root:root
+eine Schlüssel in mehr dass Sie nicht erzeugt
+Eigentümer anders als root:root
+
+[alert.aide.ssh-keys.title]
+Schlüssel von Host SSH
+
+[alert.aide.sshd.benign]
+sshd -t: keine Fehler
+dpkg -V: keine Zeile für sshd_config
+PermitRootLogin no
+oder eine Zeile dass Sie geschrieben vous-même
+
+[alert.aide.sshd.malicious]
+PermitRootLogin yes dass Sie nicht geschrieben
+AuthorizedKeysFile /tmp/keys
+ForceCommand /tmp/evil
+sshd -t zeigt eine Fehler
+
+[alert.aide.sshd.notice]
+Das Aktualisieren der Referenzbasis entfernt diese Warnung nicht.
+
+[alert.aide.sshd.title]
+Konfiguration des Server SSH
+
+[alert.aide.sudoers.benign]
+/etc/sudoers: parsed OK
+440 root:root /etc/sudoers
+eine Zeile NOPASSWD dass Sie geschrieben, oder keine
+
+[alert.aide.sudoers.malicious]
+parsed OK fehlt, oder eine Fehler visudo
+666 root:root
+NOPASSWD: ALL für ein Konto dass Sie connaissez nicht
+
+[alert.aide.sudoers.title]
+Regeln sudo
+
+[alert.aide.sysctl.benign]
+procps: /etc/sysctl.conf
+dpkg -V: keine Zeile für dieses Pfad
+oder eine Wert dass Sie eingerichtet
+
+[alert.aide.sysctl.malicious]
+kernel.yama.ptrace_scope = 0 dass Sie nicht eingerichtet
+net.ipv4.ip_forward = 1 dass Sie nicht eingerichtet
+HORS PAQUET
+
+[alert.aide.sysctl.title]
+Parameter sysctl
+
+[alert.aide.systemd.benign]
+644 root:root
+systemd: /etc/systemd/system/foo.service
+ExecStart=/usr/bin/foo
+der binär appartient zu ein Paket
+
+[alert.aide.systemd.malicious]
+HORS PAQUET /etc/systemd/system/evil.service
+ExecStart=/tmp/evil
+ExecStart=/bin/bash -c 'curl ... | bash'
+Eigentümer anders als root:root
+
+[alert.aide.systemd.title]
+Unit systemd
+
+[alert.aide.timezone.benign]
+Time zone: Europe/Paris
+/etc/localtime lien symbolique vers /usr/share/zoneinfo/Europe/Paris
+tzdata: /etc/timezone
+
+[alert.aide.timezone.malicious]
+reguläre Datei /etc/localtime
+HORS PAQUET
+der Zeitzone von timedatectl ist nicht der des Verknüpfung
+
+[alert.aide.timezone.title]
+Zeitzone stündlich
+
+[alert.aide.udev.benign]
+644 root:root
+udev: /lib/udev/rules.d/50-foo.rules
+keine Zeile RUN zu /tmp oder /dev/shm
+
+[alert.aide.udev.malicious]
+HORS PAQUET
+RUN+="/tmp/evil"
+RUN+="/dev/shm/evil"
+Eigentümer anders als root:root
+
+[alert.aide.udev.title]
+Regel udev
+
+[alert.aide.ufw.benign]
+Status: active
+Default: deny (incoming), allow (outgoing)
+die Regeln aufgeführt sind die dass Sie eingerichtet
+dpkg -V: keine Zeile für dieses Pfad
+
+[alert.aide.ufw.malicious]
+Default: allow (incoming) dass Sie nicht eingerichtet
+eine Regel ALLOW seit nicht importe wo zu ein Port dass Sie nicht geöffnet
+dpkg -V cite der Pfad
+
+[alert.aide.ufw.title]
+Pare-feu UFW
+
+[alert.aide.unknown.benign]
+Sie erkennen der Datei
+644 root:root oder 755 root:root
+dpkg -S ordnet zu der Pfad zu ein Paket
+
+[alert.aide.unknown.malicious]
+HORS PAQUET
+Eigentümer anders als root
+Modus der donne Schreiben zu alle in ein Verzeichnis System
+
+[alert.aide.unknown.notice]
+Starten Sie den abschließenden Befehl nicht, solange diese Zeile vorhanden ist.
+
+[alert.aide.unknown.title]
+AIDE-Zeile ohne Klasse
+
+[alert.aide.wireguard.benign]
+600 root:root
+peer: eine Schlüssel öffentliche dass Sie eingerichtet
+Schnittstelle wg0 dass Sie erkennen
+
+[alert.aide.wireguard.malicious]
+644 oder 666
+ein peer dass Sie erkennen nicht
+Eigentümer anders als root:root
+
+[alert.aide.wireguard.title]
+Tunnel WireGuard
+
+[alert.chk.aliens.benign]
+644 root:root
+dpkg -S ordnet zu der Pfad zu ein Paket
+der Name sich beendet durch.build-id,.notice.zst oder.document
+
+[alert.chk.aliens.malicious]
+HORS PAQUET /dev/shm/evil
+HORS PAQUET /tmp/evil
+ein Datei neu dass Sie nicht erstellt
+
+[alert.chk.aliens.title]
+Datei verdächtig bekannt der Pakete
+
+[alert.chk.binary.benign]
+=== echo -> /usr/bin/echo
+coreutils: /usr/bin/echo
+debsums: keine Zeile für dieses Pfad
+dpkg -V: keine Zeile für dieses Pfad
+
+[alert.chk.binary.malicious]
+HORS PAQUET /usr/bin/echo
+debsums: /usr/bin/echo ... FAILED
+dpkg -V cite der Pfad
+
+[alert.chk.binary.title]
+Binär gemeldet infiziert
+
+[alert.chk.bindshell.benign]
+users:(("sshd",pid=123,fd=3))
+oder ein andere Prozess deren der binär ist ein Paket dass Sie installiert
+
+[alert.chk.bindshell.malicious]
+users:(("evil",pid=123,fd=3))
+der binär ist unter /tmp, gelöscht, oder unbekannt
+keine Zeile ss für ein Port angekündigt
+
+[alert.chk.bindshell.title]
+Port von lauscht gemeldet
+
+[alert.chk.bpfdoor.benign]
+absent /dev/shm/.bpfdoor
+absent /var/run/.bpfdoor
+absent /run/.bpfdoor
+absent /tmp/.bpfdoor
+absent /dev/shm/haldrund.pid
+die Zeile nicht cite kein von diese Namen
+
+[alert.chk.bpfdoor.malicious]
+FICHIER PRESENT /dev/shm/.bpfdoor
+der Datei existiert
+
+[alert.chk.bpfdoor.notice]
+Eine Datei mit einem dieser Namen ist das Programm. Starten Sie den abschließenden Befehl nicht, wenn sie vorhanden ist.
+
+[alert.chk.bpfdoor.title]
+Datei BPFDoor
+
+[alert.chk.crontab.benign]
+der Aufgaben von Pakete, oder eine Aufgabe dass Sie geschrieben
+kein curl, wget noch base64 zu ein Shell
+
+[alert.chk.crontab.malicious]
+curl http://... | bash
+wget ... | sh
+base64 -d | bash
+ein Datei unter /etc/cron.d dass Sie nicht erstellt
+
+[alert.chk.crontab.title]
+Crontab verdächtig
+
+[alert.chk.history.benign]
+reguläre Datei
+Größe 0 weil dass Sie abgeschnitten Verlauf
+oder eine Größe der entspricht zu Ihre Befehle
+
+[alert.chk.history.malicious]
+symbolische Verknüpfung zu /dev/null dass Sie nicht erstellt
+Datei abgeschnitten nach der Befehle dass Sie nicht gestartet
+
+[alert.chk.history.title]
+Verlauf von Shell
+
+[alert.chk.inetd.benign]
+absent /etc/inetd.conf
+oder
+keine Zeile aktiv
+
+[alert.chk.inetd.malicious]
+eine Zeile aktiv zu ein Shell
+telnet stream tcp nowait root /usr/sbin/tcpd /usr/sbin/in.telnetd
+ein Dienst dass Sie nicht aktiviert
+
+[alert.chk.inetd.title]
+Dienst inetd
+
+[alert.chk.lkm.benign]
+ps : PID absent
+oder proc fehlt
+oder ein fil des Kernel zwischen Klammern, sichtbar in ps
+
+[alert.chk.lkm.malicious]
+proc vorhanden
+ps : PID absent
+die Ziel von /proc/PID/exe ist unter /tmp oder /dev/shm
+
+[alert.chk.lkm.title]
+Prozess versteckt
+
+[alert.chk.php.benign]
+644 utilisateur:utilisateur
+ein Datei dass Sie gerade ablegen
+
+[alert.chk.php.malicious]
+ein PHP unter /tmp dass Sie erkennen nicht
+Eigentümer root auf ein PHP dass Sie nicht erstellt
+
+[alert.chk.php.title]
+Datei PHP genannt
+
+[alert.chk.preload.benign]
+absent
+oder
+vorhanden
+libc6:amd64: /usr/lib/x86_64-linux-gnu/libexemple.so
+
+[alert.chk.preload.malicious]
+HORS PAQUET /tmp/evil.so
+ein.so außerhalb der Pakets
+
+[alert.chk.promisc.benign]
+docker0, veth, br-, virbr, tun, tap, wg oder tailscale
+PROMISC auf eine von diese Schnittstellen
+nicht auf eine Schnittstelle physisch enp oder wlp
+
+[alert.chk.promisc.malicious]
+enp0s3 oder wlp2s0 mit PROMISC
+eine Schnittstelle physisch dass Sie nicht bestandene in promiscuous
+
+[alert.chk.promisc.title]
+Schnittstelle im Modus promiscuous
+
+[alert.chk.sniffer.benign]
+NetworkManager
+oder wpa_supplicant, systemd-networkd, dhclient, avahi-daemon, cupsd, openvpn, tailscaled, wg-quick, docker-proxy
+oder ein tcpdump dass Sie gestartet
+dpkg -S ordnet zu der binär zu ein Paket
+
+[alert.chk.sniffer.malicious]
+HORS PAQUET /tmp/evil
+HORS PAQUET /dev/shm/evil
+ein Name dass Sie connaissez nicht
+
+[alert.chk.sniffer.title]
+Capture von Pakete
+
+[alert.chk.unknown.benign]
+Sie erkennen die Zeile und sie entspricht zu ein Paket oder zu eine Aktion zu Sie
+
+[alert.chk.unknown.malicious]
+Sie erkennen nicht die Zeile
+ein Pfad außerhalb der Pakets, unter /tmp oder unter /dev/shm
+
+[alert.chk.unknown.title]
+chkrootkit-Zeile ohne Klasse
+
+[alert.chk.worm-string.benign]
+dpkg -V: keine Zeile für dieses Pfad
+der Pfad appartient zu ein Paket
+644 root:root oder 755 root:root
+
+[alert.chk.worm-string.malicious]
+HORS PAQUET
+dpkg -V cite der Pfad
+
+[alert.chk.worm-string.title]
+Kette von ver in ein Datei von Paket
+
+[alert.chk.wtmp.benign]
+die dates von /var/log/wtmp.1 sind die von die Rotation mensuelle
+last -F montre eine Fortsetzung fährt fort auf der Datei läuft
+
+[alert.chk.wtmp.malicious]
+ein trou von dates zum Mitte von /var/log/wtmp
+last -F saute mehrere Tage ohne Rotation
+
+[alert.chk.wtmp.title]
+Journal von Verbindungen
+
+[alert.command.missing]
+Wert fehlt im Journal
+
+[alert.excerpt.attr]
+... {1} zusätzliche Attributzeile(n) nicht kopiert
+
+[alert.excerpt.more]
+... {1} zusätzliche Zeile(n) nicht kopiert
+
+[alert.hold.note]
+Eine Klasse in diesem Journal ist kein Fehlalarm zum Speichern. Starten Sie den Befehl unten nicht, solange sie vorhanden ist.
+
+[alert.label.benign]
+Erwartete Rückgabe bei einem Fehlalarm:
+
+[alert.label.command]
+Befehl:
+
+[alert.label.lines]
+Zeilen:
+
+[alert.label.malicious]
+Rückgabe, die eine bösartige Datei anzeigt:
+
+[alert.label.more]
+... {1} weitere Zeile(n) dieses Befunds nicht kopiert
+
+[alert.module.fallback]
+Prüfung
+
+[alert.rk.accounts.benign]
+=== UID 0
+root:x:0:0:root:/root:/usr/bin/bash
+=== Feld Passwort leer
+=== Shell außerhalb /etc/shells
+
+[alert.rk.accounts.malicious]
+toor:x:0:0::/root:/usr/bin/bash
+ein zweiter UID 0
+ein Name auf die Zeile des Passwort leer
+
+[alert.rk.accounts.title]
+Konto oder UID 0
+
+[alert.rk.apps.benign]
+Installed: 1:9.6p1-3ubuntu13
+Candidate: 1:9.6p1-3ubuntu13
+archive.ubuntu.com
+die Version installiert ist der candidat Ubuntu
+
+[alert.rk.apps.malicious]
+Installed mehr alt dass Candidate
+eine Archiv der ist nicht Ubuntu und dass Sie nicht hinzugefügt
+
+[alert.rk.apps.title]
+Version angekündigt veraltet
+
+[alert.rk.deleted.benign]
+/usr/bin/foo (deleted)
+der Paket von dieses Pfad a eine Zeile upgrade in /var/log/dpkg.log
+dpkg -S ordnet zu der Pfad ohne der suffixe (deleted) zu ein Paket
+
+[alert.rk.deleted.malicious]
+/tmp/evil (deleted)
+/dev/shm/evil (deleted)
+ein Name dass Sie connaissez nicht
+
+[alert.rk.deleted.title]
+Prozess auf ein Datei gelöscht
+
+[alert.rk.dev.benign]
+socket /dev/log
+fichier /dev/shm/sem.haveged_sem
+oder eine gemeinsamer Speicher PulseAudio oder PostgreSQL
+nicht ein reguläre Programmdatei
+
+[alert.rk.dev.malicious]
+regular file
+regular empty file Programmdatei
+ein reguläre Binärdatei in /dev
+
+[alert.rk.dev.title]
+Reguläre Datei in /dev
+
+[alert.rk.empty-password.benign]
+keine Zeile
+die Befehl nicht zeigt kein Name
+
+[alert.rk.empty-password.malicious]
+ein Name von Konto
+toor
+
+[alert.rk.empty-password.notice]
+Starten Sie den abschließenden Befehl nicht, wenn ein Kontoname angezeigt wird.
+
+[alert.rk.empty-password.title]
+Passwort leer
+
+[alert.rk.hidden-proc.benign]
+ps : PID absent
+oder proc fehlt
+der Prozess a disparu zwischen der Prüfung und die Prüfung
+
+[alert.rk.hidden-proc.malicious]
+proc vorhanden
+ps : PID absent
+/proc/PID existiert und ps montre nicht dieses PID
+
+[alert.rk.hidden.benign]
+/etc/.updated
+/etc/.resolv.conf.systemd-resolved.bak
+/dev/.udev
+/dev/.initramfs
+/snap
+oder ein Pfad dass dpkg -S ordnet zu zu ein Paket
+
+[alert.rk.hidden.malicious]
+HORS PAQUET /etc/.inconnu
+HORS PAQUET /dev/.inconnu
+ein neu Name in Punkt dass Sie nicht erstellt
+
+[alert.rk.hidden.title]
+Datei oder Verzeichnis versteckt
+
+[alert.rk.hosts.malicious]
+eine Adresse für ein Name von Aktualisierung, von banque oder von Paket
+ein Name dass Sie nicht geschrieben
+
+[alert.rk.immutable.benign]
+--------------e------- /chemin
+keine Buchstabe i
+Ubuntu ordinaire marque nicht diese Dateien
+
+[alert.rk.immutable.malicious]
+----i---------e------- /var/log/auth.log
+die Buchstabe i auf ein Journal oder ein binär dass Sie nicht markiert
+
+[alert.rk.immutable.title]
+Attribut immutable
+
+[alert.rk.inetd.malicious]
+eine Zeile aktiv zu ein Shell
+ein Dienst dass Sie nicht aktiviert
+
+[alert.rk.mirrors.benign]
+644 root:root
+die Datum ist die einer Aktualisierung der Spiegel dass Sie gestartet
+
+[alert.rk.mirrors.malicious]
+Sie haben nicht gestartet von Aktualisierung der Spiegel
+die Datum nicht entspricht zu keine Aktion zu Sie
+
+[alert.rk.mirrors.notice]
+Ignorieren Sie nicht die ganze Datei. Das Aktualisieren der Referenzbasis ersetzt diese Prüfung nicht.
+
+[alert.rk.mirrors.title]
+Datei der Spiegel rkhunter
+
+[alert.rk.module.benign]
+linux-modules-6.8.0-00-generic: /lib/modules/.../foo.ko
+modinfo montre filename unter /lib/modules
+dpkg -S ordnet zu der Datei
+
+[alert.rk.module.malicious]
+HORS PAQUET /lib/modules/.../evil.ko
+modinfo nicht gefunden
+ein Modul außerhalb der Pakets
+
+[alert.rk.module.title]
+Modul Kernel
+
+[alert.rk.named.benign]
+dpkg -V: keine Zeile für dieses Pfad
+der Datei genannt appartient zu ein Paket intakt
+
+[alert.rk.named.malicious]
+HORS PAQUET
+dpkg -V cite der Pfad
+ein Datei außerhalb der Pakets
+
+[alert.rk.named.notice]
+Starten Sie den abschließenden Befehl nicht, solange dpkg -V nicht still ist.
+
+[alert.rk.named.title]
+Rootkit, trojan oder maliciel benannt
+
+[alert.rk.ports.benign]
+ein Prozess dass Sie erkennen
+sshd, nginx, docker-proxy, oder ein Dienst zu Sie
+der Port angekündigt a eine Zeile in ss
+
+[alert.rk.ports.malicious]
+ein Prozess unbekannt
+ein Port angekündigt ohne Zeile in ss
+
+[alert.rk.ports.title]
+Port in lauscht oder Port versteckt
+
+[alert.rk.promisc.benign]
+docker0, veth, br-, virbr, tun, tap, wg oder tailscale
+PROMISC auf eine von diese Schnittstellen
+
+[alert.rk.promisc.malicious]
+enp0s3 oder wlp2s0 mit PROMISC
+eine Schnittstelle physisch dass Sie nicht angeforderte
+
+[alert.rk.properties.benign]
+coreutils: /usr/bin/echo
+dpkg -V: keine Zeile für dieses Pfad
+Journal apt/dpkg: eine Zeile upgrade zu die Datum des Datei
+755 root:root
+
+[alert.rk.properties.malicious]
+dpkg -V cite der Pfad
+Journal apt/dpkg: keine Zeile für dieses Pfad
+HORS PAQUET
+
+[alert.rk.properties.title]
+Eigenschaften oder Fingerabdruck
+
+[alert.rk.script.benign]
+POSIX shell script
+debianutils: /usr/bin/which
+oder libc-bin: /usr/bin/ldd
+oder ein Paket der livre bereits ein Skript
+dpkg -V: keine Zeile für dieses Pfad
+
+[alert.rk.script.malicious]
+POSIX shell script
+dpkg -V cite der Pfad
+ein binär ELF von Paket ist geworden ein Skript
+
+[alert.rk.script.title]
+Binär ersetzt durch ein Skript
+
+[alert.rk.sniffer.benign]
+tcpdump: /usr/bin/tcpdump
+oder wireshark, dumpcap, NetworkManager
+ein Paket Ubuntu
+dpkg -S ordnet zu der binär
+
+[alert.rk.sniffer.malicious]
+HORS PAQUET /tmp/evil
+ein binär außerhalb der Pakets
+
+[alert.rk.sniffer.title]
+Programm von capture
+
+[alert.rk.ssh.benign]
+sshd -t: keine Fehler
+PermitRootLogin no
+oder eine Zeile dass Sie geschrieben
+
+[alert.rk.ssh.malicious]
+PermitRootLogin yes dass Sie nicht geschrieben
+AuthorizedKeysFile außerhalb /home und außerhalb /etc
+ForceCommand inconnu
+
+[alert.rk.ssh.title]
+Einstellung SSH
+
+[alert.rk.startup.benign]
+644 root:root
+dpkg -S ordnet zu der Pfad zu ein Paket
+
+[alert.rk.startup.malicious]
+HORS PAQUET
+ein Skript von Start außerhalb der Pakets
+Eigentümer anders als root:root
+
+[alert.rk.startup.title]
+Datei von Start
+
+[alert.rk.unknown.benign]
+Sie erkennen Warnung und es entspricht zu eine Aktualisierung oder zu ein Datei zu Sie
+
+[alert.rk.unknown.malicious]
+Sie erkennen nicht Warnung
+ein Pfad außerhalb der Pakets
+
+[alert.rk.unknown.title]
+Warnung rkhunter ohne Klasse
+
+[alert.rk.writable.benign]
+1777 root:root /tmp
+1777 root:root /var/tmp
+1777 root:root /dev/shm
+der bit sticky ist vorhanden auf der Verzeichnis
+
+[alert.rk.writable.malicious]
+777 root:root /usr/bin/evil
+ein binär System in 777
+ein Datei außerhalb von /tmp, /var/tmp und /dev/shm
+
+[alert.rk.writable.title]
+Datei dass jeder kann schreiben
+
+[alert.title.module]
+Alarm {1}
+
+[alert.title.short]
+Alarm
+
+[alert.note.aide]
+Wenn dieses Journal erwarteten Änderungen entspricht (einer Aktualisierung, einer Software, die Sie installiert haben, einer Datei, die Sie geändert haben) und keine Auffälligkeit zeigt, führen Sie den Befehl unten aus. Er berechnet die AIDE-Referenz aus der aktuellen Platte neu.
+
+[alert.note.rkhunter]
+Wenn dieses Journal erwarteten Änderungen entspricht (einer Aktualisierung, einer Software, die Sie installiert haben, einer Datei, die Sie geändert haben) und keine Auffälligkeit zeigt, führen Sie den Befehl unten aus. Er berechnet die rkhunter-Eigenschaften aus der aktuellen Platte neu.
+
+[alert.note.chkrootkit]
+Wenn die Zeilen dieses Journals Fehlalarme sind, die Sie erkennen, und keine eine Auffälligkeit zeigt, führen Sie den Befehl unten aus. Er speichert diese Erkennungen. Die nächste chkrootkit-Prüfung meldet sie nicht mehr.
+
+[alert.note.debsums]
+Wenn die Zeilen dieses Journals Fehlalarme sind, die Sie erkennen, und keine eine Auffälligkeit zeigt, führen Sie den Befehl unten aus. Er speichert diese Dateien. Die nächste debsums-Prüfung meldet sie nicht mehr.
+
+[alert.note.quarantine]
+Um jede Datei an ihren ursprünglichen Ort zurückzulegen, kopieren Sie den zugehörigen Befehl.
+
+[alert.module.mail]
+Alarm
+
+[alert.snap.unrecognized]
+kein Snap-Name im Dateinamen erkannt

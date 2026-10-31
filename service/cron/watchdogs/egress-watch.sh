@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/egress-watch.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -23,13 +23,13 @@ ALERT_FILE="${ALERT_DIR}/egress-${STAMP}.txt"
 MODULE_NAME="Ufw"
 
 if ! command -v journalctl >/dev/null 2>&1; then
-    w_log_pass "journalctl absent"
+    log_pass "$(get_text watchdog.journalctl-absent)"
     exit 0
 fi
 
 stamp="${W_BASE}/cron/egress.stamp"
 
-w_record_egress_stamp() {
+record_egress_stamp() {
     local moment
     moment="$(date '+%Y-%m-%d %H:%M:%S')"
     install -d -m 750 "${W_BASE}/cron"
@@ -37,26 +37,26 @@ w_record_egress_stamp() {
     chmod 600 "${stamp}"
 }
 
-w_get_egress_field() {
+get_egress_field() {
     local line="$1"
     local key="$2"
     local chunk="${line}"
     chunk="${chunk#*${key}=}"
     if [[ "${chunk}" == "${line}" ]]; then
-        printf '\n'
+        printf "$(get_text log.n)"
         return 0
     fi
     printf '%s\n' "${chunk%%[[:space:]]*}"
 }
 
 # Quiet when the flow is time sync, mDNS multicast, DHCP, or broadcast SNMP.
-w_check_egress_routine() {
+check_egress_routine() {
     local line="$1"
     local proto dpt spt dst folded
-    proto="$(w_get_egress_field "${line}" PROTO)"
-    dpt="$(w_get_egress_field "${line}" DPT)"
-    spt="$(w_get_egress_field "${line}" SPT)"
-    dst="$(w_get_egress_field "${line}" DST)"
+    proto="$(get_egress_field "${line}" PROTO)"
+    dpt="$(get_egress_field "${line}" DPT)"
+    spt="$(get_egress_field "${line}" SPT)"
+    dst="$(get_egress_field "${line}" DST)"
     proto="${proto^^}"
     folded="${dst,,}"
     case "${proto}:${dpt}" in
@@ -94,20 +94,20 @@ w_check_egress_routine() {
     return 1
 }
 
-w_strip_egress_routine() {
+strip_egress_routine() {
     local source="$1"
     local kept="$2"
     local line
     : > "${kept}"
     while IFS= read -r line || [[ -n "${line}" ]]; do
-        if [[ "${line}" == *w-egress* ]] && w_check_egress_routine "${line}"; then
+        if [[ "${line}" == *w-egress* ]] && check_egress_routine "${line}"; then
             continue
         fi
         printf '%s\n' "${line}" >> "${kept}"
     done < "${source}"
 }
 
-w_get_isolate_seconds() {
+get_isolate_seconds() {
     local sec="${W_NET_ISOLATE_SEC:-120}"
     if [[ ! "${sec}" =~ ^[0-9]+$ ]] || [[ "${sec}" -lt 30 ]] || [[ "${sec}" -gt 300 ]]; then
         sec=120
@@ -115,7 +115,7 @@ w_get_isolate_seconds() {
     printf '%s\n' "${sec}"
 }
 
-w_list_egress_suspects() {
+list_egress_suspects() {
     local kernel="$1"
     local audit="$2"
     local registry="$3"
@@ -238,7 +238,7 @@ if kernel_path.is_file():
 PY
 }
 
-w_ensure_egress_hold() {
+ensure_egress_hold() {
     if nft list table inet w_flow_hold >/dev/null 2>&1; then
         return 0
     fi
@@ -250,7 +250,7 @@ w_ensure_egress_hold() {
     nft add rule inet w_flow_hold output ip6 daddr . meta l4proto . th dport @v6 reject || return 1
 }
 
-w_install_egress_hold() {
+install_egress_hold() {
     local dst="$1"
     local proto="$2"
     local dpt="$3"
@@ -263,13 +263,13 @@ w_install_egress_hold() {
     if [[ "${dst}" == *:* ]]; then
         set_name="v6"
     fi
-    w_ensure_egress_hold || return 1
+    ensure_egress_hold || return 1
     nft add element inet w_flow_hold "${set_name}" "{ ${dst} . ${lower} . ${dpt} timeout ${sec}s }"
 }
 
 if [[ ! -s "${stamp}" ]] || ! grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$' "${stamp}"; then
-    w_record_egress_stamp
-    w_log_pass "repère initial écrit"
+    record_egress_stamp
+    log_pass "$(get_text watchdog.initial-rep-re-written)"
     exit 0
 fi
 
@@ -282,11 +282,11 @@ blocked_lines="$(mktemp -p /run/liltress-workstation)"
 trap 'rm -f "${found}" "${audit_tmp}" "${kept}" "${suspects}" "${blocked_lines}"' EXIT
 start="$(head -n 1 "${stamp}")"
 journalctl -k --since "${start}" -g 'w-egress' --no-pager > "${found}" 2>/dev/null || true
-w_strip_egress_routine "${found}" "${kept}"
+strip_egress_routine "${found}" "${kept}"
 mv -f "${kept}" "${found}"
-w_record_egress_stamp
+record_egress_stamp
 if ! grep -q 'w-egress' "${found}"; then
-    w_log_pass "aucun flux sortant inattendu"
+    log_pass "$(get_text watchdog.no-flow-outbound-unexpected)"
     exit 0
 fi
 if command -v ausearch >/dev/null 2>&1; then
@@ -296,22 +296,22 @@ if command -v ausearch >/dev/null 2>&1; then
         ausearch -k w-egress --start ${formatted} > "${audit_tmp}" 2>/dev/null || true
     fi
 fi
-w_list_egress_suspects "${found}" "${audit_tmp}" "${W_BASE}/cron/quarantine.registry" > "${suspects}" || true
+list_egress_suspects "${found}" "${audit_tmp}" "${W_BASE}/cron/quarantine.registry" > "${suspects}" || true
 if [[ ! -s "${suspects}" ]]; then
-    w_log_pass "aucun flux sortant suspect"
+    log_pass "$(get_text watchdog.no-flow-suspicious-outbound)"
     exit 0
 fi
-sec="$(w_get_isolate_seconds)"
+sec="$(get_isolate_seconds)"
 declare -A held_flows=()
 blocked=0
 while IFS=$'\t' read -r proto dst dpt exe kline || [[ -n "${proto}" ]]; do
     [[ -n "${proto}" && -n "${dst}" && -n "${dpt}" ]] || continue
     flow_key="${proto}|${dst}|${dpt}"
     if [[ -z "${held_flows[${flow_key}]:-}" ]]; then
-        if w_install_egress_hold "${dst}" "${proto}" "${dpt}" "${sec}"; then
+        if install_egress_hold "${dst}" "${proto}" "${dpt}" "${sec}"; then
             held_flows["${flow_key}"]=1
             blocked=1
-            printf '%s\n' "bloqué ${dst} ${proto,,}/${dpt} pendant ${sec}s — ${exe}" >> "${LOG_FILE}"
+            printf '%s\n' "$(get_text watchdog.blocked-during-s "${dst}" "${proto,,}" "${dpt}" "${sec}" "${exe}")" >> "${LOG_FILE}"
         fi
     fi
     if [[ -n "${held_flows[${flow_key}]:-}" ]]; then
@@ -319,13 +319,13 @@ while IFS=$'\t' read -r proto dst dpt exe kline || [[ -n "${proto}" ]]; do
     fi
 done < "${suspects}"
 if [[ "${blocked}" -eq 0 ]]; then
-    w_log_pass "blocage refusé"
+    log_pass "$(get_text watchdog.block-rejected)"
     exit 0
 fi
-if declare -F g_format_egress_body >/dev/null 2>&1; then
-    g_format_egress_body "${blocked_lines}" "${audit_tmp}" >> "${LOG_FILE}" || true
+if declare -F format_egress_body >/dev/null 2>&1; then
+    format_egress_body "${blocked_lines}" "${audit_tmp}" >> "${LOG_FILE}" || true
 else
     cat "${blocked_lines}" >> "${LOG_FILE}"
 fi
-g_log_alert "flux sortant suspect bloqué"
+log_alert "$(get_text watchdog.flow-outbound-suspicious-blocked)"
 exit 0

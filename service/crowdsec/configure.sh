@@ -1,88 +1,91 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/crowdsec/configure.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
-G_INSTALL_DIRECTORY="${1}"
+INSTALL_WATCHER="${1:-BASH}"
+INSTALL_DIRECTORY="${2:-}"
+export INSTALL_WATCHER INSTALL_DIRECTORY
+G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
 export G_INSTALL_DIRECTORY
 
 source "${G_INSTALL_DIRECTORY}/core/lib.sh"
 source "${G_INSTALL_DIRECTORY}/config/global.conf"
-g_require_root
+require_root
 
-g_log_title "Collections CrowdSec"
-g_log_info "Installation des collections CrowdSec"
-g_run_silent cscli hub update
+log_subtitle     "${INSTALL_WATCHER}" "configure.collections-crowdsec"
+log_info         "${INSTALL_WATCHER}" "configure.installation-of-the-collections-crowdsec"
+run_silent       "${INSTALL_WATCHER}" "configure.crowdsec.error" cscli hub update
 
-mapfile -t collections < <(grep -vE '^[[:space:]]*(#|$)' "$(g_locate_config_file crowdsec/collections.list)")
-g_run_silent cscli collections install --force "${collections[@]}"
-g_log_success "Collections linux, sshd, postfix et liste blanche installées"
+mapfile -t collections < <(grep -vE '^[[:space:]]*(#|$)' "$(locate_config_file crowdsec/collections.list)")
+run_silent       "${INSTALL_WATCHER}" "configure.crowdsec.error" cscli collections install --force "${collections[@]}"
+log_success      "${INSTALL_WATCHER}" "configure.collections-linux-sshd-postfix-and-allowlist-ins"
 
-g_log_info "Recherche des collections optionnelles"
+log_info         "${INSTALL_WATCHER}" "configure.search-of-the-collections-optional"
 while read -r name; do
     [[ -n "${name}" && "${name}" != \#* ]] || continue
     if cscli collections install --force "${name}" >/dev/null 2>&1; then
-        g_log_info "Collection ${name} présente"
+        log_info         "${INSTALL_WATCHER}" "configure.collection-present-1" "${name}"
     else
-        g_log_warn "Collection ${name} absente du hub"
+        log_warn         "${INSTALL_WATCHER}" "configure.collection-absent-of-the-hub" "${name}"
     fi
-done < "$(g_locate_config_file crowdsec/optional.list)"
-g_log_success "Collections optionnelles traitées"
+done < "$(locate_config_file crowdsec/optional.list)"
+log_success      "${INSTALL_WATCHER}" "configure.optional-collections-processed"
 
-g_log_title "Durée de blocage"
-g_log_info "Configuration de la durée de blocage"
+log_subtitle     "${INSTALL_WATCHER}" "configure.duration-of-block"
+log_info         "${INSTALL_WATCHER}" "configure.configuration-of-the-duration-of-block"
 # shellcheck disable=SC1091
-source "$(g_locate_config_file crowdsec/ban.conf)"
+source "$(locate_config_file crowdsec/ban.conf)"
 if [[ ! "${W_CROWDSEC_BAN_DURATION}" =~ ^[0-9]+[smhd]$ ]]; then
-    g_log_error "durée de blocage invalide"
+    log_error        "${INSTALL_WATCHER}" "configure.duration-of-block-invalid"
 fi
-grep -v '^#' "$(g_locate_config_file crowdsec/profiles.yaml)" \
+grep -v '^#' "$(locate_config_file crowdsec/profiles.yaml)" \
     | sed "s/duration: .*/duration: ${W_CROWDSEC_BAN_DURATION}/" \
     > /etc/crowdsec/profiles.yaml
-g_log_success "Blocage posé (${W_CROWDSEC_BAN_DURATION})"
+log_success      "${INSTALL_WATCHER}" "configure.block-installed" "${W_CROWDSEC_BAN_DURATION}"
 
-g_log_title "Journaux lus par CrowdSec"
-g_log_info "Configuration des journaux lus par CrowdSec"
+log_subtitle     "${INSTALL_WATCHER}" "configure.journals-read-by-crowdsec"
+log_info         "${INSTALL_WATCHER}" "configure.configuration-of-the-journals-read-by-crowdsec"
 {
-    grep -v '^#' "$(g_locate_config_file crowdsec/acquisition-journal.yaml)"
+    grep -v '^#' "$(locate_config_file crowdsec/acquisition-journal.yaml)"
     if [[ -f /var/log/auth.log ]]; then
-        grep -v '^#' "$(g_locate_config_file crowdsec/acquisition-auth.yaml)"
+        grep -v '^#' "$(locate_config_file crowdsec/acquisition-auth.yaml)"
     fi
     if [[ -f /var/log/syslog ]]; then
-        grep -v '^#' "$(g_locate_config_file crowdsec/acquisition-syslog.yaml)"
+        grep -v '^#' "$(locate_config_file crowdsec/acquisition-syslog.yaml)"
     fi
     if [[ -f /var/log/mail.log ]]; then
-        grep -v '^#' "$(g_locate_config_file crowdsec/acquisition-mail.yaml)"
+        grep -v '^#' "$(locate_config_file crowdsec/acquisition-mail.yaml)"
     fi
 } > /etc/crowdsec/acquisitions.yaml
 chmod 644 /etc/crowdsec/acquisitions.yaml
-g_log_success "Journaux SSH, système et courrier configurés"
+log_success      "${INSTALL_WATCHER}" "configure.journals-ssh-system-and-mail-configured"
 
-g_log_title "Bouncer pare-feu"
-g_log_info "Liaison du bouncer nftables à l'API locale"
+log_subtitle     "${INSTALL_WATCHER}" "configure.bouncer-firewall"
+log_info         "${INSTALL_WATCHER}" "configure.binding-of-the-bouncer-nftables-to-the-api-local"
 cscli bouncers delete firewall-bouncer >/dev/null 2>&1 || true
 raw="$(cscli bouncers add firewall-bouncer 2>&1)"
 key="$(printf '%s\n' "${raw}" | grep -oE '[A-Za-z0-9/=+]{40,}' | tail -n1)"
 if [[ -z "${key}" ]]; then
-    g_log_error "Clé du bouncer CrowdSec introuvable."
+    log_error        "${INSTALL_WATCHER}" "configure.key-of-the-bouncer-crowdsec-not-found"
 fi
 bouncer_cfg="/etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml"
 if [[ ! -f "${bouncer_cfg}" ]]; then
-    g_log_error "Fichier bouncer absent : ${bouncer_cfg}"
+    log_error        "${INSTALL_WATCHER}" "configure.file-bouncer-absent" "${bouncer_cfg}"
 fi
 sed -i "s|^[[:space:]]*api_key:.*|api_key: ${key}|" "${bouncer_cfg}"
-g_log_success "Bouncer nftables relié à l'API locale"
+log_success      "${INSTALL_WATCHER}" "configure.bouncer-nftables-linked-to-the-api-local"
 
-g_log_info "Activation de CrowdSec et du bouncer"
-grep -v '^#' "$(g_locate_config_file crowdsec/audit.rules)" \
+log_info         "${INSTALL_WATCHER}" "configure.activation-of-crowdsec-and-of-the-bouncer"
+grep -v '^#' "$(locate_config_file crowdsec/audit.rules)" \
     > /etc/audit/rules.d/w-crowdsec.rules
 chmod 640 /etc/audit/rules.d/w-crowdsec.rules
-g_run_silent augenrules --load
+run_silent       "${INSTALL_WATCHER}" "configure.crowdsec.error" augenrules --load
 
-g_run_silent systemctl enable --now crowdsec
-g_run_silent systemctl enable --now crowdsec-firewall-bouncer
-g_run_silent systemctl restart crowdsec
-g_run_silent systemctl restart crowdsec-firewall-bouncer
-g_log_success "CrowdSec et le bouncer activés"
+run_silent       "${INSTALL_WATCHER}" "configure.crowdsec.error" systemctl enable --now crowdsec
+run_silent       "${INSTALL_WATCHER}" "configure.crowdsec.error" systemctl enable --now crowdsec-firewall-bouncer
+run_silent       "${INSTALL_WATCHER}" "configure.crowdsec.error" systemctl restart crowdsec
+run_silent       "${INSTALL_WATCHER}" "configure.crowdsec.error" systemctl restart crowdsec-firewall-bouncer
+log_success      "${INSTALL_WATCHER}" "configure.crowdsec-and-the-bouncer-enabled"

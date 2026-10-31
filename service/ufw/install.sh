@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ufw/install.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
-G_INSTALL_DIRECTORY="${1}"
+INSTALL_WATCHER="${1:-BASH}"
+INSTALL_DIRECTORY="${2:-}"
+export INSTALL_WATCHER INSTALL_DIRECTORY
+G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
 export G_INSTALL_DIRECTORY
 
 source "${G_INSTALL_DIRECTORY}/core/lib.sh"
 source "${G_INSTALL_DIRECTORY}/config/global.conf"
-g_require_root
+require_root
 
-g_log_title "Installation UFW"
-g_log_info "Installation d'UFW"
-g_run_silent_apt install -y ufw
-g_run_silent systemctl enable ufw
-g_log_success "UFW installé"
+log_subtitle     "${INSTALL_WATCHER}" "install.installation-ufw"
+log_info         "${INSTALL_WATCHER}" "install.installation-of-ufw-2"
+run_silent_apt   "${INSTALL_WATCHER}" "install -y ufw" "install.ufw.error"
+run_silent       "${INSTALL_WATCHER}" "install.ufw.error" systemctl enable ufw
+log_success      "${INSTALL_WATCHER}" "install.ufw-installed"

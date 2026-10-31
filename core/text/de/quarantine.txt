@@ -1,0 +1,29 @@
+# =============================================================================
+# File       : core/text/de/quarantine.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[quarantine.identifier-rejected]
+Kennung abgelehnt
+
+[quarantine.identifier-absent-of-the-registre]
+Kennung fehlt des registre
+
+[quarantine.location-original-rejected]
+Ort ursprünglich abgelehnt
+
+[quarantine.file-of-quarantine-absent]
+Datei von Quarantäne fehlt
+
+[quarantine.directory-original-absent]
+Verzeichnis ursprünglich fehlt
+
+[quarantine.location-original-busy]
+Ort ursprünglich belegt
+
+[quarantine.file-reset-in-place]
+Datei zurückgesetzt in Platz
+
+[quarantine.identifier-required]
+Eine Kennung ist erforderlich

@@ -1,0 +1,21 @@
+# =============================================================================
+# File       : core/text/fr/launch.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[launch.unknown-command]
+commande inconnue : {1}
+
+[launch.usage-liltress-help]
+Usage : {1}/liltress help
+
+[launch.usage]
+Usage : {1}/liltress <commande>
+
+  configure   prépare global.conf et secrets.conf
+  check       vérifie ces deux fichiers
+  run         installe (root)
+  lynis       audit Lynis (root)
+  logs        copie les journaux
+  help        cette aide

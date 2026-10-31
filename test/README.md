@@ -30,5 +30,5 @@ Code de sortie : `0` si 0 FAIL (WARN autorisés), `1` sinon.
 
 ## Périmètre
 
-- Inclus : `scripts/run.sh`, `core/lib.sh`, `global.conf`, `system/`, `service/`, `template/`, et les contrôles du dépôt privé (routeur, SQL, secrets)
+- Inclus : `script/run.sh`, `core/lib.sh`, `global.conf`, `system/`, `service/`, `template/`, et les contrôles du dépôt privé (routeur, SQL, secrets)
 - Le profil enregistré est `WORKSTATION`. `--profile` d’un serveur est refusé.

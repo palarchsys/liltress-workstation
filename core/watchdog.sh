@@ -1,11 +1,31 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog.sh
-# Updated at : 2026-10-29
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
-g_get_product_base() {
+if ! declare -F get_text >/dev/null 2>&1; then
+    text_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    for text_candidate in \
+        "${text_here}/log.sh" \
+        "${G_CONFIG_BASE_DIRECTORY:-}/src/core/log.sh" \
+        "${W_BASE:-}/src/core/log.sh" \
+        "${G_BASE:-}/src/core/log.sh" \
+        "${G_INSTALL_DIRECTORY:-}/core/log.sh" \
+        "${G_PRODUCT_ROOT:-}/core/log.sh" \
+        "${G_PRODUCT_ROOT:-}/../core/log.sh"
+    do
+        if [[ -n "${text_candidate}" && -f "${text_candidate}" ]]; then
+            # shellcheck disable=SC1090
+            source "${text_candidate}"
+            break
+        fi
+    done
+    unset text_candidate text_here
+fi
+
+get_product_base() {
     if [[ -n "${W_BASE:-}" ]]; then
         printf '%s' "${W_BASE}"
     elif [[ -n "${G_CONFIG_BASE_DIRECTORY:-}" ]]; then
@@ -17,13 +37,13 @@ g_get_product_base() {
     fi
 }
 
-g_send_path() {
+send_path() {
     if [[ -n "${CRON_BIN_PATH:-}" && -x "${CRON_BIN_PATH}/send.sh" ]]; then
         printf '%s\n' "${CRON_BIN_PATH}/send.sh"
         return 0
     fi
     local base
-    base="$(g_get_product_base)"
+    base="$(get_product_base)"
     if [[ -x "${base}/cron/bin/send.sh" ]]; then
         printf '%s\n' "${base}/cron/bin/send.sh"
         return 0
@@ -31,53 +51,53 @@ g_send_path() {
     return 1
 }
 
-g_signal_phrase() {
+signal_phrase() {
     case "$1" in
-        6) printf '%s' 'abandon du programme' ;;
-        7) printf '%s' 'accès mémoire invalide' ;;
-        9) printf '%s' 'arrêt forcé' ;;
-        11) printf '%s' 'erreur interne du programme' ;;
-        13) printf '%s' 'écriture interrompue' ;;
-        15) printf '%s' "demande d'arrêt" ;;
-        *) printf 'signal %s' "$1" ;;
+        6) printf '%s' "$(get_text watchdog.signal.abort)" ;;
+        7) printf '%s' "$(get_text watchdog.invalid-memory-access)" ;;
+        9) printf '%s' "$(get_text watchdog.forced-stop)" ;;
+        11) printf '%s' "$(get_text watchdog.internal-program-error)" ;;
+        13) printf '%s' "$(get_text watchdog.interrupted-write)" ;;
+        15) printf '%s' "$(get_text watchdog.stop-request)" ;;
+        *) printf '%s' "$(get_text watchdog.signal "$1")" ;;
     esac
 }
 
-g_get_crash_sentence() {
+get_crash_sentence() {
     local label="$1"
     local status="$2"
     local signal phrase journal
     if [[ "${status}" -ge 128 ]]; then
         signal=$((status - 128))
-        phrase="$(g_signal_phrase "${signal}")"
-        printf "Le contrôle %s a planté (signal %s, %s). Il n'est pas allé au bout." "${label}" "${signal}" "${phrase}"
+        phrase="$(signal_phrase "${signal}")"
+        printf "$(get_text watchdog.the-check-crashed-signal-it-did-not-finish "${label}" "${signal}" "${phrase}")"
     else
-        printf "Le contrôle %s s'est arrêté (code %s). Il n'est pas allé au bout." "${label}" "${status}"
+        printf "$(get_text watchdog.the-check-stopped-code-it-did-not-finish "${label}" "${status}")"
     fi
     journal="${LOG_FILE:-${LOG:-}}"
     if [[ -n "${journal}" ]]; then
-        printf ' Le journal est %s.' "${journal}"
+        printf "$(get_text watchdog.the-journal-is "${journal}")"
     fi
-    printf '\n'
+    printf "$(get_text log.n)"
 }
 
-g_send_crash_mail() {
+send_crash_mail() {
     local status=$?
     if [[ -n "${1-}" ]]; then
         status="$1"
     fi
     trap - EXIT
     [[ "${status}" -eq 0 ]] && return 0
-    g_log_alert "$(g_get_crash_sentence "${G_CRASH_LABEL:-${W_CRASH_LABEL:-contrôle}}" "${status}")" || true
+    log_alert "$(get_crash_sentence "${G_CRASH_LABEL:-${W_CRASH_LABEL:-contrôle}}" "${status}")" || true
 }
 
-g_arm_crash_mail() {
+arm_crash_mail() {
     G_CRASH_LABEL="$1"
     W_CRASH_LABEL="$1"
-    trap g_send_crash_mail EXIT
+    trap send_crash_mail EXIT
 }
 
-g_get_cpu_quota_percent() {
+get_cpu_quota_percent() {
     local limit="${G_WATCHDOG_CPU_LIMIT:-50}"
     local n=1
     if [[ ! "${limit}" =~ ^[0-9]+$ ]]; then
@@ -92,7 +112,7 @@ g_get_cpu_quota_percent() {
     printf '%s\n' "$((limit * n))"
 }
 
-g_run_limited() {
+run_limited() {
     local status=0 pid=0 lim=0 errexit=0
     local -a cmd=()
     case $- in
@@ -116,7 +136,7 @@ g_run_limited() {
         fi
         pid=$!
         if command -v cpulimit >/dev/null 2>&1; then
-            cpulimit -p "${pid}" -l "$(g_get_cpu_quota_percent)" -z >/dev/null 2>&1 &
+            cpulimit -p "${pid}" -l "$(get_cpu_quota_percent)" -z >/dev/null 2>&1 &
             lim=$!
         fi
         wait "${pid}"
@@ -132,11 +152,37 @@ g_run_limited() {
     return "${status}"
 }
 
-g_get_alert_excerpt() {
+get_alert_excerpt() {
+    load_text "${G_LANGUAGE:-en}"
+    G_TEXT_EXCERPT_MORE="$(get_text alert.excerpt.more)" \
+    G_TEXT_EXCERPT_ATTR="$(get_text alert.excerpt.attr)" \
+    G_TEXT_REDACTED="$(get_text mail.redacted)" \
+    G_TEXT_REDACTED_KEY="$(get_text mail.redacted-key)" \
     python3 - "${1:-}" << 'PY'
+import os
 import re
 import sys
 from pathlib import Path
+
+EXCERPT_MORE = os.environ.get(
+    "G_TEXT_EXCERPT_MORE",
+    "... {1} ligne(s) supplémentaire(s) non recopiées",
+)
+EXCERPT_ATTR = os.environ.get(
+    "G_TEXT_EXCERPT_ATTR",
+    "... {1} ligne(s) d'attribut supplémentaire(s) non recopiées",
+)
+REDACTED = os.environ.get("G_TEXT_REDACTED", "[masqué]")
+REDACTED_KEY = os.environ.get("G_TEXT_REDACTED_KEY", "[clé privée masquée]")
+
+
+def fill_count(template, count):
+    def repl(match):
+        if match.group(1) == "1":
+            return str(count)
+        return match.group(0)
+
+    return re.sub(r"\{(\d+)\}", repl, template)
 
 path = sys.argv[1]
 raw = ""
@@ -146,22 +192,26 @@ if path and Path(path).is_file():
 def redact(text):
     text = re.sub(
         r"(?is)-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----.*?-----END [A-Z0-9 ]*PRIVATE KEY-----",
-        "[clé privée masquée]",
+        lambda _match: REDACTED_KEY,
         text,
     )
     text = re.sub(
         r"(?i)\b(password|passwd|token|secret|api[_-]?key|authorization|bearer)\b(\s*[:=]\s*)\S+",
-        r"\1\2[masqué]",
+        lambda match: match.group(1) + match.group(2) + REDACTED,
         text,
     )
-    text = re.sub(r"(?i)\bbearer\s+[A-Za-z0-9._~+/-]{8,}", "Bearer [masqué]", text)
+    text = re.sub(
+        r"(?i)\bbearer\s+[A-Za-z0-9._~+/-]{8,}",
+        lambda _match: "Bearer " + REDACTED,
+        text,
+    )
     return text
 
 def clip(lines, limit=120):
     if len(lines) <= limit:
         return lines
     hidden = len(lines) - limit
-    return lines[:limit] + [f"... {hidden} ligne(s) supplémentaire(s) non recopiées"]
+    return lines[:limit] + [fill_count(EXCERPT_MORE, hidden)]
 
 def format_aide(text):
     summary = re.compile(
@@ -222,7 +272,7 @@ def format_aide(text):
         else:
             hidden_attr += 1
     if hidden_attr:
-        out.append(f"... {hidden_attr} ligne(s) d'attribut supplémentaire(s) non recopiées")
+        out.append(fill_count(EXCERPT_ATTR, hidden_attr))
     return out
 
 def format_named(name, text):
@@ -296,7 +346,7 @@ if body:
 PY
 }
 
-g_get_clamav_kind() {
+get_clamav_kind() {
     python3 - "${1:-}" << 'PY'
 import re
 import sys
@@ -331,15 +381,15 @@ else:
 PY
 }
 
-g_invoke_clamav() {
+invoke_clamav() {
     if [[ "${G_CLAM_MODE:-scan}" == "daemon" ]]; then
-        g_run_limited clamdscan --fdpass --infected --no-summary -- "$@"
+        run_limited clamdscan --fdpass --infected --no-summary -- "$@"
     else
         clamscan --infected --no-summary -- "$@"
     fi
 }
 
-g_scan_clamav_batch() {
+scan_clamav_batch() {
     local status=0 signal=0 streak=0 path errexit=0 tool="clamscan"
     [[ "$#" -gt 0 ]] || return 0
     if [[ "${G_CLAM_MODE:-scan}" == "daemon" ]]; then
@@ -349,7 +399,7 @@ g_scan_clamav_batch() {
         *e*) errexit=1 ;;
     esac
     set +e
-    g_invoke_clamav "$@"
+    invoke_clamav "$@"
     status=$?
     if [[ "${errexit}" -eq 1 ]]; then
         set -e
@@ -360,7 +410,7 @@ g_scan_clamav_batch() {
     streak=0
     for path in "$@"; do
         set +e
-        g_invoke_clamav "${path}"
+        invoke_clamav "${path}"
         status=$?
         if [[ "${errexit}" -eq 1 ]]; then
             set -e
@@ -382,7 +432,7 @@ g_scan_clamav_batch() {
     return 0
 }
 
-g_list_clamav_scan() {
+list_clamav_scan() {
     local file_list="$1"
     local path batch_max
     local -a batch=()
@@ -393,25 +443,25 @@ g_list_clamav_scan() {
         [[ -n "${path}" ]] || continue
         batch+=("${path}")
         if [[ "${#batch[@]}" -eq "${batch_max}" ]]; then
-            g_scan_clamav_batch "${batch[@]}" || true
+            scan_clamav_batch "${batch[@]}" || true
             batch=()
             [[ "${G_CLAM_STOP}" == 1 ]] && break
         fi
     done < "${file_list}"
     if [[ "${#batch[@]}" -gt 0 && "${G_CLAM_STOP}" != 1 ]]; then
-        g_scan_clamav_batch "${batch[@]}" || true
+        scan_clamav_batch "${batch[@]}" || true
     fi
     return 0
 }
 
-g_prepare_rkhunter_note() {
+prepare_rkhunter_note() {
     local base
-    base="$(g_get_product_base)"
-    NOTE="Si ce journal correspond à des changements attendus (une mise à jour, un logiciel que vous avez installé, un fichier que vous avez modifié) et qu'il ne révèle pas d'anomalie, exécutez la commande ci-dessous. Elle recalcule la base de propriétés rkhunter à partir du disque actuel."
+    base="$(get_product_base)"
+    NOTE="$(get_text alert.note.rkhunter)"
     NOTE_CMD="sudo bash ${base}/bin/rkhunter-refresh-db.sh"
 }
 
-g_repair_debsums_log() {
+repair_debsums_log() {
     local log="$1"
     local summary=""
     [[ -n "${log}" && -s "${log}" ]] || return 0
@@ -636,7 +686,7 @@ PY
     printf '%s' "${summary}"
 }
 
-g_record_quarantine_origin() {
+record_quarantine_origin() {
     local source="$1"
     local origin="$2"
     local stored="$3"
@@ -646,7 +696,7 @@ g_record_quarantine_origin() {
     [[ "${origin}" == /* && "${origin}" != "${stored}" ]] || return 0
     id="$(basename -- "${stored}")"
     [[ "${id}" =~ ^[0-9]{8}-[0-9]{6}-[0-9]+- ]] || return 0
-    base="$(g_get_product_base)"
+    base="$(get_product_base)"
     dir="${base}/cron"
     registry="${dir}/quarantine.registry"
     if [[ ! -d "${dir}" ]]; then
@@ -659,8 +709,7 @@ g_record_quarantine_origin() {
     signature="${signature//$'\t'/ }"
     signature="${signature//$'\n'/ }"
     moment="$(date -Iseconds 2>/dev/null || date '+%Y-%m-%dT%H:%M:%S%z')"
-    printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
-        "${id}" "${moment}" "${source}" "${origin}" "${stored}" "${signature}" \
+    printf "$(get_text watchdog.t-t-t-t-t "${id}" "${moment}" "${source}" "${origin}" "${stored}" "${signature}")" \
         >> "${registry}" || return 0
     chmod 600 "${registry}" 2>/dev/null || true
     quoted="$(printf '%q' "${id}")"
@@ -669,11 +718,11 @@ g_record_quarantine_origin() {
     return 0
 }
 
-g_queue_existing_restore() {
+queue_existing_restore() {
     local stored="$1"
     local base registry id quoted
     [[ -n "${stored}" && "${stored}" == /* ]] || return 0
-    base="$(g_get_product_base)"
+    base="$(get_product_base)"
     registry="${base}/cron/quarantine.registry"
     [[ -f "${registry}" && -r "${registry}" ]] || return 0
     id="$(awk -F '\t' -v want="${stored}" '$5 == want { print $1; exit }' "${registry}" 2>/dev/null || true)"
@@ -685,19 +734,19 @@ g_queue_existing_restore() {
     return 0
 }
 
-g_take_quarantine_note() {
+take_quarantine_note() {
     local pending body
-    pending="$(g_get_product_base)/cron/quarantine.pending"
+    pending="$(get_product_base)/cron/quarantine.pending"
     [[ -s "${pending}" ]] || return 1
     body="$(cat "${pending}" 2>/dev/null || true)"
     [[ -n "${body}" ]] || return 1
-    NOTE="Pour remettre chaque fichier à son emplacement d'origine, copiez la commande correspondante."
+    NOTE="$(get_text alert.note.quarantine)"
     NOTE_CMD="${body}"
     rm -f "${pending}" 2>/dev/null || true
     return 0
 }
 
-g_read_quarantine_holder() {
+read_quarantine_holder() {
     local target="$1"
     local pid=""
     if command -v lsof >/dev/null 2>&1; then
@@ -709,13 +758,13 @@ g_read_quarantine_holder() {
     printf '%s\n' "${pid}"
 }
 
-g_quarantine_holder_block() {
+quarantine_holder_block() {
     local target="$1"
     shift
     local pid="" comm="" uid="" name=""
     G_QUARANTINE_PID=""
     G_QUARANTINE_COMM=""
-    pid="$(g_read_quarantine_holder "${target}")"
+    pid="$(read_quarantine_holder "${target}")"
     [[ -n "${pid}" && "${pid}" =~ ^[0-9]+$ ]] || return 1
     if [[ "${pid}" == "1" ]]; then
         printf '%s\n' "pid 1"
@@ -728,7 +777,7 @@ g_quarantine_holder_block() {
     fi
     comm="$(cat "/proc/${pid}/comm" 2>/dev/null || true)"
     if [[ -z "${comm}" ]]; then
-        printf '%s\n' "nom absent"
+        printf '%s\n' "$(get_text watchdog.name-absent)"
         return 0
     fi
     for name in "$@"; do
@@ -742,7 +791,7 @@ g_quarantine_holder_block() {
     return 1
 }
 
-g_move_quarantine_file() {
+move_quarantine_file() {
     local origin="$1"
     local quarantine base stamp dest
     quarantine="${W_CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
@@ -779,31 +828,31 @@ g_move_quarantine_file() {
     return 0
 }
 
-g_signal_quarantine_holder() {
+signal_quarantine_holder() {
     local origin="$1"
     local stored="$2"
     shift 2
     local target pid comm reason
     for target in "${origin}" "${stored}"; do
         [[ -n "${target}" && "${target}" != "absent" && -e "${target}" ]] || continue
-        if reason="$(g_quarantine_holder_block "${target}" "$@")"; then
-            printf '%s\n' "processus non arrêté : ${reason}"
+        if reason="$(quarantine_holder_block "${target}" "$@")"; then
+            printf '%s\n' "$(get_text watchdog.process-not-stopped "${reason}")"
             return 0
         fi
         pid="${G_QUARANTINE_PID:-}"
         comm="${G_QUARANTINE_COMM:-}"
         [[ -n "${pid}" ]] || continue
         if kill -TERM "${pid}" 2>/dev/null; then
-            printf '%s\n' "processus ${pid} (${comm}) arrêté"
+            printf '%s\n' "$(get_text watchdog.process-stopped "${pid}" "${comm}")"
         else
-            printf '%s\n' "processus ${pid} non arrêté : signal refusé"
+            printf '%s\n' "$(get_text watchdog.process-not-stopped-signal-rejected "${pid}")"
         fi
         return 0
     done
-    printf '%s\n' "processus non arrêté : aucun détenteur"
+    printf '%s\n' "$(get_text watchdog.process-not-stopped-no-d-tenteur)"
 }
 
-g_quarantine_confirmed_log() {
+quarantine_confirmed_log() {
     local source="$1"
     local log="$2"
     shift 2
@@ -821,22 +870,22 @@ g_quarantine_confirmed_log() {
         G_CONFIRMED_COUNT=$((G_CONFIRMED_COUNT + 1))
         case "${path}" in
             /etc/passwd|/etc/shadow|/etc/sudoers|/etc/ssh/sshd_config|/etc/ufw/ufw.conf|/usr/bin/sudo|/usr/bin/passwd|/usr/sbin/sshd)
-                printf '%s\n' "non mis en quarantaine : ${path}"
+                printf '%s\n' "$(get_text watchdog.not-updated-in-quarantine "${path}")"
                 continue
                 ;;
         esac
-        if reason="$(g_quarantine_holder_block "${path}" "$@")"; then
-            printf '%s\n' "non mis en quarantaine : ${reason}"
+        if reason="$(quarantine_holder_block "${path}" "$@")"; then
+            printf '%s\n' "$(get_text watchdog.not-updated-in-quarantine "${reason}")"
             continue
         fi
-        g_move_quarantine_file "${path}"
+        move_quarantine_file "${path}"
         if [[ "${G_MOVE_ACTION}" != "déplacé en quarantaine" ]]; then
             printf '%s\n' "${G_MOVE_ACTION} : ${path}"
             continue
         fi
-        g_record_quarantine_origin "${source}" "${path}" "${G_MOVE_STORED}" "${source}" || true
-        phrase="$(g_signal_quarantine_holder "${path}" "${G_MOVE_STORED}" "$@")"
-        printf '%s\n' "déplacé en quarantaine : ${path} ; ${phrase} ; quarantaine ${G_MOVE_STORED}"
+        record_quarantine_origin "${source}" "${path}" "${G_MOVE_STORED}" "${source}" || true
+        phrase="$(signal_quarantine_holder "${path}" "${G_MOVE_STORED}" "$@")"
+        printf '%s\n' "$(get_text watchdog.moved-in-quarantine-quarantine "${path}" "${phrase}" "${G_MOVE_STORED}")"
         G_MOVED_COUNT=$((G_MOVED_COUNT + 1))
     done < <(python3 - "${source}" "${log}" << 'PY'
 import re
@@ -870,7 +919,7 @@ PY
     return 0
 }
 
-g_format_egress_body() {
+format_egress_body() {
     local kernel="$1"
     local audit="${2:-}"
     G_EGRESS_AUDIT_FILE="${audit}" python3 - "${kernel}" << 'PY'
@@ -993,8 +1042,739 @@ if blocks:
 PY
 }
 
-g_write_alert_file() {
-    local alert="$1" summary="$2" excerpt="$3" note="$4" note_cmd="$5"
+get_alert_tool() {
+    local module="${1:-}"
+    local log="${2:-}"
+    local summary="${3:-}"
+    local base
+    case "${module}" in
+        aide|Aide|AIDE) printf '%s\n' aide; return 0 ;;
+        chkrootkit|Chkrootkit|CHKROOTKIT) printf '%s\n' chkrootkit; return 0 ;;
+        rkhunter|Rkhunter|RKHUNTER) printf '%s\n' rkhunter; return 0 ;;
+    esac
+    base="$(basename -- "${log:-}" 2>/dev/null || true)"
+    case "${base}" in
+        aide-*|*_aide|*_aide.log) printf '%s\n' aide; return 0 ;;
+        chkrootkit-*|*_chkrootkit|*_chkrootkit.log) printf '%s\n' chkrootkit; return 0 ;;
+        rkhunter-*|*_rkhunter|*_rkhunter.log) printf '%s\n' rkhunter; return 0 ;;
+    esac
+    case "${summary}" in
+        AIDE:*|AIDE\ *) printf '%s\n' aide; return 0 ;;
+        chkrootkit*) printf '%s\n' chkrootkit; return 0 ;;
+        rkhunter*|mirrors.dat*) printf '%s\n' rkhunter; return 0 ;;
+    esac
+    return 1
+}
+
+render_alert_advice() {
+    local tool="${1:-}"
+    local log="${2:-}"
+    local summary="${3:-}"
+    local catalog rendered hold body
+    ADVICE=""
+    ADVICE_HOLD=0
+    catalog="$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}")")/alert-advice.txt"
+    [[ -f "${catalog}" ]] || return 0
+    load_text "${G_LANGUAGE:-en}"
+    rendered=""
+    rendered="$(
+        python3 - "${tool}" "${log}" "${summary}" "${catalog}" << 'PY'
+#!/usr/bin/env python3
+"""Render the false-positive advice for one AIDE, chkrootkit or rkhunter log."""
+
+import os
+import re
+import shlex
+import sys
+
+KEY_RE = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z0-9-]+)+$")
+RECORD_RE = re.compile(r"^\[([a-z][a-z0-9-]*(?:\.[a-z0-9-]+)+)\]$")
+
+
+def read_text_dir(directory, data):
+    if not directory or not os.path.isdir(directory):
+        return
+    for name in sorted(os.listdir(directory)):
+        if not name.endswith(".txt"):
+            continue
+        path = os.path.join(directory, name)
+        if not os.path.isfile(path):
+            continue
+        key = ""
+        value = []
+
+        def store():
+            nonlocal key, value
+            if not key:
+                return
+            text = "\n".join(value)
+            while text.endswith("\n"):
+                text = text[:-1]
+            data[key] = text
+
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            for raw in handle:
+                line = raw.rstrip("\n")
+                match = RECORD_RE.match(line)
+                if match:
+                    store()
+                    key = match.group(1)
+                    value = []
+                    continue
+                if key:
+                    value.append(line)
+            store()
+
+
+def load_dirs(spec):
+    data = {}
+    for directory in (spec or "").split(":"):
+        if directory:
+            read_text_dir(directory, data)
+    return data
+
+
+LANG_TEXT = load_dirs(os.environ.get("G_TEXT_LANG_DIRS", ""))
+EN_TEXT = load_dirs(os.environ.get("G_TEXT_EN_DIRS", ""))
+
+
+def text_get(key):
+    chosen = LANG_TEXT.get(key)
+    if chosen:
+        return chosen
+    chosen = EN_TEXT.get(key)
+    if chosen:
+        return chosen
+    return key
+
+
+def apply_text(text, *args):
+    def repl(match):
+        num = int(match.group(1))
+        if 1 <= num <= len(args):
+            return str(args[num - 1])
+        return match.group(0)
+
+    return re.sub(r"\{(\d+)\}", repl, text)
+
+
+def resolve(value):
+    if not value or "\n" in value:
+        return value or ""
+    if KEY_RE.match(value):
+        return text_get(value)
+    return value
+
+LATE = {
+    "aide.removed",
+    "aide.package",
+    "aide.conffile",
+    "aide.unknown",
+    "chk.unknown",
+    "rk.unknown",
+}
+UNKNOWN = {
+    "aide": "aide.unknown",
+    "chkrootkit": "chk.unknown",
+    "rkhunter": "rk.unknown",
+}
+LOOP_VARS = {
+    "paths": "p",
+    "cmds": "c",
+    "pids": "pid",
+    "bins": "b",
+    "ports": "port",
+    "ifaces": "iface",
+}
+BINARIES = {
+    "amd", "basename", "biff", "chfn", "chsh", "cron", "date", "du", "dirname",
+    "echo", "egrep", "env", "find", "fingerd", "gpm", "grep", "hdparm", "su",
+    "ifconfig", "inetd", "identd", "init", "killall", "login", "ls", "lsof",
+    "mail", "mingetty", "netstat", "named", "passwd", "pidof", "pop2", "pop3",
+    "ps", "pstree", "rpcinfo", "rlogind", "rshd", "slogin", "sendmail", "sshd",
+    "syslogd", "tar", "tcpd", "tcpdump", "top", "telnetd", "timed", "traceroute",
+    "vdir", "w", "write",
+}
+APP_PAIRS = (
+    ("openssh", "openssh-server"),
+    ("openssl", "openssl"),
+    ("exim", "exim4"),
+    ("apache", "apache2"),
+    ("nginx", "nginx"),
+    ("proftpd", "proftpd-basic"),
+    ("vsftpd", "vsftpd"),
+    ("sendmail", "sendmail"),
+    ("bind9", "bind9"),
+    ("named", "bind9"),
+    ("ssh", "openssh-server"),
+)
+AIDE_ENTRY = re.compile(
+    r"^(?:[fdlcbpsDP!?][+.\-:=> <?A-Za-z]*:\s+\S|(?:added|removed|changed):\s+\S)"
+)
+AIDE_HEAD = re.compile(
+    r"^(?:file|directory|fifo|link|block device|character device|"
+    r"socket|door|port|unknown file type):\s+\S",
+    re.I,
+)
+AIDE_DIFF = re.compile(r"^entry \S+ in databases has different attributes\b", re.I)
+AIDE_DB = re.compile(r"^the attributes of the \(uncompressed\) database\b", re.I)
+AIDE_PATH = re.compile(
+    r"^(?:[fdlcbpsDP!?][+.\-:=> <?A-Za-z]*|(?:added|removed|changed)|"
+    r"(?:File|Directory|FIFO|Link|Block device|Character device|Socket|Door|Port|"
+    r"Unknown file type)):\s+(\S.*)$",
+    re.I,
+)
+AIDE_ENTRY_PATH = re.compile(
+    r"^Entry (\S+) in databases has different attributes\b",
+    re.I,
+)
+REMOVED_LINE = re.compile(r"^(?:removed:\s+\S|[fdlcbpsDP!?][-]{3,}:\s+\S)")
+PATH_TOKEN = re.compile(
+    r"(?<![A-Za-z0-9])(/(?:[\w.+@=-]|\\x[0-9A-Fa-f]{2})+"
+    r"(?:/(?:[\w.+@=-]|\\x[0-9A-Fa-f]{2})+)*)"
+)
+
+
+class Finding:
+    def __init__(self, lines, paths):
+        self.lines = lines
+        self.paths = paths
+
+
+def parse_catalog(text):
+    records = []
+    current = None
+    mode = None
+    buf = []
+
+    def flush_mode():
+        nonlocal mode, buf
+        if current is not None and mode:
+            current[mode] = "\n".join(buf).strip("\n")
+        mode = None
+        buf = []
+
+    for raw in text.splitlines():
+        if mode:
+            if raw == mode + ">>":
+                flush_mode()
+            else:
+                buf.append(raw)
+            continue
+        if not raw.strip() or raw.startswith("#"):
+            continue
+        if raw.startswith("[") and raw.endswith("]"):
+            if current:
+                records.append(current)
+            current = {"id": raw[1:-1]}
+            continue
+        if current is None:
+            continue
+        if raw.endswith("<<"):
+            mode = raw[: -2]
+            buf = []
+            continue
+        if "=" in raw:
+            key, value = raw.split("=", 1)
+            current[key.strip()] = value.strip()
+    if current:
+        records.append(current)
+    for rec in records:
+        rec["regex"] = re.compile(rec.get("match") or r"$^")
+        rec["hold"] = rec.get("hold", "0")
+        if rec.get("hold_if"):
+            rec["hold_re"] = re.compile(rec["hold_if"])
+        else:
+            rec["hold_re"] = None
+    return records
+
+
+def normalize_tool(tool):
+    key = (tool or "").strip().lower()
+    if key in {"aide", "chkrootkit", "rkhunter"}:
+        return key
+    return ""
+
+
+def aide_path(line):
+    stripped = line.strip()
+    match = AIDE_ENTRY_PATH.match(stripped)
+    if match:
+        return match.group(1).strip()
+    match = AIDE_PATH.match(stripped)
+    if match:
+        return match.group(1).strip()
+    return ""
+
+
+def aide_findings(text):
+    findings = []
+    for raw in text.splitlines():
+        line = raw.rstrip()
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if AIDE_DB.match(stripped):
+            break
+        if line[:1] in (" ", "\t"):
+            continue
+        if not (AIDE_ENTRY.match(line) or AIDE_HEAD.match(stripped) or AIDE_DIFF.match(stripped)):
+            continue
+        path = aide_path(line)
+        findings.append(Finding([line], [path] if path else []))
+    return findings
+
+
+def is_noise(line):
+    stripped = line.strip()
+    if re.match(r"^\d{4}-\d{2}-\d{2}T", stripped):
+        return True
+    if re.search(r"Rootkit Hunter version", stripped, re.I):
+        return True
+    if re.search(r"\[ (?:OK|Not found|None found|Skipped) \]", stripped):
+        return True
+    if re.match(
+        r"(?i)^(start timestamp|end timestamp|summary:|total number of|"
+        r"added entries|removed entries|changed entries|detailed information|"
+        r"aide found|looking for|checking rkhunter data)",
+        stripped,
+    ):
+        return True
+    return False
+
+
+def is_header(tool, line):
+    stripped = line.strip()
+    if tool == "chkrootkit":
+        return bool(
+            re.search(
+                r"(?i)(INFECTED|PACKET SNIFFER|ifpromisc|deletion|"
+                r"ld\.so\.preload|bpfdoor|haldrund|Checking\s+[`'\"]|"
+                r"bindshell|wtmp|lastlog|\butmp\b|hidden|PROMISC)",
+                stripped,
+            )
+        )
+    return bool(
+        re.search(
+            r"(?i)(^warning:|replaced by a script|possible rootkit|promiscuous|"
+            r"packet sniffer|hidden (?:file|directory|process)|uid of 0|"
+            r"no password|empty password|mirrors\.dat modifié|startup file|"
+            r"world-writable|world writable|immutable|deleted|listening port|"
+            r"hidden port|ld\.so\.preload|\binetd\b|suspect|out of date|"
+            r"rootkit|trojan|malware)",
+            stripped,
+        )
+    )
+
+
+def is_cont(line):
+    if line[:1] in (" ", "\t"):
+        return True
+    stripped = line.strip()
+    if stripped.startswith("/"):
+        return True
+    if re.match(r"(?i)^file:\s+\S", stripped):
+        return True
+    if re.match(r"(?i)^INFECTED\b", stripped):
+        return True
+    return False
+
+
+def looks_like(line):
+    stripped = line.strip()
+    if stripped.startswith("/"):
+        return True
+    return bool(re.search(r"(?i)INFECTED|^warning:", stripped))
+
+
+def extract_paths(text):
+    found = []
+    for line in text.splitlines():
+        match = re.match(r"^\s*(?:File|Directory|Link):\s+(\S.*)$", line, re.I)
+        if match:
+            path = match.group(1).strip()
+            if path not in found:
+                found.append(path)
+            continue
+        for path in PATH_TOKEN.findall(line):
+            if path.startswith("/proc/"):
+                continue
+            if path not in found:
+                found.append(path)
+    return found
+
+
+def other_findings(tool, text):
+    findings = []
+    current = None
+
+    def flush():
+        nonlocal current
+        if not current:
+            return
+        paths = extract_paths("\n".join(current))
+        findings.append(Finding(current, paths))
+        current = None
+
+    for raw in text.splitlines():
+        line = raw.rstrip()
+        if not line.strip():
+            flush()
+            continue
+        if is_noise(line):
+            continue
+        if current is not None and is_cont(line):
+            current.append(line)
+            continue
+        if is_header(tool, line) or looks_like(line):
+            flush()
+            current = [line]
+            continue
+    flush()
+    return findings
+
+
+def is_pkg_path(path):
+    return bool(re.match(r"^/(?:bin|sbin|usr|lib|lib64|boot)(?:/|$)", path or ""))
+
+
+def is_etc_path(path):
+    return path == "/etc" or (path or "").startswith("/etc/")
+
+
+def quote_join(values, limit=40):
+    shown = list(values)[:limit]
+    return " ".join(shlex.quote(value) for value in shown)
+
+
+def drop_empty_loops(script, present):
+    for token, var in LOOP_VARS.items():
+        if present.get(token):
+            continue
+        script = re.sub(
+            rf"for {var} in \{{{token}\}}; do\n.*?^done\n?",
+            "",
+            script,
+            flags=re.S | re.M,
+        )
+        script = script.replace("{" + token + "}", "")
+    return script
+
+
+def apply_tokens(script, present):
+    script = drop_empty_loops(script, present)
+    for token, value in present.items():
+        if value:
+            script = script.replace("{" + token + "}", value)
+    if not present.get("raw_lines"):
+        script = re.sub(r"^printf '%s\\n' \{raw_lines\}\n?", "", script, flags=re.M)
+        script = script.replace("{raw_lines}", "")
+    else:
+        script = script.replace("{raw_lines}", present["raw_lines"])
+    script = re.sub(r"sudo bash << 'EOF'\n\s*EOF\n?", "", script)
+    script = re.sub(r"\n{3,}", "\n\n", script)
+    return script.strip()
+
+
+def extract_cmds(text):
+    found = []
+    for name in re.findall(r"Checking\s+[`'\"]([A-Za-z0-9_.+-]+)[`'\"]", text):
+        if name in BINARIES and name not in found:
+            found.append(name)
+    return found
+
+
+def extract_pids(text):
+    found = []
+    patterns = (
+        r"(?i)\bpid[=: ]+(\d+)",
+        r"\[(\d+)\]",
+        r"/proc/(\d+)\b",
+        r"(?i)\bprocess(?: id)?[=: ]+(\d+)",
+    )
+    for pattern in patterns:
+        for number in re.findall(pattern, text):
+            if number != "0" and number not in found:
+                found.append(number)
+    return found
+
+
+def extract_ports(text):
+    found = []
+    for number in re.findall(r"(?i)ports?\D{0,16}(\d{1,5})\b", text):
+        if number != "0" and number not in found:
+            found.append(number)
+    return found
+
+
+def extract_ifaces(text):
+    found = []
+    pattern = (
+        r"\b((?:docker0|virbr\d+|veth[A-Za-z0-9]+|br-[A-Za-z0-9]+|"
+        r"tun\d+|tap\d+|wg\d+|tailscale\d+|"
+        r"en(?:o|p|s|x)[A-Za-z0-9]+|wl[a-z]*\d+[A-Za-z0-9]*|eth\d+))\b"
+    )
+    for name in re.findall(pattern, text):
+        if name not in found:
+            found.append(name)
+    return found
+
+
+def extract_bins(text):
+    found = []
+    for path in re.findall(r"\((/[^()\s]+)\[\d+\]\)", text):
+        if path not in found:
+            found.append(path)
+    return found
+
+
+def extract_pkgs(text):
+    found = []
+    lower = text.lower()
+    for needle, package in APP_PAIRS:
+        if needle in lower and package not in found:
+            found.append(package)
+    if not found:
+        found = ["openssh-server", "openssl"]
+    return found
+
+
+def build_snap(paths):
+    files = []
+    snaps = []
+    for path in paths:
+        base = os.path.basename(path)
+        match = re.search(r"(snap-.+\.mount)$", base)
+        if not match:
+            continue
+        filename = match.group(1)
+        if filename not in files:
+            files.append(filename)
+        decoded = re.sub(r"(?i)\\x2d", "-", filename)
+        name_match = re.match(r"snap-(.+)-(\d+)\.mount$", decoded)
+        snap = name_match.group(1) if name_match else ""
+        if snap and snap not in snaps:
+            snaps.append(snap)
+    lines = []
+    chosen = files
+    if not chosen:
+        chosen = [os.path.basename(path) for path in paths if path]
+    for filename in chosen:
+        lines.append(
+            "sudo find /etc/systemd/system -name "
+            + shlex.quote(filename)
+            + " -printf '%y %m %u:%g %p\\n'"
+        )
+    if snaps:
+        for snap in snaps:
+            lines.append("snap info " + shlex.quote(snap))
+    else:
+        lines.append("echo " + shlex.quote(text_get("alert.snap.unrecognized")))
+    lines.append("snap changes")
+    return "\n".join(lines)
+
+
+def command_for(rec, paths, raw_lines, text):
+    kind = rec.get("kind") or ""
+    if kind == "snap" or rec["id"] == "aide.snap-mount":
+        return build_snap(paths)
+    present = {
+        "paths": quote_join(paths),
+        "cmds": quote_join(extract_cmds(text)),
+        "pids": quote_join(extract_pids(text)),
+        "bins": quote_join(extract_bins(text) or [path for path in paths if not path.endswith("/")]),
+        "ports": quote_join(extract_ports(text)),
+        "ifaces": quote_join(extract_ifaces(text)),
+        "pkgs": quote_join(extract_pkgs(text) if kind == "apps" or "{pkgs}" in rec.get("command", "") else []),
+        "raw_lines": quote_join(raw_lines),
+    }
+    # bins should stay empty when the template has no real binary path.
+    if not extract_bins(text):
+        present["bins"] = ""
+    if kind != "apps" and "{pkgs}" not in rec.get("command", ""):
+        present["pkgs"] = ""
+    script = apply_tokens(rec.get("command", ""), present)
+    if kind == "promisc" and "for iface in" not in script:
+        extra = "ip -d link show"
+        script = (script + "\n" + extra).strip() if script else extra
+    if re.search(r"\{[a-z_]+\}", script):
+        script = script + "\necho " + shlex.quote(text_get("alert.command.missing"))
+    return script.strip()
+
+
+def classify(tool, findings, records):
+    by_id = {rec["id"]: rec for rec in records}
+    specific = [
+        rec for rec in records if rec.get("tool") == tool and rec["id"] not in LATE
+    ]
+    groups = {}
+    order = []
+    assigned = {}
+
+    def take(rec, finding):
+        gid = rec["id"]
+        if gid not in groups:
+            groups[gid] = {"rec": rec, "lines": [], "paths": []}
+            order.append(gid)
+        group = groups[gid]
+        for line in finding.lines:
+            if line not in group["lines"]:
+                group["lines"].append(line)
+        for path in finding.paths:
+            if path and path not in group["paths"]:
+                group["paths"].append(path)
+                assigned[path] = gid
+
+    for finding in findings:
+        owner = None
+        for path in finding.paths:
+            if path in assigned:
+                owner = assigned[path]
+                break
+        if owner:
+            take(by_id[owner], finding)
+            continue
+        text = "\n".join(finding.lines)
+        chosen = None
+        for rec in specific:
+            if rec["regex"].search(text):
+                chosen = rec
+                break
+        if chosen is None and tool == "aide" and finding.lines and REMOVED_LINE.match(finding.lines[0].strip()):
+            chosen = by_id.get("aide.removed")
+        if (
+            chosen is None
+            and tool == "aide"
+            and finding.paths
+            and is_pkg_path(finding.paths[0])
+        ):
+            chosen = by_id.get("aide.package")
+        if (
+            chosen is None
+            and tool == "aide"
+            and finding.paths
+            and is_etc_path(finding.paths[0])
+        ):
+            chosen = by_id.get("aide.conffile")
+        if chosen is None:
+            chosen = by_id.get(UNKNOWN[tool])
+        if chosen is None:
+            continue
+        take(chosen, finding)
+    return [groups[gid] for gid in order]
+
+
+def section(group):
+    rec = group["rec"]
+    lines = group["lines"]
+    shown = lines[:40]
+    hidden = len(lines) - len(shown)
+    text = "\n".join(lines)
+    command = command_for(rec, group["paths"], shown, text)
+    parts = [resolve(rec.get("title")) or rec["id"]]
+    notice = resolve(rec.get("notice"))
+    if notice:
+        parts.append(notice)
+    parts.append(text_get("alert.label.lines"))
+    parts.extend(shown)
+    if hidden:
+        parts.append(apply_text(text_get("alert.label.more"), hidden))
+    parts.append("")
+    parts.append(text_get("alert.label.command"))
+    parts.append(command)
+    parts.append("")
+    parts.append(text_get("alert.label.benign"))
+    parts.append(resolve(rec.get("benign", "")))
+    parts.append("")
+    parts.append(text_get("alert.label.malicious"))
+    parts.append(resolve(rec.get("malicious", "")))
+    return "\n".join(parts).rstrip()
+
+
+def hold_of(groups):
+    for group in groups:
+        rec = group["rec"]
+        if rec.get("hold") == "1":
+            return 1
+        if rec.get("hold_re") and rec["hold_re"].search("\n".join(group["lines"])):
+            return 1
+    return 0
+
+
+def render(tool, log_text, summary, catalog_text):
+    tool = normalize_tool(tool)
+    if not tool:
+        return "", 0
+    if re.search(
+        r"planté|crashed|abgestürzt|bloqueó|erreur rc=|error rc=|Fehler rc=|"
+        r"n'est pas allé au bout|did not finish|nicht zu Ende|no llegó al final",
+        summary or "",
+        re.I,
+    ):
+        return "", 0
+    records = parse_catalog(catalog_text)
+    body = log_text or ""
+    for mark in (
+        "mirrors.dat modifié hors",
+        "mirrors.dat changed outside",
+        "mirrors.dat geändert außerhalb",
+        "mirrors.dat modificado fuera",
+    ):
+        if summary and mark in summary and mark not in body:
+            body = summary + "\n" + body
+            break
+    if tool == "aide":
+        findings = aide_findings(body)
+    else:
+        findings = other_findings(tool, body)
+    if not findings:
+        return "", 0
+    groups = classify(tool, findings, records)
+    if not groups:
+        return "", 0
+    advice = "\n\n".join(section(group) for group in groups)
+    return advice, hold_of(groups)
+
+
+def main():
+    tool = sys.argv[1] if len(sys.argv) > 1 else ""
+    log_path = sys.argv[2] if len(sys.argv) > 2 else ""
+    summary = sys.argv[3] if len(sys.argv) > 3 else ""
+    catalog_path = sys.argv[4] if len(sys.argv) > 4 else ""
+    log_text = ""
+    if log_path and os.path.isfile(log_path):
+        with open(log_path, encoding="utf-8", errors="replace") as handle:
+            log_text = handle.read()
+    with open(catalog_path, encoding="utf-8") as handle:
+        catalog_text = handle.read()
+    advice, hold = render(tool, log_text, summary, catalog_text)
+    sys.stdout.write(f"HOLD={hold}\n---\n")
+    if advice:
+        sys.stdout.write(advice)
+        if not advice.endswith("\n"):
+            sys.stdout.write("\n")
+
+
+if __name__ == "__main__":
+    main()
+PY
+    )" || rendered=""
+    hold="${rendered%%$'\n'*}"
+    body="${rendered#*$'\n'}"
+    case "${body}" in
+        ---) body="" ;;
+        ---$'\n'*) body="${body#---$'\n'}" ;;
+    esac
+    case "${hold}" in
+        HOLD=1) ADVICE_HOLD=1 ;;
+        *) ADVICE_HOLD=0 ;;
+    esac
+    ADVICE="${body}"
+    return 0
+}
+
+write_alert_file() {
+    local alert="$1" summary="$2" excerpt="$3" advice="$4" note="$5" note_cmd="$6"
     local dir
     [[ -n "${alert}" ]] || return 0
     dir="$(dirname -- "${alert}")"
@@ -1003,6 +1783,9 @@ g_write_alert_file() {
         printf '%s\n' "${summary}"
         if [[ -n "${excerpt}" ]]; then
             printf '\n%s\n' "${excerpt}"
+        fi
+        if [[ -n "${advice}" ]]; then
+            printf '\n%s\n' "${advice}"
         fi
         if [[ -n "${note}" ]]; then
             printf '\n%s\n' "${note}"
@@ -1013,35 +1796,36 @@ g_write_alert_file() {
     } > "${alert}" || true
 }
 
-g_copy_alert_drive() {
+copy_alert_drive() {
     local alert="${1:-}"
     local base remote path config
     [[ "${G_RCLONE_ALERTS:-0}" == "1" ]] || return 0
     [[ -n "${alert}" && -f "${alert}" ]] || return 0
-    base="$(g_get_product_base)"
+    base="$(get_product_base)"
     remote="${G_RCLONE_REMOTE:-}"
     path="${G_RCLONE_PATH:-}"
     config="${base}/cron/rclone.conf"
     if [[ -z "${remote}" || -z "${path}" || ! -f "${config}" ]]; then
-        printf '%s\n' "Copie Drive ignorée." >&2
+        printf '%s\n' "$(get_text watchdog.copy-drive-ignored)" >&2
         return 0
     fi
     if ! command -v rclone >/dev/null 2>&1; then
-        printf '%s\n' "Copie Drive ignorée : rclone absent." >&2
+        printf '%s\n' "$(get_text watchdog.copy-drive-ignored-rclone-absent)" >&2
         return 0
     fi
     if ! RCLONE_CONFIG="${config}" rclone copy "${alert}" "${remote}:${path}" >/dev/null 2>&1; then
-        printf '%s\n' "Copie Drive refusée. Le fichier local est conservé." >&2
+        printf '%s\n' "$(get_text watchdog.copy-drive-rejected-the-file-local-is-kept)" >&2
     fi
     return 0
 }
 
-g_log_alert() {
+log_alert() {
     local summary="$*"
-    local excerpt="" module log alert line send base note="" note_cmd=""
+    local excerpt="" module log alert line send base note="" note_cmd="" tool=""
+    local hold_note="$(get_text alert.hold.note)"
     log="${LOG_FILE:-${LOG:-}}"
     alert="${ALERT_FILE:-}"
-    excerpt="$(g_get_alert_excerpt "${log}")"
+    excerpt="$(get_alert_excerpt "${log}")"
     line="$(printf '%s %s' "$(date -Iseconds)" "${summary}")"
     if [[ -n "${log}" ]]; then
         printf '%s\n' "${line}" | tee -a "${log}"
@@ -1052,31 +1836,46 @@ g_log_alert() {
     if [[ -z "${module}" && -n "${log}" ]]; then
         module="$(basename "${log}" | sed -E 's/-[0-9]{8}-.*//')"
     fi
-    module="${module:-contrôle}"
-    base="$(g_get_product_base)"
-    if g_take_quarantine_note; then
+    module="${module:-$(get_text alert.module.fallback)}"
+    base="$(get_product_base)"
+    ADVICE=""
+    ADVICE_HOLD=0
+    if take_quarantine_note; then
         note=""
         note_cmd=""
-    elif [[ "${W_AIDE_REFRESH:-}" == "1" ]]; then
-        note="Si ce journal correspond à des changements attendus (une mise à jour, un logiciel que vous avez installé, un fichier que vous avez modifié) et qu'il ne révèle pas d'anomalie, exécutez la commande ci-dessous. Elle recalcule la base de référence AIDE à partir du disque actuel."
-        note_cmd="sudo bash ${base}/bin/aide-refresh-db.sh"
-    elif [[ "${W_RKHUNTER_REFRESH:-}" == "1" ]]; then
-        g_prepare_rkhunter_note
-        note="${NOTE}"
-        note_cmd="${NOTE_CMD}"
-    elif [[ "${W_CHKROOTKIT_IGNORE:-}" == "1" && -n "${log}" ]]; then
-        note="Si les lignes de ce journal sont des faux positifs que vous reconnaissez, et qu'aucune ne révèle une anomalie, exécutez la commande ci-dessous. Elle enregistre ces détections. Le prochain contrôle de chkrootkit ne les signalera plus."
-        note_cmd="sudo bash ${base}/bin/chkrootkit-ignore-log.sh '${log}'"
-    elif [[ "${W_DEBSUMS_IGNORE:-}" == "1" && -n "${log}" ]]; then
-        note="Si les lignes de ce journal sont des faux positifs que vous reconnaissez, et qu'aucune ne révèle une anomalie, exécutez la commande ci-dessous. Elle enregistre ces fichiers. Le prochain contrôle de debsums ne les signalera plus."
-        note_cmd="sudo bash ${base}/bin/debsums-ignore-log.sh '${log}'"
+        ADVICE=""
+        ADVICE_HOLD=0
+    else
+        if [[ "${W_AIDE_REFRESH:-}" == "1" ]]; then
+            note="$(get_text alert.note.aide)"
+            note_cmd="sudo bash ${base}/bin/aide-refresh-db.sh"
+        elif [[ "${W_RKHUNTER_REFRESH:-}" == "1" ]]; then
+            prepare_rkhunter_note
+            note="${NOTE}"
+            note_cmd="${NOTE_CMD}"
+        elif [[ "${W_CHKROOTKIT_IGNORE:-}" == "1" && -n "${log}" ]]; then
+            note="$(get_text alert.note.chkrootkit)"
+            note_cmd="sudo bash ${base}/bin/chkrootkit-ignore-log.sh '${log}'"
+        elif [[ "${W_DEBSUMS_IGNORE:-}" == "1" && -n "${log}" ]]; then
+            note="$(get_text alert.note.debsums)"
+            note_cmd="sudo bash ${base}/bin/debsums-ignore-log.sh '${log}'"
+        fi
+        if tool="$(get_alert_tool "${module}" "${log}" "${summary}")"; then
+            render_alert_advice "${tool}" "${log}" "${summary}"
+            if [[ "${ADVICE_HOLD:-0}" == "1" && -n "${note_cmd}" ]]; then
+                note="${hold_note}"
+            fi
+        fi
     fi
     if [[ -z "${NOTE:-}" && -n "${note}" ]]; then
         NOTE="${note}"
         NOTE_CMD="${note_cmd}"
     fi
+    if [[ "${ADVICE_HOLD:-0}" == "1" && -n "${NOTE_CMD:-}" ]]; then
+        NOTE="${hold_note}"
+    fi
     if [[ -z "${TITLE:-}" ]]; then
-        TITLE="Alerte ${module}"
+        TITLE="$(get_text alert.title.module "${module}")"
     fi
     if [[ -z "${G_PROJECT_NAME:-}" ]]; then
         if [[ -n "${W_BASE:-}" ]]; then
@@ -1085,9 +1884,9 @@ g_log_alert() {
             G_PROJECT_NAME="Liltress"
         fi
     fi
-    g_write_alert_file "${alert}" "${summary}" "${excerpt}" "${NOTE:-}" "${NOTE_CMD:-}"
+    write_alert_file "${alert}" "${summary}" "${excerpt}" "${ADVICE:-}" "${NOTE:-}" "${NOTE_CMD:-}"
     if [[ "${G_MAIL_ALERTS:-0}" == "1" && -n "${G_WATCHDOG_MAIL:-}" ]]; then
-        send="$(g_send_path)" || true
+        send="$(send_path)" || true
         if [[ -n "${send}" ]]; then
             TITLE="${TITLE}" \
             MODULE_NAME="${module}" \
@@ -1096,59 +1895,60 @@ g_log_alert() {
 ${excerpt}" \
             NOTE="${NOTE:-}" \
             NOTE_CMD="${NOTE_CMD:-}" \
+            ADVICE="${ADVICE:-}" \
             G_WATCHDOG_MAIL="${G_WATCHDOG_MAIL}" \
             G_PROJECT_NAME="${G_PROJECT_NAME}" \
             G_MAIL_TEMPLATE="${G_MAIL_TEMPLATE:-mail.html}" \
                 bash "${send}" || true
         fi
     fi
-    g_copy_alert_drive "${alert}" || true
+    copy_alert_drive "${alert}" || true
 }
 
-g_report_clamav() {
+report_clamav() {
     local crashed=0 signal phrase log
     log="${LOG_FILE:-${LOG:-}}"
     [[ -n "${log}" && -f "${log}" ]] || return 1
     crashed="$(grep -c 'planté signal .* sur ' "${log}" || true)"
     [[ "${crashed}" -gt 0 ]] || return 1
     signal="$(sed -n 's/.*planté signal \([0-9][0-9]*\).*/\1/p' "${log}" | head -n 1)"
-    phrase="$(g_signal_phrase "${signal}")"
+    phrase="$(signal_phrase "${signal}")"
     if grep -q 'contrôle arrêté' "${log}"; then
-        g_log_alert "ClamAV a planté deux fois de suite (signal ${signal}, ${phrase}). Le contrôle s'est arrêté. Les fichiers restants n'ont pas été analysés."
+        log_alert "$(get_text watchdog.clamav-crashed-twice-in-a-row-signal-the-check-s "${signal}" "${phrase}")"
     elif [[ "${crashed}" -eq 1 ]]; then
-        g_log_alert "ClamAV a planté (signal ${signal}, ${phrase}) sur un fichier. Ce fichier n'a pas été analysé. Les autres fichiers ont été poursuivis."
+        log_alert "$(get_text watchdog.clamav-crashed-signal-on-one-file-that-file-was "${signal}" "${phrase}")"
     else
-        g_log_alert "ClamAV a planté (signal ${signal}, ${phrase}) sur ${crashed} fichiers. Ces fichiers n'ont pas été analysés. Les autres fichiers ont été poursuivis."
+        log_alert "$(get_text watchdog.clamav-crashed-signal-on-files-those-files-were "${signal}" "${phrase}" "${crashed}")"
     fi
     return 0
 }
 
-g_render_mail_about() {
+render_mail_about() {
     case "${MODULE_NAME:-}" in
-        Aide) printf '%s\n' "Intégrité des fichiers surveillés par AIDE (aide --check)." ;;
-        Chkrootkit) printf '%s\n' "Recherche de rootkits (chkrootkit -x -q)." ;;
-        Rkhunter) printf '%s\n' "Recherche de rootkits et fichiers modifiés (rkhunter --check)." ;;
-        Clamav) printf '%s\n' "Fichiers signalés par ClamAV (quarantaine et journaux)." ;;
-        Auditd) printf '%s\n' "Événements d'audit anormaux (ausearch)." ;;
-        Debsums) printf '%s\n' "Fichiers de paquets dont la somme a changé (debsums -c)." ;;
-        Fail2ban) printf '%s\n' "Bannissements Fail2Ban des dernières 24 h." ;;
-        Crowdsec) printf '%s\n' "Décisions et alertes CrowdSec des dernières 24 h." ;;
-        Ufw) printf '%s\n' "Paquets bloqués par UFW." ;;
-        Reboot) printf '%s\n' "Un redémarrage est utile. La machine n'a pas été redémarrée." ;;
-        *) printf '%s\n' "Message du module ${MODULE_NAME:-inconnu}." ;;
+        Aide) printf '%s\n' "$(get_text log.integrity-of-the-files-watched-by-help-help-chec)" ;;
+        Chkrootkit) printf '%s\n' "$(get_text watchdog.about.chkrootkit)" ;;
+        Rkhunter) printf '%s\n' "$(get_text log.search-of-rootkits-and-files-changed-rkhunter-ch)" ;;
+        Clamav) printf '%s\n' "$(get_text log.files-reported-by-clamav-quarantine-and-journals)" ;;
+        Auditd) printf '%s\n' "$(get_text log.events-of-audit-abnormal-ausearch)" ;;
+        Debsums) printf '%s\n' "$(get_text log.files-of-packages-whose-the-checksum-a-changed-d)" ;;
+        Fail2ban) printf '%s\n' "$(get_text log.bans-fail2ban-of-the-derni-res-24-h)" ;;
+        Crowdsec) printf '%s\n' "$(get_text log.decisions-and-alerts-crowdsec-of-the-derni-res-2)" ;;
+        Ufw) printf '%s\n' "$(get_text log.packages-blocked-by-ufw)" ;;
+        Reboot) printf '%s\n' "$(get_text watchdog.a-restart-is-useful-the-machine-was-not-restarte)" ;;
+        *) printf '%s\n' "$(get_text watchdog.about.module "${MODULE_NAME:-$(get_text watchdog.module.unknown)}")" ;;
     esac
 }
 
-g_deliver_mail() {
+deliver_mail() {
     local script_dir detail _mail_sh _candidate tpl
     script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[1]}")" && pwd)"
     detail="$(printf '%s' "${CONTENT:-}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
     if [[ -z "${detail}" ]]; then
-        echo "Mail non envoyé (${MODULE_NAME:-?}) : corps vide." >&2
+        echo "$(get_text watchdog.mail-not-sent-empty-body "${MODULE_NAME:-?}")" >&2
         exit 0
     fi
     if [[ "${G_MAIL_ABOUT:-0}" == "1" ]]; then
-        CONTENT="$(g_render_mail_about)
+        CONTENT="$(render_mail_about)
 
 ${detail}"
     else
@@ -1156,8 +1956,8 @@ ${detail}"
     fi
     HOSTNAME="$(hostname -s 2>/dev/null || hostname)"
     DATE="${DATE:-$(date '+%Y-%m-%d %H:%M:%S')}"
-    TITLE="${TITLE:-Alerte}"
-    MODULE_NAME="${MODULE_NAME:-alerte}"
+    TITLE="${TITLE:-$(get_text alert.title.short)}"
+    MODULE_NAME="${MODULE_NAME:-$(get_text alert.module.mail)}"
     if [[ -z "${G_PROJECT_NAME:-}" ]]; then
         if [[ -n "${W_BASE:-}" ]]; then
             G_PROJECT_NAME="Liltress Workstation"
@@ -1168,6 +1968,7 @@ ${detail}"
     export TITLE G_PROJECT_NAME HOSTNAME DATE MODULE_NAME CONTENT
     export NOTE="${NOTE:-}"
     export NOTE_CMD="${NOTE_CMD:-}"
+    export ADVICE="${ADVICE:-}"
     _mail_sh=""
     for _candidate in \
         "${script_dir}/mail.sh" \
@@ -1187,39 +1988,39 @@ ${detail}"
         fi
     done
     if [[ -z "${_mail_sh}" ]]; then
-        echo "Mail non envoyé (${MODULE_NAME}) : core/mail.sh introuvable." >&2
+        echo "$(get_text watchdog.mail-not-sent-core-mail-sh-not-found "${MODULE_NAME}")" >&2
         exit 0
     fi
     # shellcheck disable=SC1090
     source "${_mail_sh}"
-    tpl="$(g_locate_mail_template "${script_dir}")" || {
-        echo "Mail non envoyé (${MODULE_NAME}) : modèle HTML introuvable." >&2
+    tpl="$(locate_mail_template "${script_dir}")" || {
+        echo "$(get_text watchdog.mail-not-sent-template-html-not-found "${MODULE_NAME}")" >&2
         exit 0
     }
     if [[ "${G_MAIL_REDACT:-0}" == "1" ]]; then
-        if ! MAIL_CONTENT="$(G_MAIL_REDACT=1 g_render_mail "${tpl}")"; then
-            echo "Mail non envoyé (${MODULE_NAME}) : modèle HTML invalide." >&2
+        if ! MAIL_CONTENT="$(G_MAIL_REDACT=1 render_mail "${tpl}")"; then
+            echo "$(get_text watchdog.mail-not-sent-template-html-invalid "${MODULE_NAME}")" >&2
             exit 0
         fi
-    elif ! MAIL_CONTENT="$(g_render_mail "${tpl}")"; then
-        echo "Mail non envoyé (${MODULE_NAME}) : modèle HTML invalide." >&2
+    elif ! MAIL_CONTENT="$(render_mail "${tpl}")"; then
+        echo "$(get_text watchdog.mail-not-sent-template-html-invalid "${MODULE_NAME}")" >&2
         exit 0
     fi
     if [[ -n "${HTML_REPORT:-}" ]]; then
         printf '%s\n' "${MAIL_CONTENT}" > "${HTML_REPORT}" || true
-        g_copy_alert_drive "${HTML_REPORT}" || true
+        copy_alert_drive "${HTML_REPORT}" || true
     fi
     if [[ "${G_MAIL_REQUIRE_FLAG:-0}" == "1" ]]; then
         if [[ "${G_MAIL_ALERTS:-0}" != "1" || -z "${G_WATCHDOG_MAIL:-}" ]]; then
-            echo "Mail non envoyé (${MODULE_NAME:-?}) : alertes e-mail coupées." >&2
+            echo "$(get_text watchdog.mail-not-sent-alerts-e-mail-off "${MODULE_NAME:-?}")" >&2
             exit 0
         fi
     elif [[ -z "${G_WATCHDOG_MAIL:-}" ]]; then
-        echo "Mail non envoyé (${MODULE_NAME:-?}) : destinataire ou corps vide." >&2
+        echo "$(get_text watchdog.mail-not-sent-destinataire-or-empty-body "${MODULE_NAME:-?}")" >&2
         exit 0
     fi
     if ! command -v mail >/dev/null 2>&1; then
-        echo "Mail non envoyé (${MODULE_NAME:-?}) : commande mail absente." >&2
+        echo "$(get_text watchdog.mail-not-sent-command-mail-absent "${MODULE_NAME:-?}")" >&2
         exit 0
     fi
     printf '%s\n' "${MAIL_CONTENT}" | mail -s "${G_PROJECT_NAME} - ${HOSTNAME} - ${MODULE_NAME}" \

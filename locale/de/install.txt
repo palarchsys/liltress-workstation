@@ -1,0 +1,254 @@
+# =============================================================================
+# File       : workstation/locale/de/install.txt
+# Updated at : 2026-10-31
+# Creator    : palarchsys
+# =============================================================================
+
+[install.accounting-and-pam-lynis-acct-auth]
+Accounting und PAM (Lynis ACCT / AUTH)
+
+[install.activation-of-livepatch]
+Aktivierung von Livepatch
+
+[install.activation-of-the-architecture-i386]
+Aktivierung des Architektur i386
+
+[install.activation-of-ubuntu-pro]
+Aktivierung von Ubuntu Pro ({1})
+
+[install.apparmor-installed-profiles-of-the-distribution]
+AppArmor installiert (Profile von die Distribution nur)
+
+[install.architecture-i386-already-enabled]
+Architektur i386 bereits aktiviert
+
+[install.architecture-i386-enabled]
+Architektur i386 aktiviert
+
+[install.architecture-i386-not-required-outside-amd64]
+Architektur {1} — i386 nicht erforderlich außerhalb amd64
+
+[install.attachment-of-ubuntu-pro]
+Anhang von Ubuntu Pro
+
+[install.auditd-installed-2]
+auditd installiert
+
+[install.check-of-the-architecture-i386]
+Prüfung von Architektur i386
+
+[install.check-of-the-attachment-ubuntu-pro]
+Prüfung von Anhang Ubuntu Pro
+
+[install.chkrootkit-installed-2]
+chkrootkit installiert
+
+[install.clamav-installed-2]
+ClamAV installiert
+
+[install.configuration-of-rng-tools-debian-hwrng-if-prese]
+Konfiguration von rng-tools-debian (HWRNG wenn vorhanden, sonst haveged)
+
+[install.configuration-of-the-repository-lynis]
+Konfiguration des Depot Lynis
+
+[install.creation-of-etc-apt-keyrings]
+Erstellung von /etc/apt/keyrings
+
+[install.crowdsec-comes-of-the-repository-ubuntu-no-packa]
+CrowdSec {1} kommt des Depot Ubuntu, kein packagecloud.
+
+[install.crowdsec-installed]
+CrowdSec installiert ({1})
+
+[install.debsums-installed]
+debsums installiert
+
+[install.download-of-the-key-gpg-lynis]
+Download der Schlüssel GPG Lynis
+
+[install.entropy-haveged-rng-tools-debian]
+Entropie (haveged + rng-tools-debian)
+
+[install.fail2ban-installed]
+Fail2Ban installiert
+
+[install.haveged-enabled]
+haveged aktiviert
+
+[install.haveged-installed-but-inactive-2]
+haveged installiert aber inaktiv
+
+[install.installation-apparmor-2]
+Installation AppArmor
+
+[install.installation-auditd]
+Installation auditd
+
+[install.installation-chkrootkit]
+Installation chkrootkit
+
+[install.installation-clamav-2]
+Installation ClamAV
+
+[install.installation-debsums-2]
+Installation debsums
+
+[install.installation-of-apparmor-2]
+Installation von AppArmor
+
+[install.installation-of-auditd-2]
+Installation von auditd
+
+[install.installation-of-chkrootkit-2]
+Installation von chkrootkit
+
+[install.installation-of-clamav]
+Installation von ClamAV
+
+[install.installation-of-crowdsec-2]
+Installation von CrowdSec
+
+[install.installation-of-debsums]
+Installation von debsums
+
+[install.installation-of-fail2ban]
+Installation von Fail2Ban
+
+[install.installation-of-haveged-and-of-rng-tools-debian]
+Installation von haveged und von rng-tools-debian
+
+[install.installation-of-help-2]
+Installation von AIDE
+
+[install.installation-of-postfix]
+Installation von Postfix
+
+[install.installation-of-postfix-send-only-internet-site]
+Installation von Postfix (Senden einziger, Internet Site)
+
+[install.installation-of-rkhunter-2]
+Installation von rkhunter
+
+[install.installation-of-the-accounting-and-of-pam]
+Installation der Accounting und von PAM
+
+[install.installation-of-the-client-ubuntu-pro]
+Installation des Client Ubuntu Pro
+
+[install.installation-of-ubuntu-pro]
+Installation von Ubuntu Pro
+
+[install.installation-of-ufw-2]
+Installation von UFW
+
+[install.installation-of-unattended-upgrades]
+Installation von unattended-upgrades
+
+[install.installation-of-unbound]
+Installation von Unbound
+
+[install.installation-rkhunter]
+Installation rkhunter
+
+[install.installation-unattended-upgrades]
+Installation unattended-upgrades
+
+[install.installation-unbound]
+Installation Unbound
+
+[install.intermediate-version-esm-infra-esm-apps-and-live]
+Version Zwischen-: esm-infra, esm-apps und Livepatch sind nicht aktiviert.
+
+[install.key-gpg-lynis-installed]
+Schlüssel GPG Lynis installiert
+
+[install.liltress-workstation-lynis-cryp-8004]
+# Liltress Workstation — Lynis CRYP-8004
+
+[install.multiarch-i386]
+Multiarch i386
+
+[install.no-hwrng-exploitable-entropy-via-haveged-ok-desk]
+Kein HWRNG ausnutzbar — Entropie über haveged (OK desktop)
+
+[install.packages-acct-sysstat-and-libpam-pwquality-insta]
+Pakete acct, sysstat und libpam-pwquality installiert
+
+[install.record-of-the-repository-crowdsec]
+Aufzeichnung des Depot CrowdSec
+
+[install.repository-crowdsec]
+Depot CrowdSec
+
+[install.repository-crowdsec-saved]
+Depot CrowdSec gespeichert
+
+[install.repository-lynis-cisofy]
+Depot Lynis CISOfy
+
+[install.repository-lynis-configured-sources-ubuntu-not-c]
+Depot Lynis konfiguriert (Quellen Ubuntu nicht geändert)
+
+[install.rkhunter-installed-2]
+rkhunter installiert
+
+[install.rngd-enabled]
+rngd aktiviert
+
+[install.tools-of-base]
+Werkzeuge von Basis
+
+[install.tree-project]
+Baum Projekt
+
+[install.ubuntu-pro]
+Ubuntu Pro
+
+[install.ubuntu-pro-already-attached]
+Ubuntu Pro: bereits angehängt
+
+[install.ubuntu-pro-attach-a-failed-required]
+Ubuntu Pro attach a fehlgeschlagen (erforderlich): {1}
+
+[install.ubuntu-pro-enabled]
+Ubuntu Pro: {1} aktiviert
+
+[install.ubuntu-pro-installed]
+Ubuntu Pro installiert
+
+[install.ubuntu-pro-livepatch-enabled]
+Ubuntu Pro: livepatch aktiviert
+
+[install.ubuntu-pro-livepatch-not-enabled-installation-co]
+Ubuntu Pro: livepatch nicht aktiviert, Installation fortgesetzte
+
+[install.ubuntu-pro-machine-attached]
+Ubuntu Pro: Rechner angehängt
+
+[install.ubuntu-pro-missing-token-in-secrets-conf-rerun-b]
+Ubuntu Pro: Token fehlend in Geheimnisse.conf. Erneut starten: bash {1}/liltress konfiguriert
+
+[install.ubuntu-pro-not-enabled-installation-continued]
+Ubuntu Pro: {1} nicht aktiviert, Installation fortgesetzte
+
+[install.ubuntu-pro-the-machine-is-not-attached-after-pro]
+Ubuntu Pro: die Rechner ist nicht angehängt nach pro attach.
+
+[install.unattended-upgrades-installed]
+unattended-upgrades installiert
+
+[install.unbound-installed]
+Unbound installiert
+
+[install.update-finished]
+Aktualisierung beendet
+
+[install.update-of-the-system]
+Aktualisierung des System
+
+[install.update-system]
+Aktualisierung System
+
+[install.postfix-installed-2]
+Postfix installiert

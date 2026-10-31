@@ -1,12 +1,13 @@
 <!--
   Modèle d'alerte. Les mots TITLE, G_PROJECT_NAME, HOSTNAME, DATE, MODULE_NAME,
-  CONTENT, NOTE et NOTE_CMD, écrits avec un dollar et des accolades, sont
-  remplacés à l'envoi. Le bloc NOTE_START / NOTE_END est retiré quand la note
+  CONTENT, ADVICE, NOTE et NOTE_CMD, écrits avec un dollar et des accolades, sont
+  remplacés à l'envoi. Le bloc ADVICE_START / ADVICE_END est retiré quand le
+  conseil est vide. Le bloc NOTE_START / NOTE_END est retiré quand la note
   est vide. Pour un autre style, ajoutez un fichier .html dans ce dossier et
   nommez-le dans G_MAIL_TEMPLATE (global.conf). Défaut : mail.html.
 -->
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="${MAIL_LANG}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,7 +29,7 @@
 </tr>
 <tr>
 <td style="padding:16px 16px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.4;color:#cbd5e1;">
-<strong>Module :</strong> ${MODULE_NAME}
+<strong>${MAIL_MODULE}</strong> ${MODULE_NAME}
 </td>
 </tr>
 <tr>
@@ -36,6 +37,13 @@
 <pre style="margin:0;width:100%;max-width:100%;box-sizing:border-box;display:block;background-color:#020617;border:1px solid #334155;border-radius:8px;padding:16px;color:#e2e8f0;font-family:Consolas,Courier New,monospace;font-size:13px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word;word-break:break-word;overflow-wrap:break-word;overflow-x:auto;">${CONTENT}</pre>
 </td>
 </tr>
+<!--ADVICE_START-->
+<tr>
+<td style="padding:0 16px 16px;font-family:Consolas,Courier New,monospace;">
+<pre style="margin:0;width:100%;max-width:100%;box-sizing:border-box;display:block;background-color:#020617;border:1px solid #334155;border-radius:8px;padding:16px;color:#e2e8f0;font-family:Consolas,Courier New,monospace;font-size:13px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word;word-break:break-word;overflow-wrap:break-word;overflow-x:auto;">${ADVICE}</pre>
+</td>
+</tr>
+<!--ADVICE_END-->
 <!--NOTE_START-->
 <tr>
 <td style="padding:0 16px 16px;">

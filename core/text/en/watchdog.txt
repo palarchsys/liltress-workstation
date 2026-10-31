@@ -1,0 +1,128 @@
+# =============================================================================
+# File       : core/text/en/watchdog.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[watchdog.mail-not-sent-core-mail-sh-not-found]
+Mail not sent ({1}): core/mail.sh not found.
+
+[watchdog.mail-not-sent-empty-body]
+Mail not sent ({1}): empty body.
+
+[watchdog.mail-not-sent-template-html-invalid]
+Mail not sent ({1}): template HTML invalid.
+
+[watchdog.mail-not-sent-template-html-not-found]
+Mail not sent ({1}): template HTML not found.
+
+[watchdog.mirrors-dat-changed-outside-rkhunter-update]
+mirrors.dat changed outside rkhunter --update
+
+[watchdog.signal]
+signal {1}
+
+[watchdog.t-t-t-t-t]
+{1}\t{2}\t{3}\t{4}\t{5}\t{6}
+
+[watchdog.the-check-crashed-signal-it-did-not-finish]
+The check {1} crashed (signal {2}, {3}). It did not finish.
+
+[watchdog.the-check-stopped-code-it-did-not-finish]
+The check {1} stopped (code {2}). It did not finish.
+
+[watchdog.the-journal-is]
+ The journal is {1}.
+
+[watchdog.mail-not-sent-alerts-e-mail-off]
+Mail not sent ({1}): alerts e-mail off.
+
+[watchdog.mail-not-sent-destinataire-or-empty-body]
+Mail not sent ({1}): destinataire or empty body.
+
+[watchdog.mail-not-sent-command-mail-absent]
+Mail not sent ({1}): command mail absent.
+
+[watchdog.execution-since-a-directory-temporary]
+execution since a directory temporary
+
+[watchdog.invalid-memory-access]
+invalid memory access
+
+[watchdog.forced-stop]
+forced stop
+
+[watchdog.internal-program-error]
+internal program error
+
+[watchdog.interrupted-write]
+interrupted write
+
+[watchdog.stop-request]
+stop request
+
+[watchdog.name-absent]
+name absent
+
+[watchdog.process-not-stopped]
+process not stopped: {1}
+
+[watchdog.process-stopped]
+process {1} ({2}) stopped
+
+[watchdog.process-not-stopped-signal-rejected]
+process {1} not stopped: signal rejected
+
+[watchdog.process-not-stopped-no-d-tenteur]
+process not stopped: no détenteur
+
+[watchdog.not-updated-in-quarantine]
+not updated in quarantine: {1}
+
+[watchdog.moved-in-quarantine-quarantine]
+moved in quarantine: {1}; {2}; quarantine {3}
+
+[watchdog.copy-drive-ignored]
+Copy Drive ignored.
+
+[watchdog.copy-drive-ignored-rclone-absent]
+Copy Drive ignored: rclone absent.
+
+[watchdog.copy-drive-rejected-the-file-local-is-kept]
+Copy Drive rejected. The file local is kept.
+
+[watchdog.clamav-crashed-twice-in-a-row-signal-the-check-s]
+ClamAV crashed twice in a row (signal {1}, {2}). The check stopped. The remaining files were not scanned.
+
+[watchdog.clamav-crashed-signal-on-one-file-that-file-was]
+ClamAV crashed (signal {1}, {2}) on one file. That file was not scanned. The other files were continued.
+
+[watchdog.clamav-crashed-signal-on-files-those-files-were]
+ClamAV crashed (signal {1}, {2}) on {3} files. Those files were not scanned. The other files were continued.
+
+[watchdog.a-restart-is-useful-the-machine-was-not-restarte]
+A restart is useful. The machine was not restarted.
+
+[watchdog.initial-fingerprint-written]
+initial fingerprint written
+
+[watchdog.integrity-unchanged]
+integrity unchanged
+
+[watchdog.integrity-fingerprint-changed]
+integrity: fingerprint changed
+
+[watchdog.signal.abort]
+program abort
+
+[watchdog.module.unknown]
+unknown
+
+[watchdog.about.chkrootkit]
+Rootkit search (chkrootkit -x -q).
+
+[watchdog.about.module]
+Message from module {1}.
+
+[log.watchdog-not-found]
+watchdog.sh not found

@@ -1,0 +1,128 @@
+# =============================================================================
+# File       : core/text/de/watchdog.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[watchdog.mail-not-sent-core-mail-sh-not-found]
+Mail nicht gesendet ({1}): core/mail.sh nicht gefunden.
+
+[watchdog.mail-not-sent-empty-body]
+Mail nicht gesendet ({1}): Körper leer.
+
+[watchdog.mail-not-sent-template-html-invalid]
+Mail nicht gesendet ({1}): Vorlage HTML ungültig.
+
+[watchdog.mail-not-sent-template-html-not-found]
+Mail nicht gesendet ({1}): Vorlage HTML nicht gefunden.
+
+[watchdog.mirrors-dat-changed-outside-rkhunter-update]
+mirrors.dat geändert außerhalb rkhunter --update
+
+[watchdog.signal]
+Signal {1}
+
+[watchdog.t-t-t-t-t]
+{1}\t{2}\t{3}\t{4}\t{5}\t{6}
+
+[watchdog.the-check-crashed-signal-it-did-not-finish]
+Die Prüfung {1} ist abgestürzt (Signal {2}, {3}). Sie wurde nicht zu Ende geführt.
+
+[watchdog.the-check-stopped-code-it-did-not-finish]
+Die Prüfung {1} wurde angehalten (Code {2}). Sie wurde nicht zu Ende geführt.
+
+[watchdog.the-journal-is]
+ Das Journal ist {1}.
+
+[watchdog.mail-not-sent-alerts-e-mail-off]
+Mail nicht gesendet ({1}): Alarme e-mail aus.
+
+[watchdog.mail-not-sent-destinataire-or-empty-body]
+Mail nicht gesendet ({1}): destinataire oder Körper leer.
+
+[watchdog.mail-not-sent-command-mail-absent]
+Mail nicht gesendet ({1}): Befehl mail fehlt.
+
+[watchdog.execution-since-a-directory-temporary]
+Ausführung seit ein Verzeichnis temporär
+
+[watchdog.invalid-memory-access]
+ungültiger Speicherzugriff
+
+[watchdog.forced-stop]
+erzwungenes Stoppen
+
+[watchdog.internal-program-error]
+interner Programmfehler
+
+[watchdog.interrupted-write]
+unterbrochenes Schreiben
+
+[watchdog.stop-request]
+Stoppanforderung
+
+[watchdog.name-absent]
+Name fehlt
+
+[watchdog.process-not-stopped]
+Prozess nicht gestoppt: {1}
+
+[watchdog.process-stopped]
+Prozess {1} ({2}) gestoppt
+
+[watchdog.process-not-stopped-signal-rejected]
+Prozess {1} nicht gestoppt: Signal abgelehnt
+
+[watchdog.process-not-stopped-no-d-tenteur]
+Prozess nicht gestoppt: kein détenteur
+
+[watchdog.not-updated-in-quarantine]
+nicht aktualisiert in Quarantäne: {1}
+
+[watchdog.moved-in-quarantine-quarantine]
+verschoben in Quarantäne: {1}; {2}; Quarantäne {3}
+
+[watchdog.copy-drive-ignored]
+Kopie Drive ignoriert.
+
+[watchdog.copy-drive-ignored-rclone-absent]
+Kopie Drive ignoriert: rclone fehlt.
+
+[watchdog.copy-drive-rejected-the-file-local-is-kept]
+Kopie Drive abgelehnt. Der Datei lokal ist behalten.
+
+[watchdog.clamav-crashed-twice-in-a-row-signal-the-check-s]
+ClamAV ist zweimal hintereinander abgestürzt (Signal {1}, {2}). Die Prüfung wurde angehalten. Die übrigen Dateien wurden nicht geprüft.
+
+[watchdog.clamav-crashed-signal-on-one-file-that-file-was]
+ClamAV ist abgestürzt (Signal {1}, {2}) bei einer Datei. Diese Datei wurde nicht geprüft. Die anderen Dateien wurden fortgesetzt.
+
+[watchdog.clamav-crashed-signal-on-files-those-files-were]
+ClamAV ist abgestürzt (Signal {1}, {2}) bei {3} Dateien. Diese Dateien wurden nicht geprüft. Die anderen Dateien wurden fortgesetzt.
+
+[watchdog.a-restart-is-useful-the-machine-was-not-restarte]
+Ein Neustart ist nützlich. Die Rechner wurde nicht neu gestartet.
+
+[watchdog.initial-fingerprint-written]
+Fingerabdruck initiale geschrieben
+
+[watchdog.integrity-unchanged]
+Integrität unverändert
+
+[watchdog.integrity-fingerprint-changed]
+Integrität: Fingerabdruck geändert
+
+[watchdog.signal.abort]
+Programmabbruch
+
+[watchdog.module.unknown]
+unbekannt
+
+[watchdog.about.chkrootkit]
+Suche nach Rootkits (chkrootkit -x -q).
+
+[watchdog.about.module]
+Nachricht des Moduls {1}.
+
+[log.watchdog-not-found]
+watchdog.sh nicht gefunden

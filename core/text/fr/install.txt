@@ -1,0 +1,428 @@
+# =============================================================================
+# File       : core/text/fr/install.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[install.archive-github-invalid-config-global-conf-absent]
+Archive GitHub invalide (config/global.conf absent).
+
+[install.directories-project-ready]
+Répertoires projet prêts
+
+[install.download-branch]
+Téléchargement {1} (branche {2})...
+
+[install.help-installed]
+AIDE installé
+
+[install.hrngdevice-dev-hwrng]
+HRNGDEVICE=/dev/hwrng
+
+[install.installation-fail2ban]
+Installation Fail2Ban
+
+[install.installation-help]
+Installation AIDE
+
+[install.installation-of-lynis]
+Installation de Lynis
+
+[install.installation-of-rclone]
+Installation de rclone
+
+[install.installation-of-the-tools-of-base]
+Installation des outils de base
+
+[install.installation-of-usbguard]
+Installation de USBGuard
+
+[install.installation-ufw]
+Installation UFW
+
+[install.installation-usbguard]
+Installation USBGuard
+
+[install.list-chkrootkit-not-found]
+Liste chkrootkit introuvable
+
+[install.lynis-installed]
+Lynis installé
+
+[install.send-google-drive-cut-rclone-is-not-installed]
+Envoi Google Drive coupé : rclone n'est pas installé.
+
+[install.this-script-must-be-executed-as-root-sudo]
+Ce script doit être exécuté en root (sudo).
+
+[install.tools-of-base-installed]
+Outils de base installés
+
+[install.ufw-installed]
+UFW installé
+
+[install.usbguard-installed-service-stopped-until-the-pol]
+USBGuard installé, service arrêté jusqu'à la politique
+
+[install.g-config-base-directory-invalid-in-global-conf]
+G_CONFIG_BASE_DIRECTORY invalide dans global.conf ({1}).
+
+[install.root-of-install-rejected]
+Racine d'install refusée : {1}
+
+[install.liltress-absent-after-extraction-n]
+liltress absent après extraction.\n
+
+[install.nt-l-chargement-finished-the-sources-are-in-s-n]
+\nTéléchargement terminé. Les sources sont dans %s.\n
+
+[install.launch-of-the-configuration-n-n]
+Lancement de la configuration.\n\n
+
+[install.nla-configuration-saved-password-more-the-check]
+\nLa configuration enregistrée ne passe plus le contrôle.\n
+
+[install.launch-of-the-questions-n-n]
+Lancement des questions.\n\n
+
+[install.token-google-drive-absent-or-mode-different-of-6]
+Jeton Google Drive absent ({1}) ou mode différent de 600.
+
+[install.rclone-installed]
+rclone installé
+
+[install.mail.error]
+{1}
+
+[install.fs.info]
+Création de la copie de sauvegarde de {1}
+
+[install.fs.success]
+Copie de sauvegarde créée : {1}
+
+[install.lib.error]
+Le téléchargement de la clé du dépôt a échoué : {1}
+
+[install.lib.error.2]
+Le certificat pour {1} n'est pas encore valide, ou l'horloge du système est incorrecte.
+
+[install.lib.error.4]
+La clé du dépôt n'est pas une donnée OpenPGP valide : {1}
+
+[install.lib.error.5]
+La clé du dépôt n'est pas une donnée OpenPGP valide : {1}
+
+[install.lib.error.6]
+Port TCP {1} déjà occupé — bind Docker 127.0.0.1:{2} impossible : {3}
+
+[install.lib.error.7]
+S_SERVER_TYPE invalide : '{1}'
+
+[install.lib.error.8]
+S_MATRIX_ADMIN_USER ou S_MATRIX_ADMIN_PASSWORD vide.
+
+[install.lib.info]
+Récupération du jeton Matrix de {1}
+
+[install.lib.info.2]
+{1}
+
+[install.lib.error.9]
+Échec de récupération du token !
+
+[install.lib.success]
+Jeton Matrix récupéré
+
+[install.lib.error.10]
+dpkg-statoverride --remove {1} : {2}
+
+[install.lib.error.11]
+dpkg-statoverride {1} : {2}
+
+[install.lib.error.12]
+npm : S_MAIN_USER ou S_MAIN_GROUP vide
+
+[install.lib.error.13]
+npm : compte {1} introuvable
+
+[install.lib.error.14]
+npm : groupe {1} introuvable
+
+[install.lib.info.3]
+Réservation de npm pour {1}
+
+[install.lib.error.15]
+npm est installé, aucun fichier à réserver à {1}
+
+[install.lib.success.2]
+npm réservé à {1}
+
+[install.lib.info.4]
+Retrait des noms de domaine de /etc/hosts
+
+[install.lib.success.3]
+Noms de domaine retirés de /etc/hosts
+
+[install.lib.info.5]
+Préparation de l'accès local G_MODE_TEST
+
+[install.lib.info.6]
+Retrait du certificat de test du magasin système
+
+[install.lib.success.4]
+Certificat de test retiré du magasin système
+
+[install.lib.success.5]
+Accès local G_MODE_TEST prêt, navigateur sur http://127.0.0.1
+
+[install.lib.error.16]
+Impossible de déterminer l'utilisateur courant (SUDO_USER vide, aucun uid≥1000).
+
+[install.lib.error.17]
+Ubuntu 26.04 ou plus récent requis. Système détecté : {1}.
+
+[install.lib.error.18]
+Ubuntu 26.04 ou plus récent requis. Version détectée : {1}.
+
+[install.lib.error.19]
+Ubuntu {1} ({2}) refusée : elle n'est pas supérieure ou égale à 26.04.
+
+[install.lib.error.20]
+Type de carte Postfix refusé : {1}.
+
+[install.lib.error.21]
+Aucun compte de bureau sous /home : l'installateur Ubuntu doit avoir créé les utilisateurs.
+
+[install.lib.error.22]
+Garde-fou : tentative de mutation de mot de passe interdite : {1}
+
+[install.log.info]
+Copie : {1}
+
+[install.log.info.2]
+Journaux logiciels copiés
+
+[install.log.error.2]
+Entrée interrompue.
+
+[install.log.info.3]
+Recalcul de la base AIDE (plusieurs minutes)
+
+[install.log.warn]
+Base AIDE non recalculée.
+
+[install.log.warn.5]
+Détail : {1}
+
+[install.log.warn.6]
+{1}
+
+[install.log.success]
+Base AIDE recalculée
+
+[install.log.warn.7]
+Pas de terminal : l'installeur est conservé.
+
+[install.log.warn.8]
+Suppression annulée : répertoire refusé.
+
+[install.log.title]
+Suppression de l'installeur
+
+[install.log.info.4]
+Supprimer l'installeur et ses journaux ? (Y/N)
+
+[install.log.info.5]
+Répertoire : {1}
+
+[install.log.warn.9]
+Répondez Y ou N.
+
+[install.log.info.6]
+Retrait de l'installeur
+
+[install.log.success.2]
+Installeur retiré.
+
+[install.log.info.7]
+Services, secrets et cron conservés.
+
+[install.log.info.8]
+La commande liltress est absente.
+
+[install.log.warn.10]
+Suppression annulée : répertoire refusé.
+
+[install.log.warn.11]
+Suppression annulée : fichier utile absent.
+
+[install.log.warn.12]
+Suppression incomplète.
+
+[install.log.warn.13]
+Installeur retiré, fichiers utiles non reposés.
+
+[install.log.info.9]
+Snapshot : {1}
+
+[install.exec.debug]
+{1}
+
+[install.install.error]
+La commande a échoué : {1}
+
+[install.install.error.3]
+Ubuntu Pro : jeton manquant dans secrets.conf. Relancer : bash {1}/liltress configure
+
+[install.install.error.4]
+Ubuntu Pro attach a échoué (obligatoire) : {1}
+
+[install.install.error.5]
+Ubuntu Pro : la machine n'est pas attachée après pro attach.
+
+[install.install.debug]
+{1}
+
+[install.purge.error]
+La commande a échoué : {1}
+
+[install.matrix.error]
+La commande a échoué : {1}
+
+[install.wireguard.error]
+La commande a échoué : {1}
+
+[install.keycloak.error]
+La commande a échoué : {1}
+
+[install.keycloak.success.7]
+{1}
+
+[install.keycloak.success.8]
+Comptes de test : ada (administrator), camille (moderator), noa (member)
+
+[install.livekit.error]
+La commande a échoué : {1}
+
+[install.clamav.error]
+La commande a échoué : {1}
+
+[install.aide.error]
+La commande a échoué : {1}
+
+[install.aide.error.2]
+Base AIDE non générée (aide.db.new introuvable). Détail : {1}
+
+[install.nginx.error]
+La commande a échoué : {1}
+
+[install.debsums.error]
+La commande a échoué : {1}
+
+[install.auditd.error]
+La commande a échoué : {1}
+
+[install.postfix.error]
+La commande a échoué : {1}
+
+[install.postfix.title.2]
+Rechargement systemd
+
+[install.rkhunter.error]
+La commande a échoué : {1}
+
+[install.chkrootkit.error]
+La commande a échoué : {1}
+
+[install.ufw.error]
+La commande a échoué : {1}
+
+[install.redis.error]
+La commande a échoué : {1}
+
+[install.apparmor.error]
+La commande a échoué : {1}
+
+[install.fail2ban.error]
+La commande a échoué : {1}
+
+[install.usbguard.error]
+La commande a échoué : {1}
+
+[install.rclone.error]
+La commande a échoué : {1}
+
+[install.crowdsec.error]
+La commande a échoué : {1}
+
+[install.crowdsec.error.3]
+CrowdSec {1} vient du dépôt Ubuntu, pas de packagecloud.
+
+[install.install.debug.2]
+{1}
+
+[install.snapd.error]
+La commande a échoué : {1}
+
+[install.unbound.error]
+La commande a échoué : {1}
+
+[install.unattended-upgrades.error]
+La commande a échoué : {1}
+
+[install.system.title]
+Système
+
+[install.alert.title]
+Alertes
+
+[install.security.title]
+Sécurité
+
+[install.package.title]
+Paquets
+
+[install.close.title]
+Fin
+
+[install.edge.title]
+Services réseau
+
+[install.base.error]
+La commande a échoué : {1}
+
+[install.ssh.error]
+La commande a échoué : {1}
+
+[install.lynis.error]
+La commande a échoué : {1}
+
+[install.ubuntu-pro.error]
+La commande a échoué : {1}
+
+[install.multiarch.error]
+La commande a échoué : {1}
+
+[install.apt.error]
+La commande a échoué : {1}
+
+[install.acct.error]
+La commande a échoué : {1}
+
+[install.sysstat.error]
+La commande a échoué : {1}
+
+[install.pam.error]
+La commande a échoué : {1}
+
+[install.haveged.error]
+La commande a échoué : {1}
+
+[install.rngd.error]
+La commande a échoué : {1}
+
+[install.devtools.error]
+La commande a échoué : {1}
+
+[install.docker.error]
+La commande a échoué : {1}

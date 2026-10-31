@@ -1,0 +1,428 @@
+# =============================================================================
+# File       : core/text/de/install.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[install.archive-github-invalid-config-global-conf-absent]
+Archiv GitHub ungültig (config/global.conf fehlt).
+
+[install.directories-project-ready]
+Verzeichnisse Projekt bereit
+
+[install.download-branch]
+Download {1} (Zweig {2})...
+
+[install.help-installed]
+AIDE installiert
+
+[install.hrngdevice-dev-hwrng]
+HRNGDEVICE=/dev/hwrng
+
+[install.installation-fail2ban]
+Installation Fail2Ban
+
+[install.installation-help]
+Installation AIDE
+
+[install.installation-of-lynis]
+Installation von Lynis
+
+[install.installation-of-rclone]
+Installation von rclone
+
+[install.installation-of-the-tools-of-base]
+Installation der Werkzeuge von Basis
+
+[install.installation-of-usbguard]
+Installation von USBGuard
+
+[install.installation-ufw]
+Installation UFW
+
+[install.installation-usbguard]
+Installation USBGuard
+
+[install.list-chkrootkit-not-found]
+Liste chkrootkit nicht gefunden
+
+[install.lynis-installed]
+Lynis installiert
+
+[install.send-google-drive-cut-rclone-is-not-installed]
+Senden Google Drive abgeschnitten: rclone ist nicht installiert.
+
+[install.this-script-must-be-executed-as-root-sudo]
+Dieses Skript muss ausgeführt als root (sudo).
+
+[install.tools-of-base-installed]
+Werkzeuge von Basis installiert
+
+[install.ufw-installed]
+UFW installiert
+
+[install.usbguard-installed-service-stopped-until-the-pol]
+USBGuard installiert, Dienst gestoppt bis die Policy
+
+[install.g-config-base-directory-invalid-in-global-conf]
+G_CONFIG_BASE_DIRECTORY ungültig in global.conf ({1}).
+
+[install.root-of-install-rejected]
+Wurzel von install abgelehnt: {1}
+
+[install.liltress-absent-after-extraction-n]
+liltress fehlt nach extraction.\n
+
+[install.nt-l-chargement-finished-the-sources-are-in-s-n]
+\nTéléchargement beendet. Die Quellen sind in %s.\n
+
+[install.launch-of-the-configuration-n-n]
+Start der Konfiguration.\n\n
+
+[install.nla-configuration-saved-password-more-the-check]
+\nLa Konfiguration gespeicherte Passwort mehr der Prüfung.\n
+
+[install.launch-of-the-questions-n-n]
+Start der Fragen.\n\n
+
+[install.token-google-drive-absent-or-mode-different-of-6]
+Token Google Drive fehlt ({1}) oder Modus unterschiedlich von 600.
+
+[install.rclone-installed]
+rclone installiert
+
+[install.mail.error]
+{1}
+
+[install.fs.info]
+Erstellung der Kopie von Sicherung von {1}
+
+[install.fs.success]
+Kopie von Sicherung erstellt: {1}
+
+[install.lib.error]
+Der Download des Schlüssels der Paketquelle ist fehlgeschlagen: {1}
+
+[install.lib.error.2]
+Das Zertifikat für {1} ist noch nicht gültig, oder die Systemuhr ist falsch.
+
+[install.lib.error.4]
+Der Schlüssel der Paketquelle ist keine gültige OpenPGP-Datei: {1}
+
+[install.lib.error.5]
+Der Schlüssel der Paketquelle ist keine gültige OpenPGP-Datei: {1}
+
+[install.lib.error.6]
+Port TCP {1} bereits belegt — bind Docker 127.0.0.1:{2} unmöglich: {3}
+
+[install.lib.error.7]
+S_SERVER_TYPE ungültig: '{1}'
+
+[install.lib.error.8]
+S_MATRIX_ADMIN_USER oder S_MATRIX_ADMIN_PASSWORD leer.
+
+[install.lib.info]
+Abruf des Token Matrix von {1}
+
+[install.lib.info.2]
+{1}
+
+[install.lib.error.9]
+Fehler von Abruf des token!
+
+[install.lib.success]
+Token Matrix abgerufen
+
+[install.lib.error.10]
+dpkg-statoverride --remove {1}: {2}
+
+[install.lib.error.11]
+dpkg-statoverride {1}: {2}
+
+[install.lib.error.12]
+npm: S_MAIN_USER oder S_MAIN_GROUP ist leer
+
+[install.lib.error.13]
+npm: Konto {1} nicht gefunden
+
+[install.lib.error.14]
+npm: Gruppe {1} nicht gefunden
+
+[install.lib.info.3]
+Réservation von npm für {1}
+
+[install.lib.error.15]
+npm ist installiert, kein Datei zu réserver zu {1}
+
+[install.lib.success.2]
+npm reserviert zu {1}
+
+[install.lib.info.4]
+Entfernung der Namen von Domain von /etc/hosts
+
+[install.lib.success.3]
+Namen von Domain entfernt von /etc/hosts
+
+[install.lib.info.5]
+Vorbereitung des Zugriff lokal G_MODE_TEST
+
+[install.lib.info.6]
+Entfernung des Zertifikat von Test des magasin System
+
+[install.lib.success.4]
+Zertifikat von Test entfernt des magasin System
+
+[install.lib.success.5]
+Zugriff lokal G_MODE_TEST bereit, Browser auf http://127.0.0.1
+
+[install.lib.error.16]
+Unmöglich von déterminer Benutzer gängig (SUDO_USER leer, kein uid≥1000).
+
+[install.lib.error.17]
+Ubuntu 26.04 oder mehr aktuell erforderlich. System erkannt: {1}.
+
+[install.lib.error.18]
+Ubuntu 26.04 oder mehr aktuell erforderlich. Version erkannt: {1}.
+
+[install.lib.error.19]
+Ubuntu {1} ({2}) abgelehnt: sie ist nicht größer oder gleich zu 26.04.
+
+[install.lib.error.20]
+Typ von Karte Postfix verweigert: {1}.
+
+[install.lib.error.21]
+Kein Konto von Desktop unter /home: das Installationsprogramm Ubuntu muss erstellt die Benutzer.
+
+[install.lib.error.22]
+Garde-fou: Versuch von mutation von Passwort verboten: {1}
+
+[install.log.info]
+Kopie: {1}
+
+[install.log.info.2]
+Journale Software kopiert
+
+[install.log.error.2]
+Eingabe unterbrochen.
+
+[install.log.info.3]
+Recalcul von die Basis AIDE (mehrere Minuten)
+
+[install.log.warn]
+Basis AIDE nicht recalculée.
+
+[install.log.warn.5]
+Detail: {1}
+
+[install.log.warn.6]
+{1}
+
+[install.log.success]
+Basis AIDE recalculée
+
+[install.log.warn.7]
+Kein Terminal: das Installationsprogramm ist behalten.
+
+[install.log.warn.8]
+Entfernung abgebrochene: Verzeichnis verweigert.
+
+[install.log.title]
+Entfernung des Installationsprogramm
+
+[install.log.info.4]
+Entfernen das Installationsprogramm und seine Journale? (Y/N)
+
+[install.log.info.5]
+Verzeichnis: {1}
+
+[install.log.warn.9]
+Antworten Sie Y oder N.
+
+[install.log.info.6]
+Entfernung des Installationsprogramm
+
+[install.log.success.2]
+Installationsprogramm entfernt.
+
+[install.log.info.7]
+Dienste, Geheimnisse und cron behalten.
+
+[install.log.info.8]
+Die Befehl liltress ist fehlt.
+
+[install.log.warn.10]
+Entfernung abgebrochene: Verzeichnis verweigert.
+
+[install.log.warn.11]
+Entfernung abgebrochene: Datei nützlich fehlt.
+
+[install.log.warn.12]
+Entfernung unvollständig.
+
+[install.log.warn.13]
+Installationsprogramm entfernt, Dateien nützlich nicht zurückgelegt.
+
+[install.log.info.9]
+Snapshot: {1}
+
+[install.exec.debug]
+{1}
+
+[install.install.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.install.error.3]
+Ubuntu Pro: Token fehlend in Geheimnisse.conf. Erneut starten: bash {1}/liltress konfiguriert
+
+[install.install.error.4]
+Ubuntu Pro attach a fehlgeschlagen (erforderlich): {1}
+
+[install.install.error.5]
+Ubuntu Pro: die Rechner ist nicht angehängt nach pro attach.
+
+[install.install.debug]
+{1}
+
+[install.purge.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.matrix.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.wireguard.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.keycloak.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.keycloak.success.7]
+{1}
+
+[install.keycloak.success.8]
+Testkonten: ada (administrator), camille (moderator), noa (member)
+
+[install.livekit.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.clamav.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.aide.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.aide.error.2]
+Basis AIDE nicht erzeugt (aide.db.new nicht gefunden). Detail: {1}
+
+[install.nginx.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.debsums.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.auditd.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.postfix.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.postfix.title.2]
+systemd neu laden
+
+[install.rkhunter.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.chkrootkit.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.ufw.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.redis.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.apparmor.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.fail2ban.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.usbguard.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.rclone.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.crowdsec.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.crowdsec.error.3]
+CrowdSec {1} kommt des Depot Ubuntu, kein packagecloud.
+
+[install.install.debug.2]
+{1}
+
+[install.snapd.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.unbound.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.unattended-upgrades.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.system.title]
+System
+
+[install.alert.title]
+Alarme
+
+[install.security.title]
+Sicherheit
+
+[install.package.title]
+Pakete
+
+[install.close.title]
+Abschluss
+
+[install.edge.title]
+Netzwerkdienste
+
+[install.base.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.ssh.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.lynis.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.ubuntu-pro.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.multiarch.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.apt.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.acct.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.sysstat.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.pam.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.haveged.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.rngd.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.devtools.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[install.docker.error]
+Der Befehl ist fehlgeschlagen: {1}

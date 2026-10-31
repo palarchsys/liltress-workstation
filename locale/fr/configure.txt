@@ -1,0 +1,626 @@
+# =============================================================================
+# File       : workstation/locale/fr/configure.txt
+# Updated at : 2026-10-31
+# Creator    : palarchsys
+# =============================================================================
+
+[configure.1-no-removal-0-question-at-the-end-of-installati]
+1 : pas de retrait. 0 : question en fin d'installation.
+
+[configure.activation-of-apparmor]
+Activation d'AppArmor
+
+[configure.activation-of-crowdsec-and-of-the-bouncer]
+Activation de CrowdSec et du bouncer
+
+[configure.activation-of-ufw]
+Activation d'UFW
+
+[configure.address-email-serving-of-login]
+Adresse email servant de login.
+
+[configure.alerts-by-email]
+Alertes par e-mail
+
+[configure.alerts-email-off-the-checks-will-start-without-s-2]
+Alertes e-mail coupées. Les contrôles partiront sans envoi.
+
+[configure.alerts-toward-google-drive]
+Alertes vers Google Drive
+
+[configure.algorithm-of-the-passwords-lynis-auth-9229]
+Algorithme des mots de passe (Lynis AUTH-9229)
+
+[configure.application-of-the-sysctl-ip-forward-1-rp-filter]
+Application du sysctl (ip_forward=1, rp_filter=2)
+
+[configure.attempt-google-drive-accepted]
+Essai Google Drive accepté.
+
+[configure.attempt-of-send]
+Essai d'envoi
+
+[configure.attempt-of-send-accepted]
+Essai d'envoi accepté.
+
+[configure.attempt-of-send-swaks-checks-server-login-passwo]
+Essai d'envoi (swaks vérifie serveur, login, mot de passe et expéditeur)
+
+[configure.auditd-enabled-2]
+auditd activé
+
+[configure.banners-installed-etc-issue-and-etc-issue-net]
+Bannières posées (/etc/issue et /etc/issue.net)
+
+[configure.banners-lynis-bann-7126]
+Bannières (Lynis BANN-7126)
+
+[configure.binding-of-the-bouncer-nftables-to-the-api-local]
+Liaison du bouncer nftables à l'API locale
+
+[configure.blacklist-of-the-protocols-unused]
+Blacklist des protocoles inutiles
+
+[configure.blacklist-of-the-systems-of-files-unused]
+Blacklist des systèmes de fichiers inutiles
+
+[configure.block-installed]
+Blocage posé ({1})
+
+[configure.bouncer-firewall]
+Bouncer pare-feu
+
+[configure.bouncer-nftables-linked-to-the-api-local]
+Bouncer nftables relié à l'API locale
+
+[configure.card-sasl-saved-reading-root-only]
+Carte SASL enregistrée (lecture root seulement)
+
+[configure.collections-crowdsec]
+Collections CrowdSec
+
+[configure.collections-linux-sshd-postfix-and-allowlist-ins]
+Collections linux, sshd, postfix et liste blanche installées
+
+[configure.configuration-auditd-2]
+Configuration auditd
+
+[configure.configuration-clamav]
+Configuration ClamAV
+
+[configure.configuration-fail2ban]
+Configuration Fail2Ban
+
+[configure.configuration-help]
+Configuration AIDE
+
+[configure.configuration-of-auditd]
+Configuration d'auditd
+
+[configure.configuration-of-encrypt-method-yescrypt-no-chpa]
+Configuration d'ENCRYPT_METHOD YESCRYPT (aucun chpasswd, aucun chage)
+
+[configure.configuration-of-fail2ban]
+Configuration de Fail2Ban
+
+[configure.configuration-of-help-2]
+Configuration d'AIDE
+
+[configure.configuration-of-pam-faillock-pam-auth-update-wi]
+Configuration de pam_faillock (pam-auth-update, sans sed sur common-auth)
+
+[configure.configuration-of-pwquality]
+Configuration de pwquality
+
+[configure.configuration-of-rkhunter-2]
+Configuration de rkhunter
+
+[configure.configuration-of-ssh]
+Configuration de SSH
+
+[configure.configuration-of-the-duration-of-block]
+Configuration de la durée de blocage
+
+[configure.configuration-of-the-journals-read-by-crowdsec]
+Configuration des journaux lus par CrowdSec
+
+[configure.configuration-of-the-name-of-mail]
+Configuration du nom de courrier
+
+[configure.configuration-of-the-relay-and-of-the-sender]
+Configuration du relais et de l'expéditeur
+
+[configure.configuration-of-the-sudoers-umask-0022-apt-not]
+Configuration du sudoers (umask 0022, apt ne crée pas de bibliothèques en 640)
+
+[configure.configuration-of-the-umask-027-no-tmout-on-the-t]
+Configuration de l'UMASK 027 (pas de TMOUT sur le terminal)
+
+[configure.configuration-of-unattended-upgrades-security-on]
+Configuration d'unattended-upgrades (security only)
+
+[configure.configuration-of-unbound]
+Configuration d'Unbound
+
+[configure.configuration-rkhunter]
+Configuration rkhunter
+
+[configure.configuration-saved]
+Configuration enregistrée
+
+[configure.configuration-ssh-drop-in]
+Configuration SSH (drop-in)
+
+[configure.configuration-system-workstation-finished]
+Configuration système workstation terminée
+
+[configure.configuration-ufw-desktop-safe]
+Configuration UFW (desktop-safe)
+
+[configure.configuration-unattended-upgrades-security-only]
+Configuration unattended-upgrades (security only)
+
+[configure.configuration-unbound-local-dns]
+Configuration Unbound (DNS local)
+
+[configure.core-dumps-disabled]
+Core dumps désactivés
+
+[configure.credentials-smtp]
+Identifiants SMTP
+
+[configure.crowdsec-and-the-bouncer-enabled]
+CrowdSec et le bouncer activés
+
+[configure.cutoff-of-the-alerts-email]
+Coupure des alertes e-mail
+
+[configure.dccp-sctp-rds-tipc-blacklisted]
+dccp/sctp/rds/tipc blacklistés
+
+[configure.default-forward-policy]
+DEFAULT_FORWARD_POLICY="{1}"
+
+[configure.detection-of-the-profiles-finished]
+Détection des profils terminée
+
+[configure.dns-root-data-is-incomplete-usr-share-dns-root-h]
+dns-root-data est incomplet : /usr/share/dns/root.hints absent
+
+[configure.duration-of-block]
+Durée de blocage
+
+[configure.duration-of-block-invalid]
+durée de blocage invalide
+
+[configure.e-34m-s-e-0m]
+         \e[34m%*s\e[0m : 
+
+[configure.effective-permitrootlogin-expected-no]
+PermitRootLogin effectif : {1}. Attendu : no.
+
+[configure.enable-the-alerts-by-emails-y-n]
+Activer les alertes par e-mails (Y/N).
+
+[configure.enable-the-send-of-the-alerts-toward-google-driv]
+Activer l'envoi des alertes vers Google Drive (Y/N).
+
+[configure.enter-0-or-1]
+Indiquez 0 ou 1.
+
+[configure.enter-the-address-email-of-the-account-smtp]
+Indiquez l'adresse e-mail du compte SMTP.
+
+[configure.enter-the-address-email-sender]
+Indiquez l'adresse e-mail expéditeur.
+
+[configure.enter-the-server-and-the-port-without-brackets-e]
+Indiquez le serveur et le port, sans crochets. Exemple : smtp-mail.outlook.com:587.
+
+[configure.entry-keeps-the-value-in-progress-1-by-default]
+Entrée conserve la valeur en cours (1 par défaut).
+
+[configure.fail2ban-enabled]
+Fail2Ban activé
+
+[configure.file-bouncer-absent]
+Fichier bouncer absent : {1}
+
+[configure.form-host-port-for-example-smtp-mail-outlook-com]
+Forme hôte:port, par exemple smtp-mail.outlook.com:587.
+
+[configure.g-postfix-mail-address-must-be-an-address-email]
+{1} : G_POSTFIX_MAIL_ADDRESS doit être une adresse e-mail (« {2} »). exemple : toi@exemple.com
+
+[configure.g-postfix-mail-password-invalid-example-the-pass]
+{1} : G_POSTFIX_MAIL_PASSWORD invalide. exemple : le mot de passe d'application du fournisseur, sans espace
+
+[configure.g-postfix-mail-smtp-invalid-example-smtp-mail-ou]
+{1} : G_POSTFIX_MAIL_SMTP invalide (« {2} »). exemple : smtp-mail.outlook.com:587
+
+[configure.g-postfix-smtp-login-must-be-an-address-email-ex]
+{1} : G_POSTFIX_SMTP_LOGIN doit être une adresse e-mail (« {2} »). exemple : toi@exemple.com
+
+[configure.g-watchdog-mail-must-be-an-address-email-example]
+{1} : G_WATCHDOG_MAIL doit être une adresse e-mail (« {2} »). exemple : toi@exemple.com
+
+[configure.global-conf-the-only-command-source-allowed-load]
+global.conf : la seule commande source autorisée charge secrets.conf. exemple : ./liltress configure
+
+[configure.hardened-ssh-root-forbidden-password-kept-port]
+SSH durci (root interdit, mot de passe gardé, port {1})
+
+[configure.hardening-of-login-defs-umask-and-faillog-existi]
+Durcissement de login.defs (UMASK et FAILLOG, comptes existants gardés)
+
+[configure.help-conf-installed]
+aide.conf posé
+
+[configure.initramfs]
+Initramfs
+
+[configure.initramfs-updated-up-to-date-best-effort]
+Initramfs mis à jour (best-effort)
+
+[configure.input-interrupted]
+Entrée interrompue
+
+[configure.install-of-the-banners]
+Pose des bannières
+
+[configure.install-of-the-profile-lynis-workstation-of-work]
+Pose du profil Lynis (poste de travail, exceptions documentées)
+
+[configure.installation-of-the-collections-crowdsec]
+Installation des collections CrowdSec
+
+[configure.installation-of-the-watchdogs-chain-to-the-start]
+Installation des watchdogs (chaîne au démarrage, passe horaire et analyse toutes les 2 h, plafonnée à {1}% du CPU total)
+
+[configure.ipt-modules]
+IPT_MODULES="{1}"
+
+[configure.ipv6-and-user-namespaces-active]
+IPv6 et user namespaces actifs.
+
+[configure.jail-local-installed-sshd-port]
+jail.local posé (sshd port {1})
+
+[configure.journald-made-persistent]
+Journald rendu persistant
+
+[configure.journals-read-by-crowdsec]
+Journaux lus par CrowdSec
+
+[configure.journals-ssh-system-and-mail-configured]
+Journaux SSH, système et courrier configurés
+
+[configure.key-of-the-bouncer-crowdsec-not-found]
+Clé du bouncer CrowdSec introuvable.
+
+[configure.limits-core-0-installed]
+Limites core 0 posées
+
+[configure.local-sender-rewritten-all-part-as]
+Expéditeur local réécrit, tout part comme {1}
+
+[configure.login-hardened-defs-no-chage-on-root]
+login.defs durci — aucun chage sur {1} / root
+
+[configure.login-smtp]
+Login SMTP
+
+[configure.mailname-saved]
+mailname enregistré ({1})
+
+[configure.memory-sudo-of-5-minutes]
+Mémoire sudo de 5 minutes
+
+[configure.mode-test]
+Mode test
+
+[configure.modules-protocols-and-systems-of-unused-files]
+Modules : protocoles et systèmes de fichiers inutiles
+
+[configure.name-of-mail]
+Nom de courrier
+
+[configure.optional-collections-processed]
+Collections optionnelles traitées
+
+[configure.pam-faillock-configured]
+pam_faillock configuré
+
+[configure.pass-of-ssh-in-service-not-only-the-activation-b]
+Passage de SSH en service (pas seulement l'activation par socket)
+
+[configure.password-of-application]
+Mot de passe d'application
+
+[configure.password-of-application-at-least-8-characters-wi]
+Mot de passe d'application : au moins 8 caractères, sans espace.
+
+[configure.permissions-cron-sudoers-and-ssh-tightened]
+Permissions cron, sudoers et SSH resserrées
+
+[configure.persistent-journald-lynis-log]
+journald persistant (Lynis LOG-*)
+
+[configure.policy-incoming-outgoing-routed]
+Politique : {1} incoming, {2} outgoing, routed {3}
+
+[configure.port-detected]
+Port détecté : {1}
+
+[configure.postfix-enabled-listens-limited-to-localhost]
+Postfix activé, écoute limitée à localhost
+
+[configure.postfix-is-not-active-after-the-configuration]
+Postfix n'est pas actif après la configuration.
+
+[configure.pwquality-configured-minlen-not-32-desktop-usabl]
+pwquality configuré (minlen={1}, pas 32 : desktop utilisable)
+
+[configure.record-of-the-card-sasl]
+Enregistrement de la carte SASL
+
+[configure.record-of-the-configuration]
+Enregistrement de la configuration
+
+[configure.relay-and-rewrite-of-the-sender]
+Relais et réécriture de l'expéditeur
+
+[configure.required-quality-lors-of-a-change-of-password]
+Qualité exigée lors d'un changement de mot de passe
+
+[configure.restart-of-postfix]
+Redémarrage de Postfix
+
+[configure.return-to-the-choice-google-drive]
+Retour au choix Google Drive.
+
+[configure.return-to-the-choice-of-the-alerts]
+Retour au choix des alertes.
+
+[configure.rkhunter-conf-local-installed]
+rkhunter.conf.local posé
+
+[configure.search-of-the-collections-optional]
+Recherche des collections optionnelles
+
+[configure.secrets-conf-no-command-source-example-only-of-t]
+secrets.conf : aucune commande source. exemple : uniquement des lignes CLE="valeur"
+
+[configure.send-google-drive-cut]
+Envoi Google Drive coupé.
+
+[configure.sender]
+Expéditeur
+
+[configure.server-smtp]
+Serveur SMTP
+
+[configure.spaces-removed-the-line-following-confirms]
+Espaces retirés. La ligne suivante confirme.
+
+[configure.ssh-limit-on-the-port-detected-tcp]
+SSH limit sur le port détecté {1}/tcp
+
+[configure.sudoers-installed-umask-0022-for-apt-and-the-too]
+sudoers posé (umask 0022 pour apt et les outils root)
+
+[configure.sudoers-umask-invalid-file-removed]
+sudoers umask invalide — fichier retiré
+
+[configure.sysctl-applied]
+Sysctl appliqué
+
+[configure.sysctl-workstation]
+Sysctl workstation
+
+[configure.the-alerts-leave-toward-this-same-address]
+Les alertes partent vers cette même adresse.
+
+[configure.the-attempt-google-drive-was-denied]
+L'essai Google Drive a été refusé.
+
+[configure.the-configuration-rclone-was-rejected]
+La configuration rclone a été refusée.
+
+[configure.the-data-email-are-not-good]
+Les données e-mail ne sont pas bonnes.
+
+[configure.the-files-written-pass-not-the-check]
+Les fichiers écrits ne passent pas le contrôle.
+
+[configure.the-resolution-local-via-unbound-a-failed]
+La résolution locale via Unbound a échoué : {1}
+
+[configure.tightening-of-the-permissions-of-the-files-read]
+Resserrement des permissions des fichiers lus par Lynis
+
+[configure.ufw-enabled-outgoing-allow]
+UFW activé (outgoing ALLOW)
+
+[configure.umask-027]
+UMASK 027
+
+[configure.umask-027-2]
+umask 027
+
+[configure.unattended-upgrades-configured-security-only-reb]
+unattended-upgrades configuré (security only, reboot auto OFF)
+
+[configure.unbound-checkconf-refuses-the-configuration]
+unbound-checkconf refuse la configuration : {1}
+
+[configure.unbound-configured-resolution-on-the-workstation]
+Unbound configuré (résolution sur le poste, racines à jour)
+
+[configure.unbound-is-not-ready-after-the-start-of-the-serv]
+Unbound n'est pas prêt après le démarrage du service
+
+[configure.update-of-the-initramfs-modules-blacklist]
+Mise à jour de l'initramfs (modules blacklist)
+
+[configure.update-of-the-signatures-can-take-1-2-min]
+Mise à jour des signatures (peut prendre 1–2 min)
+
+[configure.watchdogs-cron-root-cron-allow-not-restricted]
+Watchdogs cron (root, cron.allow non restreint)
+
+[configure.watchdogs-installed-in-cron-bin]
+Watchdogs installés dans {1}/cron/bin
+
+[configure.yescrypt-for-the-new-hash-old-intact]
+YESCRYPT pour les nouveaux hash, anciens intacts
+
+[configure.signatures-clamav-mises-up-to-date]
+Signatures ClamAV mises à jour
+
+[configure.activation-of-the-monitoring-clamav]
+Activation de la surveillance ClamAV
+
+[configure.sudoers-clamav-invalid]
+sudoers ClamAV invalide
+
+[configure.unit-clamonacc-not-found-the-monitoring-continue]
+Unité clamonacc introuvable : la surveillance continue ne peut pas démarrer.
+
+[configure.clamonacc-stays-not-active-detail-clamonacc-log]
+clamonacc ne reste pas actif. Détail : {1}/clamonacc.log
+
+[configure.clamav-launched-in-monitoring-continues-on]
+ClamAV lancé en surveillance continue sur {1}
+
+[configure.chain-of-start-hourly-password-and-scan-all-the-2]
+Chaîne de démarrage, passe horaire et analyse toutes les 2 h installées, plafonnées à {1}% du CPU total
+
+[configure.crontab-user-not-touch-no-cron-allow]
+crontab utilisateur : non touché (pas de cron.allow).
+
+[configure.sshd-t-a-failed-drop-in-removed]
+sshd -t a échoué — drop-in retiré
+
+[configure.activation-of-usbguard]
+Activation de USBGuard
+
+[configure.active-usbguard-appareils-pr-sents-and-hid-autor]
+USBGuard actif (appareils présents et HID autorisés)
+
+[configure.the-two-entries-differ]
+Les deux saisies sont différentes.
+
+[configure.three-attempts-without-an-accepted-answer-exampl]
+{1} — trois essais sans réponse acceptée. Exemple : {2}
+
+[configure.configuration-check]
+Contrôle de la configuration
+
+[configure.configuration-conforms]
+Configuration conforme
+
+[configure.no-terminal-for-the-questions-run-sudo-bash-lilt]
+Pas de terminal pour les questions. Lancez : sudo bash {1}/liltress configure
+
+[configure.letters-and-digits-without-spaces]
+Lettres et chiffres, sans espace.
+
+[configure.installation-of-swaks-for-the-attempt-of-send]
+Installation de swaks pour l'essai d'envoi.
+
+[configure.installation-of-rclone]
+Installation de rclone.
+
+[configure.collection-present-1]
+Collection {1} présente
+
+[configure.collection-absent-of-the-hub]
+Collection {1} absente du hub
+
+[configure.no-pr-fixe-connected-ssh-stays-opened-on-all-the]
+Aucun préfixe connecté : SSH reste ouvert sur toutes les sources
+
+[configure.ssh-limited-to-the-pr-fixes-connect-s]
+SSH limité aux préfixes connectés ({1})
+
+[configure.usbguard-left-stopped-the-rule-clavier-is-missin]
+USBGuard laissé arrêté : la règle clavier manque
+
+[configure.usage]
+Usage :
+  sudo ./liltress configure          questions, puis l'installation
+  ./liltress check                   contrôle les fichiers, code 0 si conformes
+
+Le jeton Ubuntu Pro est obligatoire. Les alertes e-mail sont au choix.
+L'envoi vers Google Drive est au choix. Coupé, rclone n'est pas installé.
+Un mot de passe s'affiche en astérisques, puis une seconde ligne demande la confirmation.
+
+[configure.dollar-outside-r-f-rences-autoris-es-w-project-s]
+{1} : dollar hors références autorisées (W_PROJECT_SLUG, G_CONFIG_BASE_DIRECTORY, G_INSTALL_DIRECTORY).
+
+[configure.g-project-name-invalid-example-liltress-workstat]
+{1} : G_PROJECT_NAME invalide (« {2} »). exemple : Liltress Workstation
+
+[configure.w-project-slug-invalid-example-liltress-workstat]
+{1} : W_PROJECT_SLUG invalide (« {2} »). exemple : liltress-workstation
+
+[configure.g-project-version-invalid-example-0-2]
+{1} : G_PROJECT_VERSION invalide (« {2} »). exemple : 0.2
+
+[configure.g-debug-install-log-invalid-example-0]
+{1} : G_DEBUG_INSTALL_LOG invalide (« {2} »). exemple : 0
+
+[configure.g-mode-test-invalid-example-1]
+{1} : G_MODE_TEST invalide (« {2} »). exemple : 1
+
+[configure.g-lynis-min-score-invalid-example-80]
+{1} : G_LYNIS_MIN_SCORE invalide (« {2} »). exemple : 80
+
+[configure.w-os-id-invalid-example-ubuntu]
+{1} : W_OS_ID invalide (« {2} »). exemple : ubuntu
+
+[configure.w-os-version-invalid-example-26-04]
+{1} : W_OS_VERSION invalide (« {2} »). exemple : 26.04
+
+[configure.g-banner-message-empty-yet-no-safe]
+{1} : G_BANNER_MESSAGE vide ou non sûr.
+
+[configure.g-ssh-max-auth-tries-invalid-example-4]
+{1} : G_SSH_MAX_AUTH_TRIES invalide (« {2} »). exemple : 4
+
+[configure.g-ssh-client-alive-count-max-invalid-example-2]
+{1} : G_SSH_CLIENT_ALIVE_COUNT_MAX invalide (« {2} »). exemple : 2
+
+[configure.w-ssh-login-grace-time-invalid-example-30]
+{1} : W_SSH_LOGIN_GRACE_TIME invalide (« {2} »). exemple : 30
+
+[configure.w-pam-password-min-length-invalid-example-12]
+{1} : W_PAM_PASSWORD_MIN_LENGTH invalide (« {2} »). exemple : 12
+
+[configure.w-faillock-deny-invalid-example-8]
+{1} : W_FAILLOCK_DENY invalide (« {2} »). exemple : 8
+
+[configure.w-faillock-unlock-invalid-example-600]
+{1} : W_FAILLOCK_UNLOCK invalide (« {2} »). exemple : 600
+
+[configure.w-faillock-fail-interval-invalid-example-900]
+{1} : W_FAILLOCK_FAIL_INTERVAL invalide (« {2} »). exemple : 900
+
+[configure.g-config-base-directory-invalid-example-opt-lilt]
+{1} : G_CONFIG_BASE_DIRECTORY invalide (« {2} »). exemple : /opt/liltress-workstation
+
+[configure.g-secret-directory-invalid-example-opt-liltress]
+{1} : G_SECRET_DIRECTORY invalide (« {2} »). exemple : /opt/liltress-workstation/secrets
+
+[configure.g-ubuntu-pro-token-invalid-example-the-token-alp]
+{1} : G_UBUNTU_PRO_TOKEN invalide. exemple : le jeton alphanumérique du tableau de bord Ubuntu Pro (https://ubuntu.com/pro/dashboard)
+
+[configure.global-conf-syntax-shell-invalid-example-liltres]
+global.conf : syntaxe shell invalide. exemple : ./liltress configure
+
+[configure.secrets-conf-syntax-shell-invalid-example-liltre]
+secrets.conf : syntaxe shell invalide. exemple : ./liltress configure
+
+[configure.ubuntu-pro-token-url]
+Jeton : https://ubuntu.com/pro/dashboard

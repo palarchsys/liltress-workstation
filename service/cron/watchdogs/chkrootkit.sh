@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/chkrootkit.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
@@ -20,8 +20,8 @@ elif [[ -f "${HERE}/../../../core/fs.sh" ]]; then
     source "${HERE}/../../../core/fs.sh"
 fi
 IGNORE=""
-if declare -F g_locate_config_file >/dev/null 2>&1; then
-    IGNORE="$(g_locate_config_file chkrootkit/patterns.ignore || true)"
+if declare -F locate_config_file >/dev/null 2>&1; then
+    IGNORE="$(locate_config_file chkrootkit/patterns.ignore || true)"
 fi
 if [[ ! -f "${IGNORE}" && -f "${HERE}/../../../config/chkrootkit/patterns.ignore" ]]; then
     IGNORE="${HERE}/../../../config/chkrootkit/patterns.ignore"
@@ -35,7 +35,7 @@ fi
 
 LOCAL_IGNORE="${W_BASE}/cron/chkrootkit.local.ignore"
 if ! command -v chkrootkit >/dev/null; then
-    w_log_pass "chkrootkit absent — skip"
+    log_pass "$(get_text watchdog.chkrootkit-absent-skip)"
     exit 0
 fi
 set +e
@@ -44,7 +44,7 @@ rc=$?
 set -e
 crashed=0
 if [[ "${rc}" -ge 128 ]]; then
-    g_log_alert "$(g_get_crash_sentence "chkrootkit" "${rc}")"
+    log_alert "$(get_crash_sentence "chkrootkit" "${rc}")"
     crashed=1
 fi
 if [[ -f "${IGNORE}" || -f "${LOCAL_IGNORE}" ]]; then
@@ -100,7 +100,7 @@ PY
 fi
 G_CONFIRMED_COUNT=0
 confirmed_tmp="$(mktemp)"
-g_quarantine_confirmed_log chkrootkit "${LOG_FILE}" systemd sshd unbound fail2ban gamescope > "${confirmed_tmp}" || true
+quarantine_confirmed_log chkrootkit "${LOG_FILE}" systemd sshd unbound fail2ban gamescope > "${confirmed_tmp}" || true
 if [[ -s "${confirmed_tmp}" ]]; then
     cat "${confirmed_tmp}" >> "${LOG_FILE}"
 fi
@@ -108,11 +108,11 @@ rm -f "${confirmed_tmp}"
 if [[ -s "${LOG_FILE}" ]]; then
     if [[ "${G_CONFIRMED_COUNT:-0}" -eq 0 ]]; then
         W_CHKROOTKIT_IGNORE=1 \
-            g_log_alert "chkrootkit a produit une sortie (voir ${LOG_FILE})"
+            log_alert "$(get_text watchdog.chkrootkit-a-produced-a-output-see "${LOG_FILE}")"
     else
-        g_log_alert "chkrootkit a produit une sortie (voir ${LOG_FILE})"
+        log_alert "$(get_text watchdog.chkrootkit-a-produced-a-output-see "${LOG_FILE}")"
     fi
 elif [[ "${crashed}" -eq 0 ]]; then
-    w_log_pass "chkrootkit silencieux (OK)"
+    log_pass "$(get_text watchdog.chkrootkit-silencieux-ok)"
 fi
 exit 0

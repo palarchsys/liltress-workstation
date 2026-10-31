@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/boot-scan.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
@@ -14,7 +14,7 @@ LOG_FILE="${LOG_DIR}/boot-scan-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/boot-scan-${STAMP}.txt"
 : > "${LOG_FILE}"
 
-w_run_check() {
+run_check() {
     local script="$1"
     local label="$2"
     local status=0
@@ -26,19 +26,19 @@ w_run_check() {
     status=$?
     set -e
     if [[ "${status}" -ne 0 ]]; then
-        g_log_alert "$(g_get_crash_sentence "${label}" "${status}")"
+        log_alert "$(get_crash_sentence "${label}" "${status}")"
     fi
 }
 
-w_run_check apply-scan-skip.sh "préparation des exclusions"
-w_run_check aide.sh "AIDE"
-w_run_check integrity.sh "intégrité"
-w_run_check rkhunter.sh "rkhunter"
-w_run_check behavior.sh "audit"
-w_run_check chkrootkit.sh "chkrootkit"
-w_run_check clamav.sh "ClamAV"
-w_run_check debsums.sh "debsums"
+run_check apply-scan-skip.sh "préparation des exclusions"
+run_check aide.sh "AIDE"
+run_check integrity.sh "intégrité"
+run_check rkhunter.sh "rkhunter"
+run_check behavior.sh "audit"
+run_check chkrootkit.sh "chkrootkit"
+run_check clamav.sh "ClamAV"
+run_check debsums.sh "debsums"
 if [[ -x "${W_BASE}/cron/bin/egress-table.sh" ]]; then
     bash "${W_BASE}/cron/bin/egress-table.sh" || true
 fi
-w_run_check egress-watch.sh "journal sortant"
+run_check egress-watch.sh "journal sortant"

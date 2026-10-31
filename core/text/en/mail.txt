@@ -1,0 +1,77 @@
+# =============================================================================
+# File       : core/text/en/mail.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[mail.module]
+Module:
+
+[mail.redacted]
+[redacted]
+
+[mail.redacted-key]
+[private key redacted]
+
+[mail.configuration-absent]
+Configuration absent
+
+[mail.send-not-found]
+send not found
+
+[mail.alerts-e-mail-off]
+alerts e-mail off
+
+[mail.destinataire-absent]
+destinataire absent
+
+[mail.command-mail-absent]
+command mail absent
+
+[mail.template-absent]
+template absent
+
+[mail.send-rejected]
+send rejected
+
+[mail.message-of-attempt-sent]
+message of attempt sent
+
+[mail.directory-of-installation-of-the-mod-les-absent]
+directory of installation of the modèles absent ({1})
+
+[mail.directory-template-absent]
+directory template absent ({1})
+
+[mail.g-mail-template-invalid-example-mail-html]
+G_MAIL_TEMPLATE invalid ({1}). example: mail.html
+
+[mail.name-of-template-denied-example-mail-html]
+name of template denied ({1}). example: mail.html
+
+[mail.no-file-html-in]
+no file.html in {1}
+
+[mail.template-absent-of]
+template {1} absent of {2}
+
+[mail.test.title]
+Layout trial
+
+[mail.test.module]
+Trial
+
+[mail.test.line-short]
+Short line.
+
+[mail.test.line-wide]
+This line exceeds the 800px minimum: {1}
+
+[mail.test.note]
+The width follows the longest line. The height fills the pane.
+
+[mail.template-unreadable]
+unreadable template: {1}
+
+[mail.template-no-pre]
+template without a pre tag

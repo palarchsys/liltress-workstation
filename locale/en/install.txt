@@ -1,0 +1,254 @@
+# =============================================================================
+# File       : workstation/locale/en/install.txt
+# Updated at : 2026-10-31
+# Creator    : palarchsys
+# =============================================================================
+
+[install.accounting-and-pam-lynis-acct-auth]
+Accounting and PAM (Lynis ACCT / AUTH)
+
+[install.activation-of-livepatch]
+Activation of Livepatch
+
+[install.activation-of-the-architecture-i386]
+Activation of the architecture i386
+
+[install.activation-of-ubuntu-pro]
+Activation of Ubuntu Pro ({1})
+
+[install.apparmor-installed-profiles-of-the-distribution]
+AppArmor installed (profiles of the distribution only)
+
+[install.architecture-i386-already-enabled]
+Architecture i386 already enabled
+
+[install.architecture-i386-enabled]
+Architecture i386 enabled
+
+[install.architecture-i386-not-required-outside-amd64]
+Architecture {1} — i386 not required outside amd64
+
+[install.attachment-of-ubuntu-pro]
+Attachment of Ubuntu Pro
+
+[install.auditd-installed-2]
+auditd installed
+
+[install.check-of-the-architecture-i386]
+Check of the architecture i386
+
+[install.check-of-the-attachment-ubuntu-pro]
+Check of the attachment Ubuntu Pro
+
+[install.chkrootkit-installed-2]
+chkrootkit installed
+
+[install.clamav-installed-2]
+ClamAV installed
+
+[install.configuration-of-rng-tools-debian-hwrng-if-prese]
+Configuration of rng-tools-debian (HWRNG if present, otherwise haveged)
+
+[install.configuration-of-the-repository-lynis]
+Configuration of the repository Lynis
+
+[install.creation-of-etc-apt-keyrings]
+Creation of /etc/apt/keyrings
+
+[install.crowdsec-comes-of-the-repository-ubuntu-no-packa]
+CrowdSec {1} comes of the repository Ubuntu, no packagecloud.
+
+[install.crowdsec-installed]
+CrowdSec installed ({1})
+
+[install.debsums-installed]
+debsums installed
+
+[install.download-of-the-key-gpg-lynis]
+Download of the key GPG Lynis
+
+[install.entropy-haveged-rng-tools-debian]
+Entropy (haveged + rng-tools-debian)
+
+[install.fail2ban-installed]
+Fail2Ban installed
+
+[install.haveged-enabled]
+haveged enabled
+
+[install.haveged-installed-but-inactive-2]
+haveged installed but inactive
+
+[install.installation-apparmor-2]
+Installation AppArmor
+
+[install.installation-auditd]
+Installation auditd
+
+[install.installation-chkrootkit]
+Installation chkrootkit
+
+[install.installation-clamav-2]
+Installation ClamAV
+
+[install.installation-debsums-2]
+Installation debsums
+
+[install.installation-of-apparmor-2]
+Installation of AppArmor
+
+[install.installation-of-auditd-2]
+Installation of auditd
+
+[install.installation-of-chkrootkit-2]
+Installation of chkrootkit
+
+[install.installation-of-clamav]
+Installation of ClamAV
+
+[install.installation-of-crowdsec-2]
+Installation of CrowdSec
+
+[install.installation-of-debsums]
+Installation of debsums
+
+[install.installation-of-fail2ban]
+Installation of Fail2Ban
+
+[install.installation-of-haveged-and-of-rng-tools-debian]
+Installation of haveged and of rng-tools-debian
+
+[install.installation-of-help-2]
+Installation of AIDE
+
+[install.installation-of-postfix]
+Installation of Postfix
+
+[install.installation-of-postfix-send-only-internet-site]
+Installation of Postfix (send only, Internet Site)
+
+[install.installation-of-rkhunter-2]
+Installation of rkhunter
+
+[install.installation-of-the-accounting-and-of-pam]
+Installation of the accounting and of PAM
+
+[install.installation-of-the-client-ubuntu-pro]
+Installation of the client Ubuntu Pro
+
+[install.installation-of-ubuntu-pro]
+Installation of Ubuntu Pro
+
+[install.installation-of-ufw-2]
+Installation of UFW
+
+[install.installation-of-unattended-upgrades]
+Installation of unattended-upgrades
+
+[install.installation-of-unbound]
+Installation of Unbound
+
+[install.installation-rkhunter]
+Installation rkhunter
+
+[install.installation-unattended-upgrades]
+Installation unattended-upgrades
+
+[install.installation-unbound]
+Installation Unbound
+
+[install.intermediate-version-esm-infra-esm-apps-and-live]
+intermediate Version: esm-infra, esm-apps and Livepatch are not enabled.
+
+[install.key-gpg-lynis-installed]
+Key GPG Lynis installed
+
+[install.liltress-workstation-lynis-cryp-8004]
+# Liltress Workstation — Lynis CRYP-8004
+
+[install.multiarch-i386]
+Multiarch i386
+
+[install.no-hwrng-exploitable-entropy-via-haveged-ok-desk]
+No HWRNG exploitable — entropy via haveged (OK desktop)
+
+[install.packages-acct-sysstat-and-libpam-pwquality-insta]
+Packages acct, sysstat and libpam-pwquality installed
+
+[install.record-of-the-repository-crowdsec]
+Record of the repository CrowdSec
+
+[install.repository-crowdsec]
+Repository CrowdSec
+
+[install.repository-crowdsec-saved]
+Repository CrowdSec saved
+
+[install.repository-lynis-cisofy]
+Repository Lynis CISOfy
+
+[install.repository-lynis-configured-sources-ubuntu-not-c]
+Repository Lynis configured (sources Ubuntu not changed)
+
+[install.rkhunter-installed-2]
+rkhunter installed
+
+[install.rngd-enabled]
+rngd enabled
+
+[install.tools-of-base]
+Tools of base
+
+[install.tree-project]
+Tree project
+
+[install.ubuntu-pro]
+Ubuntu Pro
+
+[install.ubuntu-pro-already-attached]
+Ubuntu Pro: already attached
+
+[install.ubuntu-pro-attach-a-failed-required]
+Ubuntu Pro attach a failed (required): {1}
+
+[install.ubuntu-pro-enabled]
+Ubuntu Pro: {1} enabled
+
+[install.ubuntu-pro-installed]
+Ubuntu Pro installed
+
+[install.ubuntu-pro-livepatch-enabled]
+Ubuntu Pro: livepatch enabled
+
+[install.ubuntu-pro-livepatch-not-enabled-installation-co]
+Ubuntu Pro: livepatch not enabled, installation continued
+
+[install.ubuntu-pro-machine-attached]
+Ubuntu Pro: machine attached
+
+[install.ubuntu-pro-missing-token-in-secrets-conf-rerun-b]
+Ubuntu Pro: missing token in secrets.conf. Rerun: bash {1}/liltress configures
+
+[install.ubuntu-pro-not-enabled-installation-continued]
+Ubuntu Pro: {1} not enabled, installation continued
+
+[install.ubuntu-pro-the-machine-is-not-attached-after-pro]
+Ubuntu Pro: the machine is not attached after pro attach.
+
+[install.unattended-upgrades-installed]
+unattended-upgrades installed
+
+[install.unbound-installed]
+Unbound installed
+
+[install.update-finished]
+Update finished
+
+[install.update-of-the-system]
+Update of the system
+
+[install.update-system]
+Update system
+
+[install.postfix-installed-2]
+Postfix installed

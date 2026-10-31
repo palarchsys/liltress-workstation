@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/idle-scan.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
@@ -15,7 +15,7 @@ source "${HERE}/scan-skip-lib.sh"
 LOG_FILE="${LOG_DIR}/idle-scan-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/idle-scan-${STAMP}.txt"
 : > "${LOG_FILE}"
-g_arm_crash_mail "analyse différée"
+arm_crash_mail "analyse différée"
 
 busy=""
 for name in lutris heroic gamescope; do
@@ -25,20 +25,20 @@ for name in lutris heroic gamescope; do
     fi
 done
 if [[ -n "${busy}" ]]; then
-    w_log_pass "passe différée reportée : ${busy} tourne"
+    log_pass "$(get_text watchdog.password-deferred-report-e-runs "${busy}")"
     exit 0
 fi
 
 if ! command -v clamscan >/dev/null; then
-    w_log_pass "clamscan absent — skip"
+    log_pass "$(get_text watchdog.clamscan-absent-skip)"
     exit 0
 fi
 
-w_collect_scan_skip_path
+collect_scan_skip_path
 install -d -m 755 /run/liltress-workstation
 file_list="$(mktemp -p /run/liltress-workstation)"
 fresh_list=""
-trap 'st=$?; rm -f "${file_list}"; if [[ -n "${fresh_list}" ]]; then rm -f "${fresh_list}"; fi; g_send_crash_mail "${st}"' EXIT
+trap 'st=$?; rm -f "${file_list}"; if [[ -n "${fresh_list}" ]]; then rm -f "${fresh_list}"; fi; send_crash_mail "${st}"' EXIT
 stamp="${W_BASE}/cron/scan-skip.stamp"
 if [[ ${#W_SCAN_SKIP_VALID[@]} -gt 0 ]]; then
     for path in "${W_SCAN_SKIP_VALID[@]}"; do
@@ -69,7 +69,7 @@ fi
 set +e
 trap '' PIPE
 if [[ -s "${file_list}" ]]; then
-    g_list_clamav_scan "${file_list}" >> "${LOG_FILE}" 2>&1
+    list_clamav_scan "${file_list}" >> "${LOG_FILE}" 2>&1
     rc=$?
 else
     rc=0
@@ -79,18 +79,18 @@ set -e
 kind="ok"
 crashed=0
 if [[ -s "${file_list}" ]]; then
-    kind="$(g_get_clamav_kind "${LOG_FILE}")"
+    kind="$(get_clamav_kind "${LOG_FILE}")"
     if [[ "${kind}" == "ok" && "${rc}" -ne 0 ]]; then
         kind="error"
     fi
-    if g_report_clamav; then
+    if report_clamav; then
         crashed=1
     fi
 fi
 
 seen="${W_BASE}/cron/scan-skip.seen"
 if [[ "${kind}" == "error" ]]; then
-    g_log_alert "clamscan erreur rc=${rc}"
+    log_alert "$(get_text watchdog.clamscan-error-rc "${rc}")"
     exit 0
 fi
 if [[ "${kind}" == "infected" ]]; then
@@ -140,9 +140,9 @@ PY
         done < "${fresh_list}"
     fi
     if [[ "${new_count}" -gt 0 ]]; then
-        g_log_alert "clamscan : infection(s) (voir ${LOG_FILE})"
+        log_alert "$(get_text watchdog.clamscan-infection-s-see "${LOG_FILE}")"
     else
-        w_log_pass "infections déjà signalées"
+        log_pass "$(get_text watchdog.infections-already-signal-es)"
     fi
     exit 0
 fi
@@ -152,5 +152,5 @@ fi
 
 touch "${stamp}"
 chmod 644 "${stamp}"
-w_log_pass "clamscan OK"
+log_pass "clamscan OK"
 exit 0

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/mail-test.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -11,7 +11,23 @@
 
 set -euo pipefail
 
-g_send_mail_test() {
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+for candidate in \
+    "${script_dir}/log.sh" \
+    "${script_dir}/../core/log.sh" \
+    "${script_dir}/../src/core/log.sh" \
+    "${G_CONFIG_BASE_DIRECTORY:-}/src/core/log.sh" \
+    "${G_INSTALL_DIRECTORY:-}/core/log.sh" \
+    "${G_INSTALL_DIRECTORY:-}/src/core/log.sh"
+do
+    if [[ -n "${candidate}" && -f "${candidate}" ]]; then
+        # shellcheck disable=SC1090
+        source "${candidate}"
+        break
+    fi
+done
+
+send_mail_test() {
     local script_dir base send_sh wide err_file
     script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     if [[ "$(basename -- "${script_dir}")" == "bin" ]]; then
@@ -20,11 +36,12 @@ g_send_mail_test() {
         base="${G_CONFIG_BASE_DIRECTORY:-}"
     fi
     if [[ -z "${base}" || ! -f "${base}/config/global.conf" ]]; then
-        printf '%s\n' "configuration absente" >&2
+        printf '%s\n' "$(get_text mail.configuration-absent)" >&2
         exit 1
     fi
     export G_INSTALL_DIRECTORY="${base}"
     export G_CONFIG_BASE_DIRECTORY="${base}"
+    read_language_file "${base}/config/global.conf"
     # shellcheck disable=SC1091
     source "${base}/config/global.conf"
     if [[ -f "${base}/cron/mail.conf" ]]; then
@@ -46,55 +63,68 @@ g_send_mail_test() {
     export G_PROJECT_NAME
     send_sh="${base}/cron/bin/send.sh"
     if [[ ! -f "${send_sh}" ]]; then
-        printf '%s\n' "envoi introuvable" >&2
+        printf '%s\n' "$(get_text mail.send-not-found)" >&2
         exit 1
     fi
     if [[ "${G_MAIL_ALERTS:-0}" != "1" ]]; then
-        printf '%s\n' "alertes e-mail coupées" >&2
+        printf '%s\n' "$(get_text mail.alerts-e-mail-off)" >&2
         exit 1
     fi
     if [[ -z "${G_WATCHDOG_MAIL:-}" ]]; then
-        printf '%s\n' "destinataire absent" >&2
+        printf '%s\n' "$(get_text mail.destinataire-absent)" >&2
         exit 1
     fi
     if ! command -v mail >/dev/null 2>&1; then
-        printf '%s\n' "commande mail absente" >&2
+        printf '%s\n' "$(get_text mail.command-mail-absent)" >&2
         exit 1
     fi
     if [[ ! -f "${base}/cron/bin/${G_MAIL_TEMPLATE:-mail.html}" ]]; then
-        printf '%s\n' "modèle absent" >&2
+        printf '%s\n' "$(get_text mail.template-absent)" >&2
         exit 1
     fi
     export G_MAIL_TEMPLATE="${G_MAIL_TEMPLATE:-mail.html}"
     export G_MAIL_ALERTS
     export G_WATCHDOG_MAIL
-    export TITLE="Essai de mise en page"
-    export MODULE_NAME="Essai"
+    export TITLE="$(get_text mail.test.title)"
+    export MODULE_NAME="$(get_text mail.test.module)"
     # One sample line is longer than the 800px floor.
     wide="$(printf 'X%.0s' {1..180})"
-    export CONTENT="Ligne courte.
-Cette ligne dépasse le minimum de 800px : ${wide}
-Ligne courte."
-    export NOTE="La largeur suit la ligne la plus longue. La hauteur occupe le volet."
+    export CONTENT="$(get_text mail.test.line-short)
+$(get_text mail.test.line-wide "${wide}")
+$(get_text mail.test.line-short)"
+    export NOTE="$(get_text mail.test.note)"
     export NOTE_CMD="sudo bash ${base}/bin/mail-test.sh"
     err_file="$(mktemp)"
     if ! bash "${send_sh}" >/dev/null 2>"${err_file}"; then
         rm -f "${err_file}"
-        printf '%s\n' "envoi refusé" >&2
+        printf '%s\n' "$(get_text mail.send-rejected)" >&2
         exit 1
     fi
-    if grep -q 'Mail non envoyé' "${err_file}"; then
+    if grep -Eq 'Mail non envoyé|Mail not sent|Mail nicht gesendet|Mail no enviado' "${err_file}"; then
         rm -f "${err_file}"
-        printf '%s\n' "envoi refusé" >&2
+        printf '%s\n' "$(get_text mail.send-rejected)" >&2
         exit 1
     fi
     rm -f "${err_file}"
-    printf '%s\n' "message d'essai envoyé"
+    printf '%s\n' "$(get_text mail.message-of-attempt-sent)"
 }
 
+if [[ "$(basename -- "${script_dir}")" == "bin" ]]; then
+    base="$(dirname -- "${script_dir}")"
+else
+    base="${G_CONFIG_BASE_DIRECTORY:-}"
+fi
+if [[ -n "${base}" && -f "${base}/config/global.conf" ]] && declare -F read_language_file >/dev/null 2>&1; then
+    read_language_file "${base}/config/global.conf"
+fi
+
 if [[ "${EUID}" -ne 0 ]]; then
-    printf '%s\n' "root requis" >&2
+    if declare -F get_text >/dev/null 2>&1; then
+        printf '%s\n' "$(get_text log.root-required)" >&2
+    else
+        printf '%s\n' "root required" >&2
+    fi
     exit 1
 fi
 
-g_send_mail_test
+send_mail_test

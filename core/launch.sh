@@ -1,23 +1,53 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/launch.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
-g_launch() {
+prepare_launch_text() {
+    local root="$1"
+    local launch_here="" launch_candidate=""
+    if [[ -z "${G_PRODUCT_ROOT:-}" ]]; then
+        G_PRODUCT_ROOT="${root}"
+        export G_PRODUCT_ROOT
+    fi
+    if ! declare -F get_text >/dev/null 2>&1; then
+        launch_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+        for launch_candidate in \
+            "${launch_here}/log.sh" \
+            "${root}/core/log.sh" \
+            "${root}/src/core/log.sh"
+        do
+            if [[ -n "${launch_candidate}" && -f "${launch_candidate}" ]]; then
+                # shellcheck disable=SC1090
+                source "${launch_candidate}"
+                break
+            fi
+        done
+    fi
+    if declare -F read_language_file >/dev/null 2>&1 \
+        && [[ -f "${root}/config/global.conf" ]]; then
+        read_language_file "${root}/config/global.conf"
+    elif declare -F load_text >/dev/null 2>&1; then
+        load_text "${G_LANGUAGE:-en}"
+    fi
+}
+
+launch() {
     local root="$1"
     local cmd="${2:-help}"
     shift 2 || true
+    prepare_launch_text "${root}"
     case "${cmd}" in
         configure)
-            exec bash "${root}/scripts/configure.sh" "$@"
+            exec bash "${root}/script/configure.sh" "$@"
             ;;
         check)
-            exec bash "${root}/scripts/configure.sh" --check "$@"
+            exec bash "${root}/script/configure.sh" --check "$@"
             ;;
         run)
-            exec bash "${root}/scripts/run.sh" "$@"
+            exec bash "${root}/script/run.sh" "$@"
             ;;
         lynis)
             exec bash "${root}/core/lynis.sh" "${root}" "$@"
@@ -26,46 +56,17 @@ g_launch() {
             exec bash "${root}/system/collect-logs.sh" "$@"
             ;;
         help|-h|--help)
-            cat << EOF
-Usage : ${root}/liltress <commande>
-
-  configure   prépare global.conf et secrets.conf
-  check       vérifie ces deux fichiers
-  run         installe (root)
-  lynis       audit Lynis (root)
-  logs        copie les journaux
-  help        cette aide
-EOF
-            if [[ -f "${root}/verify/workstation.sh" ]]; then
-                cat << 'EOF'
-
-Vérification :
-
-  sudo bash verify/alerts.sh [--no-send]
-  sudo bash verify/workstation.sh "$PWD"
-  sudo bash verify/boot.sh
-  sudo bash verify/chkrootkit-fp.sh
-  sudo bash /opt/liltress-workstation/bin/scan-skip.sh list|add|del
-EOF
-            fi
-            if [[ -f "${root}/verify/matrix.sh" ]]; then
-                cat << 'EOF'
-
-  sudo ./liltress configure --basic   nom du projet + domaine ; le reste est calculé
-  sudo ./liltress configure --avance  toutes les questions, sauf le profil serveur
-
-Vérification :
-
-  sudo bash verify/alerts.sh [--no-send]
-  sudo bash verify/matrix.sh "$PWD" MATRIX
-  sudo bash verify/livekit.sh "$PWD" LIVEKIT
-  sudo bash verify/wireguard.sh "$PWD" WIREGUARD
-EOF
+            printf '%s\n' "$(get_text launch.usage "${root}")"
+            if [[ -f "${root}/verify/workstation.sh" || -f "${root}/verify/matrix.sh" ]]; then
+                extra="$(get_text launch.usage.extra)"
+                if [[ "${extra}" != "launch.usage.extra" ]]; then
+                    printf '\n%s\n' "${extra}"
+                fi
             fi
             ;;
         *)
-            printf 'commande inconnue : %s\n' "${cmd}" >&2
-            printf 'Usage : %s/liltress help\n' "${root}" >&2
+            printf '%s\n' "$(get_text launch.unknown-command "${cmd}")" >&2
+            printf '%s\n' "$(get_text launch.usage-liltress-help "${root}")" >&2
             exit 2
             ;;
     esac

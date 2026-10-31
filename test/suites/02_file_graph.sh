@@ -1,9 +1,27 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/02_file_graph.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
+
+t_plan_pos() {
+    python3 - "${T_ROOT}/script/install.json" "$1" << 'PY'
+import json
+import sys
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+needle = sys.argv[2]
+index = 0
+for category in data["categories"]:
+    for step in category["steps"]:
+        index += 1
+        blob = json.dumps(step, ensure_ascii=False)
+        if needle in blob:
+            print(index)
+            raise SystemExit(0)
+raise SystemExit(1)
+PY
+}
 
 t_section "étapes de run.sh"
 while IFS= read -r step; do
@@ -13,46 +31,53 @@ while IFS= read -r step; do
     else
         t_fail "graph:${step}" "introuvable"
     fi
-done < <(grep -oE '"(system|service|verify)/[^"]+\.sh"' "${T_ROOT}/scripts/run.sh" | tr -d '"' | sort -u)
+done < <(python3 - "${T_ROOT}/script/install.json" << 'PY'
+import json, sys
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+seen = []
+for category in data["categories"]:
+    for step in category["steps"]:
+        path = step.get("path")
+        if path and path not in seen:
+            seen.append(path)
+            print(path)
+PY
+)
 
 t_section "désinstallations avant system/install"
-snap_line=$(grep -n 'system/snapd.sh' "${T_ROOT}/scripts/run.sh" | head -1 | cut -d: -f1)
-purge_line=$(grep -n 'STEP_SYSTEM_PURGE\[@\]' "${T_ROOT}/scripts/run.sh" | head -1 | cut -d: -f1)
-inst_line=$(grep -n 'STEP_SYSTEM_INSTALL\[@\]' "${T_ROOT}/scripts/run.sh" | head -1 | cut -d: -f1)
+snap_line=$(t_plan_pos 'system/snapd.sh')
+purge_line=$(t_plan_pos 'install.purge')
+inst_line=$(t_plan_pos 'system/tree/install.sh')
 if [[ -n "${snap_line}" && -n "${purge_line}" && -n "${inst_line}" \
       && "${snap_line}" -lt "${purge_line}" && "${purge_line}" -lt "${inst_line}" ]] \
    && grep -q 'systemctl mask systemd-coredump.socket' "${T_ROOT}/system/purge.sh" \
-   && ! grep -q 'systemctl mask systemd-coredump.socket' "${T_ROOT}/system/configure.sh" \
+   && ! grep -q 'systemctl mask systemd-coredump.socket' "${T_ROOT}/system/kernel/configure.sh" \
    && ! grep -q 'mask apport' "${T_ROOT}/system/purge.sh" \
    && grep -q 'cups cups-daemon cups-browsed cups-core-drivers cups-server-common cups-filters' "${T_ROOT}/system/purge.sh" \
-   && grep -qF 'g_run_silent_apt purge -y "${cups_pkgs[@]}"' "${T_ROOT}/system/purge.sh" \
-   && awk '$0 == "w_remove_cups" { cups = NR } $0 == "w_remove_removed_config_package" { rc = NR } END { exit !(cups && rc && cups < rc) }' "${T_ROOT}/system/purge.sh" \
-   && awk '
-        /upgrade -y --with-new-pkgs/ { up = NR }
-        /G_REAPPLY_LOCKS=1/ { if (up && !re) re = NR }
-        END { exit !(up && re && re > up) }
-      ' "${T_ROOT}/scripts/run.sh"; then
+   && grep -qF 'run_silent_apt' "${T_ROOT}/system/purge.sh" \
+   && awk '$0 == "remove_cups" { cups = NR } $0 == "remove_removed_config_package" { rc = NR } END { exit !(cups && rc && cups < rc) }' "${T_ROOT}/system/purge.sh" \
+   && [[ "$(t_plan_pos 'apt-upgrade')" -lt "$(t_plan_pos 'G_REAPPLY_LOCKS')" ]]; then
     t_pass "graph.order.purge-first" "snap (L${snap_line}), purge (L${purge_line}), install (L${inst_line})"
 else
     t_fail "graph.order.purge-first" "snap, puis purge de CUPS et des paquets rc, avant system/install"
 fi
 
 t_section "purge rc avant les bases rkhunter et AIDE"
-rc_line=$(grep -n 'G_PURGE_REMOVED_CONFIG_ONLY=1' "${T_ROOT}/scripts/run.sh" | head -1 | cut -d: -f1)
-rk_line=$(grep -n 'service/rkhunter/init-db.sh' "${T_ROOT}/scripts/run.sh" | head -1 | cut -d: -f1)
-aide_line=$(grep -n 'service/aide/init-db.sh' "${T_ROOT}/scripts/run.sh" | head -1 | cut -d: -f1)
+rc_line=$(t_plan_pos 'G_PURGE_REMOVED_CONFIG_ONLY')
+rk_line=$(t_plan_pos 'service/rkhunter/init-db.sh')
+aide_line=$(t_plan_pos 'service/aide/init-db.sh')
 if [[ -n "${rc_line}" && -n "${rk_line}" && -n "${aide_line}" \
       && "${rc_line}" -lt "${rk_line}" && "${rk_line}" -lt "${aide_line}" ]] \
-   && ! grep -q 'dpkg --purge' "${T_ROOT}/system/install.sh" \
-   && ! grep -qF 'g_run_silent rkhunter --propupd' "${T_ROOT}/service/rkhunter/configure.sh" \
-   && grep -qF 'g_run_silent rkhunter --propupd' "${T_ROOT}/service/rkhunter/init-db.sh"; then
+   && ! grep -q 'dpkg --purge' "${T_ROOT}/system/base/install.sh" \
+   && ! grep -qF 'rkhunter --propupd' "${T_ROOT}/service/rkhunter/configure.sh" \
+   && grep -qF 'rkhunter --propupd' "${T_ROOT}/service/rkhunter/init-db.sh"; then
     t_pass "graph.order.purge-before-db" "purge rc (L${rc_line}) avant rkhunter (L${rk_line}) et AIDE (L${aide_line})"
 else
     t_fail "graph.order.purge-before-db" "la purge rc doit précéder --propupd et aide --init"
 fi
 
 t_section "carte sasl selon postfix"
-if grep -q 'g_get_sasl_map_type' "${T_ROOT}/service/postfix/configure.sh" \
+if grep -q 'get_sasl_map_type' "${T_ROOT}/service/postfix/configure.sh" \
    && grep -q 'sasl_passwd.db' "${T_ROOT}/service/postfix/configure.sh" \
    && grep -q 'sasl_passwd.cdb' "${T_ROOT}/service/postfix/configure.sh" \
    && grep -q '__SASL_TYPE__' "${T_ROOT}/service/postfix/configure.sh" \
@@ -66,7 +91,7 @@ fi
 
 t_section "ubuntu pro hors lts"
 if awk '
-    /if g_check_ubuntu_lts; then/ { state = 1; next }
+    /if check_ubuntu_lts; then/ { state = 1; next }
     state == 1 && /^else$/ { state = 2; next }
     state == 2 && /^fi$/ { state = 0; closed = 1; next }
     state == 1 && /pro enable/ { inn++ }
@@ -74,8 +99,8 @@ if awk '
     state == 1 && /pro enable livepatch/ { live = 1 }
     state == 2 && /pro enable/ { bad = 1 }
     END { exit !(inn == 2 && names && live && !bad && closed) }
-' "${T_ROOT}/system/install.sh" \
-   && grep -q 'g_check_ubuntu_lts' "${T_ROOT}/verify/workstation.sh" \
+' "${T_ROOT}/service/ubuntu-pro/install.sh" \
+   && grep -q 'check_ubuntu_lts' "${T_ROOT}/verify/workstation.sh" \
    && grep -qF 'non demandés : version intermédiaire' "${T_ROOT}/verify/workstation.sh"; then
     t_pass "graph.pro.interim" "esm-infra, esm-apps et livepatch seulement sur une LTS"
 else
@@ -83,65 +108,15 @@ else
 fi
 
 t_section "ordre des contrôles quotidiens"
-if awk '
-    function remember(name, s) { arr[name] = arr[name] s "\n" }
-    function add(s) { step[++n] = s }
-    function take_scripts(line,    rest, s) {
-        rest = line
-        while (match(rest, /"(system|service|verify)\/[^"]+\.sh"/)) {
-            s = substr(rest, RSTART + 1, RLENGTH - 2)
-            if (inarr) remember(cur, s)
-            else add(s)
-            rest = substr(rest, RSTART + RLENGTH)
-        }
-    }
-    function pos(name,    i) {
-        for (i = 1; i <= n; i++) if (step[i] == name) return i
-        return 0
-    }
-    /^[A-Za-z0-9_]+=\(/ {
-        cur = $0
-        sub(/=.*/, "", cur)
-        inarr = 1
-        take_scripts($0)
-        if ($0 ~ /\)/) inarr = 0
-        next
-    }
-    inarr {
-        take_scripts($0)
-        if ($0 ~ /\)/) inarr = 0
-        next
-    }
-    /upgrade -y --with-new-pkgs/ { add("UPGRADE"); next }
-    /\$\{STEP_[A-Z0-9_]+\[@\]\}/ {
-        if (match($0, /STEP_[A-Z0-9_]+/)) {
-            cur = substr($0, RSTART, RLENGTH)
-            nlines = split(arr[cur], parts, "\n")
-            for (i = 1; i <= nlines; i++) if (parts[i] != "") add(parts[i])
-        }
-        next
-    }
-    /g_run_step/ { take_scripts($0); next }
-    END {
-        ssh = pos("service/ssh/configure.sh")
-        ufw = pos("service/ufw/configure.sh")
-        uinst = pos("service/usbguard/install.sh")
-        uconf = pos("service/usbguard/configure.sh")
-        cinst = pos("service/clamav/install.sh")
-        cconf = pos("service/clamav/configure.sh")
-        userns = pos("service/apparmor/userns.sh")
-        rk = pos("service/rkhunter/init-db.sh")
-        aide = pos("service/aide/init-db.sh")
-        ver = pos("verify/workstation.sh")
-        up = pos("UPGRADE")
-        exit !(ssh && ufw && ssh < ufw \
-            && uinst && uconf && uinst < uconf \
-            && cinst && cconf && cinst < cconf && cconf < userns \
-            && userns && up && uconf \
-            && userns < up && up < uconf \
-            && uconf < rk && rk < aide && aide < ver)
-    }
-' "${T_ROOT}/scripts/run.sh"; then
+if [[ "$(t_plan_pos 'service/ssh/configure.sh')" -lt "$(t_plan_pos 'service/ufw/configure.sh')" ]] \
+   && [[ "$(t_plan_pos 'service/usbguard/install.sh')" -lt "$(t_plan_pos 'service/usbguard/configure.sh')" ]] \
+   && [[ "$(t_plan_pos 'service/clamav/install.sh')" -lt "$(t_plan_pos 'service/clamav/configure.sh')" ]] \
+   && [[ "$(t_plan_pos 'service/clamav/configure.sh')" -lt "$(t_plan_pos 'service/apparmor/userns.sh')" ]] \
+   && [[ "$(t_plan_pos 'service/apparmor/userns.sh')" -lt "$(t_plan_pos 'apt-upgrade')" ]] \
+   && [[ "$(t_plan_pos 'apt-upgrade')" -lt "$(t_plan_pos 'service/usbguard/configure.sh')" ]] \
+   && [[ "$(t_plan_pos 'service/usbguard/configure.sh')" -lt "$(t_plan_pos 'service/rkhunter/init-db.sh')" ]] \
+   && [[ "$(t_plan_pos 'service/rkhunter/init-db.sh')" -lt "$(t_plan_pos 'service/aide/init-db.sh')" ]] \
+   && [[ "$(t_plan_pos 'service/aide/init-db.sh')" -lt "$(t_plan_pos 'verify/workstation.sh')" ]]; then
     t_pass "graph.order.daily" "SSH avant UFW, USBGuard après correctifs, verify après AIDE"
 else
     t_fail "graph.order.daily" "USBGuard suit les paquets ; verify suit AIDE"
@@ -181,7 +156,7 @@ evt="${T_ROOT}/service/cron/watchdogs/clamav-event.sh"
 if grep -q 'clamav-quarantine-lock' "${evt}" \
    && awk '
         /clamav-quarantine-lock/ { lock = NR }
-        /g_log_alert/ { if (lock && !alert) alert = NR }
+        /log_alert/ { if (lock && !alert) alert = NR }
         END { exit !(lock && alert && alert > lock) }
       ' "${evt}"; then
     t_pass "graph.clamav.locks" "un verrou de quarantaine sort avant le courrier"
@@ -218,29 +193,32 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
         END { exit !(apply && aide && aide > apply) }
       ' "${skip_boot}" \
    && ! grep -q 'clamdscan' "${skip_clam}" \
-   && grep -q 'g_list_clamav_scan' "${skip_clam}" \
-   && grep -q 'g_report_clamav' "${skip_clam}" \
+   && grep -q 'list_clamav_scan' "${skip_clam}" \
+   && grep -q 'report_clamav' "${skip_clam}" \
    && grep -q 'clamscan --infected --no-summary' "${T_ROOT}/../core/watchdog.sh" \
    && grep -q 'planté signal' "${T_ROOT}/../core/watchdog.sh" \
    && grep -q 'tool="clamscan"' "${T_ROOT}/../core/watchdog.sh" \
-   && grep -q 'scan-skip.sh list' "${skip_cmd}" \
-   && grep -q 'scan-skip.sh add' "${skip_cmd}" \
-   && grep -q 'scan-skip.sh del' "${skip_cmd}" \
+   && grep -q 'scan-skip.sh list' "${T_ROOT}/locale/fr/log.txt" \
+   && grep -q 'log.usage-sudo-bash-bin-scan-skip-sh-list' "${skip_cmd}" \
+   && grep -q 'scan-skip.sh add' "${T_ROOT}/locale/fr/log.txt" \
+   && grep -q 'log.sudo-bash-bin-scan-skip-sh-add-chemin' "${skip_cmd}" \
+   && grep -q 'scan-skip.sh del' "${T_ROOT}/locale/fr/log.txt" \
+   && grep -q 'log.sudo-bash-bin-scan-skip-sh-del-chemin' "${skip_cmd}" \
    && grep -q 'pgrep -x' "${skip_idle}" \
-   && grep -q 'g_list_clamav_scan' "${skip_idle}" \
-   && grep -q 'g_report_clamav' "${skip_idle}" \
+   && grep -q 'list_clamav_scan' "${skip_idle}" \
+   && grep -q 'report_clamav' "${skip_idle}" \
    && ! grep -q 'interrompu, aucun virus' "${skip_clam}" \
    && ! grep -q 'interrompu, aucun virus' "${skip_idle}" \
-   && grep -q 'g_get_crash_sentence' "${skip_boot}" \
-   && grep -q 'g_get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/aide.sh" \
-   && grep -q 'g_get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
-   && grep -q 'g_get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/chkrootkit.sh" \
-   && grep -q 'g_get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
-   && grep -q 'g_log_alert "clamscan : infection(s)' "${skip_clam}" \
-   && grep -q 'g_log_alert "AIDE: changements détectés' "${T_ROOT}/service/cron/watchdogs/aide.sh" \
-   && grep -q 'g_log_alert "rkhunter warnings' "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
-   && grep -q 'g_log_alert "chkrootkit a produit une sortie' "${T_ROOT}/service/cron/watchdogs/chkrootkit.sh" \
-   && grep -q 'g_repair_debsums_log' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
+   && grep -q 'get_crash_sentence' "${skip_boot}" \
+   && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/aide.sh" \
+   && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
+   && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/chkrootkit.sh" \
+   && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
+   && grep -q 'clamscan : infection(s)' "${T_ROOT}/locale/fr/watchdog.txt" \
+   && grep -q 'AIDE: changements détectés' "${T_ROOT}/locale/fr/watchdog.txt" \
+   && grep -q 'rkhunter warnings' "${T_ROOT}/locale/fr/watchdog.txt" \
+   && grep -q 'chkrootkit a produit une sortie' "${T_ROOT}/locale/fr/watchdog.txt" \
+   && grep -q 'repair_debsums_log' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
    && grep -q '"apt-get", "clean"' "${T_ROOT}/../core/watchdog.sh" \
    && grep -q 'Dir::Cache::archives' "${T_ROOT}/../core/watchdog.sh" \
    && grep -q '"install", "--reinstall", "-y", "--", pkg' "${T_ROOT}/../core/watchdog.sh" \
@@ -248,9 +226,10 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -q 'W_RKHUNTER_REFRESH=1' "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
    && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/../core/watchdog.sh" \
    && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/service/rkhunter/configure.sh" \
-   && grep -q 'g_log_alert "ClamAV :' "${T_ROOT}/service/cron/watchdogs/clamav-event.sh" \
-   && grep -q 'g_get_clamav_kind' "${skip_clam}" \
-   && grep -q 'g_get_clamav_kind' "${skip_idle}" \
+   && grep -q 'get_text watchdog.clamav-in' "${T_ROOT}/service/cron/watchdogs/clamav-event.sh" \
+   && grep -q 'ClamAV :' "${T_ROOT}/locale/fr/watchdog.txt" \
+   && grep -q 'get_clamav_kind' "${skip_clam}" \
+   && grep -q 'get_clamav_kind' "${skip_idle}" \
    && grep -q 'ALLOWDEVFILE=/dev/log' "${T_ROOT}/config/rkhunter/rkhunter.conf.local" \
    && grep -qF "'/dev/log'" "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
    && grep -q 'w-idle-scan.timer' "${T_ROOT}/service/cron/configure.sh" \
@@ -287,9 +266,9 @@ work="$(mktemp -d)"
 trap 'rm -rf "${work}"' EXIT
 printf '%s\n' '#!/bin/sh' 'echo 4' > "${work}/nproc"
 chmod 755 "${work}/nproc"
-got="$(PATH="${work}:${PATH}" G_WATCHDOG_CPU_LIMIT=20 bash -c 'source "$1" && g_get_cpu_quota_percent' _ "${root}/../core/watchdog.sh")"
+got="$(PATH="${work}:${PATH}" G_WATCHDOG_CPU_LIMIT=20 bash -c 'source "$1" && get_cpu_quota_percent' _ "${root}/../core/watchdog.sh")"
 [[ "${got}" == "80" ]]
-grep -qF 'g_get_cpu_quota_percent' "${root}/service/cron/configure.sh"
+grep -qF 'get_cpu_quota_percent' "${root}/service/cron/configure.sh"
 grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-boot-scan.service"
 grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-idle-scan.service"
 grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-reboot-notice.service"
@@ -413,7 +392,7 @@ chmod 755 "${work}/bin/clamscan"
 export W_BASE="${work}" W_SENT="${work}/sent.txt" W_SEEN="${work}/seen.txt" PATH="${work}/bin:${PATH}"
 # shellcheck disable=SC1091
 source "${root}/service/cron/watchdogs/common.sh"
-sentence="$(g_get_crash_sentence "AIDE" 139)"
+sentence="$(get_crash_sentence "AIDE" 139)"
 printf '%s' "${sentence}" | grep -q 'signal 11'
 printf '%s' "${sentence}" | grep -q 'erreur interne du programme'
 LOG_FILE="${work}/clam.log"
@@ -421,13 +400,13 @@ ALERT_FILE="${work}/clam.txt"
 : > "${LOG_FILE}"
 list="${work}/list"
 printf '/ok\0/bad\0/virus\0/after\0' > "${list}"
-g_list_clamav_scan "${list}" >> "${LOG_FILE}" 2>&1
+list_clamav_scan "${list}" >> "${LOG_FILE}" 2>&1
 grep -q 'clamscan planté signal 11 sur /bad' "${LOG_FILE}"
 grep -q 'scan /after' "${W_SEEN}"
-g_report_clamav
-kind="$(g_get_clamav_kind "${LOG_FILE}")"
+report_clamav
+kind="$(get_clamav_kind "${LOG_FILE}")"
 [[ "${kind}" == "infected" ]]
-g_log_alert "clamscan : infection(s) (voir ${LOG_FILE})"
+log_alert "clamscan : infection(s) (voir ${LOG_FILE})"
 grep -q 'Ce fichier n'"'"'a pas été analysé' "${W_SENT}"
 grep -q 'clamscan planté signal 11 sur /bad' "${W_SENT}"
 grep -q 'clamscan : infection(s)' "${W_SENT}"
@@ -436,10 +415,10 @@ grep -q 'Eicar-Test-Signature FOUND' "${W_SENT}"
 : > "${LOG_FILE}"
 : > "${W_SENT}"
 printf '/bad1\0/bad2\0/later\0' > "${list}"
-g_list_clamav_scan "${list}" >> "${LOG_FILE}" 2>&1
+list_clamav_scan "${list}" >> "${LOG_FILE}" 2>&1
 grep -q 'contrôle arrêté' "${LOG_FILE}"
 ! grep -q 'scan /later' "${W_SEEN}"
-g_report_clamav
+report_clamav
 grep -q 'deux fois de suite' "${W_SENT}"
 grep -q 'fichiers restants n'"'"'ont pas été analysés' "${W_SENT}"
 : > "${list}"
@@ -447,7 +426,7 @@ grep -q 'fichiers restants n'"'"'ont pas été analysés' "${W_SENT}"
 : > "${W_SENT}"
 empty_rc=0
 set +e
-g_list_clamav_scan "${list}" >> "${LOG_FILE}" 2>&1
+list_clamav_scan "${list}" >> "${LOG_FILE}" 2>&1
 empty_rc=$?
 set -e
 [[ "${empty_rc}" -eq 0 ]]
@@ -460,7 +439,7 @@ source "'"${root}"'/service/cron/watchdogs/common.sh"
 LOG_FILE="'"${work}"'/dead.log"
 ALERT_FILE="'"${work}"'/dead.txt"
 : > "${LOG_FILE}"
-g_arm_crash_mail "essai"
+arm_crash_mail "essai"
 exit 3
 ' || true
 grep -q "s'est arrêté (code 3)" "${W_SENT}"
@@ -480,7 +459,7 @@ daily_ok=1
 grep -q '^AllowTcpForwarding no$' "${ssh_drop}" || daily_ok=0
 grep -q '^AllowAgentForwarding no$' "${ssh_drop}" || daily_ok=0
 grep -q '^PasswordAuthentication yes$' "${ssh_drop}" || daily_ok=0
-grep -q 'timestamp_timeout=5' "${T_ROOT}/system/configure.sh" || daily_ok=0
+grep -q 'timestamp_timeout=5' "${T_ROOT}/system/pam/configure.sh" || daily_ok=0
 grep -q 'pgrep -x' "${reboot}" || daily_ok=0
 if grep -qE 'systemctl reboot|shutdown' "${reboot}"; then
     daily_ok=0
@@ -514,14 +493,14 @@ grep -q 'SSH LAN' "${ufw_policy}" || daily_ok=0
 grep -q 'W_UFW_DEFAULT_OUTGOING=allow' "${ufw_policy}" || daily_ok=0
 grep -qF 'ufw default "${W_UFW_DEFAULT_OUTGOING}" outgoing' "${T_ROOT}/service/ufw/configure.sh" || daily_ok=0
 for lang in en fr de es; do
-    page="${T_ROOT}/docs/${lang}/README.md"
+    page="${T_ROOT}/doc/${lang}/README.md"
     grep -q 'AllowTcpForwarding no' "${page}" || daily_ok=0
     grep -q 'AllowAgentForwarding no' "${page}" || daily_ok=0
     grep -q 'PasswordAuthentication yes' "${page}" || daily_ok=0
     grep -q 'w-reboot-notice.timer' "${page}" || daily_ok=0
     grep -q 'usbguard' "${page}" || daily_ok=0
 done
-if grep -q 'No other incoming allow rule is added.' "${T_ROOT}/docs/en/README.md"; then
+if grep -q 'No other incoming allow rule is added.' "${T_ROOT}/doc/en/README.md"; then
     daily_ok=0
 fi
 ver="${T_ROOT}/verify/workstation.sh"
@@ -532,10 +511,10 @@ grep -qF 'SSH LAN' "${ver}" || daily_ok=0
 grep -q 'timestamp_timeout=5' "${ver}" || daily_ok=0
 grep -q 'w-reboot-notice.timer' "${ver}" || daily_ok=0
 grep -qF 'allow with-interface equals { 03:*:* }' "${ver}" || daily_ok=0
-grep -qF 'The same pass checks SSH forwarding' "${T_ROOT}/docs/en/README.md" || daily_ok=0
-grep -qF 'La même passe contrôle le relais SSH' "${T_ROOT}/docs/fr/README.md" || daily_ok=0
-grep -qF 'Derselbe Lauf prüft die SSH-Weiterleitung' "${T_ROOT}/docs/de/README.md" || daily_ok=0
-grep -qF 'La misma pasada comprueba el reenvío SSH' "${T_ROOT}/docs/es/README.md" || daily_ok=0
+grep -qF 'The same pass checks SSH forwarding' "${T_ROOT}/doc/en/README.md" || daily_ok=0
+grep -qF 'La même passe contrôle le relais SSH' "${T_ROOT}/doc/fr/README.md" || daily_ok=0
+grep -qF 'Derselbe Lauf prüft die SSH-Weiterleitung' "${T_ROOT}/doc/de/README.md" || daily_ok=0
+grep -qF 'La misma pasada comprueba el reenvío SSH' "${T_ROOT}/doc/es/README.md" || daily_ok=0
 if [[ "${daily_ok}" -eq 1 ]]; then
     t_pass "graph.daily" "relais SSH coupé, préfixes connectés, USB, avis de redémarrage"
 else
@@ -544,15 +523,15 @@ fi
 
 t_section "readme"
 readme="${T_ROOT}/README.md"
-en="${T_ROOT}/docs/en/README.md"
-fr="${T_ROOT}/docs/fr/README.md"
+en="${T_ROOT}/doc/en/README.md"
+fr="${T_ROOT}/doc/fr/README.md"
 pages_ok=1
 for lang in en fr de es; do
-    if [[ ! -f "${T_ROOT}/docs/${lang}/README.md" ]]; then
+    if [[ ! -f "${T_ROOT}/doc/${lang}/README.md" ]]; then
         pages_ok=0
     fi
     for page in configuration.md surveillance.md architecture.md files.md logs.md; do
-        if [[ -f "${T_ROOT}/docs/${lang}/${page}" ]]; then
+        if [[ -f "${T_ROOT}/doc/${lang}/${page}" ]]; then
             pages_ok=0
         fi
     done
@@ -568,9 +547,9 @@ grep -qF 'sudo apt-get update' "${readme}" || pages_ok=0
 grep -qF 'git clone https://github.com/palarchsys/liltress-workstation' "${readme}" && pages_ok=0
 grep -qF 'Do not copy it into a message, a ticket, or a repository.' "${readme}" && pages_ok=0
 for flag in en fr de es; do
-    [[ -f "${T_ROOT}/docs/flags/${flag}.svg" ]] || pages_ok=0
-    grep -qF "docs/flags/${flag}.svg" "${readme}" || pages_ok=0
-    grep -q 'width="90" height="60" viewBox="0 0 90 60"' "${T_ROOT}/docs/flags/${flag}.svg" || pages_ok=0
+    [[ -f "${T_ROOT}/doc/flags/${flag}.svg" ]] || pages_ok=0
+    grep -qF "doc/flags/${flag}.svg" "${readme}" || pages_ok=0
+    grep -q 'width="90" height="60" viewBox="0 0 90 60"' "${T_ROOT}/doc/flags/${flag}.svg" || pages_ok=0
 done
 grep -qF 'Liltress Workstation prepares an Ubuntu 26.04 or newer workstation.' "${readme}" || pages_ok=0
 grep -qF 'Liltress Workstation prepares an Ubuntu 26.04 or newer workstation.' "${en}" || pages_ok=0
@@ -579,10 +558,10 @@ grep -qF 'It installs the local DNS resolver, the firewall, and the security che
 if grep -qF 'Liltress Workstation' "${readme}" \
    && grep -qF 'https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/install.sh' "${en}" \
    && grep -qF 'ca-certificates curl git swaks tar' "${en}" \
-   && grep -qF 'docs/en/README.md' "${readme}" \
-   && grep -qF 'docs/fr/README.md' "${readme}" \
-   && grep -qF 'docs/de/README.md' "${readme}" \
-   && grep -qF 'docs/es/README.md' "${readme}" \
+   && grep -qF 'doc/en/README.md' "${readme}" \
+   && grep -qF 'doc/fr/README.md' "${readme}" \
+   && grep -qF 'doc/de/README.md' "${readme}" \
+   && grep -qF 'doc/es/README.md' "${readme}" \
    && ! grep -qF '## Avant de commencer' "${readme}" \
    && ! grep -R -qF 'disable_ipv6' "${T_ROOT}/docs" \
    && ! grep -R -qF 'PasswordAuthentication no' "${T_ROOT}/docs" \
@@ -622,7 +601,7 @@ fi
 t_section "archive d'alerte et Google Drive"
 alerts_ok=1
 for lang in en fr de es; do
-    page="${T_ROOT}/docs/${lang}/README.md"
+    page="${T_ROOT}/doc/${lang}/README.md"
     grep -q '/opt/liltress-workstation/cron/alerts' "${page}" || alerts_ok=0
     grep -q 'G_RCLONE_ALERTS=1' "${page}" || alerts_ok=0
     grep -q "Activer l'envoi des alertes vers Google Drive (Y/N)." "${page}" || alerts_ok=0
@@ -633,18 +612,16 @@ done
 if grep -qF 'rclone.conf' "${T_ROOT}/README.md"; then
     alerts_ok=0
 fi
-if ! awk '
-    /G_RCLONE_ALERTS:-0/ { gate = 1; next }
-    gate && /service\/rclone\/install.sh/ { hit = 1 }
-    gate && /^fi$/ { gate = 0 }
-    END { exit hit ? 0 : 1 }
-' "${T_ROOT}/scripts/run.sh"; then
+if ! python3 - "${T_ROOT}/script/install.json" << 'PY'
+import json, sys
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+hits = [step for category in data["categories"] for step in category["steps"] if step.get("path") == "service/rclone/install.sh"]
+sys.exit(0 if len(hits) == 1 and hits[0].get("when", {}).get("var") == "G_RCLONE_ALERTS" and str(hits[0]["when"].get("eq")) == "1" else 1)
+PY
+then
     alerts_ok=0
 fi
-if [[ "$(grep -c 'service/rclone/install.sh' "${T_ROOT}/scripts/run.sh")" -ne 1 ]]; then
-    alerts_ok=0
-fi
-if ! grep -q 'N|n|non' "${T_ROOT}/scripts/configure.sh"; then
+if ! grep -q 'N|n|non' "${T_ROOT}/script/configure.sh"; then
     alerts_ok=0
 fi
 if [[ "${alerts_ok}" -eq 1 ]]; then
@@ -684,7 +661,7 @@ G_WATCHDOG_MAIL=""
 NOTE=""
 NOTE_CMD=""
 TITLE=""
-g_log_alert "essai archive"
+log_alert "essai archive"
 [[ -f "${ALERT_FILE}" ]]
 grep -q 'essai archive' "${ALERT_FILE}"
 [[ ! -e "${W_SENT}" ]]
@@ -693,7 +670,7 @@ G_RCLONE_ALERTS=1
 G_RCLONE_REMOTE="gdrive"
 G_RCLONE_PATH="liltress-alerts"
 printf 'token\n' > "${work}/cron/rclone.conf"
-g_log_alert "essai drive"
+log_alert "essai drive"
 grep -q 'gdrive:liltress-alerts' "${W_RCLONE}"
 [[ ! -e "${W_SENT}" ]]
 grep -q 'essai drive' "${ALERT_FILE}"
@@ -715,9 +692,9 @@ grep -q 'W_ONACCESS_MOUNTS=1' "${root}/config/clamav/onaccess.conf"
 grep -q 'kill -TERM' "${root}/service/cron/watchdogs/clamav-response.sh"
 grep -q 'nft add table inet w_isolate' "${root}/service/cron/watchdogs/clamav-response.sh"
 grep -q '/var/lib/clamav/quarantine' "${root}/config/clamav/onaccess.conf"
-grep -q 'w_add_onaccess_directory /tmp' "${root}/service/clamav/configure.sh"
-grep -q 'w_add_onaccess_directory /var/tmp' "${root}/service/clamav/configure.sh"
-grep -q 'w_add_onaccess_directory /opt' "${root}/service/clamav/configure.sh"
+grep -q 'add_onaccess_directory /tmp' "${root}/service/clamav/configure.sh"
+grep -q 'add_onaccess_directory /var/tmp' "${root}/service/clamav/configure.sh"
+grep -q 'add_onaccess_directory /opt' "${root}/service/clamav/configure.sh"
 ! grep -q 'OnAccessIncludePath /' "${root}/service/clamav/configure.sh"
 ! grep -q 'OnAccessExcludePath' "${root}/service/clamav/configure.sh"
 grep -q 'W_ONACCESS_FIXED_EXCLUDE' "${root}/service/cron/watchdogs/apply-scan-skip.sh"
@@ -729,10 +706,11 @@ grep -q 'W_CLAMAV_EVENT_KIND=idle' "${root}/service/cron/watchdogs/idle-scan.sh"
 grep -q 'W_CLAMAV_EVENT_MAIL=0' "${root}/service/cron/watchdogs/idle-scan.sh"
 grep -q 'clamav-response.sh' "${root}/service/cron/watchdogs/idle-scan.sh"
 grep -q 'idle) kind_label="passe différée"' "${root}/service/cron/watchdogs/clamav-response.sh"
+grep -q 'infections déjà signalées' "${root}/locale/fr/watchdog.txt"
 awk '
     /== "infected"/ { inf = NR }
     /W_CLAMAV_EVENT_KIND=idle/ { if (!call) call = NR; last = NR }
-    /infections déjà signalées/ { known = NR }
+    /infections-already-signal-es/ { known = NR }
     END { exit !(inf && call && known && inf < call && last < known) }
 ' "${root}/service/cron/watchdogs/idle-scan.sh"
 grep -q 'G_CLAM_MODE=daemon' "${root}/service/cron/watchdogs/clamav.sh"
@@ -742,9 +720,9 @@ grep -q 'detect-and-apply.sh' "${root}/service/apparmor/configure.sh"
 grep -q 'detect-and-apply.sh' "${root}/service/apparmor/userns.sh"
 test -x "${root}/service/apparmor/detect-and-apply.sh"
 grep -q 'W_CROWDSEC_BAN_DURATION=48h' "${root}/config/crowdsec/ban.conf"
-grep -q 'w_run_check integrity.sh' "${root}/service/cron/watchdogs/boot-scan.sh"
-grep -q 'w_run_check behavior.sh' "${root}/service/cron/watchdogs/boot-scan.sh"
-grep -q 'w_run_check egress-watch.sh' "${root}/service/cron/watchdogs/boot-scan.sh"
+grep -q 'run_check integrity.sh' "${root}/service/cron/watchdogs/boot-scan.sh"
+grep -q 'run_check behavior.sh' "${root}/service/cron/watchdogs/boot-scan.sh"
+grep -q 'run_check egress-watch.sh' "${root}/service/cron/watchdogs/boot-scan.sh"
 ! grep -q 'W_BEHAVIOR_WATCH' "${root}/service/cron/watchdogs/behavior.sh"
 ! grep -q 'W_EGRESS_LOG' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'W_EGRESS_LOG' "${root}/service/ufw/egress.sh"
@@ -759,7 +737,7 @@ grep -q 'th sport 546 th dport 547 accept' "${root}/service/ufw/egress.sh"
 grep -q 'th dport 161 meta pkttype' "${root}/service/ufw/egress.sh"
 grep -q 'w-egress-table.service' "${root}/service/ufw/egress.sh"
 grep -q 'config/integrity/paths.list' "${root}/service/cron/configure.sh"
-grep -Fq 'g_run_silent bash "${G_CONFIG_BASE_DIRECTORY}/cron/bin/integrity.sh"' "${root}/service/cron/configure.sh"
+grep -Fq 'cron/bin/integrity.sh' "${root}/service/cron/configure.sh"
 grep -Fq '${G_CONFIG_BASE_DIRECTORY}/config/global.conf' "${root}/service/cron/configure.sh"
 ! grep -q 'W_NET_ISOLATE=' "${root}/config/ufw/egress.conf"
 ! grep -q 'W_NET_ISOLATE:-' "${root}/service/cron/watchdogs/clamav-response.sh"
@@ -780,20 +758,20 @@ grep -q 'systemctl disable --now w-egress-watch.timer' "${root}/service/cron/con
 grep -q -- '-S connect' "${root}/config/auditd/tail.rules"
 grep -q -- '-k w-egress' "${root}/config/auditd/tail.rules"
 grep -q 'ausearch' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'w_check_egress_routine' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'w_strip_egress_routine' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'w_list_egress_suspects' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'w_flow_hold' "${root}/service/cron/watchdogs/egress-watch.sh"
+grep -q 'check_egress_routine' "${root}/service/cron/watchdogs/egress-watch.sh"
+grep -q 'strip_egress_routine' "${root}/service/cron/watchdogs/egress-watch.sh"
+grep -q 'list_egress_suspects' "${root}/service/cron/watchdogs/egress-watch.sh"
+grep -q 'flow_hold' "${root}/service/cron/watchdogs/egress-watch.sh"
 grep -q '@v4 reject' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'flux sortant suspect bloqué' "${root}/service/cron/watchdogs/egress-watch.sh"
+grep -q 'flux sortant suspect bloqué' "${root}/locale/fr/watchdog.txt"
 grep -q 'quarantine.registry' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'w_isolate' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'flux sortants hors des ports 53, 80 et 443' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'g_record_quarantine_origin' "${root}/../core/watchdog.sh"
+grep -q 'record_quarantine_origin' "${root}/../core/watchdog.sh"
 grep -q 'quarantine-restore.sh' "${root}/../core/watchdog.sh"
-grep -q 'g_quarantine_confirmed_log' "${root}/service/cron/watchdogs/rkhunter.sh"
-grep -q 'g_quarantine_confirmed_log' "${root}/service/cron/watchdogs/chkrootkit.sh"
-grep -q 'non mis en quarantaine' "${root}/../core/watchdog.sh"
+grep -q 'quarantine_confirmed_log' "${root}/service/cron/watchdogs/rkhunter.sh"
+grep -q 'quarantine_confirmed_log' "${root}/service/cron/watchdogs/chkrootkit.sh"
+grep -q 'non mis en quarantaine' "${root}/../core/text/fr/watchdog.txt"
 ! grep -q 'display:flex' "${root}/template/mail.html"
 ! grep -q 'width:840px' "${root}/template/mail.html"
 ! grep -q 'min-width:100%' "${root}/template/mail.html"
@@ -813,7 +791,7 @@ grep -q 'overflow-x:auto' "${root}/template/mail.html"
 grep -q '<pre' "${root}/template/mail.html"
 grep -q 'quarantine-restore.sh' "${root}/service/cron/configure.sh"
 grep -q 'mail-test.sh' "${root}/service/cron/configure.sh"
-grep -q 'g_send_mail_test' "${root}/../core/mail-test.sh"
+grep -q 'send_mail_test' "${root}/../core/mail-test.sh"
 WATCH
 if [[ "${watch_rc}" -eq 0 ]]; then
     t_pass "graph.watch" "surveillance continue et contrôles au démarrage"

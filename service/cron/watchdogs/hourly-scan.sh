@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/hourly-scan.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -17,7 +17,7 @@ source "${W_BASE}/cron/bin/common.sh"
 LOG_FILE="${LOG_DIR}/hourly-scan-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/hourly-scan-${STAMP}.txt"
 
-w_run_check() {
+run_check() {
     local script="$1"
     local label="$2"
     local status=0
@@ -29,11 +29,11 @@ w_run_check() {
     status=$?
     set -e
     if [[ "${status}" -ne 0 ]]; then
-        g_log_alert "$(g_get_crash_sentence "${label}" "${status}")"
+        log_alert "$(get_crash_sentence "${label}" "${status}")"
     fi
 }
 
-w_run_check aide.sh "AIDE"
-w_run_check rkhunter.sh "rkhunter"
-w_run_check chkrootkit.sh "chkrootkit"
-w_run_check debsums.sh "debsums"
+run_check aide.sh "AIDE"
+run_check rkhunter.sh "rkhunter"
+run_check chkrootkit.sh "chkrootkit"
+run_check debsums.sh "debsums"

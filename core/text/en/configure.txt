@@ -1,0 +1,377 @@
+# =============================================================================
+# File       : core/text/en/configure.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[configure.activation-apparmor]
+Activation AppArmor
+
+[configure.activation-of-fail2ban]
+Activation of Fail2Ban
+
+[configure.activation-ufw]
+Activation UFW
+
+[configure.alerts-email-off-postfix-is-not-configured]
+Alerts e-mail off: Postfix is not configured.
+
+[configure.apparmor-enabled]
+AppArmor enabled
+
+[configure.base-help-after-the-purge-of-the-packages-and-rk]
+Base AIDE after the purge of the packages and rkhunter.
+
+[configure.base-rkhunter-propupd-after-the-purge-of-the-pac]
+Base rkhunter (--propupd) after the purge of the packages.
+
+[configure.card-sasl-absent-after-postmap]
+Card SASL absent after postmap.
+
+[configure.configuration-of-journald]
+Configuration of journald
+
+[configure.core-alert-advice-txt-not-found]
+core/alert-advice.txt not found ({1})
+
+[configure.core-mail-sh-not-found-core-mail-sh]
+core/mail.sh not found ({1}/core/mail.sh)
+
+[configure.custom-prf-lynis-installed]
+custom.prf Lynis installed
+
+[configure.deactivation-of-the-core-dumps]
+Deactivation of the core dumps
+
+[configure.encrypt-method-yescrypt]
+ENCRYPT_METHOD YESCRYPT
+
+[configure.error]
+Error: {1}
+
+[configure.faillog-enab-yes]
+FAILLOG_ENAB yes
+
+[configure.from]
+From
+
+[configure.ipv6]
+IPV6={1}
+
+[configure.language.hint]
+Language (en, fr, de, es). Enter keeps the current value.
+
+[configure.login]
+Login
+
+[configure.password]
+Password
+
+[configure.policy-usbguard]
+Policy USBGuard
+
+[configure.quota-cpu-not-found]
+quota CPU not found
+
+[configure.server]
+Server
+
+[configure.sha-crypt-max-rounds-65536]
+SHA_CRYPT_MAX_ROUNDS 65536
+
+[configure.sha-crypt-min-rounds-65536]
+SHA_CRYPT_MIN_ROUNDS 65536
+
+[configure.sudo-asks-again-the-password-after-5-minutes]
+sudo asks again the password after 5 minutes
+
+[configure.sudoers-timeout-invalid-file-removed]
+sudoers timeout invalid — file removed
+
+[configure.systemctl-not-found]
+systemctl not found
+
+[configure.toi-exemple-com]
+toi@exemple.com
+
+[configure.ufw-is-not-active-after-enable]
+UFW is not active after enable: {1}
+
+[configure.umask-027-applied]
+UMASK 027 applied
+
+[configure.unit-absent]
+unit absent: {1}
+
+[configure.unused-fs-blacklisted]
+unused FS blacklisted
+
+[configure.usbguard-did-not-started-service-left-stopped]
+USBGuard did not started — service left stopped
+
+[configure.use-liltress-configures-check-n]
+Use: ./liltress configure [--check]
+
+[configure.write-of-the-rules-usbguard]
+Write of the rules USBGuard
+
+[configure.quota-cpu-invalid]
+quota CPU invalid ({1})
+
+[configure.g-ssh-banner-path-invalid-example-etc-ssh-sshd-b]
+{1}: G_SSH_BANNER_PATH invalid (« {2} »). example: /etc/ssh/sshd_banner
+
+[configure.g-ssh-service-name-invalid-example-ssh]
+{1}: G_SSH_SERVICE_NAME invalid (« {2} »). example: ssh
+
+[configure.g-ssh-client-alive-interval-invalid-example-300]
+{1}: G_SSH_CLIENT_ALIVE_INTERVAL invalid (« {2} »). example: 300
+
+[configure.g-watchdog-cpu-limit-invalid-example-50]
+{1}: G_WATCHDOG_CPU_LIMIT invalid (« {2} »). example: 50
+
+[configure.g-watchdog-limit-nice-invalid-example-19]
+{1}: G_WATCHDOG_LIMIT_NICE invalid (« {2} »). example: 19
+
+[configure.g-watchdog-limit-io-nice-invalid-example-3]
+{1}: G_WATCHDOG_LIMIT_IO_NICE invalid (« {2} »). example: 3
+
+[configure.g-mail-alerts-invalid-example-0-or-1]
+{1}: G_MAIL_ALERTS invalid (« {2} »). example: 0 or 1
+
+[configure.g-rclone-alerts-invalid-example-0-or-1]
+{1}: G_RCLONE_ALERTS invalid (« {2} »). example: 0 or 1
+
+[configure.g-rclone-remote-invalid-example-gdrive]
+{1}: G_RCLONE_REMOTE invalid (« {2} »). example: gdrive
+
+[configure.g-rclone-path-invalid-example-liltress-alerts]
+{1}: G_RCLONE_PATH invalid (« {2} »). example: liltress-alerts
+
+[configure.g-mail-template-invalid-example-mail-html]
+{1}: G_MAIL_TEMPLATE invalid (« {2} »). example: mail.html
+
+[configure.g-mail-template-not-found-example-a-file-html-of]
+{1}: G_MAIL_TEMPLATE not found ({2}). example: a file.html of the directory template/
+
+[configure.g-watchdog-mail-must-be-the-same-address-that-g]
+{1}: G_WATCHDOG_MAIL must be the same address that G_POSTFIX_MAIL_ADDRESS.
+
+[configure.the-fields-e-mail-must-be-vides-when-the-alerts]
+{1}: the fields e-mail must be vides when the alerts are off.
+
+[configure.global-conf-absent-example-liltress-configures]
+global.conf absent ({1}). example:./liltress configures
+
+[configure.secrets-conf-absent-example-liltress-configures]
+secrets.conf absent ({1}). example:./liltress configures
+
+[configure.g-language-invalid-values-in-fr-of-es]
+{1}: G_LANGUAGE invalid (« {2} »). Values: en, fr, de, es.
+
+[configure.core-watchdog-sh-not-found]
+core/watchdog.sh not found ({1})
+
+[configure.clamav.error]
+The command failed: {1}
+
+[configure.clamav.error.4]
+sudoers ClamAV invalid
+
+[configure.clamav.error.7]
+Unit clamonacc not found: the monitoring continues cannot démarrer.
+
+[configure.clamav.error.12]
+clamonacc stays not active. Detail: {1}/clamonacc.log
+
+[configure.auditd.error]
+The command failed: {1}
+
+[configure.postfix.error]
+The command failed: {1}
+
+[configure.postfix.error.4]
+Postfix is not active after the Configuration.
+
+[configure.ufw.error]
+The command failed: {1}
+
+[configure.ufw.error.11]
+UFW is not active after enable: {1}
+
+[configure.cron.error]
+quota CPU not found
+
+[configure.cron.error.2]
+quota CPU invalid ({1})
+
+[configure.cron.error.6]
+systemctl not found
+
+[configure.cron.error.7]
+unit absent: {1}
+
+[configure.cron.error.8]
+The command failed: {1}
+
+[configure.cron.error.9]
+The command failed: {1}
+
+[configure.cron.error.10]
+The command failed: {1}
+
+[configure.cron.error.11]
+The command failed: {1}
+
+[configure.cron.error.12]
+The command failed: {1}
+
+[configure.cron.error.13]
+The command failed: {1}
+
+[configure.cron.error.14]
+The command failed: {1}
+
+[configure.cron.error.15]
+The command failed: {1}
+
+[configure.cron.error.16]
+The command failed: {1}
+
+[configure.cron.error.17]
+The command failed: {1}
+
+[configure.cron.error.18]
+The command failed: {1}
+
+[configure.cron.error.19]
+The command failed: {1}
+
+[configure.redis.error]
+The command failed: {1}
+
+[configure.apparmor.error]
+The command failed: {1}
+
+[configure.fail2ban.error]
+The command failed: {1}
+
+[configure.usbguard.error]
+The command failed: {1}
+
+[configure.ssh.error]
+sshd -t a failed — drop-in removed
+
+[configure.ssh.error.2]
+effective PermitRootLogin: {1}. Expected: no.
+
+[configure.ssh.info.3]
+sshd syntax test
+
+[configure.ssh.error.3]
+The command failed: {1}
+
+[configure.ssh.error.4]
+The command failed: {1}
+
+[configure.ssh.error.5]
+The command failed: {1}
+
+[configure.ssh.error.6]
+The command failed: {1}
+
+[configure.ssh.error.7]
+The command failed: {1}
+
+[configure.ssh.error.8]
+The command failed: {1}
+
+[configure.ssh.error.9]
+The command failed: {1}
+
+[configure.ssh.error.11]
+The command failed: {1}
+
+[configure.crowdsec.error]
+The command failed: {1}
+
+[configure.crowdsec.error.3]
+duration of block invalid
+
+[configure.crowdsec.info.10]
+Waiting for the local CrowdSec API
+
+[configure.script.warn.2]
+{1}
+
+[configure.script.title]
+Ubuntu Pro token
+
+[configure.script.error.5]
+The command failed: {1}
+
+[configure.script.error.8]
+The command failed: {1}
+
+[configure.clamav.warn]
+Freshclam is incomplete, the service continues
+
+[configure.unbound.error.3]
+The command failed: {1}
+
+[configure.unbound.error.4]
+The command failed: {1}
+
+[configure.unbound.error.5]
+The command failed: {1}
+
+[configure.unbound.error.6]
+The command failed: {1}
+
+[configure.unbound.error.7]
+The command failed: {1}
+
+[configure.unbound.error.8]
+The command failed: {1}
+
+[configure.unbound.error.9]
+The command failed: {1}
+
+[configure.unbound.error.10]
+The command failed: {1}
+
+[configure.unbound.error.11]
+The command failed: {1}
+
+[configure.unbound.error.12]
+The command failed: {1}
+
+[configure.unattended-upgrades.error]
+The command failed: {1}
+
+[configure.pam.error]
+The command failed: {1}
+
+[configure.banners.error]
+The command failed: {1}
+
+[configure.journald.error]
+The command failed: {1}
+
+[configure.sysctl.error]
+The command failed: {1}
+
+[configure.kernel.error]
+The command failed: {1}
+
+[configure.lynis.error]
+The command failed: {1}
+
+[configure.users.error]
+The command failed: {1}
+
+[configure.dns.error]
+The command failed: {1}
+
+[configure.swap.error]
+The command failed: {1}

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/behavior.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -18,13 +18,13 @@ ALERT_FILE="${ALERT_DIR}/behavior-${STAMP}.txt"
 MODULE_NAME="Auditd"
 
 if ! command -v ausearch >/dev/null 2>&1; then
-    w_log_pass "ausearch absent"
+    log_pass "$(get_text watchdog.ausearch-absent)"
     exit 0
 fi
 
 stamp="${W_BASE}/cron/behavior.stamp"
 
-w_record_behavior_stamp() {
+record_behavior_stamp() {
     local moment
     moment="$(date '+%m/%d/%Y %T')"
     install -d -m 750 "${W_BASE}/cron"
@@ -33,8 +33,8 @@ w_record_behavior_stamp() {
 }
 
 if [[ ! -s "${stamp}" ]] || ! grep -Eq '^[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}$' "${stamp}"; then
-    w_record_behavior_stamp
-    w_log_pass "repère initial écrit"
+    record_behavior_stamp
+    log_pass "$(get_text watchdog.initial-rep-re-written)"
     exit 0
 fi
 
@@ -46,11 +46,11 @@ set +e
 ausearch -k exec-tmp -ts "${start}" -i > "${found}" 2>>"${LOG_FILE}"
 status=$?
 set -e
-w_record_behavior_stamp
+record_behavior_stamp
 if [[ "${status}" -ne 0 ]] || ! grep -q 'exec-tmp' "${found}"; then
-    w_log_pass "aucune exécution temporaire"
+    log_pass "$(get_text watchdog.no-execution-temporary)"
     exit 0
 fi
 head -n 40 "${found}" >> "${LOG_FILE}"
-g_log_alert "exécution depuis un répertoire temporaire"
+log_alert "$(get_text watchdog.execution-since-a-directory-temporary)"
 exit 0

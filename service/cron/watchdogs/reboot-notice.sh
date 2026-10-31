@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/reboot-notice.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
@@ -14,7 +14,7 @@ LOG_FILE="${LOG_DIR}/reboot-notice-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/reboot-notice-${STAMP}.txt"
 : > "${LOG_FILE}"
 MODULE_NAME="reboot"
-g_arm_crash_mail "avis de redémarrage"
+arm_crash_mail "avis de redémarrage"
 
 busy=""
 for name in lutris heroic gamescope; do
@@ -24,7 +24,7 @@ for name in lutris heroic gamescope; do
     fi
 done
 if [[ -n "${busy}" ]]; then
-    w_log_pass "avis de redémarrage reporté : ${busy} tourne"
+    log_pass "$(get_text watchdog.avis-of-restart-report-runs "${busy}")"
     exit 0
 fi
 
@@ -45,18 +45,18 @@ if command -v fwupdmgr >/dev/null 2>&1; then
 fi
 body="$(printf '%s' "${body}" | sed '/^$/d')"
 if [[ -z "${body}" ]]; then
-    w_log_pass "aucun redémarrage utile"
+    log_pass "$(get_text watchdog.no-restart-useful)"
     exit 0
 fi
 
 seen="${W_BASE}/cron/reboot-notice.seen"
 digest="$(printf '%s' "${body}" | sha256sum | awk '{print $1}')"
 if [[ -f "${seen}" ]] && [[ "$(cat "${seen}")" == "${digest}" ]]; then
-    w_log_pass "avis de redémarrage déjà envoyé"
+    log_pass "$(get_text watchdog.avis-of-restart-already-sent)"
     exit 0
 fi
 printf '%s\n' "${body}" >> "${LOG_FILE}"
-g_log_alert "Un redémarrage est utile. La machine n'a pas été redémarrée."
+log_alert "$(get_text watchdog.a-restart-is-useful-the-machine-was-not-restarte)"
 umask 077
 printf '%s\n' "${digest}" > "${seen}"
 chmod 600 "${seen}"

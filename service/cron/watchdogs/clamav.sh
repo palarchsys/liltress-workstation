@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/clamav.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -19,14 +19,14 @@ source "${W_BASE}/cron/bin/common.sh"
 LOG_FILE="${LOG_DIR}/clamav-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/clamav-${STAMP}.txt"
 if ! command -v clamscan >/dev/null; then
-    w_log_pass "clamscan absent — skip"
+    log_pass "$(get_text watchdog.clamscan-absent-skip)"
     exit 0
 fi
 
 install -d -m 755 /run/liltress-workstation
 exec 9>/run/liltress-workstation/clamav.lock
 if ! flock -n 9; then
-    w_log_pass "analyse ClamAV déjà en cours"
+    log_pass "$(get_text watchdog.scan-clamav-already-in-progress)"
     exit 0
 fi
 
@@ -39,7 +39,7 @@ if [[ "${W_CLAMAV_DEFER:-0}" == "1" ]]; then
         fi
     done
     if [[ -n "${busy}" ]]; then
-        w_log_pass "analyse ClamAV reportée : ${busy} tourne"
+        log_pass "$(get_text watchdog.scan-clamav-report-e-runs "${busy}")"
         exit 0
     fi
 fi
@@ -52,7 +52,7 @@ fi
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "${HERE}/scan-skip-lib.sh"
-w_collect_scan_skip_path
+collect_scan_skip_path
 
 excludes=()
 if [[ -f /etc/clamav/clamd.conf ]]; then
@@ -96,16 +96,16 @@ find /home /opt /tmp \
 
 set +e
 trap '' PIPE
-g_list_clamav_scan "${file_list}" >> "${LOG_FILE}" 2>&1
+list_clamav_scan "${file_list}" >> "${LOG_FILE}" 2>&1
 rc=$?
 trap - PIPE
 set -e
-kind="$(g_get_clamav_kind "${LOG_FILE}")"
+kind="$(get_clamav_kind "${LOG_FILE}")"
 if [[ "${kind}" == "ok" && "${rc}" -ne 0 ]]; then
     kind="error"
 fi
 
-g_report_clamav || true
+report_clamav || true
 if [[ "${kind}" == "infected" ]]; then
     mapfile -t found_lines < <(grep ' FOUND$' "${LOG_FILE}" || true)
     response="${HERE}/clamav-response.sh"
@@ -122,10 +122,10 @@ if [[ "${kind}" == "infected" ]]; then
         W_CLAMAV_RESPONSE_STAMP="${STAMP}-$$" \
             bash "${response}" || true
     done
-    g_log_alert "clamscan : infection(s) (voir ${LOG_FILE})"
+    log_alert "$(get_text watchdog.clamscan-infection-s-see "${LOG_FILE}")"
 elif [[ "${kind}" == "error" ]]; then
-    g_log_alert "clamscan erreur rc=${rc}"
+    log_alert "$(get_text watchdog.clamscan-error-rc "${rc}")"
 elif ! grep -q 'clamscan planté signal' "${LOG_FILE}"; then
-    w_log_pass "clamscan OK"
+    log_pass "clamscan OK"
 fi
 exit 0

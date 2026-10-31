@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/integrity.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -28,7 +28,7 @@ do
     break
 done
 if [[ -z "${list}" ]]; then
-    w_log_pass "liste d'intégrité absente"
+    log_pass "$(get_text watchdog.list-of-integrity-absent)"
     exit 0
 fi
 
@@ -45,15 +45,15 @@ if [[ ! -s "${stamp}" ]]; then
     install -d -m 750 "${W_BASE}/cron"
     cat "${current}" > "${stamp}"
     chmod 600 "${stamp}"
-    w_log_pass "empreinte initiale écrite"
+    log_pass "$(get_text watchdog.initial-fingerprint-written)"
     exit 0
 fi
 if cmp -s "${stamp}" "${current}"; then
-    w_log_pass "intégrité inchangée"
+    log_pass "$(get_text watchdog.integrity-unchanged)"
     exit 0
 fi
 comm -3 "${stamp}" "${current}" >> "${LOG_FILE}" || true
 cat "${current}" > "${stamp}"
 chmod 600 "${stamp}"
-g_log_alert "intégrité : empreinte modifiée"
+log_alert "$(get_text watchdog.integrity-fingerprint-changed)"
 exit 0

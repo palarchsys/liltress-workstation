@@ -1,0 +1,308 @@
+# =============================================================================
+# File       : core/text/fr/log.txt
+# Updated at : 2026-10-31
+# Creator    : palarchsys
+# =============================================================================
+
+[log.36s]
+%-36s {1}
+
+[log.absent]
+ABSENT
+
+[log.alerts-enabled-n]
+alertes : activées\n
+
+[log.alerts-off-n]
+alertes : coupées\n
+
+[log.answer-y-or-n]
+Répondez Y ou N.
+
+[log.aucun]
+_Aucun._
+
+[log.base]
+base : {1}
+
+[log.baseline-help]
+Base de référence AIDE
+
+[log.baseline-rkhunter]
+Base de référence rkhunter
+
+[log.bash-liltress-check]
+  bash {1}/liltress check
+
+[log.calculation-of-the-properties-baseline-rkhunter]
+Calcul de la base de propriétés rkhunter.\n
+
+[log.check-of-cups]
+Contrôle de CUPS
+
+[log.check-of-the-packages-rc]
+Contrôle des paquets rc
+
+[log.combined-journal-run-log]
+- Journal combiné : `run.log`
+
+[log.configs-sandbox-artifacts]
+- Configs sandbox : `artifacts/`
+
+[log.creation-of]
+Création de {1}
+
+[log.cups]
+CUPS
+
+[log.cups-absent]
+CUPS absent
+
+[log.cups-purged]
+CUPS purgé
+
+[log.date]
+- **Date** : {1}
+
+[log.date-2]
+date : {1}
+
+[log.dir-install-path-invalid]
+dir_install_path invalide : '{1}'
+
+[log.directory]
+- **Dossier** : `{1}`
+
+[log.execution-of]
+Exécution de {1}
+
+[log.fail]
+## FAIL
+
+[log.file-absent]
+Fichier absent : {1}
+
+[log.file-not-found]
+Fichier introuvable : {1}
+
+[log.files]
+## Fichiers
+
+[log.host]
+hôte : {1}
+
+[log.hostname]
+=== hostname ===
+
+[log.id-detail]
+| ID | Détail |
+
+[log.ignored]
+ignoré: {1}
+
+[log.ignored-absent]
+ignoré: {1} absent
+
+[log.inactive]
+INACTIF
+
+[log.lynis-audit-system-requires-root-sudo-n]
+Lynis audit system nécessite root (sudo).\n
+
+[log.n]
+\n
+
+[log.ninstallation-rejected-prepare-the-two-files-n]
+\nInstallation refusée. Préparez les deux fichiers :\n
+
+[log.no-package-rc-to-purge]
+Aucun paquet rc à purger
+
+[log.no-step-provided]
+Aucun step fourni
+
+[log.ok]
+OK      {1}
+
+[log.ok-2]
+OK
+
+[log.packages-rc-purged]
+Paquets rc purgés ({1})
+
+[log.pass-fail-warn-skip]
+| PASS | FAIL | WARN | SKIP |
+
+[log.pass-preview]
+## PASS (aperçu)
+
+[log.profile]
+- **Profil** : `{1}`
+
+[log.properties-baseline-rkhunter-saved-n]
+Base de propriétés rkhunter enregistrée.\n
+
+[log.raw-results-results-tsv]
+- Résultats bruts : `results.tsv`
+
+[log.rc-kept-boot]
+rc conservé (boot) : {1}
+
+[log.reapplication-of-the-deactivations]
+Réapplication des désactivations
+
+[log.repository]
+- **Dépôt** : `{1}`
+
+[log.result-ko-fail-to-fix-before-a-deployment]
+**Résultat : KO** — {1} FAIL à corriger avant un déploiement.
+
+[log.result-ok-no-fail]
+**Résultat : OK** (aucun FAIL).
+
+[log.rkhunter-is-absent-n]
+rkhunter est absent.\n
+
+[log.rkhunter-propupd-a-returned-the-code]
+rkhunter --propupd a retourné le code {1}.
+
+[log.run-this-command-with-sudo-n]
+Lancez cette commande avec sudo.\n
+
+[log.score]
+=== score ===
+
+[log.see-results-tsv-and-suites-log-for-the-complete]
+Voir `results.tsv` et `suites/*.log` pour le détail complet ({1} PASS).
+
+[log.snapshot-of-the-accounts-absent]
+snapshot des comptes absent ({1})
+
+[log.suggestions]
+=== suggestions ===
+
+[log.t-t-t-t-t-t-t-t]
+{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}
+
+[log.the-calculation-of-the-fingerprints-can-take-sev]
+Le calcul des empreintes peut prendre plusieurs minutes.
+
+[log.timeout-verrou-apt-busy-always-after-attempts]
+Timeout : verrou apt toujours occupé après {1} tentatives !
+
+[log.total]
+## Totaux
+
+[log.usage-lynis-sh-root-listener-n]
+usage: lynis.sh <racine> [auditeur]\n
+
+[log.warn]
+## WARN
+
+[log.warnings]
+=== warnings ===
+
+[log.journals]
+Journaux : {1}
+
+[log.ignored-compressed-octets]
+ignoré (compressé, {1} octets) {2}
+
+[log.end-of-file-only-octets-kept]
+fin de fichier seulement ({1} octets, {2} gardés) {3}
+
+[log.help-init-a-returned-an-error-detail]
+aide --init a retourné une erreur. Détail : {1}
+
+[log.base-help-not-generated-help-db-new-not-found-de]
+Base AIDE non générée (aide.db.new introuvable). Détail : {1}
+
+[log.baseline-help-saved]
+Base de référence AIDE enregistrée
+
+[log.this-script-must-be-executed-with-sudo-or-as-roo]
+Ce script doit être exécuté avec sudo ou en root.
+
+[log.install-log]
+{1} install log
+
+[log.g-collect-install-log]
+collect_install_log: {1}
+
+[log.see-install-log-errors-log-and-steps-index-tsv]
+voir install.log, errors.log et steps/INDEX.tsv
+
+[log.software-snapshot-software-and-snapshot-journal]
+logiciels : snapshot/software/ et snapshot/journal/
+
+[log.integrity-of-the-files-watched-by-help-help-chec]
+Intégrité des fichiers surveillés par AIDE (aide --check).
+
+[log.search-of-rootkits-and-files-changed-rkhunter-ch]
+Recherche de rootkits et fichiers modifiés (rkhunter --check).
+
+[log.files-reported-by-clamav-quarantine-and-journals]
+Fichiers signalés par ClamAV (quarantaine et journaux).
+
+[log.events-of-audit-abnormal-ausearch]
+Événements d'audit anormaux (ausearch).
+
+[log.files-of-packages-whose-the-checksum-a-changed-d]
+Fichiers de paquets dont la somme a changé (debsums -c).
+
+[log.bans-fail2ban-of-the-derni-res-24-h]
+Bannissements Fail2Ban des dernières 24 h.
+
+[log.decisions-and-alerts-crowdsec-of-the-derni-res-2]
+Décisions et alertes CrowdSec des dernières 24 h.
+
+[log.packages-blocked-by-ufw]
+Paquets bloqués par UFW.
+
+[log.run-this-script-with-sudo-sudo-bash-verify-alert]
+Lancez ce script avec sudo : sudo bash verify/alerts.sh\n
+
+[log.result-ok-n]
+Résultat : OK\n
+
+[log.result-ok-s-dot-s-to-confirmer-n]
+Résultat : OK, %s point(s) à confirmer\n
+
+[log.result-s-failure-s-s-dot-s-to-confirmer-n]
+Résultat : %s échec(s), %s point(s) à confirmer\n
+
+[log.root-required]
+root requis
+
+[run.script.error]
+La commande a échoué : {1}
+
+[run.script.warn.2]
+{1}
+
+[run.script.error.4]
+G_WATCHDOG_MAIL est vide : l'e-mail de fin d'installation ne peut pas partir.
+
+[run.script.info.8]
+{1}
+
+[run.script.error.5]
+L'e-mail de test vers {1} n'a pas été accepté par Postfix.
+
+[verify.workstation.warn]
+{1}
+
+[verify.workstation.title.4]
+Ubuntu Pro
+
+[verify.workstation.info.5]
+{1}
+
+[run.script.error.6]
+Fichier introuvable : {1}
+
+[log.condition.rejected]
+Condition refusée : {1}
+
+[run.close.done]
+Installation terminée

@@ -1,0 +1,104 @@
+# =============================================================================
+# File       : workstation/locale/es/watchdog.txt
+# Updated at : 2026-10-31
+# Creator    : palarchsys
+# =============================================================================
+
+[watchdog.chkrootkit-a-produced-a-output-see]
+chkrootkit a producido una salida (ver {1})
+
+[watchdog.clamav-in]
+ClamAV: {1} en {2}
+
+[watchdog.clamscan-error-rc]
+clamscan error rc={1}
+
+[watchdog.clamscan-infection-s-see]
+clamscan: infección(s) (ver {1})
+
+[watchdog.help-error-rc-detail]
+AIDE: error rc={1} (detalle {2})
+
+[watchdog.rkhunter-error-rc]
+rkhunter error rc={1}
+
+[watchdog.rkhunter-warnings-see]
+rkhunter warnings (ver {1})
+
+[watchdog.help-absent-skip]
+aide ausente — skip
+
+[watchdog.ausearch-absent]
+ausearch ausente
+
+[watchdog.initial-rep-re-written]
+repère inicial escrito
+
+[watchdog.no-execution-temporary]
+ninguna ejecución temporal
+
+[watchdog.chkrootkit-absent-skip]
+chkrootkit ausente — skip
+
+[watchdog.clamscan-absent-skip]
+clamscan ausente — skip
+
+[watchdog.scan-clamav-already-in-progress]
+análisis ClamAV ya en curso
+
+[watchdog.scan-clamav-report-e-runs]
+análisis ClamAV reportée: {1} se ejecuta
+
+[watchdog.debsums-absent-skip]
+debsums ausente — skip
+
+[watchdog.journalctl-absent]
+journalctl ausente
+
+[watchdog.block-rejected]
+bloqueo rechazado
+
+[watchdog.flow-outbound-suspicious-blocked]
+flujo saliente sospechoso bloqueado
+
+[watchdog.infections-already-signal-es]
+infections ya signalées
+
+[watchdog.list-of-integrity-absent]
+lista de integridad ausente
+
+[watchdog.no-restart-useful]
+ningún reinicio útil
+
+[watchdog.rkhunter-absent-skip]
+rkhunter ausente — skip
+
+[watchdog.help-changes-detected-code-detail]
+AIDE: cambios detectados (código {1}, detalle {2})
+
+[watchdog.s-path-denied-s-n]
+%s ruta denegado: %s\n
+
+[watchdog.blocked-during-s]
+bloqueado {1} {2}/{3} durante {4}s — {5}
+
+[watchdog.password-deferred-report-e-runs]
+contraseña diferida reportée: {1} se ejecuta
+
+[watchdog.avis-of-restart-report-runs]
+avis de reinicio reporté: {1} se ejecuta
+
+[watchdog.help-no-change]
+AIDE: ningún cambio
+
+[watchdog.chkrootkit-silencieux-ok]
+chkrootkit en silencio (OK)
+
+[watchdog.no-flow-outbound-unexpected]
+ningún flujo saliente inesperado
+
+[watchdog.no-flow-suspicious-outbound]
+ningún flujo saliente sospechoso
+
+[watchdog.avis-of-restart-already-sent]
+avis de reinicio ya enviado

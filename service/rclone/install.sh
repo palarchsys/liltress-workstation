@@ -1,27 +1,30 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/rclone/install.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
-G_INSTALL_DIRECTORY="${1}"
+INSTALL_WATCHER="${1:-BASH}"
+INSTALL_DIRECTORY="${2:-}"
+export INSTALL_WATCHER INSTALL_DIRECTORY
+G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
 export G_INSTALL_DIRECTORY
 
 source "${G_INSTALL_DIRECTORY}/core/lib.sh"
 source "${G_INSTALL_DIRECTORY}/config/global.conf"
-g_require_root
+require_root
 
-g_log_title "Installation de rclone"
+log_subtitle     "${INSTALL_WATCHER}" "install.installation-of-rclone"
 if [[ "${G_RCLONE_ALERTS:-0}" != "1" ]]; then
-    g_log_info "Envoi Google Drive coupé : rclone n'est pas installé."
+    log_info         "${INSTALL_WATCHER}" "install.send-google-drive-cut-rclone-is-not-installed"
     exit 0
 fi
-g_log_info "Installation de rclone"
-g_run_silent_apt install --no-install-recommends -y rclone
+log_info         "${INSTALL_WATCHER}" "install.installation-of-rclone"
+run_silent_apt   "${INSTALL_WATCHER}" "install --no-install-recommends -y rclone" "install.rclone.error"
 token="${G_CONFIG_BASE_DIRECTORY}/cron/rclone.conf"
 mode="$(stat -c %a "${token}" 2>/dev/null || true)"
 if [[ ! -f "${token}" || "${mode}" != "600" ]]; then
-    g_log_error "Jeton Google Drive absent (${token}) ou mode différent de 600."
+    log_error        "${INSTALL_WATCHER}" "install.token-google-drive-absent-or-mode-different-of-6" "${token}"
 fi
-g_log_success "rclone installé"
+log_success      "${INSTALL_WATCHER}" "install.rclone-installed"

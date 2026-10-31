@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/debsums.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
@@ -15,7 +15,7 @@ HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 IGNORE="${HERE}/debsums.ignore"
 LOCAL_IGNORE="${W_BASE}/cron/debsums.local.ignore"
 if ! command -v debsums >/dev/null; then
-    w_log_pass "debsums absent — skip"
+    log_pass "$(get_text watchdog.debsums-absent-skip)"
     exit 0
 fi
 set +e
@@ -24,7 +24,7 @@ rc=$?
 set -e
 crashed=0
 if [[ "${rc}" -ge 128 ]]; then
-    g_log_alert "$(g_get_crash_sentence "debsums" "${rc}")"
+    log_alert "$(get_crash_sentence "debsums" "${rc}")"
     crashed=1
 fi
 python3 - "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}" "${W_BASE}" << 'PY'
@@ -81,11 +81,11 @@ kept = [
 log_path.write_text(("\n".join(kept) + "\n") if kept else "")
 PY
 if [[ "${crashed}" -eq 0 && -s "${LOG_FILE}" ]]; then
-    summary="$(g_repair_debsums_log "${LOG_FILE}")"
+    summary="$(repair_debsums_log "${LOG_FILE}")"
     if [[ -n "${summary}" ]]; then
-        g_log_alert "${summary}"
+        log_alert "${summary}"
     fi
 elif [[ "${crashed}" -eq 0 ]]; then
-    w_log_pass "debsums OK"
+    log_pass "debsums OK"
 fi
 exit 0

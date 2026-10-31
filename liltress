@@ -17,4 +17,4 @@ else
     printf 'launch.sh introuvable depuis %s\n' "${ROOT}" >&2
     exit 1
 fi
-g_launch "${ROOT}" "$@"
+launch "${ROOT}" "$@"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/apply-scan-skip.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -15,7 +15,7 @@ HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "${HERE}/scan-skip-lib.sh"
 
-w_restart_scan_skip_service() {
+restart_scan_skip_service() {
     local unit
     if systemctl cat clamav-daemon.service >/dev/null 2>&1; then
         systemctl restart clamav-daemon
@@ -29,10 +29,10 @@ w_restart_scan_skip_service() {
 }
 
 if [[ -n "${W_SCAN_SKIP_HOME:-}" ]]; then
-    w_ensure_scan_skip_file "${W_SCAN_SKIP_HOME}"
+    ensure_scan_skip_file "${W_SCAN_SKIP_HOME}"
 fi
 
-w_load_onaccess_exclude() {
+load_onaccess_exclude() {
     local candidate found=""
     W_ONACCESS_FIXED_EXCLUDE="${W_ONACCESS_FIXED_EXCLUDE:-/var/lib/snapd /snap /var/lib/clamav/quarantine /var/lib/clamav/tmp /opt/liltress-workstation /var/log}"
     for candidate in \
@@ -66,12 +66,12 @@ w_load_onaccess_exclude() {
     W_ONACCESS_FIXED=("${kept[@]+"${kept[@]}"}")
 }
 
-w_load_onaccess_exclude
-w_collect_scan_skip_path
+load_onaccess_exclude
+collect_scan_skip_path
 if [[ ${#W_SCAN_SKIP_BAD[@]} -gt 0 ]]; then
     install -d -m 750 "${W_BASE}/cron/security_logs"
     for line in "${W_SCAN_SKIP_BAD[@]}"; do
-        printf '%s chemin refusé : %s\n' "$(date -Iseconds)" "${line}" | tee -a "${W_BASE}/cron/security_logs/scan-skip.log"
+        printf "$(get_text watchdog.s-path-denied-s-n)" "$(date -Iseconds)" "${line}" | tee -a "${W_BASE}/cron/security_logs/scan-skip.log"
     done
 fi
 
@@ -130,7 +130,7 @@ PY
 )"
     if [[ "${changed}" == "changed" ]]; then
         cat "${tmp}" > "${conf}"
-        w_restart_scan_skip_service
+        restart_scan_skip_service
     fi
     rm -f "${tmp}"
     trap - EXIT

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-skip-lib.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
 W_BASE="${W_BASE:-/opt/liltress-workstation}"
 
-w_render_scan_skip_path() {
+render_scan_skip_path() {
     python3 - "$1" << 'PY'
 import os
 import sys
@@ -18,14 +18,14 @@ print(os.path.normpath(raw))
 PY
 }
 
-w_check_scan_skip_forbidden() {
+check_scan_skip_forbidden() {
     printf '%s\n' / /home /opt /tmp /etc /usr /var /boot /root
     if [[ -f /etc/clamav/clamd.conf ]]; then
         awk '/^OnAccessIncludePath[[:space:]]/{print $2}' /etc/clamav/clamd.conf
     fi
 }
 
-w_get_scan_skip_home() {
+get_scan_skip_home() {
     local line trimmed home homes=""
     if [[ "${W_SCAN_SKIP_HOME:-}" =~ ^/home/[^/]+$ ]]; then
         printf '%s\n' "${W_SCAN_SKIP_HOME}"
@@ -56,10 +56,10 @@ w_get_scan_skip_home() {
     printf '%s\n' "${homes}"
 }
 
-w_check_scan_skip_path() {
+check_scan_skip_path() {
     local norm bad home=""
-    norm="$(w_render_scan_skip_path "$1")" || return 1
-    home="$(w_get_scan_skip_home || true)"
+    norm="$(render_scan_skip_path "$1")" || return 1
+    home="$(get_scan_skip_home || true)"
     if [[ "${norm}" == /var/jeux || "${norm}" == /var/jeux/* ]]; then
         :
     elif [[ -n "${home}" && "${norm}" == "${home}/"* ]]; then
@@ -71,12 +71,12 @@ w_check_scan_skip_path() {
         [[ -z "${bad}" ]] && continue
         [[ "${norm}" == "${bad}" ]] && return 1
         [[ "${bad}" == "${norm}/"* ]] && return 1
-    done < <(w_check_scan_skip_forbidden)
+    done < <(check_scan_skip_forbidden)
     [[ "${norm}" =~ ^/home/[^/]+$ ]] && return 1
     printf '%s\n' "${norm}"
 }
 
-w_collect_scan_skip_path() {
+collect_scan_skip_path() {
     W_SCAN_SKIP_VALID=()
     W_SCAN_SKIP_BAD=()
     [[ -f "${W_SCAN_SKIP_FILE}" ]] || return 0
@@ -85,7 +85,7 @@ w_collect_scan_skip_path() {
         line="${line#"${line%%[![:space:]]*}"}"
         line="${line%"${line##*[![:space:]]}"}"
         [[ -z "${line}" || "${line}" == \#* ]] && continue
-        if norm="$(w_check_scan_skip_path "${line}")"; then
+        if norm="$(check_scan_skip_path "${line}")"; then
             [[ "${seen}" == *"|${norm}|"* ]] && continue
             seen="${seen}${norm}|"
             W_SCAN_SKIP_VALID+=("${norm}")
@@ -95,10 +95,10 @@ w_collect_scan_skip_path() {
     done < "${W_SCAN_SKIP_FILE}"
 }
 
-w_locate_scan_skip_file() {
+locate_scan_skip_file() {
     local here candidate found
     here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    if ! declare -F g_locate_config_file >/dev/null 2>&1; then
+    if ! declare -F locate_config_file >/dev/null 2>&1; then
         for candidate in \
             "${G_INSTALL_DIRECTORY:-}/core/fs.sh" \
             "${here}/../../../core/fs.sh" \
@@ -112,8 +112,8 @@ w_locate_scan_skip_file() {
             break
         done
     fi
-    if declare -F g_locate_config_file >/dev/null 2>&1; then
-        if found="$(g_locate_config_file clamav/scan-skip.paths)"; then
+    if declare -F locate_config_file >/dev/null 2>&1; then
+        if found="$(locate_config_file clamav/scan-skip.paths)"; then
             printf '%s\n' "${found}"
             return 0
         fi
@@ -135,10 +135,10 @@ w_locate_scan_skip_file() {
     printf '%s\n' "${W_BASE}/src/config/clamav/scan-skip.paths"
 }
 
-w_ensure_scan_skip_file() {
+ensure_scan_skip_file() {
     local home="$1"
     local template legacy dest base
-    template="$(w_locate_scan_skip_file)"
+    template="$(locate_scan_skip_file)"
     legacy="${W_BASE}/cron/scan-skip.paths"
     dest="${template}"
     if [[ "${dest}" != "${W_BASE}/"* ]]; then
@@ -168,4 +168,4 @@ w_ensure_scan_skip_file() {
     chown root:root "${dest}"
 }
 
-W_SCAN_SKIP_FILE="$(w_locate_scan_skip_file)"
+W_SCAN_SKIP_FILE="$(locate_scan_skip_file)"

@@ -1,0 +1,128 @@
+# =============================================================================
+# File       : core/text/es/watchdog.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[watchdog.mail-not-sent-core-mail-sh-not-found]
+Mail no enviado ({1}): core/mail.sh no encontrado.
+
+[watchdog.mail-not-sent-empty-body]
+Mail no enviado ({1}): cuerpo vacío.
+
+[watchdog.mail-not-sent-template-html-invalid]
+Mail no enviado ({1}): modelo HTML no válido.
+
+[watchdog.mail-not-sent-template-html-not-found]
+Mail no enviado ({1}): modelo HTML no encontrado.
+
+[watchdog.mirrors-dat-changed-outside-rkhunter-update]
+mirrors.dat modificado fuera de rkhunter --update
+
+[watchdog.signal]
+señal {1}
+
+[watchdog.t-t-t-t-t]
+{1}\t{2}\t{3}\t{4}\t{5}\t{6}
+
+[watchdog.the-check-crashed-signal-it-did-not-finish]
+El control {1} se bloqueó (señal {2}, {3}). No llegó al final.
+
+[watchdog.the-check-stopped-code-it-did-not-finish]
+El control {1} se detuvo (código {2}). No llegó al final.
+
+[watchdog.the-journal-is]
+ El diario es {1}.
+
+[watchdog.mail-not-sent-alerts-e-mail-off]
+Mail no enviado ({1}): alertas e-mail apagadas.
+
+[watchdog.mail-not-sent-destinataire-or-empty-body]
+Mail no enviado ({1}): destinataire o cuerpo vacío.
+
+[watchdog.mail-not-sent-command-mail-absent]
+Mail no enviado ({1}): orden mail ausente.
+
+[watchdog.execution-since-a-directory-temporary]
+ejecución desde un directorio temporal
+
+[watchdog.invalid-memory-access]
+acceso a memoria no válido
+
+[watchdog.forced-stop]
+parada forzada
+
+[watchdog.internal-program-error]
+error interno del programa
+
+[watchdog.interrupted-write]
+escritura interrumpida
+
+[watchdog.stop-request]
+solicitud de parada
+
+[watchdog.name-absent]
+nombre ausente
+
+[watchdog.process-not-stopped]
+proceso no parado: {1}
+
+[watchdog.process-stopped]
+proceso {1} ({2}) parado
+
+[watchdog.process-not-stopped-signal-rejected]
+proceso {1} no parado: señal rechazado
+
+[watchdog.process-not-stopped-no-d-tenteur]
+proceso no parado: ningún détenteur
+
+[watchdog.not-updated-in-quarantine]
+no actualizado en cuarentena: {1}
+
+[watchdog.moved-in-quarantine-quarantine]
+movido en cuarentena: {1}; {2}; cuarentena {3}
+
+[watchdog.copy-drive-ignored]
+Copia Drive ignorada.
+
+[watchdog.copy-drive-ignored-rclone-absent]
+Copia Drive ignorada: rclone ausente.
+
+[watchdog.copy-drive-rejected-the-file-local-is-kept]
+Copia Drive rechazada. El archivo local es conservado.
+
+[watchdog.clamav-crashed-twice-in-a-row-signal-the-check-s]
+ClamAV se bloqueó dos veces seguidas (señal {1}, {2}). El control se detuvo. Los archivos restantes no fueron analizados.
+
+[watchdog.clamav-crashed-signal-on-one-file-that-file-was]
+ClamAV se bloqueó (señal {1}, {2}) en un archivo. Ese archivo no fue analizado. Los demás archivos continuaron.
+
+[watchdog.clamav-crashed-signal-on-files-those-files-were]
+ClamAV se bloqueó (señal {1}, {2}) en {3} archivos. Esos archivos no fueron analizados. Los demás archivos continuaron.
+
+[watchdog.a-restart-is-useful-the-machine-was-not-restarte]
+Un reinicio es útil. La máquina no fue reiniciada.
+
+[watchdog.initial-fingerprint-written]
+huella inicial escrita
+
+[watchdog.integrity-unchanged]
+integridad sin cambios
+
+[watchdog.integrity-fingerprint-changed]
+integridad: huella modificada
+
+[watchdog.signal.abort]
+abandono del programa
+
+[watchdog.module.unknown]
+desconocido
+
+[watchdog.about.chkrootkit]
+Búsqueda de rootkits (chkrootkit -x -q).
+
+[watchdog.about.module]
+Mensaje del módulo {1}.
+
+[log.watchdog-not-found]
+watchdog.sh no encontrado

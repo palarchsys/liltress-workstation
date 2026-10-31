@@ -1,0 +1,428 @@
+# =============================================================================
+# File       : core/text/es/install.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[install.archive-github-invalid-config-global-conf-absent]
+Archivo GitHub no válido (config/global.conf ausente).
+
+[install.directories-project-ready]
+Directorios proyecto listos
+
+[install.download-branch]
+Descarga {1} (rama {2})...
+
+[install.help-installed]
+AIDE instalado
+
+[install.hrngdevice-dev-hwrng]
+HRNGDEVICE=/dev/hwrng
+
+[install.installation-fail2ban]
+Instalación Fail2Ban
+
+[install.installation-help]
+Instalación AIDE
+
+[install.installation-of-lynis]
+Instalación de Lynis
+
+[install.installation-of-rclone]
+Instalación de rclone
+
+[install.installation-of-the-tools-of-base]
+Instalación de los herramientas de base
+
+[install.installation-of-usbguard]
+Instalación de USBGuard
+
+[install.installation-ufw]
+Instalación UFW
+
+[install.installation-usbguard]
+Instalación USBGuard
+
+[install.list-chkrootkit-not-found]
+Lista chkrootkit no encontrado
+
+[install.lynis-installed]
+Lynis instalado
+
+[install.send-google-drive-cut-rclone-is-not-installed]
+Envío Google Drive cortado: rclone no está instalado.
+
+[install.this-script-must-be-executed-as-root-sudo]
+Este script debe ser ejecutado como root (sudo).
+
+[install.tools-of-base-installed]
+Herramientas de base instalados
+
+[install.ufw-installed]
+UFW instalado
+
+[install.usbguard-installed-service-stopped-until-the-pol]
+USBGuard instalado, servicio parado hasta la política
+
+[install.g-config-base-directory-invalid-in-global-conf]
+G_CONFIG_BASE_DIRECTORY no válido en global.conf ({1}).
+
+[install.root-of-install-rejected]
+Raíz de install rechazada: {1}
+
+[install.liltress-absent-after-extraction-n]
+liltress ausente después extraction.\n
+
+[install.nt-l-chargement-finished-the-sources-are-in-s-n]
+\nTéléchargement terminado. Los fuentes son en %s.\n
+
+[install.launch-of-the-configuration-n-n]
+Lanzamiento de la Configuración.\n\n
+
+[install.nla-configuration-saved-password-more-the-check]
+\nLa Configuración guardada contraseña más el control.\n
+
+[install.launch-of-the-questions-n-n]
+Lanzamiento de los preguntas.\n\n
+
+[install.token-google-drive-absent-or-mode-different-of-6]
+Token Google Drive ausente ({1}) o modo distinto de 600.
+
+[install.rclone-installed]
+rclone instalado
+
+[install.mail.error]
+{1}
+
+[install.fs.info]
+Creación de la copia de copia de seguridad de {1}
+
+[install.fs.success]
+Copia de copia de seguridad creada: {1}
+
+[install.lib.error]
+La descarga de la clave del repositorio falló: {1}
+
+[install.lib.error.2]
+El certificado de {1} aún no es válido, o el reloj del sistema es incorrecto.
+
+[install.lib.error.4]
+La clave del repositorio no es un dato OpenPGP válido: {1}
+
+[install.lib.error.5]
+La clave del repositorio no es un dato OpenPGP válido: {1}
+
+[install.lib.error.6]
+Puerto TCP {1} ya ocupado — bind Docker 127.0.0.1:{2} imposible: {3}
+
+[install.lib.error.7]
+S_SERVER_TYPE no válido: '{1}'
+
+[install.lib.error.8]
+S_MATRIX_ADMIN_USER o S_MATRIX_ADMIN_PASSWORD vacío.
+
+[install.lib.info]
+Recuperación del token Matrix de {1}
+
+[install.lib.info.2]
+{1}
+
+[install.lib.error.9]
+Fallo de recuperación del token!
+
+[install.lib.success]
+Token Matrix recuperado
+
+[install.lib.error.10]
+dpkg-statoverride --remove {1}: {2}
+
+[install.lib.error.11]
+dpkg-statoverride {1}: {2}
+
+[install.lib.error.12]
+npm: S_MAIN_USER o S_MAIN_GROUP vacío
+
+[install.lib.error.13]
+npm: cuenta {1} no encontrado
+
+[install.lib.error.14]
+npm: grupo {1} no encontrado
+
+[install.lib.info.3]
+Réservation de npm para {1}
+
+[install.lib.error.15]
+npm es instalado, ningún archivo a réserver a {1}
+
+[install.lib.success.2]
+npm reservado a {1}
+
+[install.lib.info.4]
+Retirada de los nombres de dominio de /etc/hosts
+
+[install.lib.success.3]
+Nombres de dominio retirados de /etc/hosts
+
+[install.lib.info.5]
+Preparación del acceso local G_MODE_TEST
+
+[install.lib.info.6]
+Retirada del certificado de prueba del magasin sistema
+
+[install.lib.success.4]
+Certificado de prueba retirado del magasin sistema
+
+[install.lib.success.5]
+Acceso local G_MODE_TEST listo, navegador en http://127.0.0.1
+
+[install.lib.error.16]
+Imposible de déterminer el usuario corriente (SUDO_USER vacío, ningún uid≥1000).
+
+[install.lib.error.17]
+Ubuntu 26.04 o más reciente requerido. Sistema detectado: {1}.
+
+[install.lib.error.18]
+Ubuntu 26.04 o más reciente requerido. Versión detectada: {1}.
+
+[install.lib.error.19]
+Ubuntu {1} ({2}) rechazada: ella no está superior o igual a 26.04.
+
+[install.lib.error.20]
+Tipo de tarjeta Postfix denegado: {1}.
+
+[install.lib.error.21]
+Ningún cuenta de escritorio bajo /home: el instalador Ubuntu debe haber creado los usuarios.
+
+[install.lib.error.22]
+Garde-fou: intento de mutation de contraseña prohibida: {1}
+
+[install.log.info]
+Copia: {1}
+
+[install.log.info.2]
+Diarios software copiados
+
+[install.log.error.2]
+Entrada interrumpida.
+
+[install.log.info.3]
+Recalcul de la base AIDE (varios minutos)
+
+[install.log.warn]
+Base AIDE no recalculée.
+
+[install.log.warn.5]
+Detalle: {1}
+
+[install.log.warn.6]
+{1}
+
+[install.log.success]
+Base AIDE recalculée
+
+[install.log.warn.7]
+No hay terminal: el instalador es conservado.
+
+[install.log.warn.8]
+Eliminación cancelada: directorio denegado.
+
+[install.log.title]
+Eliminación del instalador
+
+[install.log.info.4]
+Eliminar el instalador y sus diarios? (Y/N)
+
+[install.log.info.5]
+Directorio: {1}
+
+[install.log.warn.9]
+Responda Y o N.
+
+[install.log.info.6]
+Retirada del instalador
+
+[install.log.success.2]
+Instalador retirado.
+
+[install.log.info.7]
+Servicios, secretos y cron conservados.
+
+[install.log.info.8]
+La orden liltress es ausente.
+
+[install.log.warn.10]
+Eliminación cancelada: directorio denegado.
+
+[install.log.warn.11]
+Eliminación cancelada: archivo útil ausente.
+
+[install.log.warn.12]
+Eliminación incompleta.
+
+[install.log.warn.13]
+Instalador retirado, archivos útiles no repuestos.
+
+[install.log.info.9]
+Snapshot: {1}
+
+[install.exec.debug]
+{1}
+
+[install.install.error]
+El comando falló: {1}
+
+[install.install.error.3]
+Ubuntu Pro: token faltante en secretos.conf. Volver a lanzar: bash {1}/liltress configura
+
+[install.install.error.4]
+Ubuntu Pro attach a falló (obligatorio): {1}
+
+[install.install.error.5]
+Ubuntu Pro: la máquina no está adjunta después pro attach.
+
+[install.install.debug]
+{1}
+
+[install.purge.error]
+El comando falló: {1}
+
+[install.matrix.error]
+El comando falló: {1}
+
+[install.wireguard.error]
+El comando falló: {1}
+
+[install.keycloak.error]
+El comando falló: {1}
+
+[install.keycloak.success.7]
+{1}
+
+[install.keycloak.success.8]
+Cuentas de prueba: ada (administrator), camille (moderator), noa (member)
+
+[install.livekit.error]
+El comando falló: {1}
+
+[install.clamav.error]
+El comando falló: {1}
+
+[install.aide.error]
+El comando falló: {1}
+
+[install.aide.error.2]
+Base AIDE no generada (aide.db.new no encontrado). Detalle: {1}
+
+[install.nginx.error]
+El comando falló: {1}
+
+[install.debsums.error]
+El comando falló: {1}
+
+[install.auditd.error]
+El comando falló: {1}
+
+[install.postfix.error]
+El comando falló: {1}
+
+[install.postfix.title.2]
+Recarga de systemd
+
+[install.rkhunter.error]
+El comando falló: {1}
+
+[install.chkrootkit.error]
+El comando falló: {1}
+
+[install.ufw.error]
+El comando falló: {1}
+
+[install.redis.error]
+El comando falló: {1}
+
+[install.apparmor.error]
+El comando falló: {1}
+
+[install.fail2ban.error]
+El comando falló: {1}
+
+[install.usbguard.error]
+El comando falló: {1}
+
+[install.rclone.error]
+El comando falló: {1}
+
+[install.crowdsec.error]
+El comando falló: {1}
+
+[install.crowdsec.error.3]
+CrowdSec {1} viene del repositorio Ubuntu, sin packagecloud.
+
+[install.install.debug.2]
+{1}
+
+[install.snapd.error]
+El comando falló: {1}
+
+[install.unbound.error]
+El comando falló: {1}
+
+[install.unattended-upgrades.error]
+El comando falló: {1}
+
+[install.system.title]
+Sistema
+
+[install.alert.title]
+Alertas
+
+[install.security.title]
+Seguridad
+
+[install.package.title]
+Paquetes
+
+[install.close.title]
+Cierre
+
+[install.edge.title]
+Servicios de red
+
+[install.base.error]
+El comando falló: {1}
+
+[install.ssh.error]
+El comando falló: {1}
+
+[install.lynis.error]
+El comando falló: {1}
+
+[install.ubuntu-pro.error]
+El comando falló: {1}
+
+[install.multiarch.error]
+El comando falló: {1}
+
+[install.apt.error]
+El comando falló: {1}
+
+[install.acct.error]
+El comando falló: {1}
+
+[install.sysstat.error]
+El comando falló: {1}
+
+[install.pam.error]
+El comando falló: {1}
+
+[install.haveged.error]
+El comando falló: {1}
+
+[install.rngd.error]
+El comando falló: {1}
+
+[install.devtools.error]
+El comando falló: {1}
+
+[install.docker.error]
+El comando falló: {1}

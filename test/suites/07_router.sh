@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/07_router.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
@@ -166,10 +166,10 @@ def scripts_from_run(text):
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
-        if "g_run_step" not in line and "system/purge.sh" in line and "bash " in line:
+        if "run_step" not in line and "system/purge.sh" in line and "bash " in line:
             order.append("system/purge.sh")
             continue
-        if "g_run_step" not in line:
+        if "run_step" not in line:
             continue
         for array_name, var_name, literal in token.findall(line):
             if literal and not literal.startswith("$"):
@@ -241,7 +241,7 @@ PY
         t_fail "install.template" "le rendu diffère du fichier"
     fi
 
-    if bash "${root}/agents/search.sh" g_render_install | grep -q 'scripts/render-install.sh'; then
+    if bash "${root}/agents/search.sh" render_install | grep -q 'scripts/render-install.sh'; then
         t_pass "search.hit" "motif trouvé"
     else
         t_fail "search.hit" "render-install.sh absent du résultat"

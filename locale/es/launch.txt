@@ -1,0 +1,14 @@
+# =============================================================================
+# File       : workstation/locale/es/launch.txt
+# Updated at : 2026-10-31
+# Creator    : palarchsys
+# =============================================================================
+
+[launch.usage.extra]
+Verificación:
+
+  sudo bash verify/alerts.sh [--no-send]
+  sudo bash verify/workstation.sh "$PWD"
+  sudo bash verify/boot.sh
+  sudo bash verify/chkrootkit-fp.sh
+  sudo bash /opt/liltress-workstation/bin/scan-skip.sh list|add|del

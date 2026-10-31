@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : install.sh
-# Updated at : 2026-10-20
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,7 +11,7 @@ REPO_URL="${G_REPO_URL:-https://github.com/palarchsys/liltress-workstation}"
 BRANCH="${G_BRANCH:-main}"
 
 if [[ "${EUID}" -ne 0 ]]; then
-    echo "Ce script doit être exécuté en root (sudo)." >&2
+    echo "$(get_text install.this-script-must-be-executed-as-root-sudo)" >&2
     exit 1
 fi
 
@@ -22,13 +22,13 @@ apt-get install -y -qq curl ca-certificates tar >/dev/null
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-echo "Téléchargement ${REPO_URL} (branche ${BRANCH})..."
+echo "$(get_text install.download-branch "${REPO_URL}" "${BRANCH}")"
 curl -fsSL "${REPO_URL}/archive/refs/heads/${BRANCH}.tar.gz" -o "${tmp}/src.tar.gz"
 mkdir -p "${tmp}/extract"
 tar -xzf "${tmp}/src.tar.gz" -C "${tmp}/extract"
 extracted="$(find "${tmp}/extract" -mindepth 1 -maxdepth 1 -type d | head -1)"
 if [[ -z "${extracted}" || ! -f "${extracted}/config/global.conf" ]]; then
-    echo "Archive GitHub invalide (config/global.conf absent)." >&2
+    echo "$(get_text install.archive-github-invalid-config-global-conf-absent)" >&2
     exit 1
 fi
 
@@ -40,12 +40,12 @@ config_base="$(
     printf '%s\n' "${G_CONFIG_BASE_DIRECTORY}"
 )"
 if [[ -z "${config_base}" || "${config_base}" != /opt/* || "${config_base}" == *..* || "${config_base}" == *[[:space:]]* ]]; then
-    echo "G_CONFIG_BASE_DIRECTORY invalide dans global.conf (${config_base:-vide})." >&2
+    echo "$(get_text install.g-config-base-directory-invalid-in-global-conf "${config_base:-vide}")" >&2
     exit 1
 fi
 INSTALL_ROOT="${G_INSTALL_ROOT:-${config_base}/src}"
 if [[ "${INSTALL_ROOT}" != /* || "${INSTALL_ROOT}" == "/" || "${INSTALL_ROOT}" == *..* || "${INSTALL_ROOT}" == *[[:space:]]* ]]; then
-    echo "Racine d'install refusée : ${INSTALL_ROOT}" >&2
+    echo "$(get_text install.root-of-install-rejected "${INSTALL_ROOT}")" >&2
     exit 1
 fi
 
@@ -80,22 +80,22 @@ elif [[ -f "${config_base}/cron/scan-skip.paths" ]]; then
     fi
 fi
 if [[ ! -f "${INSTALL_ROOT}/liltress" ]]; then
-    printf 'liltress absent après extraction.\n' >&2
+    printf "$(get_text install.liltress-absent-after-extraction-n)" >&2
     exit 1
 fi
 chmod 755 "${INSTALL_ROOT}/liltress"
 
 if [[ "${keep}" != "1" ]]; then
-    printf '\nTéléchargement terminé. Les sources sont dans %s.\n' "${INSTALL_ROOT}"
-    printf 'Lancement de la configuration.\n\n'
-    exec bash "${INSTALL_ROOT}/scripts/configure.sh"
+    printf "$(get_text install.nt-l-chargement-finished-the-sources-are-in-s-n)" "${INSTALL_ROOT}"
+    printf "$(get_text install.launch-of-the-configuration-n-n)"
+    exec bash "${INSTALL_ROOT}/script/configure.sh"
 fi
 
-if ! bash "${INSTALL_ROOT}/scripts/configure.sh" --check; then
-    printf '\nLa configuration enregistrée ne passe plus le contrôle.\n' >&2
-    printf 'Lancement des questions.\n\n' >&2
-    exec bash "${INSTALL_ROOT}/scripts/configure.sh"
+if ! bash "${INSTALL_ROOT}/script/configure.sh" --check; then
+    printf "$(get_text install.nla-configuration-saved-password-more-the-check)" >&2
+    printf "$(get_text install.launch-of-the-questions-n-n)" >&2
+    exec bash "${INSTALL_ROOT}/script/configure.sh"
 fi
 
 cd "${INSTALL_ROOT}"
-exec bash "${INSTALL_ROOT}/scripts/run.sh"
+exec bash "${INSTALL_ROOT}/script/run.sh"

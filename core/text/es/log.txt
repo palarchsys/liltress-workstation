@@ -1,0 +1,308 @@
+# =============================================================================
+# File       : core/text/es/log.txt
+# Updated at : 2026-10-31
+# Creator    : palarchsys
+# =============================================================================
+
+[log.36s]
+%-36s {1}
+
+[log.absent]
+Ausente
+
+[log.alerts-enabled-n]
+alertas: activadas\n
+
+[log.alerts-off-n]
+alertas: apagadas\n
+
+[log.answer-y-or-n]
+Responda Y o N.
+
+[log.aucun]
+_Aucun._
+
+[log.base]
+base: {1}
+
+[log.baseline-help]
+Base de referencia AIDE
+
+[log.baseline-rkhunter]
+Base de referencia rkhunter
+
+[log.bash-liltress-check]
+ bash {1}/liltress check
+
+[log.calculation-of-the-properties-baseline-rkhunter]
+Cálculo de la base de propiedades rkhunter.\n
+
+[log.check-of-cups]
+Control de CUPS
+
+[log.check-of-the-packages-rc]
+Control de los paquetes rc
+
+[log.combined-journal-run-log]
+- Diario combinado: `run.log`
+
+[log.configs-sandbox-artifacts]
+- Configs sandbox: `artifacts/`
+
+[log.creation-of]
+Creación de {1}
+
+[log.cups]
+CUPS
+
+[log.cups-absent]
+CUPS ausente
+
+[log.cups-purged]
+CUPS purgado
+
+[log.date]
+- **Fecha**: {1}
+
+[log.date-2]
+fecha: {1}
+
+[log.dir-install-path-invalid]
+dir_install_path no válido: '{1}'
+
+[log.directory]
+- **Directorio**: `{1}`
+
+[log.execution-of]
+Ejecución de {1}
+
+[log.fail]
+## FAIL
+
+[log.file-absent]
+Archivo ausente: {1}
+
+[log.file-not-found]
+Archivo no encontrado: {1}
+
+[log.files]
+## Archivos
+
+[log.host]
+anfitrión: {1}
+
+[log.hostname]
+=== hostname ===
+
+[log.id-detail]
+| ID | Detalle |
+
+[log.ignored]
+ignorado: {1}
+
+[log.ignored-absent]
+ignorado: {1} ausente
+
+[log.inactive]
+Inactivo
+
+[log.lynis-audit-system-requires-root-sudo-n]
+Lynis auditoría system necesita root (sudo).\n
+
+[log.n]
+\n
+
+[log.ninstallation-rejected-prepare-the-two-files-n]
+\nInstallation rechazada. Prepare los dos archivos:\n
+
+[log.no-package-rc-to-purge]
+Ningún paquete rc a purgar
+
+[log.no-step-provided]
+Ningún step provisto
+
+[log.ok]
+OK {1}
+
+[log.ok-2]
+OK
+
+[log.packages-rc-purged]
+Paquetes rc purgados ({1})
+
+[log.pass-fail-warn-skip]
+| PASS | FAIL | WARN | SKIP |
+
+[log.pass-preview]
+## PASS (vista previa)
+
+[log.profile]
+- **Perfil**: `{1}`
+
+[log.properties-baseline-rkhunter-saved-n]
+Base de propiedades rkhunter guardada.\n
+
+[log.raw-results-results-tsv]
+- Resultados brutos: `results.tsv`
+
+[log.rc-kept-boot]
+rc conservado (boot): {1}
+
+[log.reapplication-of-the-deactivations]
+Reaplicación de los desactivaciones
+
+[log.repository]
+- **Repositorio**: `{1}`
+
+[log.result-ko-fail-to-fix-before-a-deployment]
+**Resultado: KO** — {1} FAIL a corregir antes un despliegue.
+
+[log.result-ok-no-fail]
+**Resultado: OK** (ningún FAIL).
+
+[log.rkhunter-is-absent-n]
+rkhunter es ausente.\n
+
+[log.rkhunter-propupd-a-returned-the-code]
+rkhunter --propupd a devuelto el código {1}.
+
+[log.run-this-command-with-sudo-n]
+Ejecute esta orden con sudo.\n
+
+[log.score]
+=== puntuación ===
+
+[log.see-results-tsv-and-suites-log-for-the-complete]
+Ver `results.tsv` y `suites/*.log` para el detalle completo ({1} PASS).
+
+[log.snapshot-of-the-accounts-absent]
+snapshot de los cuentas ausente ({1})
+
+[log.suggestions]
+=== sugerencias ===
+
+[log.t-t-t-t-t-t-t-t]
+{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}
+
+[log.the-calculation-of-the-fingerprints-can-take-sev]
+El cálculo de los huellas puede tomar varios minutos.
+
+[log.timeout-verrou-apt-busy-always-after-attempts]
+Tiempo de espera: verrou apt siempre ocupado después {1} intentos!
+
+[log.total]
+## totales
+
+[log.usage-lynis-sh-root-listener-n]
+uso: lynis.sh <raíz> [oyente]\n
+
+[log.warn]
+## WARN
+
+[log.warnings]
+=== warnings ===
+
+[log.journals]
+Diarios: {1}
+
+[log.ignored-compressed-octets]
+ignorado (comprimido, {1} octets) {2}
+
+[log.end-of-file-only-octets-kept]
+fin de archivo solo ({1} octets, {2} conservados) {3}
+
+[log.help-init-a-returned-an-error-detail]
+aide --init a devuelto una error. Detalle: {1}
+
+[log.base-help-not-generated-help-db-new-not-found-de]
+Base AIDE no generada (aide.db.new no encontrado). Detalle: {1}
+
+[log.baseline-help-saved]
+Base de referencia AIDE guardada
+
+[log.this-script-must-be-executed-with-sudo-or-as-roo]
+Este script debe ser ejecutado con sudo o como root.
+
+[log.install-log]
+{1} install log
+
+[log.g-collect-install-log]
+collect_install_log: {1}
+
+[log.see-install-log-errors-log-and-steps-index-tsv]
+ver install.log, errors.log y steps/INDEX.tsv
+
+[log.software-snapshot-software-and-snapshot-journal]
+software: snapshot/software/ y snapshot/journal/
+
+[log.integrity-of-the-files-watched-by-help-help-chec]
+Integridad de los archivos vigilados por AIDE (aide --check).
+
+[log.search-of-rootkits-and-files-changed-rkhunter-ch]
+Búsqueda de rootkits y archivos modificados (rkhunter --check).
+
+[log.files-reported-by-clamav-quarantine-and-journals]
+Archivos señalados por ClamAV (cuarentena y diarios).
+
+[log.events-of-audit-abnormal-ausearch]
+Eventos de auditoría anómalos (ausearch).
+
+[log.files-of-packages-whose-the-checksum-a-changed-d]
+Archivos de paquetes cuyo la suma a cambiado (debsums -c).
+
+[log.bans-fail2ban-of-the-derni-res-24-h]
+Bloqueos Fail2Ban de los dernières 24 h.
+
+[log.decisions-and-alerts-crowdsec-of-the-derni-res-2]
+Decisiones y alertas CrowdSec de los dernières 24 h.
+
+[log.packages-blocked-by-ufw]
+Paquetes bloqueados por UFW.
+
+[log.run-this-script-with-sudo-sudo-bash-verify-alert]
+Ejecute este script con sudo: sudo bash verify/alerts.sh\n
+
+[log.result-ok-n]
+Resultado: OK\n
+
+[log.result-ok-s-dot-s-to-confirmer-n]
+Resultado: OK, %s punto(s) a confirmer\n
+
+[log.result-s-failure-s-s-dot-s-to-confirmer-n]
+Resultado: %s fallo(s), %s punto(s) a confirmer\n
+
+[log.root-required]
+se requiere root
+
+[run.script.error]
+El comando falló: {1}
+
+[run.script.warn.2]
+{1}
+
+[run.script.error.4]
+G_WATCHDOG_MAIL es vacío: l'e-mail de fin de instalación no puede salir.
+
+[run.script.info.8]
+{1}
+
+[run.script.error.5]
+L'e-mail de prueba hacia {1} no fue aceptado por Postfix.
+
+[verify.workstation.warn]
+{1}
+
+[verify.workstation.title.4]
+Ubuntu Pro
+
+[verify.workstation.info.5]
+{1}
+
+[run.script.error.6]
+Archivo no encontrado: {1}
+
+[log.condition.rejected]
+Condición rechazada: {1}
+
+[run.close.done]
+Instalación terminada

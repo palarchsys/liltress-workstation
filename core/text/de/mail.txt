@@ -1,0 +1,77 @@
+# =============================================================================
+# File       : core/text/de/mail.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[mail.module]
+Modul:
+
+[mail.redacted]
+[geschwärzt]
+
+[mail.redacted-key]
+[privater Schlüssel geschwärzt]
+
+[mail.configuration-absent]
+Konfiguration fehlt
+
+[mail.send-not-found]
+Senden nicht gefunden
+
+[mail.alerts-e-mail-off]
+Alarme e-mail aus
+
+[mail.destinataire-absent]
+destinataire fehlt
+
+[mail.command-mail-absent]
+Befehl mail fehlt
+
+[mail.template-absent]
+Vorlage fehlt
+
+[mail.send-rejected]
+Senden abgelehnt
+
+[mail.message-of-attempt-sent]
+Meldung von Versuch gesendet
+
+[mail.directory-of-installation-of-the-mod-les-absent]
+Verzeichnis von Installation der modèles fehlt ({1})
+
+[mail.directory-template-absent]
+Verzeichnis template fehlt ({1})
+
+[mail.g-mail-template-invalid-example-mail-html]
+G_MAIL_TEMPLATE ungültig ({1}). Beispiel: mail.html
+
+[mail.name-of-template-denied-example-mail-html]
+Name von Vorlage verweigert ({1}). Beispiel: mail.html
+
+[mail.no-file-html-in]
+kein Datei.html in {1}
+
+[mail.template-absent-of]
+Vorlage {1} fehlt von {2}
+
+[mail.test.title]
+Layoutprobe
+
+[mail.test.module]
+Probe
+
+[mail.test.line-short]
+Kurze Zeile.
+
+[mail.test.line-wide]
+Diese Zeile überschreitet das Minimum von 800px: {1}
+
+[mail.test.note]
+Die Breite folgt der längsten Zeile. Die Höhe füllt den Bereich.
+
+[mail.template-unreadable]
+Vorlage nicht lesbar: {1}
+
+[mail.template-no-pre]
+Vorlage ohne pre-Tag

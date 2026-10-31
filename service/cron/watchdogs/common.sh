@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/common.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
@@ -16,11 +16,54 @@ if [[ -f "${W_BASE}/cron/mail.conf" ]]; then
     source "${W_BASE}/cron/mail.conf"
 fi
 
-w_log_pass()  { printf '%s %s\n' "$(date -Iseconds)" "$*" | tee -a "${LOG_FILE}"; }
+log_pass()  { printf '%s %s\n' "$(date -Iseconds)" "$*" | tee -a "${LOG_FILE}"; }
 
-g_load_shared_watchdog() {
+source_text_engine() {
+    local origin="$1"
+    local candidate="" dir="" hops=0 product=""
+    if declare -F get_text >/dev/null 2>&1; then
+        return 0
+    fi
+    if [[ -z "${G_PRODUCT_ROOT:-}" ]]; then
+        dir="${origin}"
+        while [[ -n "${dir}" && "${dir}" != "/" && "${hops}" -lt 16 ]]; do
+            if [[ -d "${dir}/locale/en" && -f "${dir}/core/log.sh" ]]; then
+                product="${dir}"
+                break
+            fi
+            dir="$(dirname -- "${dir}")"
+            hops=$((hops + 1))
+        done
+        if [[ -n "${product}" ]]; then
+            G_PRODUCT_ROOT="${product}"
+            export G_PRODUCT_ROOT
+        fi
+    fi
+    for candidate in \
+        "${origin}/log.sh" \
+        "${G_PRODUCT_ROOT:-}/core/log.sh" \
+        "${origin}/../../../../core/log.sh" \
+        "${origin}/../../../core/log.sh" \
+        "${W_BASE:-}/src/core/log.sh" \
+        "${G_BASE:-}/src/core/log.sh" \
+        "${G_CONFIG_BASE_DIRECTORY:-}/src/core/log.sh" \
+        "${G_INSTALL_DIRECTORY:-}/core/log.sh" \
+        "${G_INSTALL_DIRECTORY:-}/src/core/log.sh" \
+        "${G_PRODUCT_ROOT:-}/../core/log.sh"
+    do
+        if [[ -n "${candidate}" && -f "${candidate}" ]]; then
+            # shellcheck disable=SC1090
+            source "${candidate}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+load_shared_watchdog() {
     local here="$1"
-    local candidate
+    local candidate=""
+    source_text_engine "${here}" || true
     for candidate in \
         "${here}/watchdog.sh" \
         "${here}/../../../core/watchdog.sh" \
@@ -34,9 +77,13 @@ g_load_shared_watchdog() {
             return 0
         fi
     done
-    printf '%s\n' "watchdog.sh introuvable" >&2
+    if declare -F get_text >/dev/null 2>&1; then
+        printf '%s\n' "$(get_text log.watchdog-not-found)" >&2
+    else
+        printf '%s\n' "watchdog.sh not found" >&2
+    fi
     return 1
 }
 
-g_load_shared_watchdog "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+load_shared_watchdog "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 

@@ -1,0 +1,377 @@
+# =============================================================================
+# File       : core/text/de/configure.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[configure.activation-apparmor]
+Aktivierung AppArmor
+
+[configure.activation-of-fail2ban]
+Aktivierung von Fail2Ban
+
+[configure.activation-ufw]
+Aktivierung UFW
+
+[configure.alerts-email-off-postfix-is-not-configured]
+Alarme e-mail aus: Postfix ist nicht konfiguriert.
+
+[configure.apparmor-enabled]
+AppArmor aktiviert
+
+[configure.base-help-after-the-purge-of-the-packages-and-rk]
+Basis AIDE nach die Bereinigung der Pakete und rkhunter.
+
+[configure.base-rkhunter-propupd-after-the-purge-of-the-pac]
+Basis rkhunter (--propupd) nach die Bereinigung der Pakete.
+
+[configure.card-sasl-absent-after-postmap]
+Karte SASL fehlt nach postmap.
+
+[configure.configuration-of-journald]
+Konfiguration von journald
+
+[configure.core-alert-advice-txt-not-found]
+core/alert-advice.txt nicht gefunden ({1})
+
+[configure.core-mail-sh-not-found-core-mail-sh]
+core/mail.sh nicht gefunden ({1}/core/mail.sh)
+
+[configure.custom-prf-lynis-installed]
+custom.prf Lynis eingerichtet
+
+[configure.deactivation-of-the-core-dumps]
+Deaktivierung der core dumps
+
+[configure.encrypt-method-yescrypt]
+ENCRYPT_METHOD YESCRYPT
+
+[configure.error]
+FEHLER: {1}
+
+[configure.faillog-enab-yes]
+FAILLOG_ENAB yes
+
+[configure.from]
+From
+
+[configure.ipv6]
+IPV6={1}
+
+[configure.language.hint]
+Sprache (en, fr, de, es). Eingabe behält den aktuellen Wert.
+
+[configure.login]
+Anmeldung
+
+[configure.password]
+Password
+
+[configure.policy-usbguard]
+Policy USBGuard
+
+[configure.quota-cpu-not-found]
+Kontingent CPU nicht gefunden
+
+[configure.server]
+Server
+
+[configure.sha-crypt-max-rounds-65536]
+SHA_CRYPT_MAX_ROUNDS 65536
+
+[configure.sha-crypt-min-rounds-65536]
+SHA_CRYPT_MIN_ROUNDS 65536
+
+[configure.sudo-asks-again-the-password-after-5-minutes]
+sudo fragt erneut der Passwort nach 5 Minuten
+
+[configure.sudoers-timeout-invalid-file-removed]
+sudoers Zeitlimit ungültig — Datei entfernt
+
+[configure.systemctl-not-found]
+systemctl nicht gefunden
+
+[configure.toi-exemple-com]
+toi@exemple.com
+
+[configure.ufw-is-not-active-after-enable]
+UFW ist nicht aktiv nach enable: {1}
+
+[configure.umask-027-applied]
+UMASK 027 angewendet
+
+[configure.unit-absent]
+Unit fehlt: {1}
+
+[configure.unused-fs-blacklisted]
+FS unnötig gesperrt
+
+[configure.usbguard-did-not-started-service-left-stopped]
+USBGuard hat nicht gestartet — Dienst gelassen gestoppt
+
+[configure.use-liltress-configures-check-n]
+Verwenden Sie: ./liltress configure [--check]
+
+[configure.write-of-the-rules-usbguard]
+Schreiben der Regeln USBGuard
+
+[configure.quota-cpu-invalid]
+Kontingent CPU ungültig ({1})
+
+[configure.g-ssh-banner-path-invalid-example-etc-ssh-sshd-b]
+{1}: G_SSH_BANNER_PATH ungültig (« {2} »). Beispiel: /etc/ssh/sshd_banner
+
+[configure.g-ssh-service-name-invalid-example-ssh]
+{1}: G_SSH_SERVICE_NAME ungültig (« {2} »). Beispiel: ssh
+
+[configure.g-ssh-client-alive-interval-invalid-example-300]
+{1}: G_SSH_CLIENT_ALIVE_INTERVAL ungültig (« {2} »). Beispiel: 300
+
+[configure.g-watchdog-cpu-limit-invalid-example-50]
+{1}: G_WATCHDOG_CPU_LIMIT ungültig (« {2} »). Beispiel: 50
+
+[configure.g-watchdog-limit-nice-invalid-example-19]
+{1}: G_WATCHDOG_LIMIT_NICE ungültig (« {2} »). Beispiel: 19
+
+[configure.g-watchdog-limit-io-nice-invalid-example-3]
+{1}: G_WATCHDOG_LIMIT_IO_NICE ungültig (« {2} »). Beispiel: 3
+
+[configure.g-mail-alerts-invalid-example-0-or-1]
+{1}: G_MAIL_ALERTS ungültig (« {2} »). Beispiel: 0 oder 1
+
+[configure.g-rclone-alerts-invalid-example-0-or-1]
+{1}: G_RCLONE_ALERTS ungültig (« {2} »). Beispiel: 0 oder 1
+
+[configure.g-rclone-remote-invalid-example-gdrive]
+{1}: G_RCLONE_REMOTE ungültig (« {2} »). Beispiel: gdrive
+
+[configure.g-rclone-path-invalid-example-liltress-alerts]
+{1}: G_RCLONE_PATH ungültig (« {2} »). Beispiel: liltress-alerts
+
+[configure.g-mail-template-invalid-example-mail-html]
+{1}: G_MAIL_TEMPLATE ungültig (« {2} »). Beispiel: mail.html
+
+[configure.g-mail-template-not-found-example-a-file-html-of]
+{1}: G_MAIL_TEMPLATE nicht gefunden ({2}). Beispiel: ein Datei.html des Verzeichnis template/
+
+[configure.g-watchdog-mail-must-be-the-same-address-that-g]
+{1}: G_WATCHDOG_MAIL muss dieselbe Adresse dass G_POSTFIX_MAIL_ADDRESS.
+
+[configure.the-fields-e-mail-must-be-vides-when-the-alerts]
+{1}: die Felder e-mail müssen vides wenn die Alarme sind aus.
+
+[configure.global-conf-absent-example-liltress-configures]
+global.conf fehlt ({1}). Beispiel:./liltress konfiguriert
+
+[configure.secrets-conf-absent-example-liltress-configures]
+Geheimnisse.conf fehlt ({1}). Beispiel:./liltress konfiguriert
+
+[configure.g-language-invalid-values-in-fr-of-es]
+{1}: G_LANGUAGE ungültig (« {2} »). Werte: en, fr, de, es.
+
+[configure.core-watchdog-sh-not-found]
+core/watchdog.sh nicht gefunden ({1})
+
+[configure.clamav.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.clamav.error.4]
+sudoers ClamAV ungültig
+
+[configure.clamav.error.7]
+Unit clamonacc nicht gefunden: die Überwachung fährt fort kann nicht démarrer.
+
+[configure.clamav.error.12]
+clamonacc bleibt nicht aktiv. Detail: {1}/clamonacc.log
+
+[configure.auditd.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.postfix.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.postfix.error.4]
+Postfix ist nicht aktiv nach die Konfiguration.
+
+[configure.ufw.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.ufw.error.11]
+UFW ist nicht aktiv nach enable: {1}
+
+[configure.cron.error]
+Kontingent CPU nicht gefunden
+
+[configure.cron.error.2]
+Kontingent CPU ungültig ({1})
+
+[configure.cron.error.6]
+systemctl nicht gefunden
+
+[configure.cron.error.7]
+Unit fehlt: {1}
+
+[configure.cron.error.8]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.cron.error.9]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.cron.error.10]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.cron.error.11]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.cron.error.12]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.cron.error.13]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.cron.error.14]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.cron.error.15]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.cron.error.16]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.cron.error.17]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.cron.error.18]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.cron.error.19]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.redis.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.apparmor.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.fail2ban.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.usbguard.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.ssh.error]
+sshd -t a fehlgeschlagen — drop-in entfernt
+
+[configure.ssh.error.2]
+PermitRootLogin wirksam: {1}. Erwartet: no.
+
+[configure.ssh.info.3]
+sshd-Syntaxtest
+
+[configure.ssh.error.3]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.ssh.error.4]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.ssh.error.5]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.ssh.error.6]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.ssh.error.7]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.ssh.error.8]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.ssh.error.9]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.ssh.error.11]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.crowdsec.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.crowdsec.error.3]
+Dauer von Sperre ungültig
+
+[configure.crowdsec.info.10]
+Warten auf die lokale CrowdSec-API
+
+[configure.script.warn.2]
+{1}
+
+[configure.script.title]
+Ubuntu-Pro-Token
+
+[configure.script.error.5]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.script.error.8]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.clamav.warn]
+Freshclam ist unvollständig, der Dienst läuft weiter
+
+[configure.unbound.error.3]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.unbound.error.4]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.unbound.error.5]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.unbound.error.6]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.unbound.error.7]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.unbound.error.8]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.unbound.error.9]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.unbound.error.10]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.unbound.error.11]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.unbound.error.12]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.unattended-upgrades.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.pam.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.banners.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.journald.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.sysctl.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.kernel.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.lynis.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.users.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.dns.error]
+Der Befehl ist fehlgeschlagen: {1}
+
+[configure.swap.error]
+Der Befehl ist fehlgeschlagen: {1}

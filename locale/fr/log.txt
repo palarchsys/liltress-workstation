@@ -1,0 +1,353 @@
+# =============================================================================
+# File       : workstation/locale/fr/log.txt
+# Updated at : 2026-10-31
+# Creator    : palarchsys
+# =============================================================================
+
+[log.10s]
+%-10s {1}
+
+[log.16s-12s]
+%-16s %-12s {1}
+
+[log.a-reboot-is-recommended-kernel-libc]
+Un reboot est recommandé (noyau / libc).
+
+[log.after-the-fixes-usbguard]
+   • Après les correctifs : USBGuard.
+
+[log.audit-lynis-quick]
+Audit Lynis (quick)
+
+[log.baseline-help-saved-n]
+Base de référence AIDE enregistrée.\n
+
+[log.bash-liltress-configures]
+  bash {1}/liltress configure
+
+[log.calculation-of-the-new-base-help-that-can-take-s]
+Calcul de la nouvelle base AIDE. Cela peut prendre plusieurs minutes.\n
+
+[log.check-of-the-workstation]
+Contrôle du poste
+
+[log.check-workstation-ok]
+Check workstation OK
+
+[log.chkrootkit-is-absent]
+chkrootkit est absent.
+
+[log.code-of-return]
+code de retour : {1}
+
+[log.command-chkrootkit-q]
+commande : chkrootkit -q
+
+[log.configuration-help-absent-etc-aide-aide-conf-n]
+Configuration AIDE absente : /etc/aide/aide.conf\n
+
+[log.copy-all-this-output-for-make-up-the-list-of-exc]
+Copiez toute cette sortie pour constituer la liste d'exclusion.
+
+[log.current-user-home]
+   Utilisateur courant : {1}  (home {2})
+
+[log.date-4]
+- date : {1}
+
+[log.detection-of-the-profiles-userns]
+Détection des profils userns
+
+[log.dns-local-unbound]
+   • DNS : Unbound local.
+
+[log.end]
+===== FIN =====
+
+[log.enter-the-journal-chkrootkit-named-in-l]
+Indiquez le journal chkrootkit cité dans l
+
+[log.enter-the-journal-debsums-named-in-l]
+Indiquez le journal debsums cité dans l
+
+[log.example-sudo-bash-bin-chkrootkit-ignore-log-sh-c]
+Exemple : sudo bash {1}/bin/chkrootkit-ignore-log.sh {2}/cron/security_logs/chkrootkit-DATE.log
+
+[log.example-sudo-bash-bin-debsums-ignore-log-sh-cron]
+Exemple : sudo bash {1}/bin/debsums-ignore-log.sh {2}/cron/security_logs/debsums-DATE.log
+
+[log.expected-chain-after-multi-user-target-nice-io-i]
+attendu : chaîne après multi-user.target, Nice={1}, IO=idle, CPUQuota={2}%
+
+[log.fail-2]
+- FAIL : {1}
+
+[log.help-baseline-then-verify-workstation-sh]
+   • AIDE : base de référence, puis verify/workstation.sh.
+
+[log.help-init-a-returned-the-code-the-base-produced]
+aide --init a retourné le code {1}. La base produite est tout de même en service.
+
+[log.host-date-start-nproc]
+hôte={1} date={2} démarrage={3} nproc={4}
+
+[log.i386-enabled-on-amd64]
+   • i386 activé sur amd64.
+
+[log.installation-of-snapd]
+Installation de snapd
+
+[log.journal]
+journal : {1}
+
+[log.liltress-workstation-check-workstation]
+# Liltress Workstation — check workstation
+
+[log.liltress-workstation-checks-that-send-an-alert-n]
+Liltress Workstation — contrôles qui envoient une alerte\n
+
+[log.liltress-workstation-hardening-workstation]
+ Liltress Workstation — durcissement workstation                                   
+
+[log.liltress-workstation-report-chkrootkit-false-pos]
+Liltress Workstation — relevé chkrootkit (faux positifs)
+
+[log.lynis]
+Lynis
+
+[log.lynis-hardening-index]
+- Lynis hardening_index={1}
+
+[log.masking-of-systemd-coredump]
+Masquage de systemd-coredump
+
+[log.n-journals-since-this-start-n]
+\n===== journaux depuis ce démarrage =====\n
+
+[log.ok-3]
+OK    {1}
+
+[log.ok-4]
+- OK    {1}
+
+[log.ok-5]
+- OK   : {1}
+
+[log.os]
+   OS                  : {1}
+
+[log.os-2]
+- os   : {1}
+
+[log.output]
+===== SORTIE =====
+
+[log.path-denied]
+Chemin refusé : {1}
+
+[log.persistent-services-n]
+===== services durables =====\n
+
+[log.port-ssh-detected]
+   Port SSH détecté    : {1}
+
+[log.profile-removed]
+Profil {1} retiré
+
+[log.profiles-apparmor-userns]
+Profils AppArmor userns
+
+[log.profiles-userns-loaded]
+Profils userns chargés
+
+[log.purge-of-cups]
+Purge de CUPS ({1})
+
+[log.purge-of-the-packages-rc-2]
+Purge des paquets rc ({1})
+
+[log.purge-of-the-packages-rc-lynis-pkgs-7346]
+Purge des paquets rc (Lynis PKGS-7346)
+
+[log.purge-workstation-finished]
+Purge workstation terminée
+
+[log.record-of-the-baseline-help]
+Enregistrement de la base de référence AIDE
+
+[log.record-of-the-baseline-rkhunter]
+Enregistrement de la base de référence rkhunter
+
+[log.removal-of-the-profile]
+Retrait du profil {1}
+
+[log.rkhunter-update-rc-continued]
+rkhunter --update rc={1} (poursuivi) : {2}
+
+[log.run-this-script-with-sudo-sudo-bash-verify-chkro]
+Lancez ce script avec sudo : sudo bash verify/chkrootkit-fp.sh
+
+[log.snapd]
+snapd
+
+[log.snapd-installed]
+snapd installé
+
+[log.sources-apt]
+Sources APT
+
+[log.ssh-passwordauthentication-yes-permitrootlogin-n]
+   • SSH : PasswordAuthentication yes, PermitRootLogin no.
+
+[log.ssh-then-the-stack-of-security-postfix-follows-t]
+   • SSH, puis la pile de sécurité. Postfix suit le choix des alertes e-mail.
+
+[log.ssh-ufw-services]
+SSH / UFW / services
+
+[log.start]
+démarrage : {1}
+
+[log.sudo-bash-bin-scan-skip-sh-add-chemin]
+       sudo bash {1}/bin/scan-skip.sh add /chemin
+
+[log.sudo-bash-bin-scan-skip-sh-del-chemin]
+       sudo bash {1}/bin/scan-skip.sh del /chemin
+
+[log.systemd-coredump-masked]
+systemd-coredump masqué
+
+[log.the-check-can-take-several-minutes]
+Le contrôle peut prendre plusieurs minutes.
+
+[log.the-detail-stays-in-the-journal-not-in-the-termi]
+Le détail reste dans le journal, pas dans le terminal.
+
+[log.the-last-upgrade-can-re-enable-systemd-coredump]
+Le dernier upgrade peut réactiver systemd-coredump.
+
+[log.the-new-base-n]
+La nouvelle base n
+
+[log.ubuntu-pro-esm-infra-esm-apps-and-livepatch]
+   • Ubuntu Pro : ESM infra, ESM apps et Livepatch.
+
+[log.ufw-deny-incoming-allow-outgoing]
+   • UFW : deny incoming, allow outgoing.
+
+[log.usage-sudo-bash-bin-scan-skip-sh-list]
+Usage : sudo bash {1}/bin/scan-skip.sh list
+
+[log.user]
+- user : {1}
+
+[log.version]
+version :
+
+[log.warn-2]
+- WARN : {1}
+
+[log.path-added]
+Chemin ajouté : {1}
+
+[log.path-removed]
+Chemin retiré : {1}
+
+[log.nft-absent-journal-of-the-flow-outbound-not-inst]
+nft absent : journal des flux sortants non posé
+
+[log.install-of-the-journal-of-the-flow-outbound]
+Pose du journal des flux sortants
+
+[log.journal-of-the-flow-active-outbound]
+Journal des flux sortants actif
+
+[log.no-line-chkrootkit-q-is-remained-silencieux]
+(aucune ligne : chkrootkit -q est resté silencieux)
+
+[log.software-of-the-workstation]
+Logiciels du poste
+
+[log.snap-firefox-present]
+snap Firefox présent
+
+[log.snap-firefox-absent]
+snap Firefox absent
+
+[log.start-2]
+Démarrage
+
+[log.installation-of-the-fixes-of-security]
+Installation des correctifs de sécurité
+
+[log.fixes-of-security-installed]
+Correctifs de sécurité installés
+
+[log.g-watchdog-mail-is-empty-l-e-mail-of-end-of-inst]
+G_WATCHDOG_MAIL est vide : l'e-mail de fin d'installation ne peut pas partir.
+
+[log.send-of-the-e-mail-of-test-to]
+Envoi de l'e-mail de test à {1}
+
+[log.l-e-mail-of-test-toward-was-not-accepted-by-post]
+L'e-mail de test vers {1} n'a pas été accepté par Postfix.
+
+[log.e-mail-of-test-sent-to]
+E-mail de test envoyé à {1}
+
+[log.alerts-e-mail-off-no-message-of-end-not-is-sent]
+Alertes e-mail coupées : aucun message de fin n'est envoyé.
+
+[log.n-passes-of-this-start-n]
+\n===== passes de ce démarrage =====\n
+
+[log.check-of-start-ok-n]
+Contrôle de démarrage : OK\n
+
+[log.check-of-start-in-progress-n]
+Contrôle de démarrage : en cours\n
+
+[log.check-of-start-carts-n]
+Contrôle de démarrage : écarts\n
+
+[log.this-path-is-already-excluded-s-n]
+Ce chemin est déjà exclu : %s\n
+
+[log.baseline-rkhunter-saved]
+Baseline rkhunter enregistrée
+
+[log.fail2ban-auditd-and-crowdsec-n-have-no-mail-clea]
+Fail2Ban, Auditd et CrowdSec n’ont pas de courrier propre. Le courrier vient de la passe et de ClamAV.\n
+
+[log.last-start-of-the-password-s-n]
+dernier démarrage de la passe : %s\n
+
+[log.result-systemd-s-n]
+résultat systemd               : %s\n
+
+[log.check-failure-s]
+Check : {1} échec(s)
+
+[log.path-absent-of-the-list]
+Ce chemin n'est pas dans la liste : {1}
+
+[mail.install.test.title]
+Installation terminée
+
+[mail.install.module]
+Installation
+
+[mail.install.test.body]
+Ceci est un message de test.
+
+L'installation de {1} s'est terminée correctement.
+Cet e-mail vérifie que Postfix peut joindre {2}.
+
+[log.contracts-passwords-apps]
+Contrats (mots de passe, applis)
+
+[log.lynis-manual-hint]
+Lynis : sudo bash liltress lynis
+
+[log.section-dns-local]
+DNS local (Unbound)

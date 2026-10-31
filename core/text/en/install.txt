@@ -1,0 +1,428 @@
+# =============================================================================
+# File       : core/text/en/install.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[install.archive-github-invalid-config-global-conf-absent]
+Archive GitHub invalid (config/global.conf absent).
+
+[install.directories-project-ready]
+Directories project ready
+
+[install.download-branch]
+Download {1} (branch {2})...
+
+[install.help-installed]
+AIDE installed
+
+[install.hrngdevice-dev-hwrng]
+HRNGDEVICE=/dev/hwrng
+
+[install.installation-fail2ban]
+Installation Fail2Ban
+
+[install.installation-help]
+Installation AIDE
+
+[install.installation-of-lynis]
+Installation of Lynis
+
+[install.installation-of-rclone]
+Installation of rclone
+
+[install.installation-of-the-tools-of-base]
+Installation of the tools of base
+
+[install.installation-of-usbguard]
+Installation of USBGuard
+
+[install.installation-ufw]
+Installation UFW
+
+[install.installation-usbguard]
+Installation USBGuard
+
+[install.list-chkrootkit-not-found]
+List chkrootkit not found
+
+[install.lynis-installed]
+Lynis installed
+
+[install.send-google-drive-cut-rclone-is-not-installed]
+Send Google Drive cut: rclone is not installed.
+
+[install.this-script-must-be-executed-as-root-sudo]
+This script must be executed as root (sudo).
+
+[install.tools-of-base-installed]
+Tools of base installed
+
+[install.ufw-installed]
+UFW installed
+
+[install.usbguard-installed-service-stopped-until-the-pol]
+USBGuard installed, service stopped until the policy
+
+[install.g-config-base-directory-invalid-in-global-conf]
+G_CONFIG_BASE_DIRECTORY invalid in global.conf ({1}).
+
+[install.root-of-install-rejected]
+Root of install rejected: {1}
+
+[install.liltress-absent-after-extraction-n]
+liltress absent after extraction.\n
+
+[install.nt-l-chargement-finished-the-sources-are-in-s-n]
+\nTéléchargement finished. The sources are in %s.\n
+
+[install.launch-of-the-configuration-n-n]
+Launch of the Configuration.\n\n
+
+[install.nla-configuration-saved-password-more-the-check]
+\nLa Configuration saved password more the check.\n
+
+[install.launch-of-the-questions-n-n]
+Launch of the questions.\n\n
+
+[install.token-google-drive-absent-or-mode-different-of-6]
+Token Google Drive absent ({1}) or mode different of 600.
+
+[install.rclone-installed]
+rclone installed
+
+[install.mail.error]
+{1}
+
+[install.fs.info]
+Creation of the copy of backup of {1}
+
+[install.fs.success]
+Copy of backup created: {1}
+
+[install.lib.error]
+Download of the repository key failed: {1}
+
+[install.lib.error.2]
+The certificate for {1} is not valid yet, or the system clock is wrong.
+
+[install.lib.error.4]
+The repository key is not valid OpenPGP data: {1}
+
+[install.lib.error.5]
+The repository key is not valid OpenPGP data: {1}
+
+[install.lib.error.6]
+Port TCP {1} already busy — bind Docker 127.0.0.1:{2} impossible: {3}
+
+[install.lib.error.7]
+S_SERVER_TYPE invalid: '{1}'
+
+[install.lib.error.8]
+S_MATRIX_ADMIN_USER or S_MATRIX_ADMIN_PASSWORD empty.
+
+[install.lib.info]
+Retrieval of the token Matrix of {1}
+
+[install.lib.info.2]
+{1}
+
+[install.lib.error.9]
+Failure of retrieval of the token!
+
+[install.lib.success]
+Token Matrix retrieved
+
+[install.lib.error.10]
+dpkg-statoverride --remove {1}: {2}
+
+[install.lib.error.11]
+dpkg-statoverride {1}: {2}
+
+[install.lib.error.12]
+npm: S_MAIN_USER or S_MAIN_GROUP is empty
+
+[install.lib.error.13]
+npm: account {1} not found
+
+[install.lib.error.14]
+npm: group {1} not found
+
+[install.lib.info.3]
+Réservation of npm for {1}
+
+[install.lib.error.15]
+npm is installed, no file to réserver to {1}
+
+[install.lib.success.2]
+npm reserved to {1}
+
+[install.lib.info.4]
+Removal of the names of domain of /etc/hosts
+
+[install.lib.success.3]
+Names of domain removed of /etc/hosts
+
+[install.lib.info.5]
+Preparation of the local access G_MODE_TEST
+
+[install.lib.info.6]
+Removal of the certificate of test of the magasin system
+
+[install.lib.success.4]
+Certificate of test removed of the magasin system
+
+[install.lib.success.5]
+local Access G_MODE_TEST ready, browser on http://127.0.0.1
+
+[install.lib.error.16]
+Impossible of déterminer the current user (SUDO_USER empty, no uid≥1000).
+
+[install.lib.error.17]
+Ubuntu 26.04 or more recent required. System detected: {1}.
+
+[install.lib.error.18]
+Ubuntu 26.04 or more recent required. Version detected: {1}.
+
+[install.lib.error.19]
+Ubuntu {1} ({2}) rejected: it is not greater or equal to 26.04.
+
+[install.lib.error.20]
+Type of card Postfix denied: {1}.
+
+[install.lib.error.21]
+No account of desktop under /home: the installer Ubuntu must have created the users.
+
+[install.lib.error.22]
+Garde-fou: attempt of mutation of password forbidden: {1}
+
+[install.log.info]
+Copy: {1}
+
+[install.log.info.2]
+Journals software copied
+
+[install.log.error.2]
+Input interrupted.
+
+[install.log.info.3]
+Recalcul of the base AIDE (several minutes)
+
+[install.log.warn]
+Base AIDE not recalculée.
+
+[install.log.warn.5]
+Detail: {1}
+
+[install.log.warn.6]
+{1}
+
+[install.log.success]
+Base AIDE recalculée
+
+[install.log.warn.7]
+No terminal: the installer is kept.
+
+[install.log.warn.8]
+Removal cancelled: directory denied.
+
+[install.log.title]
+Removal of the installer
+
+[install.log.info.4]
+Remove the installer and its journals? (Y/N)
+
+[install.log.info.5]
+Directory: {1}
+
+[install.log.warn.9]
+Answer Y or N.
+
+[install.log.info.6]
+Removal of the installer
+
+[install.log.success.2]
+Installer removed.
+
+[install.log.info.7]
+Services, secrets and cron kept.
+
+[install.log.info.8]
+The command liltress is absent.
+
+[install.log.warn.10]
+Removal cancelled: directory denied.
+
+[install.log.warn.11]
+Removal cancelled: useful file absent.
+
+[install.log.warn.12]
+Removal incomplete.
+
+[install.log.warn.13]
+Installer removed, useful files not restored.
+
+[install.log.info.9]
+Snapshot: {1}
+
+[install.exec.debug]
+{1}
+
+[install.install.error]
+The command failed: {1}
+
+[install.install.error.3]
+Ubuntu Pro: missing token in secrets.conf. Rerun: bash {1}/liltress configures
+
+[install.install.error.4]
+Ubuntu Pro attach a failed (required): {1}
+
+[install.install.error.5]
+Ubuntu Pro: the machine is not attached after pro attach.
+
+[install.install.debug]
+{1}
+
+[install.purge.error]
+The command failed: {1}
+
+[install.matrix.error]
+The command failed: {1}
+
+[install.wireguard.error]
+The command failed: {1}
+
+[install.keycloak.error]
+The command failed: {1}
+
+[install.keycloak.success.7]
+{1}
+
+[install.keycloak.success.8]
+Test accounts: ada (administrator), camille (moderator), noa (member)
+
+[install.livekit.error]
+The command failed: {1}
+
+[install.clamav.error]
+The command failed: {1}
+
+[install.aide.error]
+The command failed: {1}
+
+[install.aide.error.2]
+Base AIDE not generated (aide.db.new not found). Detail: {1}
+
+[install.nginx.error]
+The command failed: {1}
+
+[install.debsums.error]
+The command failed: {1}
+
+[install.auditd.error]
+The command failed: {1}
+
+[install.postfix.error]
+The command failed: {1}
+
+[install.postfix.title.2]
+systemd reload
+
+[install.rkhunter.error]
+The command failed: {1}
+
+[install.chkrootkit.error]
+The command failed: {1}
+
+[install.ufw.error]
+The command failed: {1}
+
+[install.redis.error]
+The command failed: {1}
+
+[install.apparmor.error]
+The command failed: {1}
+
+[install.fail2ban.error]
+The command failed: {1}
+
+[install.usbguard.error]
+The command failed: {1}
+
+[install.rclone.error]
+The command failed: {1}
+
+[install.crowdsec.error]
+The command failed: {1}
+
+[install.crowdsec.error.3]
+CrowdSec {1} comes of the repository Ubuntu, no packagecloud.
+
+[install.install.debug.2]
+{1}
+
+[install.snapd.error]
+The command failed: {1}
+
+[install.unbound.error]
+The command failed: {1}
+
+[install.unattended-upgrades.error]
+The command failed: {1}
+
+[install.system.title]
+System
+
+[install.alert.title]
+Alerts
+
+[install.security.title]
+Security
+
+[install.package.title]
+Packages
+
+[install.close.title]
+Finish
+
+[install.edge.title]
+Network services
+
+[install.base.error]
+The command failed: {1}
+
+[install.ssh.error]
+The command failed: {1}
+
+[install.lynis.error]
+The command failed: {1}
+
+[install.ubuntu-pro.error]
+The command failed: {1}
+
+[install.multiarch.error]
+The command failed: {1}
+
+[install.apt.error]
+The command failed: {1}
+
+[install.acct.error]
+The command failed: {1}
+
+[install.sysstat.error]
+The command failed: {1}
+
+[install.pam.error]
+The command failed: {1}
+
+[install.haveged.error]
+The command failed: {1}
+
+[install.rngd.error]
+The command failed: {1}
+
+[install.devtools.error]
+The command failed: {1}
+
+[install.docker.error]
+The command failed: {1}

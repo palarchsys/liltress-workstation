@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ufw/egress.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -9,14 +9,17 @@
 # Note       : The outbound policy stays allow.
 # -----------------------------------------------------------------------------
 
-G_INSTALL_DIRECTORY="${1}"
+INSTALL_WATCHER="${1:-BASH}"
+INSTALL_DIRECTORY="${2:-}"
+export INSTALL_WATCHER INSTALL_DIRECTORY
+G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
 export G_INSTALL_DIRECTORY
 
 source "${G_INSTALL_DIRECTORY}/core/lib.sh"
 source "${G_INSTALL_DIRECTORY}/config/global.conf"
-g_require_root
+require_root
 # shellcheck disable=SC1091
-source "$(g_locate_config_file ufw/egress.conf)"
+source "$(locate_config_file ufw/egress.conf)"
 
 install -d -m 750 "${G_CONFIG_BASE_DIRECTORY}/cron"
 umask 077
@@ -26,7 +29,6 @@ EOF
 umask 022
 chmod 600 "${G_CONFIG_BASE_DIRECTORY}/cron/egress.conf"
 
-g_log_title "Journal des flux sortants"
 install -d -m 755 "${G_CONFIG_BASE_DIRECTORY}/cron/bin"
 cat > "${G_CONFIG_BASE_DIRECTORY}/cron/bin/egress-table.sh" << 'EOF'
 #!/bin/bash
@@ -65,13 +67,13 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 EOF
 chmod 644 /etc/systemd/system/w-egress-table.service
-g_run_silent systemctl daemon-reload
-g_run_silent systemctl enable w-egress-table.service
+run_silent "${INSTALL_WATCHER}" "install.ufw.error" systemctl daemon-reload
+run_silent "${INSTALL_WATCHER}" "install.ufw.error" systemctl enable w-egress-table.service
 
 if ! command -v nft >/dev/null 2>&1; then
-    g_log_warn "nft absent : journal des flux sortants non posé"
+    log_warn "${INSTALL_WATCHER}" "log.nft-absent-journal-of-the-flow-outbound-not-inst"
     exit 0
 fi
-g_log_info "Pose du journal des flux sortants"
+log_info "${INSTALL_WATCHER}" "log.install-of-the-journal-of-the-flow-outbound"
 bash "${G_CONFIG_BASE_DIRECTORY}/cron/bin/egress-table.sh"
-g_log_success "Journal des flux sortants actif"
+log_success "${INSTALL_WATCHER}" "log.journal-of-the-flow-active-outbound"

@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ssh/configure.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
-G_INSTALL_DIRECTORY="${1}"
+INSTALL_WATCHER="${1:-BASH}"
+INSTALL_DIRECTORY="${2:-}"
+export INSTALL_WATCHER INSTALL_DIRECTORY
+G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
 export G_INSTALL_DIRECTORY
 
 # shellcheck disable=SC2155
@@ -14,17 +17,17 @@ readonly DIR_SCRIPT_PATH="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/nul
 source "${G_INSTALL_DIRECTORY}/core/lib.sh"
 source "${G_INSTALL_DIRECTORY}/config/global.conf"
 
-g_require_root
-g_get_ssh_port
+require_root
+get_ssh_port
 
-g_log_title "Configuration SSH (drop-in)"
-g_log_info "Port détecté : ${SSH_PORT}"
-g_log_info "Configuration de SSH"
-g_copy_backup /etc/ssh/sshd_config
+log_subtitle     "${INSTALL_WATCHER}" "configure.configuration-ssh-drop-in"
+log_info         "${INSTALL_WATCHER}" "configure.port-detected" "${SSH_PORT}"
+log_info         "${INSTALL_WATCHER}" "configure.configuration-of-ssh"
+copy_backup /etc/ssh/sshd_config
 
-g_ensure_directory /etc/ssh/sshd_config.d 755
+ensure_directory /etc/ssh/sshd_config.d 755
 
-install -m 644 "$(g_locate_config_file ssh/00-liltress-workstation.conf)" /etc/ssh/sshd_config.d/00-liltress-workstation.conf
+install -m 644 "$(locate_config_file ssh/00-liltress-workstation.conf)" /etc/ssh/sshd_config.d/00-liltress-workstation.conf
 rm -f /etc/ssh/sshd_config.d/99-liltress-workstation.conf
 
 if [[ -f /etc/ssh/sshd_config ]]; then
@@ -42,7 +45,7 @@ if [[ -f /etc/ssh/sshd_config ]]; then
 
     if ! grep -q 'Liltress Workstation permit-root' /etc/ssh/sshd_config \
         && ! grep -q 'High-Fortress User permit-root' /etc/ssh/sshd_config; then
-        cat "$(g_locate_config_file ssh/permit-root.conf)" >> /etc/ssh/sshd_config
+        cat "$(locate_config_file ssh/permit-root.conf)" >> /etc/ssh/sshd_config
     fi
 fi
 for snippet in /etc/ssh/sshd_config.d/*.conf; do
@@ -53,23 +56,23 @@ for snippet in /etc/ssh/sshd_config.d/*.conf; do
     fi
 done
 
-g_ensure_directory "$(dirname "${G_SSH_BANNER_PATH}")" 755
-g_ensure_directory /run/sshd 755
+ensure_directory "$(dirname "${G_SSH_BANNER_PATH}")" 755
+ensure_directory /run/sshd 755
 printf '%s\n' "${G_BANNER_MESSAGE}" > "${G_SSH_BANNER_PATH}"
 chmod 644 "${G_SSH_BANNER_PATH}"
 
-g_log_info "Test de syntaxe sshd"
+log_info         "${INSTALL_WATCHER}" "configure.ssh.info.3"
 if ! sshd -t; then
-    g_log_error "sshd -t a échoué — drop-in retiré"
+    log_error        "${INSTALL_WATCHER}" "configure.sshd-t-a-failed-drop-in-removed"
 fi
-root_login="$(g_get_sshd_value permitrootlogin)"
+root_login="$(get_sshd_value permitrootlogin)"
 if [[ "${root_login}" != "no" ]]; then
-    g_log_error "PermitRootLogin effectif : ${root_login:-inconnu}. Attendu : no."
+    log_error        "${INSTALL_WATCHER}" "configure.effective-permitrootlogin-expected-no" "${root_login:-inconnu}"
 fi
 
-g_log_info "Passage de SSH en service (pas seulement l'activation par socket)"
-g_run_optional systemctl disable --now ssh.socket
-g_run_optional systemctl unmask "${G_SSH_SERVICE_NAME}.service"
-g_run_silent systemctl enable --now "${G_SSH_SERVICE_NAME}.service"
-g_run_silent systemctl reload-or-restart "${G_SSH_SERVICE_NAME}"
-g_log_success "SSH durci (root interdit, mot de passe gardé, port ${SSH_PORT})"
+log_info         "${INSTALL_WATCHER}" "configure.pass-of-ssh-in-service-not-only-the-activation-b"
+run_optional     "${INSTALL_WATCHER}" "configure.ssh.error.3" systemctl disable --now ssh.socket
+run_optional     "${INSTALL_WATCHER}" "configure.ssh.error.4" systemctl unmask "${G_SSH_SERVICE_NAME}.service"
+run_silent       "${INSTALL_WATCHER}" "configure.ssh.error.5" systemctl enable --now "${G_SSH_SERVICE_NAME}.service"
+run_silent       "${INSTALL_WATCHER}" "configure.ssh.error.6" systemctl reload-or-restart "${G_SSH_SERVICE_NAME}"
+log_success      "${INSTALL_WATCHER}" "configure.hardened-ssh-root-forbidden-password-kept-port" "${SSH_PORT}"

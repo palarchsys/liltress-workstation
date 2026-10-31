@@ -1,0 +1,29 @@
+# =============================================================================
+# File       : core/text/es/quarantine.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[quarantine.identifier-rejected]
+identificador rechazado
+
+[quarantine.identifier-absent-of-the-registre]
+identificador ausente del registre
+
+[quarantine.location-original-rejected]
+ubicación de origen rechazado
+
+[quarantine.file-of-quarantine-absent]
+archivo de cuarentena ausente
+
+[quarantine.directory-original-absent]
+directorio de origen ausente
+
+[quarantine.location-original-busy]
+ubicación de origen ocupado
+
+[quarantine.file-reset-in-place]
+archivo restablecido en lugar
+
+[quarantine.identifier-required]
+se requiere un identificador

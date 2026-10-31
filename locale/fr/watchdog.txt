@@ -1,0 +1,104 @@
+# =============================================================================
+# File       : workstation/locale/fr/watchdog.txt
+# Updated at : 2026-10-31
+# Creator    : palarchsys
+# =============================================================================
+
+[watchdog.chkrootkit-a-produced-a-output-see]
+chkrootkit a produit une sortie (voir {1})
+
+[watchdog.clamav-in]
+ClamAV : {1} dans {2}
+
+[watchdog.clamscan-error-rc]
+clamscan erreur rc={1}
+
+[watchdog.clamscan-infection-s-see]
+clamscan : infection(s) (voir {1})
+
+[watchdog.help-error-rc-detail]
+AIDE: erreur rc={1} (détail {2})
+
+[watchdog.rkhunter-error-rc]
+rkhunter erreur rc={1}
+
+[watchdog.rkhunter-warnings-see]
+rkhunter warnings (voir {1})
+
+[watchdog.help-absent-skip]
+aide absent — skip
+
+[watchdog.ausearch-absent]
+ausearch absent
+
+[watchdog.initial-rep-re-written]
+repère initial écrit
+
+[watchdog.no-execution-temporary]
+aucune exécution temporaire
+
+[watchdog.chkrootkit-absent-skip]
+chkrootkit absent — skip
+
+[watchdog.clamscan-absent-skip]
+clamscan absent — skip
+
+[watchdog.scan-clamav-already-in-progress]
+analyse ClamAV déjà en cours
+
+[watchdog.scan-clamav-report-e-runs]
+analyse ClamAV reportée : {1} tourne
+
+[watchdog.debsums-absent-skip]
+debsums absent — skip
+
+[watchdog.journalctl-absent]
+journalctl absent
+
+[watchdog.block-rejected]
+blocage refusé
+
+[watchdog.flow-outbound-suspicious-blocked]
+flux sortant suspect bloqué
+
+[watchdog.infections-already-signal-es]
+infections déjà signalées
+
+[watchdog.list-of-integrity-absent]
+liste d'intégrité absente
+
+[watchdog.no-restart-useful]
+aucun redémarrage utile
+
+[watchdog.rkhunter-absent-skip]
+rkhunter absent — skip
+
+[watchdog.help-changes-detected-code-detail]
+AIDE: changements détectés (code {1}, détail {2})
+
+[watchdog.s-path-denied-s-n]
+%s chemin refusé : %s\n
+
+[watchdog.blocked-during-s]
+bloqué {1} {2}/{3} pendant {4}s — {5}
+
+[watchdog.password-deferred-report-e-runs]
+passe différée reportée : {1} tourne
+
+[watchdog.avis-of-restart-report-runs]
+avis de redémarrage reporté : {1} tourne
+
+[watchdog.help-no-change]
+AIDE: aucun changement
+
+[watchdog.chkrootkit-silencieux-ok]
+chkrootkit silencieux (OK)
+
+[watchdog.no-flow-outbound-unexpected]
+aucun flux sortant inattendu
+
+[watchdog.no-flow-suspicious-outbound]
+aucun flux sortant suspect
+
+[watchdog.avis-of-restart-already-sent]
+avis de redémarrage déjà envoyé

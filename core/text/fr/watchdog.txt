@@ -1,0 +1,128 @@
+# =============================================================================
+# File       : core/text/fr/watchdog.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[watchdog.mail-not-sent-core-mail-sh-not-found]
+Mail non envoyé ({1}) : core/mail.sh introuvable.
+
+[watchdog.mail-not-sent-empty-body]
+Mail non envoyé ({1}) : corps vide.
+
+[watchdog.mail-not-sent-template-html-invalid]
+Mail non envoyé ({1}) : modèle HTML invalide.
+
+[watchdog.mail-not-sent-template-html-not-found]
+Mail non envoyé ({1}) : modèle HTML introuvable.
+
+[watchdog.mirrors-dat-changed-outside-rkhunter-update]
+mirrors.dat modifié hors rkhunter --update
+
+[watchdog.signal]
+signal {1}
+
+[watchdog.t-t-t-t-t]
+{1}\t{2}\t{3}\t{4}\t{5}\t{6}
+
+[watchdog.the-check-crashed-signal-it-did-not-finish]
+Le contrôle {1} a planté (signal {2}, {3}). Il n'est pas allé au bout.
+
+[watchdog.the-check-stopped-code-it-did-not-finish]
+Le contrôle {1} s'est arrêté (code {2}). Il n'est pas allé au bout.
+
+[watchdog.the-journal-is]
+ Le journal est {1}.
+
+[watchdog.mail-not-sent-alerts-e-mail-off]
+Mail non envoyé ({1}) : alertes e-mail coupées.
+
+[watchdog.mail-not-sent-destinataire-or-empty-body]
+Mail non envoyé ({1}) : destinataire ou corps vide.
+
+[watchdog.mail-not-sent-command-mail-absent]
+Mail non envoyé ({1}) : commande mail absente.
+
+[watchdog.execution-since-a-directory-temporary]
+exécution depuis un répertoire temporaire
+
+[watchdog.invalid-memory-access]
+accès mémoire invalide
+
+[watchdog.forced-stop]
+arrêt forcé
+
+[watchdog.internal-program-error]
+erreur interne du programme
+
+[watchdog.interrupted-write]
+écriture interrompue
+
+[watchdog.stop-request]
+demande d'arrêt
+
+[watchdog.name-absent]
+nom absent
+
+[watchdog.process-not-stopped]
+processus non arrêté : {1}
+
+[watchdog.process-stopped]
+processus {1} ({2}) arrêté
+
+[watchdog.process-not-stopped-signal-rejected]
+processus {1} non arrêté : signal refusé
+
+[watchdog.process-not-stopped-no-d-tenteur]
+processus non arrêté : aucun détenteur
+
+[watchdog.not-updated-in-quarantine]
+non mis en quarantaine : {1}
+
+[watchdog.moved-in-quarantine-quarantine]
+déplacé en quarantaine : {1} ; {2} ; quarantaine {3}
+
+[watchdog.copy-drive-ignored]
+Copie Drive ignorée.
+
+[watchdog.copy-drive-ignored-rclone-absent]
+Copie Drive ignorée : rclone absent.
+
+[watchdog.copy-drive-rejected-the-file-local-is-kept]
+Copie Drive refusée. Le fichier local est conservé.
+
+[watchdog.clamav-crashed-twice-in-a-row-signal-the-check-s]
+ClamAV a planté deux fois de suite (signal {1}, {2}). Le contrôle s'est arrêté. Les fichiers restants n'ont pas été analysés.
+
+[watchdog.clamav-crashed-signal-on-one-file-that-file-was]
+ClamAV a planté (signal {1}, {2}) sur un fichier. Ce fichier n'a pas été analysé. Les autres fichiers ont été poursuivis.
+
+[watchdog.clamav-crashed-signal-on-files-those-files-were]
+ClamAV a planté (signal {1}, {2}) sur {3} fichiers. Ces fichiers n'ont pas été analysés. Les autres fichiers ont été poursuivis.
+
+[watchdog.a-restart-is-useful-the-machine-was-not-restarte]
+Un redémarrage est utile. La machine n'a pas été redémarrée.
+
+[watchdog.initial-fingerprint-written]
+empreinte initiale écrite
+
+[watchdog.integrity-unchanged]
+intégrité inchangée
+
+[watchdog.integrity-fingerprint-changed]
+intégrité : empreinte modifiée
+
+[watchdog.signal.abort]
+abandon du programme
+
+[watchdog.module.unknown]
+inconnu
+
+[watchdog.about.chkrootkit]
+Recherche de rootkits (chkrootkit -x -q).
+
+[watchdog.about.module]
+Message du module {1}.
+
+[log.watchdog-not-found]
+watchdog.sh introuvable

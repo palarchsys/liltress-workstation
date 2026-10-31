@@ -27,10 +27,10 @@ Click a flag to open all the information.
 
 <table align="center">
   <tr>
-    <td align="center"><a href="docs/en/README.md"><img src="docs/flags/en.svg" alt="English"></a><br/>English</td>
-    <td align="center"><a href="docs/fr/README.md"><img src="docs/flags/fr.svg" alt="Français"></a><br/>Français</td>
-    <td align="center"><a href="docs/de/README.md"><img src="docs/flags/de.svg" alt="Deutsch"></a><br/>Deutsch</td>
-    <td align="center"><a href="docs/es/README.md"><img src="docs/flags/es.svg" alt="Español"></a><br/>Español</td>
+    <td align="center"><a href="doc/en/README.md"><img src="doc/flags/en.svg" alt="English"></a><br/>English</td>
+    <td align="center"><a href="doc/fr/README.md"><img src="doc/flags/fr.svg" alt="Français"></a><br/>Français</td>
+    <td align="center"><a href="doc/de/README.md"><img src="doc/flags/de.svg" alt="Deutsch"></a><br/>Deutsch</td>
+    <td align="center"><a href="doc/es/README.md"><img src="doc/flags/es.svg" alt="Español"></a><br/>Español</td>
   </tr>
 </table>
 

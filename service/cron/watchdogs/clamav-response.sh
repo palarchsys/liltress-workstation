@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/clamav-response.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -36,7 +36,7 @@ action_process="processus non arrêté : aucun détenteur"
 action_network="isolation non appliquée"
 stored="inconnue"
 
-w_check_clamav_denied() {
+check_clamav_denied() {
     local comm="$1"
     local name
     [[ -n "${comm}" ]] || return 1
@@ -46,7 +46,7 @@ w_check_clamav_denied() {
     return 1
 }
 
-w_apply_clamav_quarantine() {
+apply_clamav_quarantine() {
     local quarantine base stamp dest
     quarantine="${W_CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
     if id clamav >/dev/null 2>&1; then
@@ -95,7 +95,7 @@ w_apply_clamav_quarantine() {
     action_quarantine="fichier déjà absent"
 }
 
-w_read_clamav_holder() {
+read_clamav_holder() {
     local target="$1"
     local pid=""
     if command -v lsof >/dev/null 2>&1; then
@@ -107,12 +107,12 @@ w_read_clamav_holder() {
     printf '%s\n' "${pid}"
 }
 
-w_signal_clamav_holder() {
+signal_clamav_holder() {
     local target pid comm uid
     action_process="processus non arrêté : aucun détenteur"
     for target in "${file}" "${stored}"; do
         [[ -n "${target}" && "${target}" != "absent" && "${target}" != "inconnue" && -e "${target}" ]] || continue
-        pid="$(w_read_clamav_holder "${target}")"
+        pid="$(read_clamav_holder "${target}")"
         [[ -n "${pid}" && "${pid}" =~ ^[0-9]+$ ]] || continue
         if [[ "${pid}" == "1" ]]; then
             action_process="processus non arrêté : pid 1"
@@ -124,7 +124,7 @@ w_signal_clamav_holder() {
             return 0
         fi
         comm="$(cat "/proc/${pid}/comm" 2>/dev/null || true)"
-        if w_check_clamav_denied "${comm}"; then
+        if check_clamav_denied "${comm}"; then
             action_process="processus non arrêté : ${comm}"
             return 0
         fi
@@ -141,7 +141,7 @@ w_signal_clamav_holder() {
     done
 }
 
-w_apply_net_isolate() {
+apply_net_isolate() {
     local sec
     sec="${W_NET_ISOLATE_SEC:-120}"
     if [[ ! "${sec}" =~ ^[0-9]+$ ]] || [[ "${sec}" -lt 30 ]] || [[ "${sec}" -gt 300 ]]; then
@@ -169,19 +169,19 @@ w_apply_net_isolate() {
     fi
 }
 
-w_apply_clamav_quarantine
-if declare -F g_record_quarantine_origin >/dev/null 2>&1; then
+apply_clamav_quarantine
+if declare -F record_quarantine_origin >/dev/null 2>&1; then
     case "${action_quarantine}" in
         "déplacé en quarantaine"|"renommé en quarantaine")
-            g_record_quarantine_origin clamav "${file}" "${stored}" "${virus}" || true
+            record_quarantine_origin clamav "${file}" "${stored}" "${virus}" || true
             ;;
         "déjà en quarantaine")
-            g_queue_existing_restore "${stored}" || true
+            queue_existing_restore "${stored}" || true
             ;;
     esac
 fi
-w_signal_clamav_holder
-w_apply_net_isolate
+signal_clamav_holder
+apply_net_isolate
 
 response_stamp="${W_CLAMAV_RESPONSE_STAMP:-${STAMP}}"
 printf '%s\n' "${stored}" > "${LOG_DIR}/clamav-response-${response_stamp}.path"

@@ -1,0 +1,77 @@
+# =============================================================================
+# File       : core/text/fr/mail.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[mail.module]
+Module :
+
+[mail.redacted]
+[masqué]
+
+[mail.redacted-key]
+[clé privée masquée]
+
+[mail.configuration-absent]
+configuration absente
+
+[mail.send-not-found]
+envoi introuvable
+
+[mail.alerts-e-mail-off]
+alertes e-mail coupées
+
+[mail.destinataire-absent]
+destinataire absent
+
+[mail.command-mail-absent]
+commande mail absente
+
+[mail.template-absent]
+modèle absent
+
+[mail.send-rejected]
+envoi refusé
+
+[mail.message-of-attempt-sent]
+message d'essai envoyé
+
+[mail.directory-of-installation-of-the-mod-les-absent]
+dossier d'installation des modèles absent ({1})
+
+[mail.directory-template-absent]
+dossier template absent ({1})
+
+[mail.g-mail-template-invalid-example-mail-html]
+G_MAIL_TEMPLATE invalide ({1}). exemple : mail.html
+
+[mail.name-of-template-denied-example-mail-html]
+nom de modèle refusé ({1}). exemple : mail.html
+
+[mail.no-file-html-in]
+aucun fichier .html dans {1}
+
+[mail.template-absent-of]
+modèle {1} absent de {2}
+
+[mail.test.title]
+Essai de mise en page
+
+[mail.test.module]
+Essai
+
+[mail.test.line-short]
+Ligne courte.
+
+[mail.test.line-wide]
+Cette ligne dépasse le minimum de 800px : {1}
+
+[mail.test.note]
+La largeur suit la ligne la plus longue. La hauteur occupe le volet.
+
+[mail.template-unreadable]
+modèle illisible : {1}
+
+[mail.template-no-pre]
+modèle sans balise pre

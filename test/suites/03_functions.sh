@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/03_functions.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,23 +18,23 @@ t_require_function() {
     fi
 }
 
-for name in g_set_color_blue g_require_root g_set_step_visible g_log_error g_run_silent g_run_optional g_run_silent_apt g_run_step \
-    g_add_line g_copy_backup g_ensure_directory g_check_user g_init_install_log \
-    g_collect_install_log g_publish_repo_logs g_check_debug_log g_install_exit \
-    g_copy_installed_logs; do
+for name in set_color_blue require_root set_step_visible log_error run_silent run_optional run_silent_apt run_step \
+    add_line copy_backup ensure_directory check_user init_install_log \
+    collect_install_log publish_repo_logs check_debug_log install_exit \
+    copy_installed_logs; do
     t_require_function "${name}" "${MONO}/core"
 done
-for name in g_get_current_user g_get_operating_system g_check_ubuntu_base w_check_desktop_account g_write_account_table \
-    g_record_account_snapshot w_strip_virt_groups g_check_account_drift g_read_sshd_value g_get_sshd_value g_get_ssh_port \
-    g_check_virtual_machine g_check_app g_check_password_unchanged g_check_ubuntu_pro \
-    w_collect_product_logs; do
+for name in get_current_user get_operating_system check_ubuntu_base check_desktop_account write_account_table \
+    record_account_snapshot strip_virt_groups check_account_drift read_sshd_value get_sshd_value get_ssh_port \
+    check_virtual_machine check_app check_password_unchanged check_ubuntu_pro \
+    collect_workstation_logs; do
     t_require_function "${name}" "${T_ROOT}/core/lib.sh"
 done
-for name in g_check_email g_check_port g_check_smtp g_check_absolute_path g_check_drive_remote g_check_drive_path g_check_drive_probe g_check_app_password; do
+for name in check_email check_port check_smtp check_absolute_path check_drive_remote check_drive_path check_drive_probe check_app_password; do
     t_require_function "${name}" "${MONO}/core/config-validators.sh"
 done
-t_require_function w_check_pro_token "${T_ROOT}/scripts/config-check.sh"
-t_require_function g_check_localhost_port "${MONO}/server/core/lib.sh"
+t_require_function check_pro_token "${T_ROOT}/script/config-check.sh"
+t_require_function check_localhost_port "${MONO}/server/core/lib.sh"
 
 t_section "base ubuntu"
 if bash -s -- "${T_ROOT}" << 'OSBASE'
@@ -46,7 +46,7 @@ source "${G_INSTALL_DIRECTORY}/core/lib.sh"
 grep -q 'source /etc/os-release' "${G_INSTALL_DIRECTORY}/core/lib.sh"
 grep -q 'dpkg --compare-versions' "${G_INSTALL_DIRECTORY}/core/lib.sh"
 grep -q 'ge "26.04"' "${G_INSTALL_DIRECTORY}/core/lib.sh"
-grep -q 'g_check_ubuntu_lts' "${G_INSTALL_DIRECTORY}/core/lib.sh"
+grep -q 'check_ubuntu_lts' "${G_INSTALL_DIRECTORY}/core/lib.sh"
 grep -qF '!= "ubuntu"' "${G_INSTALL_DIRECTORY}/core/lib.sh"
 if grep -q 'anduinos' "${G_INSTALL_DIRECTORY}/core/lib.sh"; then
     exit 1
@@ -61,7 +61,7 @@ pass_os() {
     local expect_version="$6"
     local expect_code="$7"
     unset UBUNTU_BASE_VERSION UBUNTU_BASE_CODENAME
-    g_check_ubuntu_base
+    check_ubuntu_base
     [[ "${UBUNTU_BASE_VERSION}" == "${expect_version}" ]]
     [[ "${UBUNTU_BASE_CODENAME}" == "${expect_code}" ]]
 }
@@ -78,7 +78,7 @@ fail_os() {
     out=$(
         ID="${id}" ID_LIKE="${like}" UBUNTU_CODENAME="${code}" \
             PRETTY_NAME="${pretty}" VERSION_ID="${version}" \
-            g_check_ubuntu_base 2>&1
+            check_ubuntu_base 2>&1
     )
     rc=$?
     set -e
@@ -121,14 +121,14 @@ G_INSTALL_DIRECTORY="${root}"
 source "${G_INSTALL_DIRECTORY}/core/lib.sh"
 canon=$'Port 22\nPermitRootLogin no\nPasswordAuthentication yes\nAllowTcpForwarding no\n'
 lower=$'port 2222\npermitrootlogin no\npasswordauthentication yes\n'
-[[ "$(printf '%s\n' "${canon}" | g_read_sshd_value permitrootlogin)" == "no" ]]
-[[ "$(printf '%s\n' "${canon}" | g_read_sshd_value PermitRootLogin)" == "no" ]]
-[[ "$(printf '%s\n' "${canon}" | g_read_sshd_value port)" == "22" ]]
-[[ "$(printf '%s\n' "${lower}" | g_read_sshd_value port)" == "2222" ]]
-[[ "$(printf '%s\n' "${lower}" | g_read_sshd_value permitrootlogin)" == "no" ]]
-grep -q 'g_get_sshd_value permitrootlogin' "${root}/service/ssh/configure.sh"
-grep -q 'g_get_sshd_value permitrootlogin' "${root}/../server/service/ssh/configure.sh"
-grep -q 'g_get_sshd_value allowtcpforwarding' "${root}/verify/workstation.sh"
+[[ "$(printf '%s\n' "${canon}" | read_sshd_value permitrootlogin)" == "no" ]]
+[[ "$(printf '%s\n' "${canon}" | read_sshd_value PermitRootLogin)" == "no" ]]
+[[ "$(printf '%s\n' "${canon}" | read_sshd_value port)" == "22" ]]
+[[ "$(printf '%s\n' "${lower}" | read_sshd_value port)" == "2222" ]]
+[[ "$(printf '%s\n' "${lower}" | read_sshd_value permitrootlogin)" == "no" ]]
+grep -q 'get_sshd_value permitrootlogin' "${root}/service/ssh/configure.sh"
+grep -q 'get_sshd_value permitrootlogin' "${root}/../server/service/ssh/configure.sh"
+grep -q 'get_sshd_value allowtcpforwarding' "${root}/verify/workstation.sh"
 grep -q 'tolower($1)=="permitrootlogin"' "${root}/service/cron/boot-check.sh"
 if grep -RInE "awk '/\\^permitrootlogin " "${root}/service" "${root}/verify" "${root}/../server/service" >/dev/null 2>&1; then
     exit 1
@@ -141,24 +141,24 @@ else
 fi
 
 t_section "journaux dans logs/"
-if grep -q 'trap g_install_exit EXIT' "${T_ROOT}/scripts/run.sh" \
-   && grep -q 'G_LOG_DIR="${root}/logs/${name}"' "${MONO}/core/log.sh" \
+if grep -q 'trap install_exit EXIT' "${T_ROOT}/script/run.sh" \
+   && grep -q 'G_LOG_DIR="${root}/log/${name}"' "${MONO}/core/log.sh" \
    && grep -F -q '[[ "${code}" -ne 0 ]]' "${MONO}/core/log.sh"; then
     t_pass "logs.wire" "le poste écrit dans logs/ et copie les logiciels seulement en échec"
 else
     t_fail "logs.wire" "journaux du poste encore hors de logs/, ou copie même en succès"
 fi
-t_require_function g_render_mail "${MONO}/core/mail.sh"
-t_require_function g_install_mail_templates "${MONO}/core/mail.sh"
+t_require_function render_mail "${MONO}/core/mail.sh"
+t_require_function install_mail_templates "${MONO}/core/mail.sh"
 
 t_section "mode test du poste"
 if grep -q '^G_MODE_TEST=1$' "${T_ROOT}/config/global.conf" \
    && ! grep -q '^S_SERVER_TYPE=' "${T_ROOT}/config/global.conf" \
-   && grep -q '^G_MODE_TEST=${G_MODE_TEST}$' "${T_ROOT}/scripts/config-check.sh" \
-   && ! grep -q 'S_SERVER_TYPE' "${T_ROOT}/scripts/config-check.sh" \
-   && grep -q 'w_prompt G_MODE_TEST' "${T_ROOT}/scripts/configure.sh" \
-   && grep -q 'bool01' "${T_ROOT}/scripts/configure.sh" \
-   && ! grep -q 'S_SERVER_TYPE' "${T_ROOT}/scripts/run.sh" \
+   && grep -q '^G_MODE_TEST=${G_MODE_TEST}$' "${T_ROOT}/script/config-check.sh" \
+   && ! grep -q 'S_SERVER_TYPE' "${T_ROOT}/script/config-check.sh" \
+   && grep -q 'prompt G_MODE_TEST' "${T_ROOT}/script/configure.sh" \
+   && grep -q 'bool01' "${T_ROOT}/script/configure.sh" \
+   && ! grep -q 'S_SERVER_TYPE' "${T_ROOT}/script/run.sh" \
    && ! grep -RIn --include='*.sh' 'S_SERVER_TYPE' \
         "${T_ROOT}/system" "${T_ROOT}/service" "${T_ROOT}/verify" | grep -q . \
    && grep -q 'G_MODE_TEST:-0' "${MONO}/core/log.sh"; then
@@ -172,11 +172,11 @@ if bash -c '
     set -euo pipefail
     # shellcheck disable=SC1090
     source "$1"
-    w_set_config_default
-    w_write_global_config "$2/global.conf"
+    set_config_default
+    write_global_config "$2/global.conf"
     grep -q "^G_MODE_TEST=1$" "$2/global.conf"
     ! grep -q "^S_SERVER_TYPE=" "$2/global.conf"
-' bash "${T_ROOT}/scripts/config-check.sh" "${stage}"; then
+' bash "${T_ROOT}/script/config-check.sh" "${stage}"; then
     t_pass "user.mode-test.write" "le fichier réécrit porte G_MODE_TEST=1, sans S_SERVER_TYPE"
 else
     t_fail "user.mode-test.write" "la réécriture omet G_MODE_TEST ou garde S_SERVER_TYPE"
@@ -186,21 +186,21 @@ rm -rf "${stage}"
 tree="$(mktemp -d)"
 cat > "${tree}/one.sh" << 'EOF'
 #!/usr/bin/env bash
-printf 'A:%s:%s\n' "$1" "${2-}"
+printf 'A:%s:%s:%s\n' "$1" "$2" "${3-}"
 EOF
 cat > "${tree}/two.sh" << 'EOF'
 #!/usr/bin/env bash
-printf 'B:%s:%s\n' "$1" "${2-}"
+printf 'B:%s:%s:%s\n' "$1" "$2" "${3-}"
 EOF
 out="$(G_PRODUCT_ROOT="${T_ROOT}" bash -c '
     set -euo pipefail
     unset S_SERVER_TYPE || true
     # shellcheck disable=SC1090
     source "$1"
-    g_run_step "$2" "one.sh"
-    g_run_step "$2" MATRIX "two.sh"
+    run_step "$2" "one.sh"
+    run_step "$2" MATRIX "two.sh"
 ' bash "${T_ROOT}/core/lib.sh" "${tree}" 2>/dev/null)" || out=""
-if [[ "${out}" == "A:${tree}:"$'\n'"B:${tree}:MATRIX" ]]; then
+if [[ "${out}" == "A:BASH:${tree}:"$'\n'"B:BASH:${tree}:MATRIX" ]]; then
     t_pass "user.mode-test.steps" "le poste lance l'étape sans profil, le serveur garde le sien"
 else
     t_fail "user.mode-test.steps" "arguments reçus : ${out}"
@@ -221,13 +221,13 @@ if G_PRODUCT_ROOT="${T_ROOT}" bash -c '
     OS_PRETTY="Ubuntu"
     OS_VERSION_ID="26.10"
     export OS_PRETTY OS_VERSION_ID
-    g_init_install_log
-    [[ "${G_LOG_DIR}" == "${G_INSTALL_DIRECTORY}/logs/install-"*"-workstation" ]]
+    init_install_log
+    [[ "${G_LOG_DIR}" == "${G_INSTALL_DIRECTORY}/log/install-"*"-workstation" ]]
     grep -Fqx "os          : Ubuntu 26.10" "${G_LOG_DIR}/meta.txt"
     grep -Fqx "os          : Ubuntu 26.10" "${G_LOG_DIR}/install.log"
     OS_PRETTY="Ubuntu 26.10"
     export OS_PRETTY
-    g_init_install_log
+    init_install_log
     grep -Fqx "os          : Ubuntu 26.10" "${G_LOG_DIR}/meta.txt"
     ! grep -Fqx "os          : Ubuntu 26.10 26.10" "${G_LOG_DIR}/meta.txt"
 ' bash "${T_ROOT}/core/lib.sh" "${log_work}"; then
@@ -248,13 +248,13 @@ if timeout 3 bash -c '
     [[ -z "${S_SERVER_TYPE:-}" ]]
     work="$(mktemp -d)"
     trap "rm -rf -- \"${work}\"" EXIT
-    mkdir -p "${work}/inst/scripts" "${work}/inst/config" "${work}/base"
+    mkdir -p "${work}/inst/script" "${work}/inst/config" "${work}/base"
     printf x > "${work}/inst/liltress"
-    printf x > "${work}/inst/scripts/run.sh"
+    printf x > "${work}/inst/script/run.sh"
     printf C > "${work}/inst/config/global.conf"
     inst="$(cd -- "${work}/inst" && pwd -P)"
     base="$(cd -- "${work}/base" && pwd -P)"
-    out="$(G_INSTALL_DIRECTORY="${inst}" G_CONFIG_BASE_DIRECTORY="${base}" g_offer_remove_installer 2>&1)"
+    out="$(G_INSTALL_DIRECTORY="${inst}" G_CONFIG_BASE_DIRECTORY="${base}" offer_remove_installer 2>&1)"
     [[ "${out}" != *[Ss]upprimer* ]]
     [[ -f "${inst}/liltress" && -f "${inst}/config/global.conf" ]]
 ' bash "${MONO}/core/log.sh" "${T_ROOT}/config/global.conf"; then

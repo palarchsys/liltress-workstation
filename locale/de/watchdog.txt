@@ -1,0 +1,104 @@
+# =============================================================================
+# File       : workstation/locale/de/watchdog.txt
+# Updated at : 2026-10-31
+# Creator    : palarchsys
+# =============================================================================
+
+[watchdog.chkrootkit-a-produced-a-output-see]
+chkrootkit a erzeugt eine Ausgabe (sehen {1})
+
+[watchdog.clamav-in]
+ClamAV: {1} in {2}
+
+[watchdog.clamscan-error-rc]
+clamscan Fehler rc={1}
+
+[watchdog.clamscan-infection-s-see]
+clamscan: Infektion(s) (sehen {1})
+
+[watchdog.help-error-rc-detail]
+AIDE: Fehler rc={1} (Detail {2})
+
+[watchdog.rkhunter-error-rc]
+rkhunter Fehler rc={1}
+
+[watchdog.rkhunter-warnings-see]
+rkhunter warnings (sehen {1})
+
+[watchdog.help-absent-skip]
+aide fehlt — skip
+
+[watchdog.ausearch-absent]
+ausearch fehlt
+
+[watchdog.initial-rep-re-written]
+repère initial geschrieben
+
+[watchdog.no-execution-temporary]
+keine Ausführung temporär
+
+[watchdog.chkrootkit-absent-skip]
+chkrootkit fehlt — skip
+
+[watchdog.clamscan-absent-skip]
+clamscan fehlt — skip
+
+[watchdog.scan-clamav-already-in-progress]
+Prüfung ClamAV bereits läuft
+
+[watchdog.scan-clamav-report-e-runs]
+Prüfung ClamAV reportée: {1} läuft
+
+[watchdog.debsums-absent-skip]
+debsums fehlt — skip
+
+[watchdog.journalctl-absent]
+journalctl fehlt
+
+[watchdog.block-rejected]
+Sperre abgelehnt
+
+[watchdog.flow-outbound-suspicious-blocked]
+Fluss ausgehend verdächtig blockiert
+
+[watchdog.infections-already-signal-es]
+infections bereits signalées
+
+[watchdog.list-of-integrity-absent]
+Liste von Integrität fehlt
+
+[watchdog.no-restart-useful]
+kein Neustart nützlich
+
+[watchdog.rkhunter-absent-skip]
+rkhunter fehlt — skip
+
+[watchdog.help-changes-detected-code-detail]
+AIDE: Änderungen erkannt (Code {1}, Detail {2})
+
+[watchdog.s-path-denied-s-n]
+%s Pfad verweigert: %s\n
+
+[watchdog.blocked-during-s]
+blockiert {1} {2}/{3} während {4}s — {5}
+
+[watchdog.password-deferred-report-e-runs]
+Passwort verschobene reportée: {1} läuft
+
+[watchdog.avis-of-restart-report-runs]
+avis von Neustart reporté: {1} läuft
+
+[watchdog.help-no-change]
+AIDE: keine Änderung
+
+[watchdog.chkrootkit-silencieux-ok]
+chkrootkit still (OK)
+
+[watchdog.no-flow-outbound-unexpected]
+kein Fluss ausgehend unerwartet
+
+[watchdog.no-flow-suspicious-outbound]
+kein Fluss ausgehend verdächtig
+
+[watchdog.avis-of-restart-already-sent]
+avis von Neustart bereits gesendet

@@ -1,0 +1,308 @@
+# =============================================================================
+# File       : core/text/en/log.txt
+# Updated at : 2026-10-31
+# Creator    : palarchsys
+# =============================================================================
+
+[log.36s]
+%-36s {1}
+
+[log.absent]
+Absent
+
+[log.alerts-enabled-n]
+alerts: enabled\n
+
+[log.alerts-off-n]
+alerts: off\n
+
+[log.answer-y-or-n]
+Answer Y or N.
+
+[log.aucun]
+_Aucun._
+
+[log.base]
+base: {1}
+
+[log.baseline-help]
+Baseline AIDE
+
+[log.baseline-rkhunter]
+Baseline rkhunter
+
+[log.bash-liltress-check]
+ bash {1}/liltress check
+
+[log.calculation-of-the-properties-baseline-rkhunter]
+Calculation of the properties baseline rkhunter.\n
+
+[log.check-of-cups]
+Check of CUPS
+
+[log.check-of-the-packages-rc]
+Check of the packages rc
+
+[log.combined-journal-run-log]
+- combined Journal: `run.log`
+
+[log.configs-sandbox-artifacts]
+- Configs sandbox: `artifacts/`
+
+[log.creation-of]
+Creation of {1}
+
+[log.cups]
+CUPS
+
+[log.cups-absent]
+CUPS absent
+
+[log.cups-purged]
+CUPS purged
+
+[log.date]
+- **Date**: {1}
+
+[log.date-2]
+date: {1}
+
+[log.dir-install-path-invalid]
+dir_install_path invalid: '{1}'
+
+[log.directory]
+- **Directory**: `{1}`
+
+[log.execution-of]
+Execution of {1}
+
+[log.fail]
+## FAIL
+
+[log.file-absent]
+File absent: {1}
+
+[log.file-not-found]
+File not found: {1}
+
+[log.files]
+## Files
+
+[log.host]
+host: {1}
+
+[log.hostname]
+=== hostname ===
+
+[log.id-detail]
+| ID | Detail |
+
+[log.ignored]
+ignored: {1}
+
+[log.ignored-absent]
+ignored: {1} absent
+
+[log.inactive]
+Inactive
+
+[log.lynis-audit-system-requires-root-sudo-n]
+Lynis audit system requires root (sudo).\n
+
+[log.n]
+\n
+
+[log.ninstallation-rejected-prepare-the-two-files-n]
+\nInstallation rejected. Prepare the two files:\n
+
+[log.no-package-rc-to-purge]
+No package rc to purge
+
+[log.no-step-provided]
+No step provided
+
+[log.ok]
+OK {1}
+
+[log.ok-2]
+OK
+
+[log.packages-rc-purged]
+Packages rc purged ({1})
+
+[log.pass-fail-warn-skip]
+| PASS | FAIL | WARN | SKIP |
+
+[log.pass-preview]
+## PASS (preview)
+
+[log.profile]
+- **Profile**: `{1}`
+
+[log.properties-baseline-rkhunter-saved-n]
+Properties baseline rkhunter saved.\n
+
+[log.raw-results-results-tsv]
+- raw Results: `results.tsv`
+
+[log.rc-kept-boot]
+rc kept (boot): {1}
+
+[log.reapplication-of-the-deactivations]
+Reapplication of the deactivations
+
+[log.repository]
+- **Repository**: `{1}`
+
+[log.result-ko-fail-to-fix-before-a-deployment]
+**Result: KO** — {1} FAIL to fix before a deployment.
+
+[log.result-ok-no-fail]
+**Result: OK** (no FAIL).
+
+[log.rkhunter-is-absent-n]
+rkhunter is absent.\n
+
+[log.rkhunter-propupd-a-returned-the-code]
+rkhunter --propupd a returned the code {1}.
+
+[log.run-this-command-with-sudo-n]
+Run this command with sudo.\n
+
+[log.score]
+=== score ===
+
+[log.see-results-tsv-and-suites-log-for-the-complete]
+See `results.tsv` and `suites/*.log` for the complete detail ({1} PASS).
+
+[log.snapshot-of-the-accounts-absent]
+snapshot of the accounts absent ({1})
+
+[log.suggestions]
+=== suggestions ===
+
+[log.t-t-t-t-t-t-t-t]
+{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}
+
+[log.the-calculation-of-the-fingerprints-can-take-sev]
+The calculation of the fingerprints can take several minutes.
+
+[log.timeout-verrou-apt-busy-always-after-attempts]
+Timeout: verrou apt busy always after {1} attempts!
+
+[log.total]
+## total
+
+[log.usage-lynis-sh-root-listener-n]
+usage: lynis.sh <root> [listener]\n
+
+[log.warn]
+## WARN
+
+[log.warnings]
+=== warnings ===
+
+[log.journals]
+Journals: {1}
+
+[log.ignored-compressed-octets]
+ignored (compressed, {1} octets) {2}
+
+[log.end-of-file-only-octets-kept]
+end of file only ({1} octets, {2} kept) {3}
+
+[log.help-init-a-returned-an-error-detail]
+aide --init a returned an error. Detail: {1}
+
+[log.base-help-not-generated-help-db-new-not-found-de]
+Base AIDE not generated (aide.db.new not found). Detail: {1}
+
+[log.baseline-help-saved]
+Baseline AIDE saved
+
+[log.this-script-must-be-executed-with-sudo-or-as-roo]
+This script must be executed with sudo or as root.
+
+[log.install-log]
+{1} install log
+
+[log.g-collect-install-log]
+collect_install_log: {1}
+
+[log.see-install-log-errors-log-and-steps-index-tsv]
+see install.log, errors.log and steps/INDEX.tsv
+
+[log.software-snapshot-software-and-snapshot-journal]
+software: snapshot/software/ and snapshot/journal/
+
+[log.integrity-of-the-files-watched-by-help-help-chec]
+Integrity of the files watched by AIDE (aide --check).
+
+[log.search-of-rootkits-and-files-changed-rkhunter-ch]
+Search of rootkits and files changed (rkhunter --check).
+
+[log.files-reported-by-clamav-quarantine-and-journals]
+Files reported by ClamAV (quarantine and journals).
+
+[log.events-of-audit-abnormal-ausearch]
+Events of audit abnormal (ausearch).
+
+[log.files-of-packages-whose-the-checksum-a-changed-d]
+Files of packages whose the checksum a changed (debsums -c).
+
+[log.bans-fail2ban-of-the-derni-res-24-h]
+Bans Fail2Ban of the dernières 24 h.
+
+[log.decisions-and-alerts-crowdsec-of-the-derni-res-2]
+Decisions and alerts CrowdSec of the dernières 24 h.
+
+[log.packages-blocked-by-ufw]
+Packages blocked by UFW.
+
+[log.run-this-script-with-sudo-sudo-bash-verify-alert]
+Run this script with sudo: sudo bash verify/alerts.sh\n
+
+[log.result-ok-n]
+Result: OK\n
+
+[log.result-ok-s-dot-s-to-confirmer-n]
+Result: OK, %s dot(s) to confirmer\n
+
+[log.result-s-failure-s-s-dot-s-to-confirmer-n]
+Result: %s failure(s), %s dot(s) to confirmer\n
+
+[log.root-required]
+root required
+
+[run.script.error]
+The command failed: {1}
+
+[run.script.warn.2]
+{1}
+
+[run.script.error.4]
+G_WATCHDOG_MAIL is empty: l'e-mail of end of installation cannot leave.
+
+[run.script.info.8]
+{1}
+
+[run.script.error.5]
+L'e-mail of test toward {1} was not accepted by Postfix.
+
+[verify.workstation.warn]
+{1}
+
+[verify.workstation.title.4]
+Ubuntu Pro
+
+[verify.workstation.info.5]
+{1}
+
+[run.script.error.6]
+File not found: {1}
+
+[log.condition.rejected]
+Condition rejected: {1}
+
+[run.close.done]
+Installation finished

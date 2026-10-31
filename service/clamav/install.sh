@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/clamav/install.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
-G_INSTALL_DIRECTORY="${1}"
+INSTALL_WATCHER="${1:-BASH}"
+INSTALL_DIRECTORY="${2:-}"
+export INSTALL_WATCHER INSTALL_DIRECTORY
+G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
 export G_INSTALL_DIRECTORY
 source "${G_INSTALL_DIRECTORY}/core/lib.sh"
 source "${G_INSTALL_DIRECTORY}/config/global.conf"
-g_require_root
+require_root
 
-g_log_title "Installation ClamAV"
-g_log_info "Installation de ClamAV"
-g_run_silent_apt install -y clamav clamav-daemon clamav-freshclam
-g_log_success "ClamAV installé"
+log_subtitle     "${INSTALL_WATCHER}" "install.installation-clamav-2"
+log_info         "${INSTALL_WATCHER}" "install.installation-of-clamav"
+run_silent_apt   "${INSTALL_WATCHER}" "install -y clamav clamav-daemon clamav-freshclam" "install.clamav.error"
+log_success      "${INSTALL_WATCHER}" "install.clamav-installed-2"

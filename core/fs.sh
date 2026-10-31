@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/fs.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
-g_locate_config_file() {
+locate_config_file() {
     local rel="$1"
     local root candidate shared_parent probe
     local seen="|"
@@ -49,7 +49,7 @@ g_locate_config_file() {
     return 1
 }
 
-g_add_line() {
+add_line() {
     local file="$1"
     local line="$2"
     local comment="${3:-}"
@@ -59,16 +59,16 @@ g_add_line() {
     fi
 }
 
-g_copy_backup() {
+copy_backup() {
     local file="$1"
     local backup="${file}.bak"
     [[ -f "$file" ]] || return 0
     [[ -f "$backup" ]] && return 0
-    g_log_info "Création de la copie de sauvegarde de ${file}"
-    cp -a "$file" "$backup" && g_log_success "Copie de sauvegarde créée : ${backup}"
+    log_info "${INSTALL_WATCHER:-BASH}" "install.fs.info" "${file}"
+    cp -a "$file" "$backup" && log_success "${INSTALL_WATCHER:-BASH}" "install.fs.success" "${backup}"
 }
 
-g_ensure_directory() {
+ensure_directory() {
     local mode="700"
     local user="root"
     local group="root"
@@ -114,7 +114,7 @@ g_ensure_directory() {
     done
 }
 
-g_check_user() {
+check_user() {
     local user="$1"
     id "$user" >/dev/null 2>&1
 }

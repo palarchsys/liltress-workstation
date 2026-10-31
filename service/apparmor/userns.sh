@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/apparmor/userns.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
-G_INSTALL_DIRECTORY="${1}"
+INSTALL_WATCHER="${1:-BASH}"
+INSTALL_DIRECTORY="${2:-}"
+export INSTALL_WATCHER INSTALL_DIRECTORY
+G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
 export G_INSTALL_DIRECTORY
 
 source "${G_INSTALL_DIRECTORY}/core/lib.sh"
 source "${G_INSTALL_DIRECTORY}/config/global.conf"
-g_require_root
+require_root
 
-g_log_title "Profils AppArmor userns"
-g_log_info "Détection des profils userns"
+log_subtitle "${INSTALL_WATCHER}" "log.profiles-apparmor-userns"
+log_info "${INSTALL_WATCHER}" "log.detection-of-the-profiles-userns"
 bash "${G_INSTALL_DIRECTORY}/service/apparmor/detect-and-apply.sh" "${G_INSTALL_DIRECTORY}"
-g_run_optional systemctl reload apparmor
-g_log_success "Profils userns chargés"
+run_optional "${INSTALL_WATCHER}" "install.apparmor.error" systemctl reload apparmor
+log_success "${INSTALL_WATCHER}" "log.profiles-userns-loaded"

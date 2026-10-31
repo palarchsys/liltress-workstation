@@ -1,0 +1,1449 @@
+# =============================================================================
+# File       : core/alert-advice.txt
+# Updated at : 2026-10-29
+# Creator    : palarchsys
+# =============================================================================
+
+[aide.snap-mount]
+tool=aide
+hold=0
+kind=snap
+title=alert.aide.snap-mount.title
+match=snap-[^/\s]+\.mount
+command<<
+sudo find /etc/systemd/system -name {snap_filename} -printf '%y %m %u:%g %p\n'
+snap info {snap_name}
+snap changes
+command>>
+benign=alert.aide.snap-mount.benign
+malicious=alert.aide.snap-mount.malicious
+
+[aide.snap-apparmor]
+tool=aide
+hold=0
+title=alert.aide.snap-apparmor.title
+match=/etc/apparmor\.d/\S*(?:snap[.\-]|snapd)
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %F %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+done
+EOF
+snap list
+aa-status 2>/dev/null | head -n 40 || echo "aa-status absent"
+command>>
+benign=alert.aide.snap-apparmor.benign
+malicious=alert.aide.snap-apparmor.malicious
+
+[aide.kernel-boot]
+tool=aide
+hold=0
+title=alert.aide.kernel-boot.title
+match=/boot/(?:vmlinuz|initrd|initramfs|System\.map|config-|grub)
+command<<
+uname -r
+dpkg -l 'linux-image-*' 'linux-modules-*'
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+  grep -F -- "$p" /var/log/apt/history.log /var/log/dpkg.log 2>/dev/null || echo "journal apt/dpkg : aucune ligne pour ce chemin"
+done
+EOF
+command>>
+benign=alert.aide.kernel-boot.benign
+malicious=alert.aide.kernel-boot.malicious
+
+[aide.modules]
+tool=aide
+hold=0
+title=alert.aide.modules.title
+match=/(?:usr/)?lib/modules/[^/\s]+/
+command<<
+uname -r
+dpkg -l 'linux-image-*' 'linux-modules-*'
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+  grep -F -- "$p" /var/log/apt/history.log /var/log/dpkg.log 2>/dev/null || echo "journal apt/dpkg : aucune ligne pour ce chemin"
+done
+EOF
+command>>
+benign=alert.aide.modules.benign
+malicious=alert.aide.modules.malicious
+
+[aide.firmware]
+tool=aide
+hold=0
+title=alert.aide.firmware.title
+match=/(?:usr/lib|lib)/firmware/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+done
+EOF
+command>>
+benign=alert.aide.firmware.benign
+malicious=alert.aide.firmware.malicious
+
+[aide.python]
+tool=aide
+hold=0
+title=alert.aide.python.title
+match=/usr/lib/python3
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+done
+EOF
+command>>
+benign=alert.aide.python.benign
+malicious=alert.aide.python.malicious
+
+[aide.locale]
+tool=aide
+hold=0
+title=alert.aide.locale.title
+match=/usr/lib/locale/
+command<<
+stat -c '%n %y %a %U:%G' -- {paths}
+grep -E ' locales[: ]' /var/log/dpkg.log | tail -n 20 || echo "journal dpkg : aucune ligne locales"
+command>>
+benign=alert.aide.locale.benign
+malicious=alert.aide.locale.malicious
+
+[aide.dbus]
+tool=aide
+hold=0
+title=alert.aide.dbus.title
+match=/(?:etc/dbus-1|usr/share/dbus-1)/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+done
+EOF
+command>>
+benign=alert.aide.dbus.benign
+malicious=alert.aide.dbus.malicious
+
+[aide.polkit]
+tool=aide
+hold=0
+title=alert.aide.polkit.title
+match=/(?:etc/polkit-1|usr/share/polkit-1)/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+done
+EOF
+command>>
+benign=alert.aide.polkit.benign
+malicious=alert.aide.polkit.malicious
+
+[aide.accounts]
+tool=aide
+hold=0
+hold_if=(?i)has a uid of 0
+title=alert.aide.accounts.title
+match=/etc/(?:passwd|group|shadow|gshadow|subuid|subgid)-?(?:$|[^A-Za-z0-9._-])
+command<<
+sudo bash << 'EOF'
+echo "=== UID 0"
+awk -F: '$3 == 0 { print }' /etc/passwd
+echo "=== champ mot de passe vide"
+awk -F: '$2 == "" { print $1 }' /etc/shadow
+echo "=== shell hors /etc/shells"
+awk -F: 'NR==FNR { if ($0 !~ /^#/ && $0 != "") s[$0]=1; next } $7 != "" && !($7 in s) { print $1, $7 }' /etc/shells /etc/passwd
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G' -- "$p" || true
+done
+EOF
+command>>
+benign=alert.aide.accounts.benign
+malicious=alert.aide.accounts.malicious
+
+[aide.shells]
+tool=aide
+hold=0
+title=alert.aide.shells.title
+match=/etc/(?:shells|login\.defs|adduser\.conf)\b
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+done
+EOF
+command>>
+benign=alert.aide.shells.benign
+malicious=alert.aide.shells.malicious
+
+[aide.sudoers]
+tool=aide
+hold=0
+title=alert.aide.sudoers.title
+match=/etc/sudoers(?:\.d(?:/|$)|(?:$|[^A-Za-z0-9._-]))
+command<<
+sudo bash << 'EOF'
+visudo -c
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G' -- "$p" || true
+  grep -nE 'NOPASSWD|ALL' -- "$p" || true
+done
+EOF
+command>>
+benign=alert.aide.sudoers.benign
+malicious=alert.aide.sudoers.malicious
+
+[aide.ssh-keys]
+tool=aide
+hold=0
+title=alert.aide.ssh-keys.title
+match=/etc/ssh/ssh_host_
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G' -- "$p" || true
+  ssh-keygen -l -f "$p" || true
+done
+EOF
+command>>
+benign=alert.aide.ssh-keys.benign
+malicious=alert.aide.ssh-keys.malicious
+
+[aide.sshd]
+tool=aide
+hold=0
+notice=alert.aide.sshd.notice
+title=alert.aide.sshd.title
+match=/etc/ssh/sshd_config(?:\.d(?:/|$)|(?:$|[^A-Za-z0-9._-]))
+command<<
+sudo bash << 'EOF'
+sshd -t && echo "sshd -t : aucune erreur"
+grep -nE '^[#[:space:]]*(PermitRootLogin|AuthorizedKeysFile|ForceCommand|PasswordAuthentication)[[:space:]]' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/*.conf 2>/dev/null || true
+dpkg -V openssh-server 2>/dev/null | grep -F sshd_config || echo "dpkg -V : aucune ligne pour sshd_config"
+EOF
+command>>
+benign=alert.aide.sshd.benign
+malicious=alert.aide.sshd.malicious
+
+[aide.preload]
+tool=aide
+hold=1
+notice=alert.aide.preload.notice
+title=alert.aide.preload.title
+match=/etc/ld\.so\.preload\b
+command<<
+sudo bash << 'EOF'
+if [[ -f /etc/ld.so.preload ]]; then
+  echo "présent"
+  cat /etc/ld.so.preload
+  while IFS= read -r so || [[ -n "$so" ]]; do
+    case "$so" in
+      ""|#*) continue ;;
+    esac
+    stat -c '%n %a %U:%G' -- "$so" || true
+    dpkg -S -- "$so" || echo "HORS PAQUET $so"
+  done < /etc/ld.so.preload
+else
+  echo "absent"
+fi
+EOF
+command>>
+benign=alert.aide.preload.benign
+malicious=alert.aide.preload.malicious
+
+[aide.ldso]
+tool=aide
+hold=0
+title=alert.aide.ldso.title
+match=/etc/ld\.so\.cache\b
+command<<
+stat -c '%n %y %a %U:%G' /etc/ld.so.cache
+grep -E ' (install|upgrade|remove) ' /var/log/dpkg.log | tail -n 15 || echo "journal dpkg : aucune installation"
+command>>
+benign=alert.aide.ldso.benign
+malicious=alert.aide.ldso.malicious
+
+[aide.resolved]
+tool=aide
+hold=0
+title=alert.aide.resolved.title
+match=/etc/resolv\.conf\b|/etc/systemd/resolved\.conf
+command<<
+stat -c '%n %F %a %U:%G' /etc/resolv.conf /etc/systemd/resolved.conf
+resolvectl status | head -n 40
+command>>
+benign=alert.aide.resolved.benign
+malicious=alert.aide.resolved.malicious
+
+[aide.systemd]
+tool=aide
+hold=0
+title=alert.aide.systemd.title
+match=/(?:etc/systemd/|usr/lib/systemd/|lib/systemd/)
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  grep -nE 'ExecStart|ExecStartPre' -- "$p" || true
+done
+EOF
+command>>
+benign=alert.aide.systemd.benign
+malicious=alert.aide.systemd.malicious
+
+[aide.cron]
+tool=aide
+hold=0
+title=alert.aide.cron.title
+match=/etc/cron(?:tab|\.(?:d|hourly|daily|weekly|monthly))(?:/|$)
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  grep -nE 'curl|wget|base64|bash|sh' -- "$p" || true
+done
+EOF
+command>>
+benign=alert.aide.cron.benign
+malicious=alert.aide.cron.malicious
+
+[aide.udev]
+tool=aide
+hold=0
+title=alert.aide.udev.title
+match=/(?:etc/udev/rules\.d/|lib/udev/rules\.d/|usr/lib/udev/rules\.d/)
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  grep -nE 'RUN\+?=|PROGRAM=' -- "$p" || true
+done
+EOF
+command>>
+benign=alert.aide.udev.benign
+malicious=alert.aide.udev.malicious
+
+[aide.pam]
+tool=aide
+hold=0
+title=alert.aide.pam.title
+match=/etc/pam\.d/|/etc/pam\.conf\b
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+  grep -nE 'pam_exec|sufficient' -- "$p" || true
+done
+EOF
+command>>
+benign=alert.aide.pam.benign
+malicious=alert.aide.pam.malicious
+
+[aide.alternatives]
+tool=aide
+hold=0
+title=alert.aide.alternatives.title
+match=/etc/alternatives/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %F %a %U:%G' -- "$p" || true
+  readlink -f -- "$p" || true
+done
+EOF
+command>>
+benign=alert.aide.alternatives.benign
+malicious=alert.aide.alternatives.malicious
+
+[aide.certs]
+tool=aide
+hold=0
+title=alert.aide.certs.title
+match=/etc/ssl/|/usr/share/ca-certificates/|/etc/ca-certificates|/usr/local/share/ca-certificates/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+done
+EOF
+command>>
+benign=alert.aide.certs.benign
+malicious=alert.aide.certs.malicious
+
+[aide.letsencrypt]
+tool=aide
+hold=0
+title=alert.aide.letsencrypt.title
+match=/etc/letsencrypt/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G' -- "$p" || true
+done
+if command -v certbot >/dev/null 2>&1; then
+  certbot certificates
+else
+  echo "certbot absent"
+fi
+EOF
+command>>
+benign=alert.aide.letsencrypt.benign
+malicious=alert.aide.letsencrypt.malicious
+
+[aide.hosts]
+tool=aide
+hold=0
+title=alert.aide.hosts.title
+match=/etc/hosts(?:$|[^A-Za-z0-9._-])
+command<<
+cat /etc/hosts
+command>>
+benign=alert.aide.hosts.benign
+malicious=alert.aide.hosts.malicious
+
+[aide.timezone]
+tool=aide
+hold=0
+title=alert.aide.timezone.title
+match=/etc/localtime\b|/etc/timezone\b
+command<<
+timedatectl
+stat -c '%n %F %N %a %U:%G' /etc/localtime /etc/timezone
+dpkg -S /etc/localtime /etc/timezone || true
+command>>
+benign=alert.aide.timezone.benign
+malicious=alert.aide.timezone.malicious
+
+[aide.apt]
+tool=aide
+hold=0
+title=alert.aide.apt.title
+match=/etc/apt/(?:sources\.list(?:\.d/|$)|trusted\.gpg(?:\.d/|$)|keyrings/|apt\.conf(?:\.d/|$))
+command<<
+apt-cache policy | head -n 40
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %F %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+done
+EOF
+command>>
+benign=alert.aide.apt.benign
+malicious=alert.aide.apt.malicious
+
+[aide.netplan]
+tool=aide
+hold=0
+title=alert.aide.netplan.title
+match=/etc/netplan/|/etc/NetworkManager/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G' -- "$p" || true
+done
+EOF
+command>>
+benign=alert.aide.netplan.benign
+malicious=alert.aide.netplan.malicious
+
+[aide.wireguard]
+tool=aide
+hold=0
+title=alert.aide.wireguard.title
+match=/etc/wireguard/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G' -- "$p" || true
+done
+wg show || true
+EOF
+command>>
+benign=alert.aide.wireguard.benign
+malicious=alert.aide.wireguard.malicious
+
+[aide.ufw]
+tool=aide
+hold=0
+title=alert.aide.ufw.title
+match=/etc/ufw/|/etc/default/ufw\b
+command<<
+sudo ufw status verbose
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+done
+EOF
+command>>
+benign=alert.aide.ufw.benign
+malicious=alert.aide.ufw.malicious
+
+[aide.fail2ban]
+tool=aide
+hold=0
+title=alert.aide.fail2ban.title
+match=/etc/fail2ban/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  grep -nE 'actionban|iptables|nft' -- "$p" || true
+done
+EOF
+command>>
+benign=alert.aide.fail2ban.benign
+malicious=alert.aide.fail2ban.malicious
+
+[aide.crowdsec]
+tool=aide
+hold=0
+title=alert.aide.crowdsec.title
+match=/etc/crowdsec/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  grep -nE 'command:|/tmp/|/dev/shm/' -- "$p" || true
+done
+EOF
+command>>
+benign=alert.aide.crowdsec.benign
+malicious=alert.aide.crowdsec.malicious
+
+[aide.grub]
+tool=aide
+hold=0
+title=alert.aide.grub.title
+match=/etc/default/grub(?:\.d/|\b)
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  grep -nE 'init=|apparmor=0|security=|selinux=0' -- "$p" || echo "aucun paramètre de contournement"
+done
+EOF
+command>>
+benign=alert.aide.grub.benign
+malicious=alert.aide.grub.malicious
+
+[aide.sysctl]
+tool=aide
+hold=0
+title=alert.aide.sysctl.title
+match=/etc/sysctl\.conf\b|/etc/sysctl\.d/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+  grep -nE 'ptrace_scope|ip_forward|kptr_restrict' -- "$p" || true
+done
+EOF
+command>>
+benign=alert.aide.sysctl.benign
+malicious=alert.aide.sysctl.malicious
+
+[aide.modules-load]
+tool=aide
+hold=0
+title=alert.aide.modules-load.title
+match=/etc/modules(?:$|[^A-Za-z0-9._/-])|/etc/modules-load\.d/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+done
+EOF
+command>>
+benign=alert.aide.modules-load.benign
+malicious=alert.aide.modules-load.malicious
+
+[aide.product]
+tool=aide
+hold=0
+title=alert.aide.product.title
+match=/opt/liltress(?:-workstation)?/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %F %a %U:%G' -- "$p" || true
+done
+EOF
+command>>
+benign=alert.aide.product.benign
+malicious=alert.aide.product.malicious
+
+[aide.machine-id]
+tool=aide
+hold=1
+notice=alert.aide.machine-id.notice
+title=alert.aide.machine-id.title
+match=/etc/machine-id\b
+command<<
+cat /etc/machine-id
+stat -c '%n %a %U:%G %y' /etc/machine-id
+wc -c /etc/machine-id
+command>>
+benign=alert.aide.machine-id.benign
+malicious=alert.aide.machine-id.malicious
+
+[aide.removed]
+tool=aide
+hold=0
+title=alert.aide.removed.title
+match=^(?:removed:|[fdlcbpsDP!?][-]{3,}:)
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  grep -F -- "$p" /var/log/dpkg.log /var/log/apt/history.log 2>/dev/null || echo "journal apt/dpkg : aucune ligne pour ce chemin"
+done
+EOF
+command>>
+benign=alert.aide.removed.benign
+malicious=alert.aide.removed.malicious
+
+[aide.package]
+tool=aide
+hold=0
+title=alert.aide.package.title
+match=^/(?:bin|sbin|usr|lib|lib64|boot)(?:/|$)
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+  grep -F -- "$p" /var/log/apt/history.log /var/log/dpkg.log 2>/dev/null || echo "journal apt/dpkg : aucune ligne pour ce chemin"
+done
+EOF
+command>>
+benign=alert.aide.package.benign
+malicious=alert.aide.package.malicious
+
+[aide.conffile]
+tool=aide
+hold=0
+title=alert.aide.conffile.title
+match=^/etc(?:/|$)
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  dpkg-query -W -f '${Package} conffiles\n${Conffiles}\n' "$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')" 2>/dev/null | grep -F -- "$p" || echo "pas un conffile déclaré"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+done
+EOF
+command>>
+benign=alert.aide.conffile.benign
+malicious=alert.aide.conffile.malicious
+
+[aide.unknown]
+tool=aide
+hold=1
+notice=alert.aide.unknown.notice
+title=alert.aide.unknown.title
+match=.
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %F %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+done
+EOF
+printf '%s\n' {raw_lines}
+echo "Ne lancez pas la commande finale."
+command>>
+benign=alert.aide.unknown.benign
+malicious=alert.aide.unknown.malicious
+
+[chk.bpfdoor]
+tool=chkrootkit
+hold=1
+notice=alert.chk.bpfdoor.notice
+title=alert.chk.bpfdoor.title
+match=(?i)bpfdoor|haldrund
+command<<
+sudo bash << 'EOF'
+for p in /dev/shm/.bpfdoor /var/run/.bpfdoor /run/.bpfdoor /tmp/.bpfdoor /dev/shm/haldrund.pid; do
+  if [[ -e "$p" ]]; then
+    stat -c '%n %a %U:%G' -- "$p"
+    echo "FICHIER PRESENT $p"
+  else
+    echo "absent $p"
+  fi
+done
+printf '%s\n' {raw_lines}
+EOF
+command>>
+benign=alert.chk.bpfdoor.benign
+malicious=alert.chk.bpfdoor.malicious
+
+[chk.preload]
+tool=chkrootkit
+hold=1
+notice=alert.aide.preload.notice
+title=alert.aide.preload.title
+match=(?i)ld\.so\.preload
+command<<
+sudo bash << 'EOF'
+if [[ -f /etc/ld.so.preload ]]; then
+  echo "présent"
+  cat /etc/ld.so.preload
+  while IFS= read -r so || [[ -n "$so" ]]; do
+    case "$so" in
+      ""|#*) continue ;;
+    esac
+    stat -c '%n %a %U:%G' -- "$so" || true
+    dpkg -S -- "$so" || echo "HORS PAQUET $so"
+  done < /etc/ld.so.preload
+else
+  echo "absent"
+fi
+EOF
+command>>
+benign=alert.chk.preload.benign
+malicious=alert.chk.preload.malicious
+
+[chk.binary]
+tool=chkrootkit
+hold=0
+title=alert.chk.binary.title
+match=(?s)Checking\s+[`'\"](?:amd|basename|biff|chfn|chsh|cron|date|du|dirname|echo|egrep|env|find|fingerd|gpm|grep|hdparm|su|ifconfig|inetd|identd|init|killall|login|ls|lsof|mail|mingetty|netstat|named|passwd|pidof|pop2|pop3|ps|pstree|rpcinfo|rlogind|rshd|slogin|sendmail|sshd|syslogd|tar|tcpd|tcpdump|top|telnetd|timed|traceroute|vdir|w|write)['`\"].{0,120}INFECTED
+command<<
+sudo bash << 'EOF'
+for c in {cmds}; do
+  b="$(command -v "$c" 2>/dev/null || true)"
+  printf '%s\n' "=== $c -> ${b:-introuvable}"
+  if [[ -z "$b" ]]; then
+    echo "binaire introuvable"
+    continue
+  fi
+  dpkg -S -- "$b" || echo "HORS PAQUET $b"
+  pkg="$(dpkg -S -- "$b" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    debsums -c "$pkg" 2>/dev/null | grep -F -- "$b" || echo "debsums : aucune ligne pour ce chemin"
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$b" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+done
+EOF
+command>>
+benign=alert.chk.binary.benign
+malicious=alert.chk.binary.malicious
+
+[chk.worm-string]
+tool=chkrootkit
+hold=0
+title=alert.chk.worm-string.title
+match=(?i)\b(?:rexedcs|scalper|slapper|w55808|asp|z2)\b
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+done
+EOF
+command>>
+benign=alert.chk.worm-string.benign
+malicious=alert.chk.worm-string.malicious
+
+[chk.sniffer]
+tool=chkrootkit
+hold=0
+title=alert.chk.sniffer.title
+match=(?i)PACKET SNIFFER
+command<<
+sudo bash << 'EOF'
+for pid in {pids}; do
+  echo "=== pid $pid"
+  ps -fp "$pid" -o pid,user,args || echo "ps : PID absent"
+done
+for b in {bins}; do
+  dpkg -S -- "$b" || echo "HORS PAQUET $b"
+done
+ps -ef | grep -E 'NetworkManager|wpa_supplicant|systemd-networkd|dhclient|avahi-daemon|cupsd|openvpn|tailscaled|wg-quick|docker-proxy|tcpdump|dumpcap' | grep -v grep || echo "aucun de ces noms"
+EOF
+command>>
+benign=alert.chk.sniffer.benign
+malicious=alert.chk.sniffer.malicious
+
+[chk.promisc]
+tool=chkrootkit
+hold=0
+kind=promisc
+title=alert.chk.promisc.title
+match=(?i)ifpromisc|promiscuous|\bPROMISC\b
+command<<
+sudo bash << 'EOF'
+for iface in {ifaces}; do
+  echo "=== $iface"
+  ip -d link show "$iface"
+done
+EOF
+command>>
+benign=alert.chk.promisc.benign
+malicious=alert.chk.promisc.malicious
+
+[chk.wtmp]
+tool=chkrootkit
+hold=0
+title=alert.chk.wtmp.title
+match=(?i)wtmp|lastlog|\butmp\b|deletion
+command<<
+ls -l /var/log/wtmp /var/log/wtmp.1 /var/log/lastlog /var/log/btmp /run/utmp 2>/dev/null || true
+last -F | head -n 30
+command>>
+benign=alert.chk.wtmp.benign
+malicious=alert.chk.wtmp.malicious
+
+[chk.lkm]
+tool=chkrootkit
+hold=0
+title=alert.chk.lkm.title
+match=(?i)chkproc|process hidden|hidden for readdir|lkm trojan
+command<<
+sudo bash << 'EOF'
+for pid in {pids}; do
+  echo "=== pid $pid"
+  ps -p "$pid" -o pid,user,args || echo "ps : PID absent"
+  if [[ -d "/proc/$pid" ]]; then
+    echo "proc présent"
+    ls -l "/proc/$pid/exe" || true
+    tr '\0' ' ' < "/proc/$pid/cmdline" || true
+    echo
+  else
+    echo "proc absent"
+  fi
+done
+EOF
+command>>
+benign=alert.chk.lkm.benign
+malicious=alert.chk.lkm.malicious
+
+[chk.bindshell]
+tool=chkrootkit
+hold=0
+title=alert.chk.bindshell.title
+match=(?i)bindshell|INFECTED \(PORTS
+command<<
+sudo bash << 'EOF'
+for port in {ports}; do
+  echo "=== port $port"
+  ss -lptn "sport = :$port" || true
+done
+EOF
+command>>
+benign=alert.chk.bindshell.benign
+malicious=alert.chk.bindshell.malicious
+
+[chk.php]
+tool=chkrootkit
+hold=0
+title=alert.chk.php.title
+match=(?i)\.php\b
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %F %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+done
+EOF
+command>>
+benign=alert.chk.php.benign
+malicious=alert.chk.php.malicious
+
+[chk.aliens]
+tool=chkrootkit
+hold=0
+title=alert.chk.aliens.title
+match=(?i)\.build-id|\.notice\.zst|\.document|aliens|suspect files
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %F %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+done
+EOF
+command>>
+benign=alert.chk.aliens.benign
+malicious=alert.chk.aliens.malicious
+
+[chk.crontab]
+tool=chkrootkit
+hold=0
+title=alert.chk.crontab.title
+match=(?i)crontab|cron\.d
+command<<
+sudo bash << 'EOF'
+crontab -l || echo "crontab : aucune tâche"
+ls -la /etc/cron.d /etc/cron.daily /etc/cron.hourly /etc/cron.weekly /etc/cron.monthly /var/spool/cron/crontabs 2>/dev/null || true
+EOF
+command>>
+benign=alert.chk.crontab.benign
+malicious=alert.chk.crontab.malicious
+
+[chk.inetd]
+tool=chkrootkit
+hold=0
+title=alert.chk.inetd.title
+match=(?i)inetd\.conf|\binetd\b
+command<<
+sudo bash << 'EOF'
+if [[ -f /etc/inetd.conf ]]; then
+  grep -vE '^[[:space:]]*(#|$)' /etc/inetd.conf || echo "aucune ligne active"
+else
+  echo "absent /etc/inetd.conf"
+fi
+EOF
+command>>
+benign=alert.chk.inetd.benign
+malicious=alert.chk.inetd.malicious
+
+[chk.history]
+tool=chkrootkit
+hold=0
+title=alert.chk.history.title
+match=(?i)bash_history|shell history|\.history\b
+command<<
+sudo bash << 'EOF'
+stat -c '%n %F %a %U:%G %s' /root/.bash_history /home/*/.bash_history 2>/dev/null || true
+EOF
+command>>
+benign=alert.chk.history.benign
+malicious=alert.chk.history.malicious
+
+[chk.unknown]
+tool=chkrootkit
+hold=1
+notice=alert.aide.unknown.notice
+title=alert.chk.unknown.title
+match=.
+command<<
+printf '%s\n' {raw_lines}
+echo "Ne lancez pas la commande finale."
+command>>
+benign=alert.chk.unknown.benign
+malicious=alert.chk.unknown.malicious
+
+[rk.preload]
+tool=rkhunter
+hold=1
+notice=alert.aide.preload.notice
+title=alert.aide.preload.title
+match=(?i)ld\.so\.preload
+command<<
+sudo bash << 'EOF'
+if [[ -f /etc/ld.so.preload ]]; then
+  echo "présent"
+  cat /etc/ld.so.preload
+  while IFS= read -r so || [[ -n "$so" ]]; do
+    case "$so" in
+      ""|#*) continue ;;
+    esac
+    stat -c '%n %a %U:%G' -- "$so" || true
+    dpkg -S -- "$so" || echo "HORS PAQUET $so"
+  done < /etc/ld.so.preload
+else
+  echo "absent"
+fi
+EOF
+command>>
+benign=alert.chk.preload.benign
+malicious=alert.chk.preload.malicious
+
+[rk.empty-password]
+tool=rkhunter
+hold=1
+notice=alert.rk.empty-password.notice
+title=alert.rk.empty-password.title
+match=(?i)no password|empty password|password field is empty|blank password
+command<<
+sudo awk -F: '$2 == "" { print $1 }' /etc/shadow
+command>>
+benign=alert.rk.empty-password.benign
+malicious=alert.rk.empty-password.malicious
+
+[rk.accounts]
+tool=rkhunter
+hold=0
+hold_if=(?i)has a uid of 0
+title=alert.rk.accounts.title
+match=(?i)uid of 0|/etc/passwd|/etc/shadow|passwd file|group file
+command<<
+sudo bash << 'EOF'
+echo "=== UID 0"
+awk -F: '$3 == 0 { print }' /etc/passwd
+echo "=== champ mot de passe vide"
+awk -F: '$2 == "" { print $1 }' /etc/shadow
+echo "=== shell hors /etc/shells"
+awk -F: 'NR==FNR { if ($0 !~ /^#/ && $0 != "") s[$0]=1; next } $7 != "" && !($7 in s) { print $1, $7 }' /etc/shells /etc/passwd
+EOF
+command>>
+benign=alert.rk.accounts.benign
+malicious=alert.rk.accounts.malicious
+
+[rk.mirrors]
+tool=rkhunter
+hold=0
+notice=alert.rk.mirrors.notice
+title=alert.rk.mirrors.title
+match=mirrors\.dat modifié hors rkhunter --update
+command<<
+sudo bash << 'EOF'
+for p in /var/lib/rkhunter/db/mirrors.dat; do
+  if [[ -e "$p" ]]; then
+    stat -c '%n %a %U:%G %y' -- "$p"
+  else
+    echo "absent $p"
+  fi
+done
+EOF
+command>>
+benign=alert.rk.mirrors.benign
+malicious=alert.rk.mirrors.malicious
+
+[rk.script]
+tool=rkhunter
+hold=0
+title=alert.rk.script.title
+match=(?i)replaced by a script|script replacement
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  file -- "$p" || true
+  stat -c '%n %a %U:%G' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+done
+EOF
+command>>
+benign=alert.rk.script.benign
+malicious=alert.rk.script.malicious
+
+[rk.properties]
+tool=rkhunter
+hold=0
+title=alert.rk.properties.title
+match=(?i)file properties|properties have changed|current hash|stored hash
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+  grep -F -- "$p" /var/log/apt/history.log /var/log/dpkg.log 2>/dev/null || echo "journal apt/dpkg : aucune ligne pour ce chemin"
+done
+EOF
+command>>
+benign=alert.rk.properties.benign
+malicious=alert.rk.properties.malicious
+
+[rk.hidden-proc]
+tool=rkhunter
+hold=0
+title=alert.chk.lkm.title
+match=(?i)hidden process
+command<<
+sudo bash << 'EOF'
+for pid in {pids}; do
+  echo "=== pid $pid"
+  ps -p "$pid" -o pid,user,args || echo "ps : PID absent"
+  if [[ -d "/proc/$pid" ]]; then
+    echo "proc présent"
+    ls -l "/proc/$pid/exe" || true
+  else
+    echo "proc absent"
+  fi
+done
+EOF
+command>>
+benign=alert.rk.hidden-proc.benign
+malicious=alert.rk.hidden-proc.malicious
+
+[rk.hidden]
+tool=rkhunter
+hold=0
+title=alert.rk.hidden.title
+match=(?i)hidden file|hidden directory|hidden dir
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  ls -la -- "$p" || ls -la -- "$(dirname -- "$p")"
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+done
+EOF
+command>>
+benign=alert.rk.hidden.benign
+malicious=alert.rk.hidden.malicious
+
+[rk.deleted]
+tool=rkhunter
+hold=0
+title=alert.rk.deleted.title
+match=(?i)deleted file|using a deleted|\(deleted\)
+command<<
+sudo bash << 'EOF'
+for pid in {pids}; do
+  echo "=== pid $pid"
+  ps -p "$pid" -o pid,user,args || echo "ps : PID absent"
+  ls -l "/proc/$pid/exe" || echo "proc absent"
+done
+for p in {paths}; do
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+done
+EOF
+command>>
+benign=alert.rk.deleted.benign
+malicious=alert.rk.deleted.malicious
+
+[rk.dev]
+tool=rkhunter
+hold=0
+title=alert.rk.dev.title
+match=(?i)suspicious file types found in /dev|/dev/
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %F %a %U:%G' -- "$p" || true
+  lsof -- "$p" || true
+done
+EOF
+command>>
+benign=alert.rk.dev.benign
+malicious=alert.rk.dev.malicious
+
+[rk.sniffer]
+tool=rkhunter
+hold=0
+title=alert.rk.sniffer.title
+match=(?i)packet sniffer|packet capture|libpcap|\bsniffer\b
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+done
+ps -ef | grep -E 'NetworkManager|wpa_supplicant|tcpdump|dumpcap|wireshark' | grep -v grep || echo "aucun de ces noms"
+EOF
+command>>
+benign=alert.rk.sniffer.benign
+malicious=alert.rk.sniffer.malicious
+
+[rk.promisc]
+tool=rkhunter
+hold=0
+kind=promisc
+title=alert.chk.promisc.title
+match=(?i)promiscuous|\bPROMISC\b
+command<<
+sudo bash << 'EOF'
+for iface in {ifaces}; do
+  echo "=== $iface"
+  ip -d link show "$iface"
+done
+EOF
+command>>
+benign=alert.rk.promisc.benign
+malicious=alert.rk.promisc.malicious
+
+[rk.ports]
+tool=rkhunter
+hold=0
+title=alert.rk.ports.title
+match=(?i)hidden port|listening port|open port
+command<<
+sudo bash << 'EOF'
+ss -lptn
+for port in {ports}; do
+  echo "=== port $port"
+  ss -lptn "sport = :$port" || true
+done
+EOF
+command>>
+benign=alert.rk.ports.benign
+malicious=alert.rk.ports.malicious
+
+[rk.ssh]
+tool=rkhunter
+hold=0
+notice=alert.aide.sshd.notice
+title=alert.rk.ssh.title
+match=(?i)SSH configuration|sshd_config|PermitRootLogin
+command<<
+sudo bash << 'EOF'
+sshd -t && echo "sshd -t : aucune erreur"
+grep -nE '^[#[:space:]]*(PermitRootLogin|AuthorizedKeysFile|ForceCommand|PasswordAuthentication)[[:space:]]' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/*.conf 2>/dev/null || true
+EOF
+command>>
+benign=alert.rk.ssh.benign
+malicious=alert.rk.ssh.malicious
+
+[rk.startup]
+tool=rkhunter
+hold=0
+title=alert.rk.startup.title
+match=(?i)startup files|startup file
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %F %a %U:%G %y' -- "$p" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+done
+EOF
+command>>
+benign=alert.rk.startup.benign
+malicious=alert.rk.startup.malicious
+
+[rk.apps]
+tool=rkhunter
+hold=0
+kind=apps
+title=alert.rk.apps.title
+match=(?i)out of date|application version|has a version of
+command<<
+sudo bash << 'EOF'
+apt-cache policy {pkgs}
+grep -hE '^(deb|URIs:)' /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
+EOF
+command>>
+benign=alert.rk.apps.benign
+malicious=alert.rk.apps.malicious
+
+[rk.writable]
+tool=rkhunter
+hold=0
+title=alert.rk.writable.title
+match=(?i)world-writable|world writable|writable file
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  stat -c '%n %a %U:%G %F' -- "$p" || true
+  stat -c '%n %a' -- "$(dirname -- "$p")" || true
+done
+EOF
+command>>
+benign=alert.rk.writable.benign
+malicious=alert.rk.writable.malicious
+
+[rk.immutable]
+tool=rkhunter
+hold=0
+title=alert.rk.immutable.title
+match=(?i)immutable
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  lsattr -d -- "$p" 2>/dev/null || lsattr -- "$p" || true
+done
+EOF
+command>>
+benign=alert.rk.immutable.benign
+malicious=alert.rk.immutable.malicious
+
+[rk.module]
+tool=rkhunter
+hold=0
+title=alert.rk.module.title
+match=(?i)kernel module|loaded module|possible lkm
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  base="$(basename -- "$p")"
+  name="${base%.ko}"
+  name="${name%.ko.xz}"
+  modinfo "$name" || true
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+done
+EOF
+command>>
+benign=alert.rk.module.benign
+malicious=alert.rk.module.malicious
+
+[rk.inetd]
+tool=rkhunter
+hold=0
+title=alert.chk.inetd.title
+match=(?i)inetd\.conf|\binetd\b
+command<<
+sudo bash << 'EOF'
+if [[ -f /etc/inetd.conf ]]; then
+  grep -vE '^[[:space:]]*(#|$)' /etc/inetd.conf || echo "aucune ligne active"
+else
+  echo "absent /etc/inetd.conf"
+fi
+EOF
+command>>
+benign=alert.chk.inetd.benign
+malicious=alert.rk.inetd.malicious
+
+[rk.hosts]
+tool=rkhunter
+hold=0
+title=alert.aide.hosts.title
+match=(?i)/etc/hosts\b|hosts file
+command<<
+cat /etc/hosts
+command>>
+benign=alert.aide.hosts.benign
+malicious=alert.rk.hosts.malicious
+
+[rk.named]
+tool=rkhunter
+hold=1
+notice=alert.rk.named.notice
+title=alert.rk.named.title
+match=(?i)possible rootkit|trojan|malware|rootkit string|rootkit file
+command<<
+sudo bash << 'EOF'
+for p in {paths}; do
+  printf '%s\n' "=== $p"
+  dpkg -S -- "$p" || echo "HORS PAQUET $p"
+  pkg="$(dpkg -S -- "$p" 2>/dev/null | awk -F: 'NR==1 { print $1 }' | awk -F, '{ print $1 }')"
+  if [[ -n "$pkg" ]]; then
+    dpkg -V "$pkg" 2>/dev/null | grep -F -- "$p" || echo "dpkg -V : aucune ligne pour ce chemin"
+  fi
+done
+printf '%s\n' {raw_lines}
+EOF
+command>>
+benign=alert.rk.named.benign
+malicious=alert.rk.named.malicious
+
+[rk.unknown]
+tool=rkhunter
+hold=1
+notice=alert.aide.unknown.notice
+title=alert.rk.unknown.title
+match=.
+command<<
+printf '%s\n' {raw_lines}
+echo "Ne lancez pas la commande finale."
+command>>
+benign=alert.rk.unknown.benign
+malicious=alert.rk.unknown.malicious

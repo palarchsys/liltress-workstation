@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/collect-logs.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
@@ -16,5 +16,5 @@ source "${G_INSTALL_DIRECTORY}/core/lib.sh"
 # shellcheck disable=SC1091
 source "${G_INSTALL_DIRECTORY}/config/global.conf"
 
-g_require_root
-g_collect_manual
+require_root
+collect_manual

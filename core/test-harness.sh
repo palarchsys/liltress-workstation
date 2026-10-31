@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/test-harness.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
@@ -79,7 +79,18 @@ t_begin() {
     mkdir -p "${G_ARTIFACTS}" "${T_SUITE_DIRECTORY}"
     : > "${G_RUN_LOG}"
     : > "${T_RESULT_TSV}"
-    export T_TEST_DIRECTORY T_ROOT T_OUTPUT G_ARTIFACTS T_SUITE_DIRECTORY G_RUN_LOG T_RESULT_TSV PROFILE
+    local language_line="" language_value=""
+    G_LANGUAGE="en"
+    if [[ -f "${T_ROOT}/config/global.conf" ]]; then
+        language_line="$(grep -E '^G_LANGUAGE=' -- "${T_ROOT}/config/global.conf" | head -n 1 || true)"
+        language_value="${language_line#G_LANGUAGE=}"
+        language_value="${language_value%\"}"
+        language_value="${language_value#\"}"
+        case "${language_value}" in
+            en|fr|de|es) G_LANGUAGE="${language_value}" ;;
+        esac
+    fi
+    export T_TEST_DIRECTORY T_ROOT T_OUTPUT G_ARTIFACTS T_SUITE_DIRECTORY G_RUN_LOG T_RESULT_TSV PROFILE G_LANGUAGE
     TOTAL_PASS=0
     TOTAL_FAIL=0
     TOTAL_WARN=0
@@ -121,52 +132,52 @@ t_finish() {
     {
         echo "# Rapport de test"
         echo ""
-        echo "- **Date** : $(date -Iseconds)"
-        echo "- **Profil** : \`${PROFILE}\`"
-        echo "- **Dossier** : \`${T_OUTPUT}\`"
-        echo "- **Dépôt** : \`${T_ROOT}\`"
+        echo "$(get_text log.date "$(date -Iseconds)")"
+        echo "$(get_text log.profile "${PROFILE}")"
+        echo "$(get_text log.directory "${T_OUTPUT}")"
+        echo "$(get_text log.repository "${T_ROOT}")"
         echo ""
-        echo "## Totaux"
+        echo "$(get_text log.total)"
         echo ""
-        echo "| PASS | FAIL | WARN | SKIP |"
+        echo "$(get_text log.pass-fail-warn-skip)"
         echo "|------|------|------|------|"
         echo "| ${TOTAL_PASS} | ${TOTAL_FAIL} | ${TOTAL_WARN} | ${TOTAL_SKIP} |"
         echo ""
         if [[ "${TOTAL_FAIL}" -eq 0 ]]; then
-            echo "**Résultat : OK** (aucun FAIL)."
+            echo "$(get_text log.result-ok-no-fail)"
         else
-            echo "**Résultat : KO** — ${TOTAL_FAIL} FAIL à corriger avant un déploiement."
+            echo "$(get_text log.result-ko-fail-to-fix-before-a-deployment "${TOTAL_FAIL}")"
         fi
         echo ""
-        echo "## FAIL"
+        echo "$(get_text log.fail)"
         echo ""
         if grep -q '^FAIL' "${T_RESULT_TSV}"; then
-            echo "| ID | Détail |"
+            echo "$(get_text log.id-detail)"
             echo "|----|--------|"
             awk -F'\t' '$1=="FAIL"{printf "| `%s` | %s |\n", $2, $3}' "${T_RESULT_TSV}"
         else
-            echo "_Aucun._"
+            echo "$(get_text log.aucun)"
         fi
         echo ""
-        echo "## WARN"
+        echo "$(get_text log.warn)"
         echo ""
         if grep -q '^WARN' "${T_RESULT_TSV}"; then
-            echo "| ID | Détail |"
+            echo "$(get_text log.id-detail)"
             echo "|----|--------|"
             awk -F'\t' '$1=="WARN"{printf "| `%s` | %s |\n", $2, $3}' "${T_RESULT_TSV}"
         else
-            echo "_Aucun._"
+            echo "$(get_text log.aucun)"
         fi
         echo ""
-        echo "## PASS (aperçu)"
+        echo "$(get_text log.pass-preview)"
         echo ""
-        echo "Voir \`results.tsv\` et \`suites/*.log\` pour le détail complet (${TOTAL_PASS} PASS)."
+        echo "$(get_text log.see-results-tsv-and-suites-log-for-the-complete "${TOTAL_PASS}")"
         echo ""
-        echo "## Fichiers"
+        echo "$(get_text log.files)"
         echo ""
-        echo "- Journal combiné : \`run.log\`"
-        echo "- Résultats bruts : \`results.tsv\`"
-        echo "- Configs sandbox : \`artifacts/\`"
+        echo "$(get_text log.combined-journal-run-log)"
+        echo "$(get_text log.raw-results-results-tsv)"
+        echo "$(get_text log.configs-sandbox-artifacts)"
     } > "${T_OUTPUT}/summary.md"
 
     python3 - "${T_OUTPUT}/summary.json" "${TOTAL_PASS}" "${TOTAL_FAIL}" "${TOTAL_WARN}" "${TOTAL_SKIP}" "${PROFILE}" "${T_RESULT_TSV}" << 'PY'

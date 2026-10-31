@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/unattended-upgrades/install.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-10-31
 # Creator    : palarchsys
 # =============================================================================
 
-G_INSTALL_DIRECTORY="${1}"
+INSTALL_WATCHER="${1:-BASH}"
+INSTALL_DIRECTORY="${2:-}"
+export INSTALL_WATCHER INSTALL_DIRECTORY
+G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
 export G_INSTALL_DIRECTORY
 source "${G_INSTALL_DIRECTORY}/core/lib.sh"
 source "${G_INSTALL_DIRECTORY}/config/global.conf"
-g_require_root
+require_root
 
-g_log_title "Installation unattended-upgrades"
-g_log_info "Installation d'unattended-upgrades"
-g_run_silent_apt install -y unattended-upgrades apt-listchanges
-g_log_success "unattended-upgrades installé"
+log_subtitle     "${INSTALL_WATCHER}" "install.installation-unattended-upgrades"
+log_info         "${INSTALL_WATCHER}" "install.installation-of-unattended-upgrades"
+run_silent_apt   "${INSTALL_WATCHER}" "install -y unattended-upgrades apt-listchanges" "install.unattended-upgrades.error"
+log_success      "${INSTALL_WATCHER}" "install.unattended-upgrades-installed"
