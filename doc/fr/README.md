@@ -6,6 +6,7 @@
 ![Workstation](https://img.shields.io/badge/profile-workstation-1f6feb)
 ![Unbound](https://img.shields.io/badge/DNS-Unbound-0055A4)
 ![UFW](https://img.shields.io/badge/firewall-UFW-0055A4)
+![VPN](https://img.shields.io/badge/tunnel-WireGuard%20%C2%B7%20OpenVPN-0055A4)
 ![Security checks](https://img.shields.io/badge/checks-AIDE%20%C2%B7%20ClamAV%20%C2%B7%20Lynis-2ea44f)
 
 Liltress Workstation prépare un poste Ubuntu 26.04 ou plus récent.<br/>
@@ -96,6 +97,7 @@ L'installation pose les paquets et les services ci-dessous.
 | crowdsec | Décisions de sécurité locales. |
 | debsums | Sommes de contrôle des fichiers des paquets. |
 | unbound | Résolveur DNS local sur `127.0.0.1` et `::1`, port 53. |
+| wireguard-tools, openvpn, conntrack | Un tunnel WireGuard ou OpenVPN. Il reste coupé tant que `vpn boot` n'a pas été lancé. |
 | apparmor | Profils de la distribution. `service/apparmor/userns.sh` retire un profil hfu qui n'est pas livré. |
 | aide | Base d'intégrité `/var/lib/aide/aide.db`. |
 | unattended-upgrades | Origines de sécurité. `Automatic-Reboot` vaut `false`. |
@@ -106,6 +108,22 @@ L'installation pose les paquets et les services ci-dessous.
 | acct, sysstat, libpam-pwquality | Comptabilité des processus, statistiques d'activité, qualité des mots de passe. |
 | rng-tools-debian, haveged | Sources d'entropie. |
 | apt-listchanges, needrestart, apt-show-versions | Avis de changements de paquets et contrôles de redémarrage. |
+
+## Tunnel
+
+Le tunnel n'est pas actif tant que `vpn boot` n'a pas été lancé.<br/>
+L'import est `sudo ./liltress vpn import wireguard <nom> <fichier>` ou `sudo ./liltress vpn import openvpn <nom> <fichier>`.<br/>
+Chaque VPN est un dossier `/opt/liltress-workstation/vpn/wireguard/<nom>/` ou `.../openvpn/<nom>/`.<br/>
+Ce dossier garde la configuration et les fichiers certificat ou auth qu'elle cite.<br/>
+`sudo ./liltress vpn list` affiche les VPN. `sudo ./liltress vpn rm <nom>` en retire un.<br/>
+Sans profil de démarrage, le poste utilise le réseau direct et le killswitch est coupé.<br/>
+Le fichier de contournement contient un préfixe par ligne, ou une seule ligne entre crochets.<br/>
+L'exemple est `[192.168.1.0/24, 200.200.200.0/24]`.<br/>
+`vpn down` rend Internet direct.<br/>
+Un échec de `vpn switch` ne rend pas Internet direct.<br/>
+Unbound reste le résolveur local.<br/>
+L'IPv6 global est bloqué lorsque le tunnel n'a pas d'IPv6.<br/>
+Une plage publique écrite dans le fichier sort en clair.
 
 ## 📋 E-mails d'alerte
 

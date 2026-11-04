@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/es/launch.txt
-# Updated at : 2026-10-29
+# Updated at : 2026-11-04
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,4 +18,5 @@ Uso: {1}/liltress <orden>
   run         instala (root)
   lynis       auditoría Lynis (root)
   logs        copia los diarios
+  vpn         túnel WireGuard u OpenVPN (root)
   help        esta ayuda

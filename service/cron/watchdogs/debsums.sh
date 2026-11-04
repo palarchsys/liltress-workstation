@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/debsums.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-04
 # Creator    : palarchsys
 # =============================================================================
 
@@ -81,7 +81,7 @@ kept = [
 log_path.write_text(("\n".join(kept) + "\n") if kept else "")
 PY
 if [[ "${crashed}" -eq 0 && -s "${LOG_FILE}" ]]; then
-    summary="$(repair_debsums_log "${LOG_FILE}")"
+    summary="$(reset_debsums_log "${LOG_FILE}")"
     if [[ -n "${summary}" ]]; then
         log_alert "${summary}"
     fi

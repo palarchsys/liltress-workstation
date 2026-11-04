@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/chkrootkit.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-04
 # Creator    : palarchsys
 # =============================================================================
 
@@ -100,7 +100,7 @@ PY
 fi
 G_CONFIRMED_COUNT=0
 confirmed_tmp="$(mktemp)"
-quarantine_confirmed_log chkrootkit "${LOG_FILE}" systemd sshd unbound fail2ban gamescope > "${confirmed_tmp}" || true
+record_quarantine_log chkrootkit "${LOG_FILE}" systemd sshd unbound fail2ban gamescope > "${confirmed_tmp}" || true
 if [[ -s "${confirmed_tmp}" ]]; then
     cat "${confirmed_tmp}" >> "${LOG_FILE}"
 fi

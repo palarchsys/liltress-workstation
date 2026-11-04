@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/02_file_graph.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-04
 # Creator    : palarchsys
 # =============================================================================
 
-t_plan_pos() {
+t_get_plan_pos() {
     python3 - "${T_ROOT}/script/install.json" "$1" << 'PY'
 import json
 import sys
@@ -45,27 +45,31 @@ PY
 )
 
 t_section "désinstallations avant system/install"
-snap_line=$(t_plan_pos 'system/snapd.sh')
-purge_line=$(t_plan_pos 'install.purge')
-inst_line=$(t_plan_pos 'system/tree/install.sh')
-if [[ -n "${snap_line}" && -n "${purge_line}" && -n "${inst_line}" \
-      && "${snap_line}" -lt "${purge_line}" && "${purge_line}" -lt "${inst_line}" ]] \
-   && grep -q 'systemctl mask systemd-coredump.socket' "${T_ROOT}/system/purge.sh" \
+snap_line=$(t_get_plan_pos 'system/snapd.sh')
+cups_line=$(t_get_plan_pos 'install.purge.cups')
+inst_line=$(t_get_plan_pos 'system/tree/install.sh')
+removed_line=$(t_get_plan_pos 'install.purge.removed')
+locks_line=$(t_get_plan_pos 'install.purge.locks')
+if [[ -n "${snap_line}" && -n "${cups_line}" && -n "${inst_line}" \
+      && "${snap_line}" -lt "${cups_line}" && "${cups_line}" -lt "${inst_line}" ]] \
+   && [[ "$(t_get_plan_pos 'install.purge.cups')" -lt "$(t_get_plan_pos 'install.purge.rc')" ]] \
+   && [[ "$(t_get_plan_pos 'install.purge.rc')" -lt "$(t_get_plan_pos 'install.purge.mask')" ]] \
+   && grep -q 'systemctl mask systemd-coredump.socket' "${T_ROOT}/system/purge/coredump.sh" \
    && ! grep -q 'systemctl mask systemd-coredump.socket' "${T_ROOT}/system/kernel/configure.sh" \
-   && ! grep -q 'mask apport' "${T_ROOT}/system/purge.sh" \
-   && grep -q 'cups cups-daemon cups-browsed cups-core-drivers cups-server-common cups-filters' "${T_ROOT}/system/purge.sh" \
-   && grep -qF 'run_silent_apt' "${T_ROOT}/system/purge.sh" \
-   && awk '$0 == "remove_cups" { cups = NR } $0 == "remove_removed_config_package" { rc = NR } END { exit !(cups && rc && cups < rc) }' "${T_ROOT}/system/purge.sh" \
-   && [[ "$(t_plan_pos 'apt-upgrade')" -lt "$(t_plan_pos 'G_REAPPLY_LOCKS')" ]]; then
-    t_pass "graph.order.purge-first" "snap (L${snap_line}), purge (L${purge_line}), install (L${inst_line})"
+   && ! grep -q 'mask apport' "${T_ROOT}/system/purge/coredump.sh" \
+   && grep -q 'cups cups-daemon cups-browsed cups-core-drivers cups-server-common cups-filters' "${T_ROOT}/system/purge/cups.sh" \
+   && grep -qF 'run_silent_apt' "${T_ROOT}/system/purge/cups.sh" \
+   && [[ "$(t_get_plan_pos 'apt-upgrade')" -lt "${removed_line}" ]] \
+   && [[ "${removed_line}" -lt "${locks_line}" ]]; then
+    t_pass "graph.order.purge-first" "snap (L${snap_line}), CUPS (L${cups_line}), arbre (L${inst_line})"
 else
-    t_fail "graph.order.purge-first" "snap, puis purge de CUPS et des paquets rc, avant system/install"
+    t_fail "graph.order.purge-first" "snap, puis purge de CUPS et des paquets rc, avant l'arbre"
 fi
 
 t_section "purge rc avant les bases rkhunter et AIDE"
-rc_line=$(t_plan_pos 'G_PURGE_REMOVED_CONFIG_ONLY')
-rk_line=$(t_plan_pos 'service/rkhunter/init-db.sh')
-aide_line=$(t_plan_pos 'service/aide/init-db.sh')
+rc_line=$(t_get_plan_pos 'install.purge.removed')
+rk_line=$(t_get_plan_pos 'service/rkhunter/init-db.sh')
+aide_line=$(t_get_plan_pos 'service/aide/init-db.sh')
 if [[ -n "${rc_line}" && -n "${rk_line}" && -n "${aide_line}" \
       && "${rc_line}" -lt "${rk_line}" && "${rk_line}" -lt "${aide_line}" ]] \
    && ! grep -q 'dpkg --purge' "${T_ROOT}/system/base/install.sh" \
@@ -108,15 +112,15 @@ else
 fi
 
 t_section "ordre des contrôles quotidiens"
-if [[ "$(t_plan_pos 'service/ssh/configure.sh')" -lt "$(t_plan_pos 'service/ufw/configure.sh')" ]] \
-   && [[ "$(t_plan_pos 'service/usbguard/install.sh')" -lt "$(t_plan_pos 'service/usbguard/configure.sh')" ]] \
-   && [[ "$(t_plan_pos 'service/clamav/install.sh')" -lt "$(t_plan_pos 'service/clamav/configure.sh')" ]] \
-   && [[ "$(t_plan_pos 'service/clamav/configure.sh')" -lt "$(t_plan_pos 'service/apparmor/userns.sh')" ]] \
-   && [[ "$(t_plan_pos 'service/apparmor/userns.sh')" -lt "$(t_plan_pos 'apt-upgrade')" ]] \
-   && [[ "$(t_plan_pos 'apt-upgrade')" -lt "$(t_plan_pos 'service/usbguard/configure.sh')" ]] \
-   && [[ "$(t_plan_pos 'service/usbguard/configure.sh')" -lt "$(t_plan_pos 'service/rkhunter/init-db.sh')" ]] \
-   && [[ "$(t_plan_pos 'service/rkhunter/init-db.sh')" -lt "$(t_plan_pos 'service/aide/init-db.sh')" ]] \
-   && [[ "$(t_plan_pos 'service/aide/init-db.sh')" -lt "$(t_plan_pos 'verify/workstation.sh')" ]]; then
+if [[ "$(t_get_plan_pos 'service/ssh/configure.sh')" -lt "$(t_get_plan_pos 'service/ufw/configure.sh')" ]] \
+   && [[ "$(t_get_plan_pos 'service/usbguard/install.sh')" -lt "$(t_get_plan_pos 'service/usbguard/configure.sh')" ]] \
+   && [[ "$(t_get_plan_pos 'service/clamav/install.sh')" -lt "$(t_get_plan_pos 'service/clamav/configure.sh')" ]] \
+   && [[ "$(t_get_plan_pos 'service/clamav/configure.sh')" -lt "$(t_get_plan_pos 'service/apparmor/userns.sh')" ]] \
+   && [[ "$(t_get_plan_pos 'service/apparmor/userns.sh')" -lt "$(t_get_plan_pos 'apt-upgrade')" ]] \
+   && [[ "$(t_get_plan_pos 'apt-upgrade')" -lt "$(t_get_plan_pos 'service/usbguard/configure.sh')" ]] \
+   && [[ "$(t_get_plan_pos 'service/usbguard/configure.sh')" -lt "$(t_get_plan_pos 'service/rkhunter/init-db.sh')" ]] \
+   && [[ "$(t_get_plan_pos 'service/rkhunter/init-db.sh')" -lt "$(t_get_plan_pos 'service/aide/init-db.sh')" ]] \
+   && [[ "$(t_get_plan_pos 'service/aide/init-db.sh')" -lt "$(t_get_plan_pos 'verify/workstation.sh')" ]]; then
     t_pass "graph.order.daily" "SSH avant UFW, USBGuard après correctifs, verify après AIDE"
 else
     t_fail "graph.order.daily" "USBGuard suit les paquets ; verify suit AIDE"
@@ -218,7 +222,7 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -q 'AIDE: changements détectés' "${T_ROOT}/locale/fr/watchdog.txt" \
    && grep -q 'rkhunter warnings' "${T_ROOT}/locale/fr/watchdog.txt" \
    && grep -q 'chkrootkit a produit une sortie' "${T_ROOT}/locale/fr/watchdog.txt" \
-   && grep -q 'repair_debsums_log' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
+   && grep -q 'reset_debsums_log' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
    && grep -q '"apt-get", "clean"' "${T_ROOT}/../core/watchdog.sh" \
    && grep -q 'Dir::Cache::archives' "${T_ROOT}/../core/watchdog.sh" \
    && grep -q '"install", "--reinstall", "-y", "--", pkg' "${T_ROOT}/../core/watchdog.sh" \
@@ -769,8 +773,8 @@ grep -q 'quarantine.registry' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'flux sortants hors des ports 53, 80 et 443' "${root}/service/cron/watchdogs/egress-watch.sh"
 grep -q 'record_quarantine_origin' "${root}/../core/watchdog.sh"
 grep -q 'quarantine-restore.sh' "${root}/../core/watchdog.sh"
-grep -q 'quarantine_confirmed_log' "${root}/service/cron/watchdogs/rkhunter.sh"
-grep -q 'quarantine_confirmed_log' "${root}/service/cron/watchdogs/chkrootkit.sh"
+grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/rkhunter.sh"
+grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/chkrootkit.sh"
 grep -q 'non mis en quarantaine' "${root}/../core/text/fr/watchdog.txt"
 ! grep -q 'display:flex' "${root}/template/mail.html"
 ! grep -q 'width:840px' "${root}/template/mail.html"
@@ -800,7 +804,7 @@ else
 fi
 
 t_section "noms des fichiers de configuration"
-t_config_name_ok() {
+t_check_config_name() {
     local rel="$1"
     local domain sub base stem token
     case "${rel}" in
@@ -808,6 +812,7 @@ t_config_name_ok() {
         aide/aide.conf|fail2ban/jail.local|rkhunter/rkhunter.conf.local) return 0 ;;
         system/pam-configs/faillock|system/pam-configs/faillock-preauth) return 0 ;;
         ssh/00-liltress-workstation.conf) return 0 ;;
+        vpn/vpn.conf|vpn/bypass.cidrs) return 0 ;;
         unattended-upgrades/20auto-upgrades|unattended-upgrades/51liltress-workstation) return 0 ;;
     esac
     if [[ "${rel}" =~ ^cron/w-[a-z][a-z0-9]*(-[a-z0-9]+)*\.(service|timer|path)$ ]]; then
@@ -832,7 +837,7 @@ t_config_name_ok() {
 config_bad=""
 while IFS= read -r rel; do
     [[ -z "${rel}" ]] && continue
-    if ! t_config_name_ok "${rel}"; then
+    if ! t_check_config_name "${rel}"; then
         config_bad="${config_bad} ${rel}"
     fi
 done < <(cd -- "${T_ROOT}" && find config \( -type f -o -type l \) -printf '%P\n' | sort)

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/07_router.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-04
 # Creator    : palarchsys
 # =============================================================================
 
@@ -56,7 +56,7 @@ for row in rows:
     seen.add(key)
     commands.append(command)
 blob = "\n".join(commands)
-for verb in ("configure", "check", "run", "lynis", "logs", "help"):
+for verb in ("configure", "check", "run", "lynis", "logs", "help", "vpn"):
     if f"liltress {verb}" not in blob:
         print(f"verbe absent : {verb}")
         sys.exit(1)
@@ -165,9 +165,6 @@ def scripts_from_run(text):
     for line in lines:
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
-            continue
-        if "run_step" not in line and "system/purge.sh" in line and "bash " in line:
-            order.append("system/purge.sh")
             continue
         if "run_step" not in line:
             continue

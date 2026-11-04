@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : workstation/locale/de/launch.txt
-# Updated at : 2026-10-31
+# Updated at : 2026-11-04
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,3 +12,4 @@ Prüfung:
   sudo bash verify/boot.sh
   sudo bash verify/chkrootkit-fp.sh
   sudo bash /opt/liltress-workstation/bin/scan-skip.sh list|add|del
+  sudo ./liltress vpn

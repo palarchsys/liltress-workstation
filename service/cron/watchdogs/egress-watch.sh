@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/egress-watch.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-04
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -322,8 +322,8 @@ if [[ "${blocked}" -eq 0 ]]; then
     log_pass "$(get_text watchdog.block-rejected)"
     exit 0
 fi
-if declare -F format_egress_body >/dev/null 2>&1; then
-    format_egress_body "${blocked_lines}" "${audit_tmp}" >> "${LOG_FILE}" || true
+if declare -F render_egress_body >/dev/null 2>&1; then
+    render_egress_body "${blocked_lines}" "${audit_tmp}" >> "${LOG_FILE}" || true
 else
     cat "${blocked_lines}" >> "${LOG_FILE}"
 fi

@@ -6,6 +6,7 @@
 ![Workstation](https://img.shields.io/badge/profile-workstation-1f6feb)
 ![Unbound](https://img.shields.io/badge/DNS-Unbound-0055A4)
 ![UFW](https://img.shields.io/badge/firewall-UFW-0055A4)
+![VPN](https://img.shields.io/badge/tunnel-WireGuard%20%C2%B7%20OpenVPN-0055A4)
 ![Security checks](https://img.shields.io/badge/checks-AIDE%20%C2%B7%20ClamAV%20%C2%B7%20Lynis-2ea44f)
 
 Liltress Workstation bereitet einen Ubuntu-Arbeitsplatz 26.04 oder neuer vor.<br/>
@@ -96,6 +97,7 @@ Die Installation setzt die folgenden Pakete und Dienste.
 | crowdsec                                        | Lokale Sicherheitsentscheidungen.                                                                                                                  |
 | debsums                                         | Prüfsummen der Paketdateien.                                                                                                                       |
 | unbound                                         | Lokaler DNS-Resolver auf `127.0.0.1` und `::1`, Port 53.                                                                                           |
+| wireguard-tools, openvpn, conntrack             | Ein WireGuard- oder OpenVPN-Tunnel. Er bleibt aus, bis `vpn boot` lief.                                                                            |
 | apparmor                                        | Distributionsprofile. `service/apparmor/userns.sh` entfernt ein w-Profil, das nicht geliefert wird.                                              |
 | aide                                            | Integritätsbasis `/var/lib/aide/aide.db`.                                                                                                          |
 | unattended-upgrades                             | Sicherheitsherkünfte. `Automatic-Reboot` ist `false`.                                                                                              |
@@ -106,6 +108,22 @@ Die Installation setzt die folgenden Pakete und Dienste.
 | acct, sysstat, libpam-pwquality                 | Prozessabrechnung, Aktivitätsstatistik, Kennwortqualität.                                                                                          |
 | rng-tools-debian, haveged                       | Entropiequellen.                                                                                                                                   |
 | apt-listchanges, needrestart, apt-show-versions | Hinweise auf Paketänderungen und Neustartprüfungen.                                                                                                |
+
+## Tunnel
+
+Der Tunnel bleibt aus, bis `vpn boot` gelaufen ist.<br/>
+Der Import ist `sudo ./liltress vpn import wireguard <Name> <Datei>` oder `sudo ./liltress vpn import openvpn <Name> <Datei>`.<br/>
+Jedes VPN ist ein Ordner `/opt/liltress-workstation/vpn/wireguard/<Name>/` oder `.../openvpn/<Name>/`.<br/>
+Der Ordner behält die Konfiguration und die Zertifikat- oder Auth-Dateien, die sie nennt.<br/>
+`sudo ./liltress vpn list` zeigt sie. `sudo ./liltress vpn rm <Name>` entfernt eines.<br/>
+Ohne Startprofil nutzt der Rechner das direkte Netz und der Killswitch ist aus.<br/>
+Die Umgehungsdatei hat ein Präfix pro Zeile, oder eine Zeile in Klammern.<br/>
+Das Beispiel ist `[192.168.1.0/24, 200.200.200.0/24]`.<br/>
+`vpn down` stellt das direkte Internet wieder her.<br/>
+Ein fehlgeschlagener `vpn switch` stellt das direkte Internet nicht wieder her.<br/>
+Unbound bleibt der lokale Resolver.<br/>
+Globales IPv6 ist gesperrt, wenn der Tunnel kein IPv6 hat.<br/>
+Ein öffentlicher Bereich in der Datei geht im Klartext hinaus.
 
 ## 📋 Alarm-E-Mails
 

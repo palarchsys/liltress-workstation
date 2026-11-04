@@ -6,6 +6,7 @@
 ![Workstation](https://img.shields.io/badge/profile-workstation-1f6feb)
 ![Unbound](https://img.shields.io/badge/DNS-Unbound-0055A4)
 ![UFW](https://img.shields.io/badge/firewall-UFW-0055A4)
+![VPN](https://img.shields.io/badge/tunnel-WireGuard%20%C2%B7%20OpenVPN-0055A4)
 ![Security checks](https://img.shields.io/badge/checks-AIDE%20%C2%B7%20ClamAV%20%C2%B7%20Lynis-2ea44f)
 
 Liltress Workstation prepares an Ubuntu 26.04 or newer workstation.<br/>
@@ -96,6 +97,7 @@ The installation places the packages and services below.
 | crowdsec                                        | Local security decisions.                                                                                                |
 | debsums                                         | Checksums of packaged files.                                                                                             |
 | unbound                                         | Local DNS resolver on `127.0.0.1` and `::1`, port 53.                                                                    |
+| wireguard-tools, openvpn, conntrack             | One WireGuard or OpenVPN tunnel. It stays off until `vpn boot`.                                                          |
 | apparmor                                        | Distribution profiles. `service/apparmor/userns.sh` removes an hfu profile that is not shipped.                          |
 | aide                                            | File integrity database `/var/lib/aide/aide.db`.                                                                         |
 | unattended-upgrades                             | Security origins. `Automatic-Reboot` is `false`.                                                                         |
@@ -106,6 +108,22 @@ The installation places the packages and services below.
 | acct, sysstat, libpam-pwquality                 | Process accounting, activity stats, password quality.                                                                    |
 | rng-tools-debian, haveged                       | Entropy sources.                                                                                                         |
 | apt-listchanges, needrestart, apt-show-versions | Package change notices and restart checks.                                                                               |
+
+## Tunnel
+
+The tunnel stays off until `vpn boot`.<br/>
+Import with `sudo ./liltress vpn import wireguard <name> <file>` or `sudo ./liltress vpn import openvpn <name> <file>`.<br/>
+Each VPN is a directory `/opt/liltress-workstation/vpn/wireguard/<name>/` or `.../openvpn/<name>/`.<br/>
+That directory keeps the configuration and the certificate or auth files it names.<br/>
+`sudo ./liltress vpn list` shows them. `sudo ./liltress vpn rm <name>` removes one.<br/>
+With no boot profile, the workstation uses the direct network and the killswitch is off.<br/>
+The bypass file is one prefix per line, or one bracket line.<br/>
+The example is `[192.168.1.0/24, 200.200.200.0/24]`.<br/>
+`vpn down` restores direct Internet.<br/>
+A failed `vpn switch` does not restore direct Internet.<br/>
+Unbound stays the local resolver.<br/>
+Global IPv6 is blocked when the tunnel has no IPv6.<br/>
+A public range written in the file leaves in the clear.
 
 ## 📋 Alert emails
 

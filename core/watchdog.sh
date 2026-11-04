@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-04
 # Creator    : palarchsys
 # =============================================================================
 
@@ -454,14 +454,14 @@ list_clamav_scan() {
     return 0
 }
 
-prepare_rkhunter_note() {
+set_rkhunter_note() {
     local base
     base="$(get_product_base)"
     NOTE="$(get_text alert.note.rkhunter)"
     NOTE_CMD="sudo bash ${base}/bin/rkhunter-refresh-db.sh"
 }
 
-repair_debsums_log() {
+reset_debsums_log() {
     local log="$1"
     local summary=""
     [[ -n "${log}" && -s "${log}" ]] || return 0
@@ -718,7 +718,7 @@ record_quarantine_origin() {
     return 0
 }
 
-queue_existing_restore() {
+add_existing_restore() {
     local stored="$1"
     local base registry id quoted
     [[ -n "${stored}" && "${stored}" == /* ]] || return 0
@@ -758,7 +758,7 @@ read_quarantine_holder() {
     printf '%s\n' "${pid}"
 }
 
-quarantine_holder_block() {
+write_quarantine_holder() {
     local target="$1"
     shift
     local pid="" comm="" uid="" name=""
@@ -791,7 +791,7 @@ quarantine_holder_block() {
     return 1
 }
 
-move_quarantine_file() {
+take_quarantine_file() {
     local origin="$1"
     local quarantine base stamp dest
     quarantine="${W_CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
@@ -835,7 +835,7 @@ signal_quarantine_holder() {
     local target pid comm reason
     for target in "${origin}" "${stored}"; do
         [[ -n "${target}" && "${target}" != "absent" && -e "${target}" ]] || continue
-        if reason="$(quarantine_holder_block "${target}" "$@")"; then
+        if reason="$(write_quarantine_holder "${target}" "$@")"; then
             printf '%s\n' "$(get_text watchdog.process-not-stopped "${reason}")"
             return 0
         fi
@@ -852,7 +852,7 @@ signal_quarantine_holder() {
     printf '%s\n' "$(get_text watchdog.process-not-stopped-no-d-tenteur)"
 }
 
-quarantine_confirmed_log() {
+record_quarantine_log() {
     local source="$1"
     local log="$2"
     shift 2
@@ -874,11 +874,11 @@ quarantine_confirmed_log() {
                 continue
                 ;;
         esac
-        if reason="$(quarantine_holder_block "${path}" "$@")"; then
+        if reason="$(write_quarantine_holder "${path}" "$@")"; then
             printf '%s\n' "$(get_text watchdog.not-updated-in-quarantine "${reason}")"
             continue
         fi
-        move_quarantine_file "${path}"
+        take_quarantine_file "${path}"
         if [[ "${G_MOVE_ACTION}" != "déplacé en quarantaine" ]]; then
             printf '%s\n' "${G_MOVE_ACTION} : ${path}"
             continue
@@ -919,7 +919,7 @@ PY
     return 0
 }
 
-format_egress_body() {
+render_egress_body() {
     local kernel="$1"
     local audit="${2:-}"
     G_EGRESS_AUDIT_FILE="${audit}" python3 - "${kernel}" << 'PY'
@@ -1850,7 +1850,7 @@ log_alert() {
             note="$(get_text alert.note.aide)"
             note_cmd="sudo bash ${base}/bin/aide-refresh-db.sh"
         elif [[ "${W_RKHUNTER_REFRESH:-}" == "1" ]]; then
-            prepare_rkhunter_note
+            set_rkhunter_note
             note="${NOTE}"
             note_cmd="${NOTE_CMD}"
         elif [[ "${W_CHKROOTKIT_IGNORE:-}" == "1" && -n "${log}" ]]; then

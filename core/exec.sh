@@ -227,7 +227,7 @@ allowed = {
     "G_MODE_TEST",
     "S_MODE_DEV",
 }
-env_allowed = {"G_PURGE_REMOVED_CONFIG_ONLY", "G_REAPPLY_LOCKS"}
+env_allowed = set()
 plan = json.load(open(sys.argv[1], encoding="utf-8"))
 for category in plan["categories"]:
     for step in category["steps"]:
@@ -262,7 +262,6 @@ run_install_step_env() {
             key="${pair%%=*}"
             val="${pair#*=}"
             case "${key}" in
-                G_PURGE_REMOVED_CONFIG_ONLY|G_REAPPLY_LOCKS) ;;
                 *) exit 1 ;;
             esac
             printf -v "${key}" '%s' "${val}"

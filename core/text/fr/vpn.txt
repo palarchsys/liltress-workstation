@@ -1,0 +1,190 @@
+# =============================================================================
+# File       : core/text/fr/vpn.txt
+# Updated at : 2026-11-04
+# Creator    : palarchsys
+# =============================================================================
+
+[vpn.usage]
+Usage : liltress vpn <commande>
+
+  status
+  list
+  import wireguard <nom> <fichier>
+  import openvpn <nom> <fichier>
+  up <nom>
+  down
+  switch <nom>
+  boot <nom>
+  boot off
+  rm <nom>
+  bypass
+  bypass reload
+  refresh-endpoint <nom>
+
+[vpn.status.armed]
+Killswitch armé.
+
+[vpn.status.disarmed]
+Killswitch désarmé.
+
+[vpn.status.line]
+Profil {1}. Protocole {2}. Interface {3}. Poignée {4}.
+
+[vpn.status.bypass]
+Entrées de contournement : {1}.
+
+[vpn.status.none]
+Aucun profil actif.
+
+[vpn.list.line]
+{1} {2} {3}
+
+[vpn.list.empty]
+Aucun profil.
+
+[vpn.list.boot-yes]
+boot
+
+[vpn.list.boot-no]
+manuel
+
+[vpn.import.ok]
+Profil {1} importé. Extrémité {2}.
+
+[vpn.import.exists]
+Le profil {1} existe déjà.
+
+[vpn.import.bad-name]
+Nom de profil invalide {1}.
+
+[vpn.import.missing]
+Le profil {1} n'a pas un champ obligatoire.
+
+[vpn.import.dns]
+Le nom {1} n'a pas été résolu.
+
+[vpn.import.remote]
+Les autres remote sont ignorés. Conservé : {1}.
+
+[vpn.import.auth]
+auth-user-pass exige un chemin de fichier.
+
+[vpn.import.peer]
+Le profil {1} doit contenir un seul pair.
+
+[vpn.up.ok]
+Le tunnel {1} est ouvert.
+
+[vpn.up.same]
+Le tunnel {1} est déjà ouvert.
+
+[vpn.up.agent]
+Le profil {1} a besoin d'un agent de passphrase.
+
+[vpn.down.ok]
+Tunnel arrêté. Réseau direct rétabli.
+
+[vpn.direct.ok]
+Aucun VPN configuré. Réseau direct, killswitch coupé.
+
+[vpn.switch.ok]
+Bascule vers {1}.
+
+[vpn.switch.fail]
+La bascule vers {1} a échoué. Le réseau direct reste fermé.
+
+[vpn.boot.ok]
+Le profil de démarrage est {1}.
+
+[vpn.boot.off]
+Le tunnel au démarrage est coupé.
+
+[vpn.boot.encrypted]
+Le profil {1} ne peut pas démarrer. Il demande une passphrase.
+
+[vpn.boot.bad]
+Le profil de démarrage {1} n'est pas utilisable.
+
+[vpn.rm.ok]
+Profil {1} retiré.
+
+[vpn.rm.active]
+Le profil {1} est actif.
+
+[vpn.rm.boot]
+Le profil {1} est le profil de démarrage.
+
+[vpn.rm.missing]
+Le profil {1} n'existe pas.
+
+[vpn.bypass.head]
+Fichier de contournement {1}.
+
+[vpn.bypass.implicit]
+Implicite {1}.
+
+[vpn.bypass.reloaded]
+Contournement rechargé.
+
+[vpn.bypass.mask]
+Le masque est obligatoire. Forme : 200.200.200.0/24. Ligne {1}.
+
+[vpn.bypass.network]
+{1} n'est pas une adresse de réseau.
+
+[vpn.bypass.bad]
+Ligne refusée : {1}.
+
+[vpn.bypass.kept]
+Fichier de contournement refusé. L'ancien jeu est conservé.
+
+[vpn.refresh.ok]
+Extrémité de {1} épinglée sur {2}.
+
+[vpn.refresh.fail]
+L'extrémité de {1} n'a pas été résolue.
+
+[vpn.refresh.active]
+Extrémité active mise à jour.
+
+[vpn.module.missing]
+Le module noyau WireGuard est absent.
+
+[vpn.mail.title]
+Échec du tunnel VPN
+
+[vpn.mail.module]
+VPN
+
+[vpn.mail.body]
+Profil {1}
+Protocole {2}
+Extrémité {3}
+Résultat {4}
+
+[vpn.install.title]
+Paquets du client VPN
+
+[vpn.install.fail]
+Installation des paquets VPN échouée : {1}
+
+[vpn.install.ok]
+Paquets du client VPN installés.
+
+[vpn.configure.ok]
+Client VPN préparé.
+
+[vpn.profile.invalid]
+Le profil {1} est invalide.
+
+[vpn.handshake.fail]
+Poignée de main échouée pour {1}.
+
+[vpn.verify.ok]
+Le tunnel de démarrage {1} est ouvert.
+
+[vpn.verify.down]
+Le tunnel de démarrage {1} est arrêté.
+
+[vpn.verify.stale]
+La poignée de {1} dépasse {2} secondes.

@@ -1,0 +1,190 @@
+# =============================================================================
+# File       : workstation/locale/de/vpn.txt
+# Updated at : 2026-11-04
+# Creator    : palarchsys
+# =============================================================================
+
+[vpn.usage]
+Aufruf: liltress vpn <Befehl>
+
+  status
+  list
+  import wireguard <Name> <Datei>
+  import openvpn <Name> <Datei>
+  up <Name>
+  down
+  switch <Name>
+  boot <Name>
+  boot off
+  rm <Name>
+  bypass
+  bypass reload
+  refresh-endpoint <Name>
+
+[vpn.status.armed]
+Killswitch ist scharf.
+
+[vpn.status.disarmed]
+Killswitch ist aus.
+
+[vpn.status.line]
+Profil {1}. Protokoll {2}. Schnittstelle {3}. Handshake {4}.
+
+[vpn.status.bypass]
+Umgehungen: {1}.
+
+[vpn.status.none]
+Kein aktives Profil.
+
+[vpn.list.line]
+{1} {2} {3}
+
+[vpn.list.empty]
+Kein Profil.
+
+[vpn.list.boot-yes]
+Start
+
+[vpn.list.boot-no]
+manuell
+
+[vpn.import.ok]
+Profil {1} importiert. Endpunkt {2}.
+
+[vpn.import.exists]
+Profil {1} ist schon da.
+
+[vpn.import.bad-name]
+Ungültiger Profilname {1}.
+
+[vpn.import.missing]
+Profil {1} hat ein Pflichtfeld nicht.
+
+[vpn.import.dns]
+Name {1} wurde nicht aufgelöst.
+
+[vpn.import.remote]
+Weitere remote-Zeilen ignoriert. Behalten: {1}.
+
+[vpn.import.auth]
+auth-user-pass braucht einen Dateipfad.
+
+[vpn.import.peer]
+Profil {1} muss genau einen Peer haben.
+
+[vpn.up.ok]
+Tunnel {1} ist offen.
+
+[vpn.up.same]
+Tunnel {1} ist schon offen.
+
+[vpn.up.agent]
+Profil {1} braucht einen Passphrase-Agenten.
+
+[vpn.down.ok]
+Tunnel gestoppt. Direktes Netz ist zurück.
+
+[vpn.direct.ok]
+Kein VPN konfiguriert. Direktes Netz, Killswitch aus.
+
+[vpn.switch.ok]
+Gewechselt zu {1}.
+
+[vpn.switch.fail]
+Wechsel zu {1} fehlgeschlagen. Das direkte Netz bleibt zu.
+
+[vpn.boot.ok]
+Startprofil ist {1}.
+
+[vpn.boot.off]
+Tunnel beim Start ist aus.
+
+[vpn.boot.encrypted]
+Profil {1} kann nicht starten. Es braucht eine Passphrase.
+
+[vpn.boot.bad]
+Startprofil {1} ist nicht brauchbar.
+
+[vpn.rm.ok]
+Profil {1} entfernt.
+
+[vpn.rm.active]
+Profil {1} ist aktiv.
+
+[vpn.rm.boot]
+Profil {1} ist das Startprofil.
+
+[vpn.rm.missing]
+Profil {1} gibt es nicht.
+
+[vpn.bypass.head]
+Umgehungsdatei {1}.
+
+[vpn.bypass.implicit]
+Implizit {1}.
+
+[vpn.bypass.reloaded]
+Umgehung neu geladen.
+
+[vpn.bypass.mask]
+Die Maske ist Pflicht. Form: 200.200.200.0/24. Zeile {1}.
+
+[vpn.bypass.network]
+{1} ist keine Netzadresse.
+
+[vpn.bypass.bad]
+Zeile abgelehnt: {1}.
+
+[vpn.bypass.kept]
+Umgehungsdatei abgelehnt. Der vorige Satz bleibt.
+
+[vpn.refresh.ok]
+Endpunkt von {1} auf {2} festgelegt.
+
+[vpn.refresh.fail]
+Endpunkt von {1} wurde nicht aufgelöst.
+
+[vpn.refresh.active]
+Aktiver Endpunkt aktualisiert.
+
+[vpn.module.missing]
+Das WireGuard-Kernelmodul fehlt.
+
+[vpn.mail.title]
+VPN-Tunnel fehlgeschlagen
+
+[vpn.mail.module]
+VPN
+
+[vpn.mail.body]
+Profil {1}
+Protokoll {2}
+Endpunkt {3}
+Ergebnis {4}
+
+[vpn.install.title]
+Pakete des VPN-Clients
+
+[vpn.install.fail]
+VPN-Pakete nicht installiert: {1}
+
+[vpn.install.ok]
+Pakete des VPN-Clients installiert.
+
+[vpn.configure.ok]
+VPN-Client vorbereitet.
+
+[vpn.profile.invalid]
+Profil {1} ist ungültig.
+
+[vpn.handshake.fail]
+Handshake für {1} fehlgeschlagen.
+
+[vpn.verify.ok]
+Starttunnel {1} ist offen.
+
+[vpn.verify.down]
+Starttunnel {1} ist zu.
+
+[vpn.verify.stale]
+Der Handshake von {1} ist älter als {2} Sekunden.

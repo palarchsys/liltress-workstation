@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : verify/workstation.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-04
 # Creator    : palarchsys
 # =============================================================================
 
@@ -493,6 +493,25 @@ if [[ -f /etc/apt/sources.list ]]; then
     fi
 fi
 report_pass "dépôt Lynis CISOfy ajouté uniquement (lynis.list)"
+
+# shellcheck disable=SC1091
+source "${G_INSTALL_DIRECTORY}/service/vpn/lib.sh"
+vpn_state="$(get_vpn_verify_state || true)"
+vpn_kind="${vpn_state%% *}"
+vpn_name="${vpn_state#* }"
+case "${vpn_kind}" in
+    off)
+        ;;
+    ok)
+        report_pass "$(get_text vpn.verify.ok "${vpn_name}")"
+        ;;
+    down)
+        report_fail "$(get_text vpn.verify.down "${vpn_name}")"
+        ;;
+    stale)
+        report_fail "$(get_text vpn.verify.stale "${vpn_name}" "${W_VPN_HANDSHAKE_TIMEOUT:-25}")"
+        ;;
+esac
 
 {
     echo

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/launch.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-04
 # Creator    : palarchsys
 # =============================================================================
 
-prepare_launch_text() {
+load_launch_text() {
     local root="$1"
     local launch_here="" launch_candidate=""
     if [[ -z "${G_PRODUCT_ROOT:-}" ]]; then
@@ -34,11 +34,11 @@ prepare_launch_text() {
     fi
 }
 
-launch() {
+run_launch() {
     local root="$1"
     local cmd="${2:-help}"
     shift 2 || true
-    prepare_launch_text "${root}"
+    load_launch_text "${root}"
     case "${cmd}" in
         configure)
             exec bash "${root}/script/configure.sh" "$@"
@@ -54,6 +54,14 @@ launch() {
             ;;
         logs)
             exec bash "${root}/system/collect-logs.sh" "$@"
+            ;;
+        vpn)
+            if [[ -f "${root}/service/vpn/cli.sh" ]]; then
+                exec bash "${root}/service/vpn/cli.sh" "$@"
+            fi
+            printf '%s\n' "$(get_text launch.unknown-command "${cmd}")" >&2
+            printf '%s\n' "$(get_text launch.usage-liltress-help "${root}")" >&2
+            exit 2
             ;;
         help|-h|--help)
             printf '%s\n' "$(get_text launch.usage "${root}")"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/clamav-response.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-04
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -176,7 +176,7 @@ if declare -F record_quarantine_origin >/dev/null 2>&1; then
             record_quarantine_origin clamav "${file}" "${stored}" "${virus}" || true
             ;;
         "déjà en quarantaine")
-            queue_existing_restore "${stored}" || true
+            add_existing_restore "${stored}" || true
             ;;
     esac
 fi

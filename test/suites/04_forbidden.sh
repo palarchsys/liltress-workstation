@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/04_forbidden.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-11-04
 # Creator    : palarchsys
 # =============================================================================
 
 t_section "interdits poste"
 MONO="$(cd -- "${T_ROOT}/.." && pwd)"
 
-t_count_forbidden_hit() {
+t_get_forbidden_hit() {
     local pattern="$1"
     grep -RInE --include='*.sh' --include='*.conf' --include='*.service' "${pattern}" "${T_ROOT}" \
         | grep -vE ':[0-9]+:[[:space:]]*#' || true
@@ -18,7 +18,7 @@ t_check_forbidden() {
     local id="$1"
     local pattern="$2"
     local hits
-    hits="$(t_count_forbidden_hit "${pattern}")"
+    hits="$(t_get_forbidden_hit "${pattern}")"
     if [[ -n "${hits}" ]]; then
         t_fail "${id}" "$(printf '%s' "${hits}" | tr '\n' ' ' | head -c 500)"
     else
@@ -31,7 +31,7 @@ t_check_forbidden "forbid.ufw-out" 'ufw[[:space:]]+default[[:space:]]+deny[[:spa
 t_check_forbidden "forbid.ufw-reset" 'ufw[[:space:]]+--force[[:space:]]+reset'
 t_check_forbidden "forbid.ipv6" 'disable_ipv6[[:space:]]*='
 t_check_forbidden "forbid.usb" '(^|[[:space:]])(blacklist|install)[[:space:]]+usb-storage'
-tmp_hits="$(t_count_forbidden_hit '/tmp[^#]*noexec|noexec[^#]*/tmp' | grep -v '/verify/' | grep -v 'est noexec' || true)"
+tmp_hits="$(t_get_forbidden_hit '/tmp[^#]*noexec|noexec[^#]*/tmp' | grep -v '/verify/' | grep -v 'est noexec' || true)"
 if [[ -n "${tmp_hits}" ]]; then
     t_fail "forbid.tmp-noexec" "$(printf '%s' "${tmp_hits}" | tr '\n' ' ' | head -c 500)"
 else
