@@ -13,9 +13,6 @@
 [log.a-reboot-is-recommended-kernel-libc]
 Un reboot es recomendado (núcleo / libc).
 
-[log.after-the-fixes-usbguard]
- • Después los correcciones: USBGuard.
-
 [log.audit-lynis-quick]
 Auditoría Lynis (quick)
 
@@ -58,9 +55,6 @@ Copie toda esta salida para constituir la lista de exclusion.
 [log.detection-of-the-profiles-userns]
 Detección de los perfiles userns
 
-[log.dns-local-unbound]
- • DNS: Unbound local.
-
 [log.end]
 ===== Fin =====
 
@@ -82,17 +76,11 @@ esperado: cadena después multi-user.target, Nice={1}, IO=idle, CPUQuota={2}%
 [log.fail-2]
 - FAIL: {1}
 
-[log.help-baseline-then-verify-workstation-sh]
- • AIDE: base de referencia, luego verify/workstation.sh.
-
 [log.help-init-a-returned-the-code-the-base-produced]
 aide --init a devuelto el código {1}. La base producida es aun así en servicio.
 
 [log.host-date-start-nproc]
 anfitrión={1} fecha={2} inicio={3} nproc={4}
-
-[log.i386-enabled-on-amd64]
- • i386 activado en amd64.
 
 [log.installation-of-snapd]
 Instalación de snapd
@@ -107,7 +95,7 @@ diario: {1}
 Liltress Workstation — controles que envían una alerta\n
 
 [log.liltress-workstation-hardening-workstation]
- Liltress Workstation — endurecimiento workstation 
+ Liltress Workstation — endurecimiento workstation
 
 [log.liltress-workstation-report-chkrootkit-false-pos]
 Liltress Workstation — informe chkrootkit (falsos positivos)
@@ -196,12 +184,6 @@ snapd instalado
 [log.sources-apt]
 Fuentes APT
 
-[log.ssh-passwordauthentication-yes-permitrootlogin-n]
- • SSH: PasswordAuthentication yes, PermitRootLogin no.
-
-[log.ssh-then-the-stack-of-security-postfix-follows-t]
- • SSH, luego la pila de seguridad. Postfix sigue el elección de los alertas e-mail.
-
 [log.ssh-ufw-services]
 SSH / UFW / servicios
 
@@ -228,12 +210,6 @@ El último upgrade puede reactivar systemd-coredump.
 
 [log.the-new-base-n]
 La nueva base n
-
-[log.ubuntu-pro-esm-infra-esm-apps-and-livepatch]
- • Ubuntu Pro: ESM infra, ESM apps y Livepatch.
-
-[log.ufw-deny-incoming-allow-outgoing]
- • UFW: deny incoming, allow outgoing.
 
 [log.usage-sudo-bash-bin-scan-skip-sh-list]
 Uso: sudo bash {1}/bin/scan-skip.sh list

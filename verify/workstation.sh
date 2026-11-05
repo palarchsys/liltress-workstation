@@ -21,8 +21,16 @@ FAIL=0
 WARNN=0
 REPORT="${INSTALL_LOG_DIR:-.}/verify-report-WORKSTATION-$(date +%Y%m%d-%H%M%S).md"
 
-report_pass()   { PASS=$((PASS+1));  LOG_FIT_MAX=0 log_success "${INSTALL_WATCHER}" "log.ok-3" "$*"; echo "$(get_text log.ok-4 "$*")" >> "${REPORT}"; }
-report_fail()   { FAIL=$((FAIL+1));  set_color_red "FAIL  $*";     echo "- FAIL  $*" >> "${REPORT}"; }
+report_pass() {
+    PASS=$((PASS + 1))
+    if [[ "${INSTALL_WATCHER:-BASH}" == "GO" ]]; then
+        log_success "${INSTALL_WATCHER}" "log.ok-3" "$*"
+    else
+        note_bash success "$*"
+    fi
+    echo "$(get_text log.ok-4 "$*")" >> "${REPORT}"
+}
+report_fail()   { FAIL=$((FAIL+1));  note_bash fault "$*"; echo "- FAIL  $*" >> "${REPORT}"; }
 report_warn()   { WARNN=$((WARNN+1)); log_warn "${INSTALL_WATCHER}" "verify.workstation.warn" "WARN  $*";   echo "- WARN  $*" >> "${REPORT}"; }
 
 mkdir -p "$(dirname "${REPORT}")"
@@ -426,21 +434,6 @@ if command -v lynis >/dev/null 2>&1; then
     else
         report_warn "custom.prf manquant"
     fi
-    log_info "${INSTALL_WATCHER}" "log.audit-lynis-quick"
-    lynis audit system --quick --no-colors --auditor liltress-workstation-verify > "${INSTALL_LOG_DIR:-/tmp}/lynis-verify.txt" 2>&1 || true
-    score="$(awk -F= '/hardening_index=/{print $2}' /var/log/lynis-report.dat 2>/dev/null | tail -1)"
-    if [[ "${score}" =~ ^[0-9]+$ ]]; then
-        echo "$(get_text log.lynis-hardening-index "${score}")" >> "${REPORT}"
-        if [[ "${score}" -ge "${LYNIS_MIN_SCORE}" ]]; then
-            report_pass "Lynis ${score} ≥ ${LYNIS_MIN_SCORE}"
-        else
-            report_fail "Lynis ${score} < ${LYNIS_MIN_SCORE}"
-            awk -F= '/^warning\[\]=/{print "   [INFO]  Lynis " $2}' /var/log/lynis-report.dat 2>/dev/null | head -20 || true
-        fi
-    else
-        report_fail "score Lynis illisible"
-    fi
-    chmod 640 /var/log/lynis.log /var/log/lynis-report.dat 2>/dev/null || true
 else
     report_fail "lynis absent"
 fi
@@ -451,12 +444,6 @@ if dpkg-query -W -f '${Status}' snapd 2>/dev/null | grep -q 'install ok'; then
 else
     report_fail "snapd absent"
 fi
-if command -v snap >/dev/null 2>&1 && snap list firefox >/dev/null 2>&1; then
-    log_info "${INSTALL_WATCHER}" "log.snap-firefox-present"
-else
-    log_info "${INSTALL_WATCHER}" "log.snap-firefox-absent"
-fi
-
 root_src="$(findmnt -no SOURCE / 2>/dev/null || true)"
 if [[ -n "${root_src}" ]] && lsblk -sno TYPE "${root_src}" 2>/dev/null | grep -qx crypt; then
     report_pass "racine sur LUKS"
@@ -469,7 +456,6 @@ else
     report_warn "Secure Boot non actif"
 fi
 
-log_info "${INSTALL_WATCHER}" "log.check-of-the-workstation"
 if [[ -f /etc/apt/sources.list ]]; then
     if grep -q 'liltress' /etc/apt/sources.list; then
         report_fail "sources.list a été réécrit"
@@ -508,13 +494,18 @@ esac
 } >> "${REPORT}"
 
 chmod 644 "${REPORT}" 2>/dev/null || true
-set_step_hidden "Check : ${PASS} OK / ${WARNN} WARN / ${FAIL} FAIL"
-log_info "${INSTALL_WATCHER}" "verify.workstation.info.5" "Rapport : ${REPORT}"
+mkdir -p "${INSTALL_LOG_DIR:-.}"
+status_file="${INSTALL_LOG_DIR:-.}/verify-status"
+cat > "${status_file}" << EOF
+PASS=${PASS}
+WARN=${WARNN}
+FAIL=${FAIL}
+REPORT=${REPORT}
+EOF
+chmod 644 "${status_file}" 2>/dev/null || true
 if [[ "${FAIL}" -gt 0 ]]; then
-    echo "" >&2
-    grep '^- FAIL' "${REPORT}" | while IFS= read -r line; do
-        set_color_red "${line}"
-    done
+    while IFS= read -r line; do
+        note_bash fault "${line#- }"
+    done < <(grep '^- FAIL' "${REPORT}" || true)
     log_error "${INSTALL_WATCHER}" "log.check-failure-s" "${FAIL}"
 fi
-log_success "${INSTALL_WATCHER}" "log.check-workstation-ok"

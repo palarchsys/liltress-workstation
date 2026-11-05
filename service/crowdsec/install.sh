@@ -17,7 +17,8 @@ log_info         "${INSTALL_WATCHER}" "install.record-of-the-repository-crowdsec
 install -d -m 755 /etc/apt/keyrings
 CROWDSEC_KEY="/etc/apt/keyrings/crowdsec_crowdsec-archive-keyring.gpg"
 CROWDSEC_LIST="/etc/apt/sources.list.d/crowdsec_crowdsec.list"
-curl -fsSL https://packagecloud.io/crowdsec/crowdsec/gpgkey | gpg --dearmor -o "${CROWDSEC_KEY}"
+rm -f "${CROWDSEC_KEY}"
+curl -fsSL https://packagecloud.io/crowdsec/crowdsec/gpgkey | gpg --batch --yes --dearmor -o "${CROWDSEC_KEY}"
 chmod 644 "${CROWDSEC_KEY}"
 sed "s|__KEY__|${CROWDSEC_KEY}|g" "$(locate_config_file crowdsec/package.list)" \
     | grep -v '^#' > "${CROWDSEC_LIST}"

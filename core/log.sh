@@ -8,6 +8,154 @@
 set_color_blue()    { printf '\e[34m%s\e[0m\n' "$*" >&2; }
 set_color_violet()  { printf '\e[35m%s\e[0m\n' "$*" >&2; }
 set_color_red()     { printf '\e[31m%s\e[0m\n' "$*" >&2; }
+set_color_yellow()  { printf '\e[33m%s\e[0m\n' "$*" >&2; }
+set_color_green()   { printf '\e[32m%s\e[0m\n' "$*" >&2; }
+set_color_orange()  { printf '\e[38;5;208m%s\e[0m\n' "$*" >&2; }
+
+cut_text() {
+    local text="$1"
+    local max="${2:-74}"
+    local n="${#text}"
+    if (( max < 2 || n <= max )); then
+        printf '%s' "${text}"
+        return 0
+    fi
+    printf '%s…' "${text:0:$((max - 1))}"
+}
+
+repeat_char() {
+    local char="$1"
+    local count="$2"
+    local out="" i=0
+    while (( i < count )); do
+        out+="${char}"
+        i=$((i + 1))
+    done
+    printf '%s' "${out}"
+}
+
+show_title_box() {
+    local title
+    title="$(cut_text "$1" 74)"
+    local top mid bot pad
+    top="╭$(repeat_char "─" 92)╮"
+    pad=$((90 - ${#title}))
+    (( pad < 0 )) && pad=0
+    mid="│  ${title}$(repeat_char " " "${pad}")│"
+    bot="╰$(repeat_char "─" 92)╯"
+    set_color_yellow "${top}"
+    set_color_yellow "${mid}"
+    set_color_yellow "${bot}"
+}
+
+show_section_open() {
+    local title dashes line
+    title="$(cut_text "$1" 70)"
+    dashes=$((89 - ${#title}))
+    (( dashes < 1 )) && dashes=1
+    line="╭─ ${title} $(repeat_char "─" "${dashes}")╮"
+    set_color_yellow "${line}"
+    set_color_yellow "│"
+    SECTION_OPEN=1
+    SECTION_HAD_STEP=0
+    export SECTION_OPEN SECTION_HAD_STEP
+}
+
+show_section_close() {
+    [[ "${SECTION_OPEN:-0}" == "1" ]] || return 0
+    set_color_yellow "│"
+    set_color_yellow "╰$(repeat_char "─" 92)╯"
+    printf '\n' >&2
+    SECTION_OPEN=0
+    SECTION_HAD_STEP=0
+    export SECTION_OPEN SECTION_HAD_STEP
+}
+
+paint_note() {
+    local kind="$1"
+    local text="$2"
+    text="$(shorten_logs_paths "${text}")"
+    local max=74
+    if [[ "${kind}" == "error" || "${kind}" == "fault" ]]; then
+        max=160
+    fi
+    text="$(cut_text "${text}" "${max}")"
+    case "${kind}" in
+        info|debug) printf '\e[34m•\e[0m %s' "${text}" ;;
+        success)    printf '\e[32m✓\e[0m %s' "${text}" ;;
+        warn)       printf '\e[38;5;208m⚠\e[0m %s' "${text}" ;;
+        *)          printf '\e[31m✗\e[0m %s' "${text}" ;;
+    esac
+}
+
+step_bar() {
+    if [[ "${SECTION_OPEN:-0}" == "1" ]]; then
+        printf '\e[33m│\e[0m  '
+    else
+        printf '   '
+    fi
+}
+
+section_gap() {
+    if [[ "${SECTION_OPEN:-0}" == "1" ]]; then
+        printf '\e[33m│\e[0m\n' >&2
+    else
+        printf '\n' >&2
+    fi
+}
+
+step_flush_branch() {
+    [[ -n "${STEP_PENDING:-}" ]] || return 0
+    printf '%s├── %s\n' "$(step_bar)" "${STEP_PENDING}" >&2
+    STEP_PENDING=""
+}
+
+open_step_tree() {
+    local label
+    close_step_tree
+    if [[ "${SECTION_OPEN:-0}" == "1" && "${SECTION_HAD_STEP:-0}" == "1" ]]; then
+        section_gap
+    fi
+    label="$(cut_text "$1" 74)"
+    STEP_TREE=1
+    STEP_PENDING=""
+    printf '%s┌ \e[33m%s\e[0m\n' "$(step_bar)" "${label}" >&2
+}
+
+mark_section_step() {
+    [[ "${SECTION_OPEN:-0}" == "1" ]] || return 0
+    SECTION_HAD_STEP=1
+    export SECTION_HAD_STEP
+}
+
+close_step_tree() {
+    [[ "${STEP_TREE:-0}" == "1" ]] || return 0
+    if [[ -n "${STEP_PENDING:-}" ]]; then
+        printf '%s└── %s\n' "$(step_bar)" "${STEP_PENDING}" >&2
+    fi
+    STEP_TREE=0
+    STEP_PENDING=""
+}
+
+note_bash() {
+    local kind="$1"
+    local text="$2"
+    local rendered
+    rendered="$(paint_note "${kind}" "${text}")"
+    if [[ "${STEP_TREE:-0}" == "1" ]]; then
+        if [[ "${kind}" == "error" ]]; then
+            step_flush_branch
+            printf '%s└── %s\n' "$(step_bar)" "${rendered}" >&2
+            STEP_TREE=0
+            STEP_PENDING=""
+            return 0
+        fi
+        step_flush_branch
+        STEP_PENDING="${rendered}"
+        return 0
+    fi
+    printf '  %s\n' "${rendered}" >&2
+}
 
 get_fit_width() {
     local text="$1"
@@ -31,7 +179,7 @@ show_path() {
             printf '%s' "$p"
             ;;
         */log|*/log/*)
-            printf '%s' "/log${p#*/log}"
+            printf '%s' "log${p#*/log}"
             ;;
         *)
             printf '%s' "$p"
@@ -56,7 +204,7 @@ shorten_logs_paths() {
         else
             out+="$pre"
         fi
-        path="/log"
+        path="log"
         if [[ "$rest" =~ ^(/[[:alnum:]._+~/-]*) ]]; then
             path+="${BASH_REMATCH[1]}"
             rest="${rest:${#BASH_REMATCH[1]}}"
@@ -123,62 +271,60 @@ log_show() {
         return 0
     fi
     case "${type}" in
-        info)    emit_log INFO "${value}" "${LOG_FIT_MAX:-62}" ;;
-        success) emit_log SUCCESS "${value}" "${LOG_FIT_MAX:-62}" ;;
-        warn)    emit_log WARNING "${value}" "${LOG_FIT_MAX:-62}" ;;
-        debug)   emit_log DEBUG "${value}" 0 ;;
+        info|debug) note_bash info "${value}" ;;
+        success)    note_bash success "${value}" ;;
+        warn)       note_bash warn "${value}" ;;
+        fault)      note_bash fault "${value}" ;;
         title)
-            if [[ "${LOG_AFTER_TITLE:-0}" != "1" ]]; then
-                echo "" >&2
-            fi
-            set_color_blue "  -----------------------------------------------------------------------------"
-            set_color_blue "   ${value}"
-            set_color_blue "  -----------------------------------------------------------------------------"
-            echo "" >&2
+            step_flush_branch
+            show_title_box "${value}"
             LOG_AFTER_TITLE=1
             ;;
         error)
-            echo ""
-            set_color_red "  -----------------------------------------------------------------------------"
-            set_color_red "   ${value}"
-            set_color_red "  -----------------------------------------------------------------------------"
-            echo ""
+            note_bash error "${value}"
             if [[ -n "${INSTALL_LOG_DIR:-}" ]]; then
                 printf '%s\n' "${value}" >> "${INSTALL_LOG_DIR}/errors.log" 2>/dev/null || true
-                log_show "${watcher}" info "log.journals" "${INSTALL_LOG_DIR}"
             fi
+            STEP_TREE=0
+            STEP_PENDING=""
+            show_section_close
+            show_title_box "$(get_text log.installation-could-not-finish)"
+            printf '\n' >&2
+            if [[ -n "${INSTALL_LOG_DIR:-}" ]]; then
+                note_bash info "$(get_text log.journals "${INSTALL_LOG_DIR}")"
+            fi
+            printf '\n' >&2
             exit 1
             ;;
     esac
 }
 
-log_info()     { log_show "${1:-BASH}" info "${2:-}" "${@:3}"; }
+log_info()     { log_show "${1:-BASH}" info    "${2:-}" "${@:3}"; }
 log_success()  { log_show "${1:-BASH}" success "${2:-}" "${@:3}"; }
-log_warn()     { log_show "${1:-BASH}" warn "${2:-}" "${@:3}"; }
-log_debug()    { log_show "${1:-BASH}" debug "${2:-}" "${@:3}"; }
-log_title()    { log_show "${1:-BASH}" title "${2:-}" "${@:3}"; }
-log_error()    { log_show "${1:-BASH}" error "${2:-}" "${@:3}"; }
+log_warn()     { log_show "${1:-BASH}" warn    "${2:-}" "${@:3}"; }
+log_debug()    { log_show "${1:-BASH}" debug   "${2:-}" "${@:3}"; }
+log_title()    { log_show "${1:-BASH}" title   "${2:-}" "${@:3}"; }
+log_error()    { log_show "${1:-BASH}" error   "${2:-}" "${@:3}"; }
 
 require_root() {
     [[ "${EUID}" -eq 0 ]] || log_error "${INSTALL_WATCHER:-BASH}" "log.this-script-must-be-executed-with-sudo-or-as-roo"
 }
 
 set_step_visible() {
-
-    if [[ "${STEP_BANNERS:-0}" -eq 1 ]]; then
-        echo "" >&2
+    close_step_tree
+    if [[ "${SECTION_OPEN:-0}" == "1" ]]; then
+        show_section_close
     fi
-    STEP_BANNERS=1
-    set_color_violet "═════════════════════════════════════════════════════════════════════════════════"
-    set_color_violet " # $*"
-    set_color_violet "═══ ↓ ↓ ═════════════════════════════════════════════════════════════════ ↓ ↓ ═══"
+    show_section_open "$*"
 }
 
 set_step_hidden() {
-    set_color_violet "═══ ↑ ↑ ═════════════════════════════════════════════════════════════════ ↑ ↑ ═══"
-    set_color_violet " # $*"
-    set_color_violet "═════════════════════════════════════════════════════════════════════════════════"
-    echo "" >&2
+    close_step_tree
+    if [[ "${SECTION_OPEN:-0}" == "1" ]]; then
+        show_section_close
+    fi
+    show_title_box "$*"
+    printf '\n' >&2
 }
 
 
@@ -1020,3 +1166,9 @@ ask_language() {
 }
 
 load_product_text
+
+if [[ -n "${STEP_LABEL:-}" && "${STEP_TREE:-0}" != "1" && "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
+    open_step_tree "${STEP_LABEL}"
+    unset STEP_LABEL
+    trap 'close_step_tree' EXIT
+fi

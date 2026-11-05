@@ -13,9 +13,6 @@
 [log.a-reboot-is-recommended-kernel-libc]
 Un reboot est recommandé (noyau / libc).
 
-[log.after-the-fixes-usbguard]
-   • Après les correctifs : USBGuard.
-
 [log.audit-lynis-quick]
 Audit Lynis (quick)
 
@@ -58,9 +55,6 @@ Copiez toute cette sortie pour constituer la liste d'exclusion.
 [log.detection-of-the-profiles-userns]
 Détection des profils userns
 
-[log.dns-local-unbound]
-   • DNS : Unbound local.
-
 [log.end]
 ===== FIN =====
 
@@ -82,17 +76,11 @@ attendu : chaîne après multi-user.target, Nice={1}, IO=idle, CPUQuota={2}%
 [log.fail-2]
 - FAIL : {1}
 
-[log.help-baseline-then-verify-workstation-sh]
-   • AIDE : base de référence, puis verify/workstation.sh.
-
 [log.help-init-a-returned-the-code-the-base-produced]
 aide --init a retourné le code {1}. La base produite est tout de même en service.
 
 [log.host-date-start-nproc]
 hôte={1} date={2} démarrage={3} nproc={4}
-
-[log.i386-enabled-on-amd64]
-   • i386 activé sur amd64.
 
 [log.installation-of-snapd]
 Installation de snapd
@@ -107,7 +95,7 @@ journal : {1}
 Liltress Workstation — contrôles qui envoient une alerte\n
 
 [log.liltress-workstation-hardening-workstation]
- Liltress Workstation — durcissement workstation                                   
+ Liltress Workstation — durcissement workstation
 
 [log.liltress-workstation-report-chkrootkit-false-pos]
 Liltress Workstation — relevé chkrootkit (faux positifs)
@@ -196,12 +184,6 @@ snapd installé
 [log.sources-apt]
 Sources APT
 
-[log.ssh-passwordauthentication-yes-permitrootlogin-n]
-   • SSH : PasswordAuthentication yes, PermitRootLogin no.
-
-[log.ssh-then-the-stack-of-security-postfix-follows-t]
-   • SSH, puis la pile de sécurité. Postfix suit le choix des alertes e-mail.
-
 [log.ssh-ufw-services]
 SSH / UFW / services
 
@@ -228,12 +210,6 @@ Le dernier upgrade peut réactiver systemd-coredump.
 
 [log.the-new-base-n]
 La nouvelle base n
-
-[log.ubuntu-pro-esm-infra-esm-apps-and-livepatch]
-   • Ubuntu Pro : ESM infra, ESM apps et Livepatch.
-
-[log.ufw-deny-incoming-allow-outgoing]
-   • UFW : deny incoming, allow outgoing.
 
 [log.usage-sudo-bash-bin-scan-skip-sh-list]
 Usage : sudo bash {1}/bin/scan-skip.sh list

@@ -346,6 +346,16 @@
           "action": "test-mail"
         },
         {
+          "id": "install.lynis.audit",
+          "service": "lynis",
+          "path": "verify/lynis-audit.sh"
+        },
+        {
+          "id": "install.summary",
+          "service": "verify",
+          "path": "verify/summary.sh"
+        },
+        {
           "id": "install.reboot-notice",
           "service": "reboot",
           "action": "reboot-notice"

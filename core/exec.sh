@@ -142,12 +142,6 @@ run_step() {
     local step full_path step_exit step_log
     for step in "${steps[@]}"; do
         full_path="${dir_install_path}/${step}"
-        if [[ "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
-            echo "" >&2
-            set_color_blue "   $(get_text log.execution-of "${step}")"
-            echo "" >&2
-        fi
-
         if [[ ! -f "$full_path" ]]; then
             log_error "${INSTALL_WATCHER:-BASH}" "log.file-not-found" "$full_path"
             exit 1
@@ -159,16 +153,26 @@ run_step() {
             step_log="${INSTALL_LOG_DIR}/steps/$(echo "$step" | tr '/' '-').log"
             mkdir -p "${INSTALL_LOG_DIR}/steps"
             set +e
-            bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type" 2>&1 | tee -a "$step_log"
+            if [[ "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
+                SECTION_OPEN="${SECTION_OPEN:-0}" SECTION_HAD_STEP="${SECTION_HAD_STEP:-0}" STEP_LABEL="$(get_text log.execution-of "${step}")" bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type" 2>&1 | tee -a "$step_log"
+            else
+                bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type" 2>&1 | tee -a "$step_log"
+            fi
             step_exit=${PIPESTATUS[0]}
             set -e
+            mark_section_step
             log_index_append "${step}" "${step_exit}" "${step_log}"
             publish_repo_logs "${INSTALL_LOG_DIR}"
         else
             set +e
-            bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type"
+            if [[ "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
+                SECTION_OPEN="${SECTION_OPEN:-0}" SECTION_HAD_STEP="${SECTION_HAD_STEP:-0}" STEP_LABEL="$(get_text log.execution-of "${step}")" bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type"
+            else
+                bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type"
+            fi
             step_exit=$?
             set -e
+            mark_section_step
             log_index_append "${step}" "${step_exit}" ""
         fi
 
@@ -214,15 +218,19 @@ run_install_plan() {
                 run_step "${root}" "${target}"
             fi
         else
-            if [[ "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
-                echo "" >&2
-                set_color_blue "   $(get_text log.execution-of "${target}")"
-                case "${target}" in
-                    reboot-notice|offer-remove) ;;
-                    *) echo "" >&2 ;;
-                esac
-            fi
-            run_install_action "${target}"
+            case "${target}" in
+                reboot-notice|offer-remove|http-check)
+                    run_install_action "${target}"
+                    ;;
+                *)
+                    if [[ "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
+                        open_step_tree "$(get_text log.execution-of "${target}")"
+                    fi
+                    run_install_action "${target}"
+                    close_step_tree
+                    mark_section_step
+                    ;;
+            esac
         fi
     done < <(python3 - "${plan}" << 'PY'
 import json

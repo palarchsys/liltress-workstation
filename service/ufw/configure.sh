@@ -127,4 +127,5 @@ if ! LANG=C LC_ALL=C LANGUAGE=C ufw status | grep -qw "Status: active"; then
     log_error        "${INSTALL_WATCHER}" "configure.ufw-is-not-active-after-enable" "$(LANG=C LC_ALL=C LANGUAGE=C ufw status)"
 fi
 log_success      "${INSTALL_WATCHER}" "configure.ufw-enabled-outgoing-allow"
-bash "${INSTALL_DIRECTORY}/service/ufw/egress.sh" "${INSTALL_WATCHER}" "${INSTALL_DIRECTORY}"
+# shellcheck disable=SC1091
+source "${INSTALL_DIRECTORY}/service/ufw/egress.sh"

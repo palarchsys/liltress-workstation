@@ -36,24 +36,12 @@ get_operating_system
 get_current_user
 get_ssh_port
 
-set_color_violet "═════════════════════════════════════════════════════════════════════════════════"
-set_color_violet "$(get_text log.liltress-workstation-hardening-workstation)"
-set_color_violet "═════════════════════════════════════════════════════════════════════════════════"
-
-echo ""
-echo "$(get_text log.current-user-home "${CURRENT_USER}" "${CURRENT_HOME}")"
-echo "$(get_text log.port-ssh-detected "${SSH_PORT}")"
-echo "$(get_text log.os "${OS_PRETTY}")"
-echo ""
-echo "$(get_text log.ssh-then-the-stack-of-security-postfix-follows-t)"
-echo "$(get_text log.after-the-fixes-usbguard)"
-echo "$(get_text log.i386-enabled-on-amd64)"
-echo "$(get_text log.ufw-deny-incoming-allow-outgoing)"
-echo "$(get_text log.dns-local-unbound)"
-echo "$(get_text log.ssh-passwordauthentication-yes-permitrootlogin-n)"
-echo "$(get_text log.ubuntu-pro-esm-infra-esm-apps-and-livepatch)"
-echo "$(get_text log.help-baseline-then-verify-workstation-sh)"
-echo ""
+show_title_box "$(get_text log.liltress-workstation-hardening-workstation)"
+printf '\n' >&2
+log_info "${INSTALL_WATCHER}" "log.current-user-home" "${CURRENT_USER}" "${CURRENT_HOME}"
+log_info "${INSTALL_WATCHER}" "log.port-ssh-detected" "${SSH_PORT}"
+log_info "${INSTALL_WATCHER}" "log.os" "${OS_PRETTY}"
+printf '\n' >&2
 
 init_install_log
 record_account_snapshot
@@ -120,3 +108,4 @@ run_install_action() {
 }
 
 run_install_plan "${INSTALL_DIRECTORY}" "${INSTALL_DIRECTORY}/script/install.json"
+printf '\n' >&2

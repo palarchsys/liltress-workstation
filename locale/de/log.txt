@@ -13,9 +13,6 @@
 [log.a-reboot-is-recommended-kernel-libc]
 Ein reboot ist empfohlen (Kernel / libc).
 
-[log.after-the-fixes-usbguard]
- • Nach die Korrekturen: USBGuard.
-
 [log.audit-lynis-quick]
 Audit Lynis (quick)
 
@@ -58,9 +55,6 @@ Kopieren Sie alle diese Ausgabe für bilden die Liste von exclusion.
 [log.detection-of-the-profiles-userns]
 Erkennung der Profile userns
 
-[log.dns-local-unbound]
- • DNS: Unbound lokal.
-
 [log.end]
 ===== ENDE =====
 
@@ -82,17 +76,11 @@ erwartet: Kette nach multi-user.target, Nice={1}, IO=idle, CPUQuota={2}%
 [log.fail-2]
 - FAIL: {1}
 
-[log.help-baseline-then-verify-workstation-sh]
- • AIDE: Referenzbasis, dann verify/workstation.sh.
-
 [log.help-init-a-returned-the-code-the-base-produced]
 aide --init a zurückgegeben der Code {1}. Die Basis erzeugt ist trotzdem in Betrieb.
 
 [log.host-date-start-nproc]
 Host={1} Datum={2} Start={3} nproc={4}
-
-[log.i386-enabled-on-amd64]
- • i386 aktiviert auf amd64.
 
 [log.installation-of-snapd]
 Installation von snapd
@@ -107,7 +95,7 @@ Journal: {1}
 Liltress Workstation — Prüfungen der senden eine Alarm\n
 
 [log.liltress-workstation-hardening-workstation]
- Liltress Workstation — Härtung workstation 
+ Liltress Workstation — Härtung workstation
 
 [log.liltress-workstation-report-chkrootkit-false-pos]
 Liltress Workstation — Bericht chkrootkit (Fehlalarme)
@@ -196,12 +184,6 @@ snapd installiert
 [log.sources-apt]
 Quellen APT
 
-[log.ssh-passwordauthentication-yes-permitrootlogin-n]
- • SSH: PasswordAuthentication yes, PermitRootLogin no.
-
-[log.ssh-then-the-stack-of-security-postfix-follows-t]
- • SSH, dann die Stapel von Sicherheit. Postfix folgt der Wahl der Alarme e-mail.
-
 [log.ssh-ufw-services]
 SSH / UFW / Dienste
 
@@ -228,12 +210,6 @@ Der letzte upgrade kann wieder aktivieren systemd-coredump.
 
 [log.the-new-base-n]
 Die neue Basis n
-
-[log.ubuntu-pro-esm-infra-esm-apps-and-livepatch]
- • Ubuntu Pro: ESM infra, ESM apps und Livepatch.
-
-[log.ufw-deny-incoming-allow-outgoing]
- • UFW: deny incoming, allow outgoing.
 
 [log.usage-sudo-bash-bin-scan-skip-sh-list]
 Verwendung: sudo bash {1}/bin/scan-skip.sh list

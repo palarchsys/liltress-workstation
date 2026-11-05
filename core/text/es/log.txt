@@ -4,6 +4,9 @@
 # Creator    : palarchsys
 # =============================================================================
 
+[log.installation-could-not-finish]
+La instalación no ha podido terminar
+
 [log.16s-12s-12s]
 %-16s %-12s %-12s %s\n
 
