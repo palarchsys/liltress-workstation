@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/lib.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -21,7 +21,7 @@ get_vpn_home() {
 }
 
 load_vpn_settings() {
-    local home file boot
+    local home file
     W_VPN_ON_BOOT=0
     W_VPN_BOOT_PROFILE=
     W_VPN_HANDSHAKE_TIMEOUT=25
@@ -34,16 +34,18 @@ load_vpn_settings() {
     W_VPN_RULE_PRIO_BYPASS_TO=50
     W_VPN_RULE_PRIO_BYPASS_FROM=51
     W_VPN_RULE_PRIO_TUNNEL=100
+    W_VPN_RULE_PRIO_SSH=45
+    W_VPN_SSH_MARK=17820
+    W_VPN_FAILOVER_TRIES=3
+    W_VPN_FAILOVER_TIMEOUT=10
     home="$(get_vpn_home)"
     file="${home}/vpn.conf"
     if [[ -f "${file}" ]]; then
         # shellcheck disable=SC1090
         source "${file}"
-    fi
-    boot="${home}/boot.conf"
-    if [[ -f "${boot}" ]]; then
+    elif [[ -f "$(get_vpn_root)/config/vpn/vpn.conf" ]]; then
         # shellcheck disable=SC1090
-        source "${boot}"
+        source "$(get_vpn_root)/config/vpn/vpn.conf"
     fi
     [[ "${W_VPN_FW_PRIORITY}" =~ ^-[0-9]+$ ]] || W_VPN_FW_PRIORITY=-150
     [[ "${W_VPN_TABLE_ID}" =~ ^[0-9]+$ ]] || W_VPN_TABLE_ID=17820
@@ -55,7 +57,22 @@ load_vpn_settings() {
     [[ "${W_VPN_RULE_PRIO_BYPASS_TO}" =~ ^[0-9]+$ ]] || W_VPN_RULE_PRIO_BYPASS_TO=50
     [[ "${W_VPN_RULE_PRIO_BYPASS_FROM}" =~ ^[0-9]+$ ]] || W_VPN_RULE_PRIO_BYPASS_FROM=51
     [[ "${W_VPN_RULE_PRIO_TUNNEL}" =~ ^[0-9]+$ ]] || W_VPN_RULE_PRIO_TUNNEL=100
-    [[ "${W_VPN_ON_BOOT}" == "1" ]] || W_VPN_ON_BOOT=0
+    [[ "${W_VPN_RULE_PRIO_SSH}" =~ ^[0-9]+$ ]] || W_VPN_RULE_PRIO_SSH=45
+    [[ "${W_VPN_SSH_MARK}" =~ ^[0-9]+$ ]] || W_VPN_SSH_MARK=17820
+    [[ "${W_VPN_FAILOVER_TRIES}" =~ ^[1-9][0-9]*$ ]] || W_VPN_FAILOVER_TRIES=3
+    [[ "${W_VPN_FAILOVER_TIMEOUT}" =~ ^[0-9]+$ ]] || W_VPN_FAILOVER_TIMEOUT=10
+    if declare -F read_vpn_state >/dev/null 2>&1; then
+        read_vpn_state
+    else
+        W_VPN_MODE=off
+        W_VPN_ACTIVE=
+    fi
+    if [[ "${W_VPN_MODE}" == "on" ]]; then
+        W_VPN_ON_BOOT=1
+    else
+        W_VPN_ON_BOOT=0
+    fi
+    W_VPN_BOOT_PROFILE="${W_VPN_ACTIVE}"
 }
 
 check_vpn_name() {
@@ -448,8 +465,12 @@ get_vpn_active() {
     tr -d '[:space:]' < "${file}"
 }
 
+check_vpn_mode() {
+    [[ "${W_VPN_MODE:-off}" == "on" ]]
+}
+
 check_vpn_boot_on() {
-    [[ "${W_VPN_ON_BOOT:-0}" == "1" && -n "${W_VPN_BOOT_PROFILE:-}" ]]
+    check_vpn_mode
 }
 
 check_vpn_passphrase() {
@@ -488,6 +509,7 @@ apply_vpn_systemd() {
     if [[ "${W_VPN_ON_BOOT}" == "1" ]]; then
         systemctl enable w-vpn-killswitch.service >/dev/null 2>&1 || return 1
         systemctl enable w-vpn.service >/dev/null 2>&1 || return 1
+        systemctl enable --now w-vpn-watch.timer >/dev/null 2>&1 || return 1
         install -d -m 755 /etc/systemd/system/w-boot-chain.service.d
         if [[ -f "${drop}" ]] && declare -F copy_backup >/dev/null 2>&1; then
             copy_backup "${drop}"
@@ -500,24 +522,27 @@ EOF
     else
         systemctl disable w-vpn-killswitch.service >/dev/null 2>&1 || true
         systemctl disable w-vpn.service >/dev/null 2>&1 || true
+        systemctl disable --now w-vpn-watch.timer >/dev/null 2>&1 || true
         rm -f "${drop}"
     fi
     systemctl daemon-reload >/dev/null 2>&1 || true
 }
 
 get_vpn_verify_state() {
-    local name iface proto stamp now age home
-    home="$(get_vpn_home)"
-    [[ -f "${home}/boot.conf" ]] || {
-        printf 'off\n'
-        return 0
-    }
+    local name iface proto stamp now age
     load_vpn_settings
-    if ! check_vpn_boot_on; then
+    if ! check_vpn_mode; then
         printf 'off\n'
         return 0
     fi
-    name="${W_VPN_BOOT_PROFILE}"
+    name="${W_VPN_ACTIVE}"
+    if [[ -z "${name}" ]]; then
+        name="$(get_vpn_active 2>/dev/null || true)"
+    fi
+    if [[ -z "${name}" ]]; then
+        printf 'down\n'
+        return 0
+    fi
     iface="$(get_vpn_meta "${name}" iface 2>/dev/null || true)"
     proto="$(get_vpn_meta "${name}" proto 2>/dev/null || true)"
     if [[ -z "${iface}" ]] || ! ip link show "${iface}" >/dev/null 2>&1; then

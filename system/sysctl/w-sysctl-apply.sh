@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : system/w-sysctl-apply.sh
-# Updated at : 2026-10-31
+# File       : system/sysctl/w-sysctl-apply.sh
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/switch.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -15,6 +15,7 @@ fail_vpn_switch() {
     apply_vpn_nft "${name}" 0 || true
     clear_vpn_active
     send_vpn_alert "${name}" "${proto}" "${endpoint%% *}" "switch"
+    restart_vpn_services
     log_error "${INSTALL_WATCHER:-BASH}" "vpn.switch.fail" "${name}"
 }
 
@@ -22,6 +23,8 @@ run_vpn_switch() {
     local name="$1" old raised=0
     load_vpn_settings
     check_vpn_name "${name}" || log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.bad-name" "${name}"
+    check_vpn_mode || log_error "${INSTALL_WATCHER:-BASH}" "vpn.switch.mode"
+    check_vpn_profile_valid "${name}" || log_error "${INSTALL_WATCHER:-BASH}" "vpn.switch.invalid" "${name}"
     [[ -f "$(get_vpn_profile_dir "${name}")/runtime" ]] || log_error "${INSTALL_WATCHER:-BASH}" "vpn.profile.invalid" "${name}"
     if check_vpn_encrypted "${name}" && ! check_vpn_passphrase; then
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.up.agent" "${name}"
@@ -56,5 +59,8 @@ run_vpn_switch() {
     apply_vpn_tunnel_routes "${name}" || fail_vpn_switch "${name}"
     apply_vpn_nft "${name}" 1 || fail_vpn_switch "${name}"
     set_vpn_active "${name}"
+    set_vpn_state_active "${name}"
+    record_vpn_attempt "${name}" 1
+    restart_vpn_services
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.switch.ok" "${name}"
 }

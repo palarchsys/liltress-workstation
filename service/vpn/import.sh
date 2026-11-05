@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/import.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -156,6 +156,9 @@ finish_vpn_import() {
     if declare -F log_success >/dev/null 2>&1; then
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.import.ok" "${name}" "${endpoint}"
     fi
+    if declare -F run_vpn_test >/dev/null 2>&1; then
+        run_vpn_test "${name}" || true
+    fi
 }
 
 install_vpn_wireguard() {
@@ -186,7 +189,7 @@ install_vpn_wireguard() {
             endpoint_line="$(strip_vpn_text "${trimmed#*=}")"
         fi
     done < "${work}/source"
-    if (( peers != 1 || has_private != 1 || has_public != 1 || -z "${endpoint_line}" )); then
+    if (( peers != 1 || has_private != 1 || has_public != 1 )) || [[ -z "${endpoint_line}" ]]; then
         rm -rf "${work}"
         if (( peers != 1 )); then
             log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.peer" "${name}"
@@ -330,10 +333,72 @@ get_vpn_ovpn_token() {
     printf '%s' "${raw}"
 }
 
+check_vpn_auth_file() {
+    local file="$1" count=0 line
+    [[ -f "${file}" ]] || return 0
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+        line="${line%$'\r'}"
+        line="$(strip_vpn_text "${line}")"
+        [[ -n "${line}" ]] || continue
+        count=$((count + 1))
+    done < "${file}"
+    [[ "${count}" -ge 2 ]]
+}
+
+copy_vpn_material() {
+    local key="$1" token="$2" extra="$3" dir="$4" work="$5"
+    local path copied
+    path="${token}"
+    [[ "${path}" == /* ]] || path="${dir}/${path}"
+    if [[ -d "${path}" ]]; then
+        copied="${key}-dir"
+        mkdir -p "${work}/${copied}"
+        cp -a "${path}/." "${work}/${copied}/"
+        chmod 700 "${work}/${copied}"
+        find "${work}/${copied}" -type f -exec chmod 600 {} +
+    else
+        [[ -f "${path}" ]] || return 1
+        copied="$(basename -- "${path}")"
+        if [[ -e "${work}/${copied}" ]]; then
+            copied="${key}-${copied}"
+        fi
+        cp -a "${path}" "${work}/${copied}"
+        chmod 600 "${work}/${copied}"
+    fi
+    if [[ -n "${extra}" ]]; then
+        printf '%s %s %s\n' "${key}" "${copied}" "${extra}" >> "${work}/runtime"
+    else
+        printf '%s %s\n' "${key}" "${copied}" >> "${work}/runtime"
+    fi
+}
+
+copy_vpn_auth() {
+    local dir="$1" work="$2" token="$3"
+    local path="" candidate
+    if [[ -n "${token}" ]]; then
+        path="${token}"
+        [[ "${path}" == /* ]] || path="${dir}/${path}"
+        [[ -f "${path}" ]] || return 1
+        cp -a "${path}" "${work}/auth.txt"
+    else
+        for candidate in auth.txt credentials.txt login.txt pass.txt userpass.txt; do
+            if [[ -f "${dir}/${candidate}" ]]; then
+                cp -a "${dir}/${candidate}" "${work}/auth.txt"
+                break
+            fi
+        done
+        if [[ ! -f "${work}/auth.txt" ]]; then
+            : > "${work}/auth.txt"
+        fi
+    fi
+    chmod 600 "${work}/auth.txt"
+    printf 'auth-user-pass auth.txt\n' >> "${work}/runtime"
+}
+
 install_vpn_openvpn() {
-    local name="$1" src="$2" work dir base line trimmed key rest token path copied
+    local name="$1" src="$2" work dir base line trimmed key rest token path copied tail
     local in_tag=0 proto="udp" port="1194" remote_count=0 host="" rport="" rproto=""
-    local ep4="" ep6="" pinned="" chosen="" enc=0 extra=0
+    local ep4="" ep6="" pinned="" chosen="" enc=0 extra=0 auth_done=0
     local -a rows=()
     check_vpn_import_name "${name}" || return 1
     [[ -f "${src}" ]] || log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
@@ -390,47 +455,36 @@ install_vpn_openvpn() {
                 printf 'REMOTE %s\n' "${host}" >> "${work}/runtime"
                 ;;
             auth-user-pass)
-                token="$(get_vpn_ovpn_token "${rest}")"
-                if [[ -z "${token}" ]]; then
-                    rm -rf "${work}"
-                    log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.auth"
+                if [[ "${auth_done}" -eq 1 ]]; then
+                    continue
                 fi
-                path="${token}"
-                [[ "${path}" == /* ]] || path="${dir}/${path}"
-                [[ -f "${path}" ]] || {
+                token="$(get_vpn_ovpn_token "${rest}")"
+                if ! copy_vpn_auth "${dir}" "${work}" "${token}"; then
                     rm -rf "${work}"
-                    log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
-                }
-                cp -a "${path}" "${work}/auth.txt"
-                chmod 600 "${work}/auth.txt"
-                printf 'auth-user-pass auth.txt\n' >> "${work}/runtime"
+                    if [[ -n "${token}" ]]; then
+                        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
+                    else
+                        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.auth"
+                    fi
+                    return 1
+                fi
+                auth_done=1
                 ;;
-            ca|cert|key|tls-crypt|tls-auth|tls-crypt-v2|dh|pkcs12|secret)
-                read -r token extra <<< "${rest}"
+            ca|cert|key|tls-crypt|tls-auth|tls-crypt-v2|dh|pkcs12|secret|extra-certs|crl-verify|askpass)
+                read -r token tail <<< "${rest}"
                 token="$(get_vpn_ovpn_token "${token}")"
                 [[ -n "${token}" ]] || {
                     printf '%s\n' "${line}" >> "${work}/runtime"
                     continue
                 }
-                path="${token}"
-                [[ "${path}" == /* ]] || path="${dir}/${path}"
-                [[ -f "${path}" ]] || {
+                tail="$(get_vpn_ovpn_token "${tail}")"
+                if ! copy_vpn_material "${key}" "${token}" "${tail}" "${dir}" "${work}"; then
                     rm -rf "${work}"
                     log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
-                }
-                copied="$(basename -- "${path}")"
-                if [[ -e "${work}/${copied}" ]]; then
-                    copied="${key}-${copied}"
-                fi
-                cp -a "${path}" "${work}/${copied}"
-                chmod 600 "${work}/${copied}"
-                if [[ -n "${extra}" ]]; then
-                    printf '%s %s %s\n' "${key}" "${copied}" "${extra}" >> "${work}/runtime"
-                else
-                    printf '%s %s\n' "${key}" "${copied}" >> "${work}/runtime"
+                    return 1
                 fi
                 ;;
-            dev|dev-type)
+            dev|dev-type|up|down|route-up|route-pre-down|learn-address|comp-lzo|compress|redirect-gateway|redirect-private|dhcp-option)
                 continue
                 ;;
             *)

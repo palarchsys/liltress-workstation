@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/down.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -19,7 +19,3 @@ clear_vpn_network() {
     clear_vpn_active
 }
 
-run_vpn_down() {
-    clear_vpn_network
-    log_success "${INSTALL_WATCHER:-BASH}" "vpn.down.ok"
-}

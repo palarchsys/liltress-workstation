@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/es/vpn.txt
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,11 +11,10 @@ Uso: liltress vpn <orden>
   list
   import wireguard <nombre> <archivo>
   import openvpn <nombre> <archivo>
-  up <nombre>
-  down
+  test <nombre>
   switch <nombre>
-  boot <nombre>
-  boot off
+  mode on
+  mode off
   rm <nombre>
   bypass
   bypass reload
@@ -37,7 +36,7 @@ Entradas de desvío: {1}.
 Ningún perfil activo.
 
 [vpn.list.line]
-{1} {2} {3}
+{1} {2} {3} {4} {5} {6}
 
 [vpn.list.empty]
 Ningún perfil.
@@ -188,3 +187,57 @@ El túnel de arranque {1} está parado.
 
 [vpn.verify.stale]
 El saludo de {1} supera {2} segundos.
+
+[vpn.status.mode]
+Modo {1}.
+
+[vpn.mode.start]
+Cambio del modo VPN.
+
+[vpn.mode.on]
+El modo VPN está activo.
+
+[vpn.mode.off]
+El modo VPN está parado.
+
+[vpn.mode.same]
+El modo VPN ya está activo para {1}.
+
+[vpn.mode.none]
+Ningún perfil validado. El puesto sigue en la red directa.
+
+[vpn.mode.hold]
+Ningún perfil validado. El killswitch sigue armado.
+
+[vpn.test.start]
+Prueba de conexión para {1}.
+
+[vpn.test.ok]
+El perfil {1} es válido.
+
+[vpn.test.fail]
+El perfil {1} no es válido.
+
+[vpn.test.kept]
+El perfil {1} es válido. El túnel actual sigue.
+
+[vpn.switch.invalid]
+El perfil {1} no es válido.
+
+[vpn.switch.mode]
+El modo VPN está parado.
+
+[vpn.failover.start]
+Reanudación VPN.
+
+[vpn.failover.ok]
+El perfil {1} está abierto.
+
+[vpn.failover.none]
+Ningún perfil validado. El killswitch sigue armado.
+
+[vpn.service.restart]
+Servicios dependientes reiniciados.
+
+[vpn.import.auth-wait]
+El perfil {1} está importado. Escriba el nombre y el secreto en {2}, luego lance vpn test.

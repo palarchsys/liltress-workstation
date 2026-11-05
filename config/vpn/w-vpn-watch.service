@@ -1,0 +1,13 @@
+# =============================================================================
+# File       : config/vpn/w-vpn-watch.service
+# Updated at : 2026-11-05
+# Creator    : palarchsys
+# =============================================================================
+
+[Unit]
+Description=Observe le tunnel du poste
+After=w-vpn.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash @ROOT@/service/vpn/watch.sh

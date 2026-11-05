@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/cli.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -21,6 +21,8 @@ source "${ROOT}/config/global.conf"
 # shellcheck disable=SC1091
 source "${VPN_SRC}/lib.sh"
 # shellcheck disable=SC1091
+source "${VPN_SRC}/state.sh"
+# shellcheck disable=SC1091
 source "${VPN_SRC}/killswitch.sh"
 # shellcheck disable=SC1091
 source "${VPN_SRC}/routes.sh"
@@ -32,6 +34,8 @@ source "${VPN_SRC}/up.sh"
 source "${VPN_SRC}/down.sh"
 # shellcheck disable=SC1091
 source "${VPN_SRC}/switch.sh"
+# shellcheck disable=SC1091
+source "${VPN_SRC}/failover.sh"
 
 require_root
 load_vpn_settings
@@ -41,54 +45,23 @@ show_vpn_usage() {
     exit 2
 }
 
-write_vpn_boot() {
-    local enabled="$1" profile="$2" file
-    file="$(get_vpn_home)/boot.conf"
-    mkdir -p "$(get_vpn_home)"
-    umask 077
-    cat > "${file}" << EOF
-W_VPN_ON_BOOT=${enabled}
-W_VPN_BOOT_PROFILE=${profile}
-EOF
-    chmod 600 "${file}"
-    load_vpn_settings
-    apply_vpn_systemd
-}
-
-run_vpn_boot() {
-    local name="${1:-}"
-    if [[ "${name}" == "off" ]]; then
-        write_vpn_boot 0 ""
-        log_success "${INSTALL_WATCHER}" "vpn.boot.off"
-        return 0
-    fi
-    [[ -n "${name}" ]] || show_vpn_usage
-    check_vpn_name "${name}" || log_error "${INSTALL_WATCHER}" "vpn.import.bad-name" "${name}"
-    [[ -f "$(get_vpn_profile_dir "${name}")/runtime" ]] || log_error "${INSTALL_WATCHER}" "vpn.boot.bad" "${name}"
-    if check_vpn_encrypted "${name}"; then
-        log_error "${INSTALL_WATCHER}" "vpn.boot.encrypted" "${name}"
-    fi
-    write_vpn_boot 1 "${name}"
-    log_success "${INSTALL_WATCHER}" "vpn.boot.ok" "${name}"
-}
-
 remove_vpn_profile() {
-    local name="${1:-}" active boot
+    local name="${1:-}" active
     [[ -n "${name}" ]] || show_vpn_usage
     check_vpn_name "${name}" || log_error "${INSTALL_WATCHER}" "vpn.import.bad-name" "${name}"
     [[ -d "$(get_vpn_profile_dir "${name}")" && -f "$(get_vpn_profile_dir "${name}")/meta" ]] || log_error "${INSTALL_WATCHER}" "vpn.rm.missing" "${name}"
     active="$(get_vpn_active 2>/dev/null || true)"
     [[ "${active}" == "${name}" ]] && log_error "${INSTALL_WATCHER}" "vpn.rm.active" "${name}"
-    boot="${W_VPN_BOOT_PROFILE:-}"
-    if [[ "${W_VPN_ON_BOOT}" == "1" && "${boot}" == "${name}" ]]; then
-        log_error "${INSTALL_WATCHER}" "vpn.rm.boot" "${name}"
-    fi
     rm -rf "$(get_vpn_profile_dir "${name}")"
+    remove_vpn_state "${name}"
     log_success "${INSTALL_WATCHER}" "vpn.rm.ok" "${name}"
 }
 
 show_vpn_status() {
-    local armed=0 name proto iface handshake count code=0
+    local armed=0 name proto iface handshake count code=0 mode
+    load_vpn_settings
+    mode="${W_VPN_MODE:-off}"
+    printf '%s\n' "$(get_text vpn.status.mode "${mode}")"
     if check_vpn_killswitch; then
         armed=1
         printf '%s\n' "$(get_text vpn.status.armed)"
@@ -125,8 +98,9 @@ show_vpn_status() {
 }
 
 list_vpn_profiles() {
-    local home dir name proto boot_word found=0 kind
+    local home dir name proto found=0 kind valid validated observed tested state
     home="$(get_vpn_home)"
+    refresh_vpn_state
     shopt -s nullglob
     for kind in wireguard openvpn profiles; do
         for dir in "${home}/${kind}"/*/; do
@@ -134,15 +108,21 @@ list_vpn_profiles() {
             name="$(basename -- "${dir}")"
             check_vpn_name "${name}" || continue
             proto="$(get_vpn_meta "${name}" proto 2>/dev/null || echo "${kind}")"
-            if check_vpn_encrypted "${name}"; then
-                boot_word="$(get_text vpn.list.boot-no)"
-            else
-                boot_word="$(get_text vpn.list.boot-yes)"
+            valid="false"
+            validated=""
+            observed=""
+            tested=""
+            if state="$(show_vpn_profile_state "${name}" 2>/dev/null)"; then
+                valid="$(printf '%s\n' "${state}" | sed -n '1p')"
+                validated="$(printf '%s\n' "${state}" | sed -n '2p')"
+                observed="$(printf '%s\n' "${state}" | sed -n '3p')"
+                tested="$(printf '%s\n' "${state}" | sed -n '4p')"
             fi
-            printf '%s  %s\n' "$(get_text vpn.list.line "${name}" "${proto}" "${boot_word}")" "${dir%/}"
+            printf '%s  %s\n' "$(get_text vpn.list.line "${name}" "${proto}" "${valid}" "${validated}" "${observed}" "${tested}")" "${dir%/}"
             found=1
         done
     done
+    shopt -u nullglob
     if (( found == 0 )); then
         printf '%s\n' "$(get_text vpn.list.empty)"
     fi
@@ -183,22 +163,16 @@ run_vpn_bypass_reload() {
     log_success "${INSTALL_WATCHER}" "vpn.bypass.reloaded"
 }
 
-check_vpn_boot() {
-    load_vpn_settings
-    check_vpn_boot_on || return 1
-    [[ -n "${W_VPN_BOOT_PROFILE}" && -f "$(get_vpn_profile_dir "${W_VPN_BOOT_PROFILE}")/runtime" ]]
-}
-
 arm_vpn_boot() {
-    if ! check_vpn_boot; then
+    load_vpn_settings
+    if ! check_vpn_mode; then
         clear_vpn_network
         log_info "${INSTALL_WATCHER}" "vpn.direct.ok"
         exit 0
     fi
-    if check_vpn_encrypted "${W_VPN_BOOT_PROFILE}"; then
-        log_error "${INSTALL_WATCHER}" "vpn.boot.encrypted" "${W_VPN_BOOT_PROFILE}"
-    fi
-    arm_vpn_closed "${W_VPN_BOOT_PROFILE}" || log_error "${INSTALL_WATCHER}" "vpn.profile.invalid" "${W_VPN_BOOT_PROFILE}"
+    apply_vpn_nft "" 0 || true
+    apply_vpn_bypass_routes || true
+    exit 0
 }
 
 cmd="${1:-}"
@@ -221,21 +195,21 @@ case "${cmd}" in
             *) show_vpn_usage ;;
         esac
         ;;
-    up)
+    test)
         [[ $# -eq 1 ]] || show_vpn_usage
-        run_vpn_up "$1"
-        ;;
-    down)
-        [[ $# -eq 0 ]] || show_vpn_usage
-        run_vpn_down
+        run_vpn_test "$1"
         ;;
     switch)
         [[ $# -eq 1 ]] || show_vpn_usage
         run_vpn_switch "$1"
         ;;
-    boot)
+    mode)
         [[ $# -eq 1 ]] || show_vpn_usage
-        run_vpn_boot "$1"
+        case "$1" in
+            on) run_vpn_mode_on ;;
+            off) run_vpn_mode_off ;;
+            *) show_vpn_usage ;;
+        esac
         ;;
     rm)
         [[ $# -eq 1 ]] || show_vpn_usage
@@ -258,11 +232,13 @@ case "${cmd}" in
         arm_vpn_boot
         ;;
     boot-up)
-        if ! check_vpn_boot; then
+        load_vpn_settings
+        if ! check_vpn_mode; then
             clear_vpn_network
             exit 0
         fi
-        run_vpn_up "${W_VPN_BOOT_PROFILE}"
+        run_vpn_failover
+        exit 0
         ;;
     *)
         show_vpn_usage

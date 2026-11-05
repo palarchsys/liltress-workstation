@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/en/vpn.txt
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,11 +11,10 @@ Usage: liltress vpn <command>
   list
   import wireguard <name> <file>
   import openvpn <name> <file>
-  up <name>
-  down
+  test <name>
   switch <name>
-  boot <name>
-  boot off
+  mode on
+  mode off
   rm <name>
   bypass
   bypass reload
@@ -37,7 +36,7 @@ Bypass entries: {1}.
 No active profile.
 
 [vpn.list.line]
-{1} {2} {3}
+{1} {2} {3} {4} {5} {6}
 
 [vpn.list.empty]
 No profile.
@@ -188,3 +187,57 @@ VPN boot tunnel {1} is down.
 
 [vpn.verify.stale]
 VPN handshake for {1} is older than {2} seconds.
+
+[vpn.status.mode]
+Mode {1}.
+
+[vpn.mode.start]
+VPN mode change.
+
+[vpn.mode.on]
+VPN mode is on.
+
+[vpn.mode.off]
+VPN mode is off.
+
+[vpn.mode.same]
+VPN mode is already on for {1}.
+
+[vpn.mode.none]
+No validated profile. The workstation stays on the direct network.
+
+[vpn.mode.hold]
+No validated profile. The killswitch stays on.
+
+[vpn.test.start]
+Connection test for {1}.
+
+[vpn.test.ok]
+Profile {1} is valid.
+
+[vpn.test.fail]
+Profile {1} is not valid.
+
+[vpn.test.kept]
+Profile {1} is valid. The current tunnel stays.
+
+[vpn.switch.invalid]
+Profile {1} is not valid.
+
+[vpn.switch.mode]
+VPN mode is off.
+
+[vpn.failover.start]
+VPN failover.
+
+[vpn.failover.ok]
+Profile {1} is up.
+
+[vpn.failover.none]
+No validated profile. The killswitch stays on.
+
+[vpn.service.restart]
+Dependent services restarted.
+
+[vpn.import.auth-wait]
+Profile {1} is imported. Write the name and the secret in {2}, then run vpn test.

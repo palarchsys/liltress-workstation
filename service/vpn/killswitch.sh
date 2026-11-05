@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/killswitch.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -25,6 +25,16 @@ render_vpn_nft_set() {
     fi
     printf '    set %s { type %s; flags interval; elements = { %s } }\n' \
         "${name}" "${kind}" "$(collect_vpn_nft "$@")"
+}
+
+get_vpn_ssh_port() {
+    local port="22"
+    if declare -F get_ssh_port >/dev/null 2>&1; then
+        get_ssh_port || true
+        port="${SSH_PORT:-22}"
+    fi
+    [[ "${port}" =~ ^[0-9]+$ ]] || port="22"
+    printf '%s\n' "${port}"
 }
 
 check_vpn_killswitch() {
@@ -51,8 +61,9 @@ list_vpn_bypass() {
 }
 
 apply_vpn_nft() {
-    local name="${1:-}" with_iface="${2:-0}"
-    local home tmp iface proto port transport v6 ep4 ep6
+    local name="${1:-}" with_iface="${2:-0}" extra="${3:-}"
+    local home tmp iface proto port transport v6 ep4 ep6 ssh_port mark
+    local extra_transport="" extra_port="" extra_ep4="" extra_ep6=""
     local -a b4=() b6=() e4=() e6=() cidrs=()
     local -A seen4=() seen6=()
     local cidr ip priority
@@ -97,6 +108,17 @@ apply_vpn_nft() {
         get_vpn_v6_groups "${ip}" >/dev/null 2>&1 || continue
         e6+=("${ip}")
     done
+    if [[ -n "${extra}" ]]; then
+        extra_transport="$(get_vpn_meta "${extra}" transport 2>/dev/null || true)"
+        extra_port="$(get_vpn_meta "${extra}" port 2>/dev/null || true)"
+        extra_ep4="$(get_vpn_meta "${extra}" endpoint4 2>/dev/null || true)"
+        extra_ep6="$(get_vpn_meta "${extra}" endpoint6 2>/dev/null || true)"
+        [[ "${extra_transport}" == "tcp" || "${extra_transport}" == "udp" ]] || extra_transport=""
+        [[ "${extra_port}" =~ ^[0-9]+$ ]] || extra_port=""
+    fi
+    ssh_port="$(get_vpn_ssh_port)"
+    mark="${W_VPN_SSH_MARK:-17820}"
+    [[ "${mark}" =~ ^[0-9]+$ ]] || mark=17820
     tmp="$(mktemp "${home}/.nft.XXXXXX")"
     chmod 600 "${tmp}"
     {
@@ -120,12 +142,24 @@ apply_vpn_nft() {
         printf '        ip6 daddr @bypass6 accept\n'
         printf '        meta l4proto udp th sport 68 th dport 67 accept\n'
         printf '        meta l4proto udp th sport 546 th dport 547 accept\n'
+        printf '        meta l4proto tcp th dport %s accept\n' "${ssh_port}"
+        printf '        meta l4proto tcp th sport %s accept\n' "${ssh_port}"
         if [[ -n "${transport}" && -n "${port}" ]]; then
             for ip in "${e4[@]}"; do
                 printf '        ip daddr %s meta l4proto %s th dport %s accept\n' "${ip}" "${transport}" "${port}"
             done
             for ip in "${e6[@]}"; do
                 printf '        ip6 daddr %s meta l4proto %s th dport %s accept\n' "${ip}" "${transport}" "${port}"
+            done
+        fi
+        if [[ -n "${extra_transport}" && -n "${extra_port}" ]]; then
+            for ip in ${extra_ep4}; do
+                get_vpn_ipv4_parts "${ip}" >/dev/null 2>&1 || continue
+                printf '        ip daddr %s meta l4proto %s th dport %s accept\n' "${ip}" "${extra_transport}" "${extra_port}"
+            done
+            for ip in ${extra_ep6}; do
+                get_vpn_v6_groups "${ip}" >/dev/null 2>&1 || continue
+                printf '        ip6 daddr %s meta l4proto %s th dport %s accept\n' "${ip}" "${extra_transport}" "${extra_port}"
             done
         fi
         if [[ "${with_iface}" == "1" && "${iface}" =~ ^[a-zA-Z0-9_-]{1,15}$ ]]; then
@@ -135,6 +169,11 @@ apply_vpn_nft() {
             fi
         fi
         printf '        limit rate 10/minute log prefix "w-vpn-drop "\n'
+        printf '    }\n'
+        printf '    chain ssh {\n'
+        printf '        type route hook output priority %s; policy accept;\n' "${priority}"
+        printf '        meta l4proto tcp th dport %s meta mark set %s\n' "${ssh_port}" "${mark}"
+        printf '        meta l4proto tcp th sport %s meta mark set %s\n' "${ssh_port}" "${mark}"
         printf '    }\n'
         printf '}\n'
     } > "${tmp}"
@@ -192,6 +231,9 @@ clear_vpn_conntrack() {
         dport="${dport%% *}"
         [[ "${proto}" =~ ^(tcp|udp|icmp|icmpv6|sctp|dccp)$ ]] || continue
         [[ "${sport}" =~ ^[0-9]+$ && "${dport}" =~ ^[0-9]+$ ]] || continue
+        if [[ "${sport}" == "$(get_vpn_ssh_port)" || "${dport}" == "$(get_vpn_ssh_port)" ]]; then
+            continue
+        fi
         if check_vpn_flow "${dst}" "${dport}" "${keep[@]}"; then
             continue
         fi

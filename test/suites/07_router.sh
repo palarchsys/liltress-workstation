@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/07_router.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -134,52 +134,19 @@ if [[ -n "${root}" ]]; then
     fi
 
     if python3 - "${root}" > "${G_ARTIFACTS}/order.txt" 2>&1 << 'PY'
+import json
 import re
 import sys
 from pathlib import Path
 
 root = Path(sys.argv[1])
 
-def scripts_from_run(text):
-    lines = text.splitlines()
-    arrays = {}
-    cases = {}
-    index = 0
-    while index < len(lines):
-        stripped = lines[index].strip()
-        if re.match(r"^STEP_[A-Z0-9_]+=\(", stripped):
-            body = lines[index]
-            while ")" not in body.split("#", 1)[0]:
-                index += 1
-                body += "\n" + lines[index]
-            name = re.match(r"^STEP_[A-Z0-9_]+", stripped).group(0)
-            arrays[name] = re.findall(r'"([^"]+\.sh)"', body)
-            index += 1
-            continue
-        for var, path in re.findall(r'([A-Z][A-Z0-9_]*)="([^"]+\.sh)"', lines[index]):
-            if not var.startswith("STEP_"):
-                cases.setdefault(var, []).append(path)
-        index += 1
+def plan_paths(product):
+    data = json.loads((root / product / "script" / "install.json").read_text(encoding="utf-8"))
     order = []
-    token = re.compile(r'\$\{([A-Za-z0-9_]+)\[@\]\}|\$\{([A-Za-z0-9_]+)\}|"([^"]+\.sh)"')
-    for line in lines:
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#"):
-            continue
-        if "run_step" not in line:
-            continue
-        for array_name, var_name, literal in token.findall(line):
-            if literal and not literal.startswith("$"):
-                order.append(literal)
-            elif array_name:
-                order.extend(arrays[array_name])
-            elif var_name in ("G_INSTALL_DIRECTORY", "S_SERVER_TYPE"):
-                continue
-            elif var_name in cases:
-                order.extend(cases[var_name])
-            else:
-                print(f"jeton inconnu {var_name}")
-                sys.exit(1)
+    for category in data["categories"]:
+        for step in category["steps"]:
+            order.append(step.get("path") or step.get("action"))
     return order
 
 def map_paths(text):
@@ -196,7 +163,7 @@ def map_paths(text):
     for line in lines[start:]:
         if not line.startswith("|"):
             break
-        found = re.search(r"`([^`]+\.sh)`", line)
+        found = re.search(r"`([^`]+)`", line)
         if not found:
             print("ligne sans script")
             sys.exit(1)
@@ -204,7 +171,7 @@ def map_paths(text):
     return paths
 
 for product in ("workstation", "server"):
-    code = scripts_from_run((root / product / "scripts" / "run.sh").read_text(encoding="utf-8"))
+    code = plan_paths(product)
     listed = map_paths((root / "agents" / "maps" / f"{product}.md").read_text(encoding="utf-8"))
     if code == listed:
         continue
@@ -221,7 +188,7 @@ for product in ("workstation", "server"):
 print("ok")
 PY
     then
-        t_pass "order.maps" "tableaux alignés sur run.sh"
+        t_pass "order.maps" "tableaux alignés sur install.json"
     else
         t_fail "order.maps" "$(tr '\n' ' ' < "${G_ARTIFACTS}/order.txt" 2>/dev/null || true)"
     fi

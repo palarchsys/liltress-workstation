@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/de/vpn.txt
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,11 +11,10 @@ Aufruf: liltress vpn <Befehl>
   list
   import wireguard <Name> <Datei>
   import openvpn <Name> <Datei>
-  up <Name>
-  down
+  test <Name>
   switch <Name>
-  boot <Name>
-  boot off
+  mode on
+  mode off
   rm <Name>
   bypass
   bypass reload
@@ -37,7 +36,7 @@ Umgehungen: {1}.
 Kein aktives Profil.
 
 [vpn.list.line]
-{1} {2} {3}
+{1} {2} {3} {4} {5} {6}
 
 [vpn.list.empty]
 Kein Profil.
@@ -188,3 +187,57 @@ Starttunnel {1} ist zu.
 
 [vpn.verify.stale]
 Der Handshake von {1} ist älter als {2} Sekunden.
+
+[vpn.status.mode]
+Modus {1}.
+
+[vpn.mode.start]
+Wechsel des VPN-Modus.
+
+[vpn.mode.on]
+Der VPN-Modus ist an.
+
+[vpn.mode.off]
+Der VPN-Modus ist aus.
+
+[vpn.mode.same]
+Der VPN-Modus ist für {1} bereits an.
+
+[vpn.mode.none]
+Kein bestätigtes Profil. Der Rechner bleibt im direkten Netz.
+
+[vpn.mode.hold]
+Kein bestätigtes Profil. Der Killswitch bleibt scharf.
+
+[vpn.test.start]
+Verbindungstest für {1}.
+
+[vpn.test.ok]
+Profil {1} ist gültig.
+
+[vpn.test.fail]
+Profil {1} ist nicht gültig.
+
+[vpn.test.kept]
+Profil {1} ist gültig. Der aktuelle Tunnel bleibt.
+
+[vpn.switch.invalid]
+Profil {1} ist nicht gültig.
+
+[vpn.switch.mode]
+Der VPN-Modus ist aus.
+
+[vpn.failover.start]
+VPN-Übernahme.
+
+[vpn.failover.ok]
+Profil {1} ist offen.
+
+[vpn.failover.none]
+Kein bestätigtes Profil. Der Killswitch bleibt scharf.
+
+[vpn.service.restart]
+Abhängige Dienste neu gestartet.
+
+[vpn.import.auth-wait]
+Profil {1} ist importiert. Schreiben Sie den Namen und das Geheimnis in {2}, dann vpn test.

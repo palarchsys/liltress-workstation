@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/routes.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -59,6 +59,7 @@ apply_vpn_bypass_routes() {
         add_vpn_rule_to "${W_VPN_RULE_PRIO_BYPASS_TO}" "${cidr}"
         add_vpn_rule_from "${W_VPN_RULE_PRIO_BYPASS_FROM}" "${cidr}"
     done
+    apply_vpn_ssh
 }
 
 apply_vpn_endpoint_routes() {
@@ -101,10 +102,20 @@ clear_vpn_tunnel_routes() {
     ip -6 route flush table "${W_VPN_TABLE_ID}" >/dev/null 2>&1 || true
 }
 
+apply_vpn_ssh() {
+    load_vpn_settings
+    ensure_vpn_table
+    clear_vpn_rule_prio "${W_VPN_RULE_PRIO_SSH}"
+    ip -4 rule add priority "${W_VPN_RULE_PRIO_SSH}" fwmark "${W_VPN_SSH_MARK}" lookup main
+    ip -6 rule add priority "${W_VPN_RULE_PRIO_SSH}" fwmark "${W_VPN_SSH_MARK}" lookup main
+}
+
 clear_vpn_routes() {
     load_vpn_settings
     clear_vpn_tunnel_routes
     clear_vpn_rule_prio "${W_VPN_RULE_PRIO_ENDPOINT}"
+    clear_vpn_rule_prio 41
+    clear_vpn_rule_prio "${W_VPN_RULE_PRIO_SSH}"
     clear_vpn_rule_prio "${W_VPN_RULE_PRIO_BYPASS_TO}"
     clear_vpn_rule_prio "${W_VPN_RULE_PRIO_BYPASS_FROM}"
 }

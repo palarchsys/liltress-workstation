@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : config/vpn/w-vpn.service
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,6 +12,7 @@ Requires=w-vpn-killswitch.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+TimeoutStartSec=300
 ExecStart=/usr/bin/bash @ROOT@/service/vpn/cli.sh boot-up
 
 [Install]

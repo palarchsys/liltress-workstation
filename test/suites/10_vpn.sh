@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/10_vpn.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -52,10 +52,9 @@ vpn = paths.index("service/vpn/install.sh")
 apparmor = paths.index("service/apparmor/install.sh")
 ufw = paths.index("service/ufw/configure.sh")
 configure = paths.index("service/vpn/configure.sh")
-usb = paths.index("service/usbguard/configure.sh")
 if vpn != unbound + 1 or apparmor != vpn + 1:
     sys.exit("install hors place")
-if configure != ufw + 1 or usb != configure + 1:
+if configure != ufw + 1:
     sys.exit("configure hors place")
 PY
 then
@@ -191,4 +190,171 @@ then
     t_pass "vpn.keys" "quatre langues, deux arbres"
 else
     t_fail "vpn.keys" "$(tr '\n' ' ' < "${G_ARTIFACTS}/vpn-keys.txt")"
+fi
+
+mode_ok=1
+grep -q 'run_vpn_test' "${vpn_dir}/cli.sh" || mode_ok=0
+grep -q 'run_vpn_mode_on' "${vpn_dir}/cli.sh" || mode_ok=0
+grep -q 'run_vpn_mode_off' "${vpn_dir}/cli.sh" || mode_ok=0
+grep -q 'run_vpn_failover' "${vpn_dir}/cli.sh" || mode_ok=0
+grep -q 'clear_vpn_network' "${vpn_dir}/failover.sh" || mode_ok=0
+grep -q 'restart_vpn_services' "${vpn_dir}/failover.sh" || mode_ok=0
+grep -q 'restart_vpn_services' "${vpn_dir}/switch.sh" || mode_ok=0
+grep -q 'check_vpn_profile_valid' "${vpn_dir}/switch.sh" || mode_ok=0
+grep -q 'run_vpn_test' "${vpn_dir}/import.sh" || mode_ok=0
+grep -q 'W_VPN_FAILOVER_TRIES' "${vpn_dir}/failover.sh" || mode_ok=0
+grep -q 'W_VPN_FAILOVER_TIMEOUT' "${vpn_dir}/failover.sh" || mode_ok=0
+grep -q 'log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.none"' "${vpn_dir}/failover.sh" || mode_ok=0
+grep -q 'log_error .*vpn.failover.none' "${vpn_dir}/failover.sh" && mode_ok=0
+grep -q 'meta l4proto tcp th dport' "${vpn_dir}/killswitch.sh" || mode_ok=0
+grep -q 'meta l4proto tcp th sport' "${vpn_dir}/killswitch.sh" || mode_ok=0
+grep -q 'meta mark set' "${vpn_dir}/killswitch.sh" || mode_ok=0
+grep -q 'fwmark' "${vpn_dir}/routes.sh" || mode_ok=0
+grep -q 'W_VPN_RULE_PRIO_SSH=45' "${cfg_dir}/vpn.conf" || mode_ok=0
+grep -q 'W_VPN_RULE_PRIO_TUNNEL=100' "${cfg_dir}/vpn.conf" || mode_ok=0
+grep -q 'W_VPN_FAILOVER_TRIES=3' "${cfg_dir}/vpn.conf" || mode_ok=0
+grep -q 'W_VPN_FAILOVER_TIMEOUT=10' "${cfg_dir}/vpn.conf" || mode_ok=0
+grep -q 'TimeoutStartSec=300' "${cfg_dir}/w-vpn.service" || mode_ok=0
+grep -q 'w-vpn-watch.timer' "${vpn_dir}/configure.sh" || mode_ok=0
+if grep -E '^[[:space:]]+up\)' "${vpn_dir}/cli.sh" || grep -E '^[[:space:]]+down\)' "${vpn_dir}/cli.sh" || grep -E '^[[:space:]]+boot\)' "${vpn_dir}/cli.sh"; then
+    mode_ok=0
+fi
+if [[ "${mode_ok}" -eq 1 ]]; then
+    t_pass "vpn.mode" "registre, reprise, SSH hors tunnel"
+else
+    t_fail "vpn.mode" "commande ou constante absente"
+fi
+
+state_root="${G_ARTIFACTS}/vpn-state-root"
+mkdir -p "${state_root}"
+saved_base="${G_CONFIG_BASE_DIRECTORY:-}"
+export G_CONFIG_BASE_DIRECTORY="${state_root}"
+# shellcheck disable=SC1091
+source "${vpn_dir}/state.sh"
+state_ok=1
+write_vpn_state || state_ok=0
+record_vpn_attempt "office" 0 || state_ok=0
+first="$(show_vpn_profile_state office)" || state_ok=0
+[[ "$(printf '%s\n' "${first}" | sed -n '1p')" == "false" ]] || state_ok=0
+[[ -z "$(printf '%s\n' "${first}" | sed -n '2p')" ]] || state_ok=0
+[[ -n "$(printf '%s\n' "${first}" | sed -n '3p')" ]] || state_ok=0
+[[ -n "$(printf '%s\n' "${first}" | sed -n '4p')" ]] || state_ok=0
+sleep 1
+record_vpn_attempt "office" 1 || state_ok=0
+second="$(show_vpn_profile_state office)" || state_ok=0
+kept_valid="$(printf '%s\n' "${second}" | sed -n '2p')"
+[[ "$(printf '%s\n' "${second}" | sed -n '1p')" == "true" ]] || state_ok=0
+[[ -n "${kept_valid}" ]] || state_ok=0
+sleep 1
+record_vpn_attempt "office" 0 || state_ok=0
+third="$(show_vpn_profile_state office)" || state_ok=0
+[[ "$(printf '%s\n' "${third}" | sed -n '1p')" == "false" ]] || state_ok=0
+[[ "$(printf '%s\n' "${third}" | sed -n '2p')" == "${kept_valid}" ]] || state_ok=0
+[[ "$(printf '%s\n' "${third}" | sed -n '4p')" != "$(printf '%s\n' "${second}" | sed -n '4p')" ]] || state_ok=0
+if check_vpn_profile_valid office; then
+    state_ok=0
+fi
+if [[ -n "${saved_base}" ]]; then
+    export G_CONFIG_BASE_DIRECTORY="${saved_base}"
+else
+    unset G_CONFIG_BASE_DIRECTORY
+fi
+if [[ "${state_ok}" -eq 1 ]]; then
+    t_pass "vpn.state" "dates conservées, essai encore accepté"
+else
+    t_fail "vpn.state" "registre ${third}"
+fi
+
+# shellcheck disable=SC1091
+source "${vpn_dir}/import.sh"
+import_root="${G_ARTIFACTS}/vpn-import-root"
+import_src="${G_ARTIFACTS}/vpn-import-src"
+rm -rf "${import_root}" "${import_src}"
+mkdir -p "${import_src}" "${import_root}"
+printf 'ca-body\n' > "${import_src}/ca.crt"
+printf 'cert-body\n' > "${import_src}/client.crt"
+printf 'key-body\n' > "${import_src}/client.key"
+printf 'crl-body\n' > "${import_src}/crl.pem"
+printf 'alice\nbob\n' > "${import_src}/auth.txt"
+printf '#!/bin/sh\nexit 0\n' > "${import_src}/client.up"
+cat > "${import_src}/openvpn.ovpn" << 'EOF'
+client
+remote 203.0.113.10 443
+proto udp
+auth-user-pass
+comp-lzo
+up client.up
+redirect-gateway def1
+ca "ca.crt"
+cert client.crt
+key client.key
+crl-verify crl.pem
+EOF
+saved_import="${G_CONFIG_BASE_DIRECTORY:-}"
+export G_CONFIG_BASE_DIRECTORY="${import_root}"
+import_ok=1
+if ! install_vpn_openvpn "cg-usa" "${import_src}/openvpn.ovpn"; then
+    import_ok=0
+fi
+import_profile="${import_root}/vpn/openvpn/cg-usa"
+for import_file in source runtime ca.crt client.crt client.key crl.pem auth.txt meta; do
+    [[ -f "${import_profile}/${import_file}" ]] || import_ok=0
+done
+grep -q 'auth-user-pass auth.txt' "${import_profile}/runtime" || import_ok=0
+grep -q 'ca ca.crt' "${import_profile}/runtime" || import_ok=0
+grep -q 'crl-verify crl.pem' "${import_profile}/runtime" || import_ok=0
+grep -q 'remote 203.0.113.10 443 udp' "${import_profile}/runtime" || import_ok=0
+grep -q 'alice' "${import_profile}/auth.txt" || import_ok=0
+grep -q 'comp-lzo' "${import_profile}/runtime" && import_ok=0
+grep -q '^up ' "${import_profile}/runtime" && import_ok=0
+[[ -e "${import_profile}/client.up" ]] && import_ok=0
+printf 'only-name\n' > "${import_src}/openvpn.ovpn"
+printf 'ca missing.crt\nremote 203.0.113.10 1194\nproto udp\n' > "${import_src}/openvpn.ovpn"
+if ( install_vpn_openvpn "cg-miss" "${import_src}/openvpn.ovpn" ); then
+    import_ok=0
+fi
+[[ -d "${import_root}/vpn/openvpn/cg-miss" ]] && import_ok=0
+: > "${import_src}/auth.txt"
+cat > "${import_src}/bare.ovpn" << 'EOF'
+client
+remote 203.0.113.11 1194
+proto udp
+auth-user-pass
+EOF
+if ! install_vpn_openvpn "cg-wait" "${import_src}/bare.ovpn"; then
+    import_ok=0
+fi
+wait_auth="${import_root}/vpn/openvpn/cg-wait/auth.txt"
+[[ -f "${wait_auth}" ]] || import_ok=0
+if check_vpn_auth_file "${wait_auth}"; then
+    import_ok=0
+fi
+wg_src="${G_ARTIFACTS}/vpn-import-wg.conf"
+{
+    printf '%s\n' '[Interface]'
+    printf '%s%s = %s\n' 'Private' 'Key' 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa='
+    printf '%s\n' 'Address = 10.66.0.2/32'
+    printf '%s\n' 'DNS = 1.1.1.1'
+    printf '%s\n' '[Peer]'
+    printf '%s\n' 'PublicKey = bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb='
+    printf '%s\n' 'Endpoint = 203.0.113.20:51820'
+    printf '%s\n' 'AllowedIPs = 0.0.0.0/0'
+} > "${wg_src}"
+if ! install_vpn_wireguard "mullvad" "${wg_src}"; then
+    import_ok=0
+fi
+wg_profile="${import_root}/vpn/wireguard/mullvad"
+[[ -f "${wg_profile}/source" && -f "${wg_profile}/runtime" ]] || import_ok=0
+grep -q 'Table = off' "${wg_profile}/runtime" || import_ok=0
+grep -q 'DNS' "${wg_profile}/runtime" && import_ok=0
+grep -q '203.0.113.20:51820' "${wg_profile}/runtime" || import_ok=0
+if [[ -n "${saved_import}" ]]; then
+    export G_CONFIG_BASE_DIRECTORY="${saved_import}"
+else
+    unset G_CONFIG_BASE_DIRECTORY
+fi
+if [[ "${import_ok}" -eq 1 ]]; then
+    t_pass "vpn.import.files" "certificats, auth.txt et WireGuard"
+else
+    t_fail "vpn.import.files" "copie incomplète"
 fi

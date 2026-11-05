@@ -236,11 +236,6 @@
           "path": "service/vpn/configure.sh"
         },
         {
-          "id": "install.usbguard.configure",
-          "service": "usbguard",
-          "path": "service/usbguard/configure.sh"
-        },
-        {
           "id": "install.unbound.configure",
           "service": "unbound",
           "path": "service/unbound/configure.sh"
@@ -309,6 +304,11 @@
           "id": "install.apt-upgrade",
           "service": "apt",
           "action": "apt-upgrade"
+        },
+        {
+          "id": "install.usbguard.configure",
+          "service": "usbguard",
+          "path": "service/usbguard/configure.sh"
         },
         {
           "id": "install.purge.removed",

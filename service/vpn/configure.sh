@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/configure.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -21,6 +21,8 @@ source "${G_INSTALL_DIRECTORY}/core/lib.sh"
 source "${G_INSTALL_DIRECTORY}/config/global.conf"
 # shellcheck disable=SC1091
 source "${G_INSTALL_DIRECTORY}/service/vpn/lib.sh"
+# shellcheck disable=SC1091
+source "${G_INSTALL_DIRECTORY}/service/vpn/state.sh"
 require_root
 
 render_vpn_unit() {
@@ -38,6 +40,7 @@ log_subtitle     "${INSTALL_WATCHER}" "vpn.install.title"
 home="$(get_vpn_home)"
 install -d -m 755 "${home}"
 install -d -m 700 "${home}/wireguard" "${home}/openvpn"
+write_vpn_state
 install -m 644 "$(locate_config_file vpn/vpn.conf)" "${home}/vpn.conf"
 if [[ ! -f "${home}/bypass.cidrs" ]]; then
     install -m 644 "$(locate_config_file vpn/bypass.cidrs)" "${home}/bypass.cidrs"
@@ -51,6 +54,8 @@ printf '17820 w_vpn\n' > "${rt_file}"
 chmod 644 "${rt_file}"
 render_vpn_unit w-vpn-killswitch.service
 render_vpn_unit w-vpn.service
+render_vpn_unit w-vpn-watch.service
+render_vpn_unit w-vpn-watch.timer
 run_silent       "${INSTALL_WATCHER}" "vpn.install.fail" systemctl daemon-reload
 load_vpn_settings
 apply_vpn_systemd
