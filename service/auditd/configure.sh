@@ -14,7 +14,6 @@ source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_current_user
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.configuration-auditd-2"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-auditd"
 
 install -d -m 750 /etc/audit/rules.d

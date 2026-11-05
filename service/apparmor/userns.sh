@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle "${INSTALL_WATCHER}" "log.profiles-apparmor-userns"
 log_info "${INSTALL_WATCHER}" "log.detection-of-the-profiles-userns"
 bash "${INSTALL_DIRECTORY}/service/apparmor/detect-and-apply.sh" "${INSTALL_DIRECTORY}"
 run_optional "${INSTALL_WATCHER}" "install.apparmor.error" systemctl reload apparmor

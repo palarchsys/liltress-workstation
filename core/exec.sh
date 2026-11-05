@@ -217,7 +217,10 @@ run_install_plan() {
             if [[ "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
                 echo "" >&2
                 set_color_blue "   $(get_text log.execution-of "${target}")"
-                echo "" >&2
+                case "${target}" in
+                    reboot-notice|offer-remove) ;;
+                    *) echo "" >&2 ;;
+                esac
             fi
             run_install_action "${target}"
         fi

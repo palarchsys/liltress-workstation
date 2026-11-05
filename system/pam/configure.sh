@@ -14,7 +14,6 @@ source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
 get_current_user
-log_subtitle     "${INSTALL_WATCHER}" "configure.algorithm-of-the-passwords-lynis-auth-9229"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-encrypt-method-yescrypt-no-chpa"
 if grep -q "^ENCRYPT_METHOD" /etc/login.defs; then
     sed -i 's/^ENCRYPT_METHOD.*/ENCRYPT_METHOD YESCRYPT/' /etc/login.defs
@@ -22,7 +21,6 @@ else
     echo "$(get_text configure.encrypt-method-yescrypt)" >> /etc/login.defs
 fi
 log_success      "${INSTALL_WATCHER}" "configure.yescrypt-for-the-new-hash-old-intact"
-log_subtitle     "${INSTALL_WATCHER}" "configure.required-quality-lors-of-a-change-of-password"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-pwquality"
 tee /etc/security/pwquality.conf > /dev/null << EOF
 minlen = ${W_PAM_PASSWORD_MIN_LENGTH}

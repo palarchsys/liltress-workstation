@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "install.installation-usbguard"
 log_info         "${INSTALL_WATCHER}" "install.installation-of-usbguard"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y usbguard usbguard-notifier" "install.usbguard.error"
 run_optional     "${INSTALL_WATCHER}" "install.usbguard.error" systemctl disable --now usbguard

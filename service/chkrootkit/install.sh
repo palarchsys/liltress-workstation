@@ -16,7 +16,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "install.installation-chkrootkit"
 log_info         "${INSTALL_WATCHER}" "install.installation-of-chkrootkit-2"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y chkrootkit" "install.chkrootkit.error"
 install -d -m 755 "${CONFIG_BASE_DIRECTORY}/bin"

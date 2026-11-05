@@ -13,6 +13,12 @@
 [log.absent]
 Fehlt
 
+[log.application-of-sysctl]
+Anwendung von sysctl
+
+[log.sysctl-applied]
+Sysctl angewendet
+
 [log.alerts-enabled-n]
 Alarme: aktiviert\n
 

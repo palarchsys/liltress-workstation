@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle "${INSTALL_WATCHER}" "log.baseline-help"
 log_info "${INSTALL_WATCHER}" "log.the-calculation-of-the-fingerprints-can-take-sev"
 log_info "${INSTALL_WATCHER}" "log.the-detail-stays-in-the-journal-not-in-the-termi"
 

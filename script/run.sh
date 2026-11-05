@@ -63,7 +63,9 @@ run_install_action() {
     local name="$1"
     case "${name}" in
         sysctl)
+            log_info "${INSTALL_WATCHER}" "log.application-of-sysctl"
             run_optional "${INSTALL_WATCHER}" "run.script.error" sysctl --system
+            log_success "${INSTALL_WATCHER}" "log.sysctl-applied"
             ;;
         apt-upgrade)
             log_info "${INSTALL_WATCHER}" "log.installation-of-the-fixes-of-security"
@@ -118,4 +120,3 @@ run_install_action() {
 }
 
 run_install_plan "${INSTALL_DIRECTORY}" "${INSTALL_DIRECTORY}/script/install.json"
-echo ""

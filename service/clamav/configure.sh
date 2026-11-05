@@ -38,7 +38,6 @@ ensure_xdg_directory() {
     printf '%s\n' "${path}"
 }
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.configuration-clamav"
 
 log_info         "${INSTALL_WATCHER}" "configure.update-of-the-signatures-can-take-1-2-min"
 

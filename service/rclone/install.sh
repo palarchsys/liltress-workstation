@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "install.installation-of-rclone"
 if [[ "${RCLONE_ALERTS:-0}" != "1" ]]; then
     log_info         "${INSTALL_WATCHER}" "install.send-google-drive-cut-rclone-is-not-installed"
     exit 0

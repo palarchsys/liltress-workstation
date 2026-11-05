@@ -15,7 +15,6 @@ require_root
 # shellcheck disable=SC2155
 readonly DIR_SCRIPT_PATH="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.sysctl-workstation"
 log_info         "${INSTALL_WATCHER}" "configure.ipv6-and-user-namespaces-active"
 
 ip_forward=1

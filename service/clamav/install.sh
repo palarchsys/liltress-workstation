@@ -12,7 +12,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "install.installation-clamav-2"
 log_info         "${INSTALL_WATCHER}" "install.installation-of-clamav"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y clamav clamav-daemon clamav-freshclam" "install.clamav.error"
 log_success      "${INSTALL_WATCHER}" "install.clamav-installed-2"

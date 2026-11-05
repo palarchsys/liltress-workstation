@@ -1,11 +1,8 @@
 # =============================================================================
 # File       : workstation/locale/fr/install.txt
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
-
-[install.accounting-and-pam-lynis-acct-auth]
-Comptabilité et PAM (Lynis ACCT / AUTH)
 
 [install.activation-of-livepatch]
 Activation de Livepatch
@@ -130,8 +127,14 @@ Installation de Postfix (envoi seul, Internet Site)
 [install.installation-of-rkhunter-2]
 Installation de rkhunter
 
-[install.installation-of-the-accounting-and-of-pam]
-Installation de la comptabilité et de PAM
+[install.installation-of-acct]
+Installation d'acct
+
+[install.installation-of-sysstat]
+Installation de sysstat
+
+[install.installation-of-libpam-pwquality]
+Installation de libpam-pwquality
 
 [install.installation-of-the-client-ubuntu-pro]
 Installation du client Ubuntu Pro
@@ -172,8 +175,14 @@ Multiarch i386
 [install.no-hwrng-exploitable-entropy-via-haveged-ok-desk]
 Pas de HWRNG exploitable — entropie via haveged (OK desktop)
 
-[install.packages-acct-sysstat-and-libpam-pwquality-insta]
-Paquets acct, sysstat et libpam-pwquality installés
+[install.acct-installed]
+acct installé
+
+[install.sysstat-installed]
+sysstat installé
+
+[install.libpam-pwquality-installed]
+libpam-pwquality installé
 
 [install.record-of-the-repository-crowdsec]
 Enregistrement du dépôt CrowdSec

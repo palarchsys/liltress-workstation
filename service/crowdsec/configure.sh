@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.collections-crowdsec"
 log_info         "${INSTALL_WATCHER}" "configure.installation-of-the-collections-crowdsec"
 run_silent       "${INSTALL_WATCHER}" "configure.crowdsec.error" cscli hub update
 
@@ -32,7 +31,6 @@ while read -r name; do
 done < "$(locate_config_file crowdsec/optional.list)"
 log_success      "${INSTALL_WATCHER}" "configure.optional-collections-processed"
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.duration-of-block"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-the-duration-of-block"
 # shellcheck disable=SC1091
 source "$(locate_config_file crowdsec/ban.conf)"
@@ -44,7 +42,6 @@ grep -v '^#' "$(locate_config_file crowdsec/profiles.yaml)" \
     > /etc/crowdsec/profiles.yaml
 log_success      "${INSTALL_WATCHER}" "configure.block-installed" "${W_CROWDSEC_BAN_DURATION}"
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.journals-read-by-crowdsec"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-the-journals-read-by-crowdsec"
 {
     grep -v '^#' "$(locate_config_file crowdsec/acquisition-journal.yaml)"
@@ -61,7 +58,6 @@ log_info         "${INSTALL_WATCHER}" "configure.configuration-of-the-journals-r
 chmod 644 /etc/crowdsec/acquisitions.yaml
 log_success      "${INSTALL_WATCHER}" "configure.journals-ssh-system-and-mail-configured"
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.bouncer-firewall"
 log_info         "${INSTALL_WATCHER}" "configure.binding-of-the-bouncer-nftables-to-the-api-local"
 cscli bouncers delete firewall-bouncer >/dev/null 2>&1 || true
 raw="$(cscli bouncers add firewall-bouncer 2>&1)"

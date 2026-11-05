@@ -12,7 +12,6 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
-log_subtitle     "${INSTALL_WATCHER}" "install.repository-lynis-cisofy"
 log_info         "${INSTALL_WATCHER}" "install.creation-of-etc-apt-keyrings"
 ensure_directory /etc/apt/keyrings 755
 
@@ -33,7 +32,6 @@ EOF
 chmod 644 "${LYNIS_LIST}"
 log_success      "${INSTALL_WATCHER}" "install.repository-lynis-configured-sources-ubuntu-not-c"
 
-log_subtitle     "${INSTALL_WATCHER}" "log.lynis"
 log_info         "${INSTALL_WATCHER}" "install.installation-of-lynis"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y lynis --no-install-recommends" "install.lynis.error"
 log_success      "${INSTALL_WATCHER}" "install.lynis-installed"

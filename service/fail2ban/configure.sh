@@ -14,7 +14,6 @@ source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_ssh_port
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.configuration-fail2ban"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-fail2ban"
 envsubst '$SSH_PORT' < "$(locate_config_file fail2ban/jail.local)" > /etc/fail2ban/jail.local
 chmod 644 /etc/fail2ban/jail.local

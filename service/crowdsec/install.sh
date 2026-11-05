@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "install.repository-crowdsec"
 log_info         "${INSTALL_WATCHER}" "install.record-of-the-repository-crowdsec"
 install -d -m 755 /etc/apt/keyrings
 CROWDSEC_KEY="/etc/apt/keyrings/crowdsec_crowdsec-archive-keyring.gpg"
@@ -29,7 +28,6 @@ chmod 644 /etc/apt/preferences.d/crowdsec
 run_silent_apt   "${INSTALL_WATCHER}" "update" "install.crowdsec.error"
 log_success      "${INSTALL_WATCHER}" "install.repository-crowdsec-saved"
 
-log_subtitle     "${INSTALL_WATCHER}" "install.installation-of-crowdsec-2"
 log_info         "${INSTALL_WATCHER}" "install.installation-of-crowdsec-2"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y crowdsec crowdsec-firewall-bouncer-nftables" "install.crowdsec.error"
 cs_ver="$(dpkg-query -W -f '${Version}' crowdsec 2>/dev/null || true)"

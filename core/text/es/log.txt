@@ -13,6 +13,12 @@
 [log.absent]
 Ausente
 
+[log.application-of-sysctl]
+Aplicación de sysctl
+
+[log.sysctl-applied]
+Sysctl aplicado
+
 [log.alerts-enabled-n]
 alertas: activadas\n
 

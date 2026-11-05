@@ -164,7 +164,6 @@ set_color_violet "════════════════════�
 set_color_violet " Liltress Workstation — configuration                                               "
 set_color_violet "═════════════════════════════════════════════════════════════════════════════════"
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.script.title"
 log_info         "${INSTALL_WATCHER}" "configure.ubuntu-pro-token-url"
 log_info         "${INSTALL_WATCHER}" "configure.letters-and-digits-without-spaces"
 prompt UBUNTU_PRO_TOKEN \
@@ -208,7 +207,6 @@ check_smtp_probe() {
     return 1
 }
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.alerts-by-email"
 log_info         "${INSTALL_WATCHER}" "configure.enable-the-alerts-by-emails-y-n"
 while true; do
     echo ""
@@ -218,7 +216,6 @@ while true; do
         Y|y)
             clear_mail
 
-            log_subtitle     "${INSTALL_WATCHER}" "configure.server-smtp"
             log_info         "${INSTALL_WATCHER}" "configure.form-host-port-for-example-smtp-mail-outlook-com"
             prompt POSTFIX_MAIL_SMTP \
                 "$(get_text configure.server)" \
@@ -227,7 +224,6 @@ while true; do
                 smtp \
                 "$(get_text configure.enter-the-server-and-the-port-without-brackets-e)"
 
-            log_subtitle     "${INSTALL_WATCHER}" "configure.login-smtp"
             log_info         "${INSTALL_WATCHER}" "configure.address-email-serving-of-login"
             prompt POSTFIX_SMTP_LOGIN \
                 "$(get_text configure.login)" \
@@ -236,7 +232,6 @@ while true; do
                 email \
                 "$(get_text configure.enter-the-address-email-of-the-account-smtp)"
 
-            log_subtitle     "${INSTALL_WATCHER}" "configure.password-of-application"
             log_info         "${INSTALL_WATCHER}" "configure.spaces-removed-the-line-following-confirms"
             prompt POSTFIX_MAIL_PASSWORD \
                 "$(get_text configure.password)" \
@@ -245,7 +240,6 @@ while true; do
                 secret \
                 "$(get_text configure.password-of-application-at-least-8-characters-wi)"
 
-            log_subtitle     "${INSTALL_WATCHER}" "configure.sender"
             log_info         "${INSTALL_WATCHER}" "configure.the-alerts-leave-toward-this-same-address"
             prompt POSTFIX_MAIL_ADDRESS \
                 "$(get_text configure.from)" \
@@ -255,7 +249,6 @@ while true; do
                 "$(get_text configure.enter-the-address-email-sender)"
             WATCHDOG_MAIL="${POSTFIX_MAIL_ADDRESS}"
 
-            log_subtitle     "${INSTALL_WATCHER}" "configure.attempt-of-send"
             log_info         "${INSTALL_WATCHER}" "configure.attempt-of-send-swaks-checks-server-login-passwo"
             if check_smtp_probe; then
                 MAIL_ALERTS=1
@@ -288,7 +281,6 @@ clear_drive() {
 ask_drive_alert() {
     local choice="" base config old_umask
     base="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
-    log_subtitle     "${INSTALL_WATCHER}" "configure.alerts-toward-google-drive"
     log_info         "${INSTALL_WATCHER}" "configure.enable-the-send-of-the-alerts-toward-google-driv"
     while true; do
         echo ""
@@ -356,7 +348,6 @@ ask_drive_alert() {
 
 ask_drive_alert
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.mode-test"
 log_info         "${INSTALL_WATCHER}" "configure.1-no-removal-0-question-at-the-end-of-installati"
 log_info         "${INSTALL_WATCHER}" "configure.entry-keeps-the-value-in-progress-1-by-default"
 prompt MODE_TEST \

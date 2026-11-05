@@ -34,7 +34,6 @@ render_vpn_unit() {
     chmod 644 "${dest}"
 }
 
-log_subtitle     "${INSTALL_WATCHER}" "vpn.install.title"
 home="$(get_vpn_home)"
 install -d -m 755 "${home}"
 install -d -m 700 "${home}/wireguard" "${home}/openvpn"

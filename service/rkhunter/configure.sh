@@ -16,7 +16,6 @@ get_current_user
 W_ACCOUNT_USER="${CURRENT_USER}"
 export W_ACCOUNT_USER
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.configuration-rkhunter"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-rkhunter-2"
 envsubst '$W_ACCOUNT_USER' < "$(locate_config_file rkhunter/rkhunter.conf.local)" > /etc/rkhunter.conf.local
 chmod 644 /etc/rkhunter.conf.local

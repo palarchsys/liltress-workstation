@@ -17,7 +17,6 @@ source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_current_user
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.configuration-help"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-help-2"
 ensure_directory /etc/aide 755
 ensure_directory /var/lib/aide 700

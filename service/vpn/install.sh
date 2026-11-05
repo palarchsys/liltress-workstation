@@ -19,7 +19,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "vpn.install.title"
 log_info         "${INSTALL_WATCHER}" "vpn.install.title"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y wireguard-tools openvpn conntrack" "vpn.install.fail"
 if [[ ! -d /sys/module/wireguard ]]; then

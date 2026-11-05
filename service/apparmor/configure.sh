@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.activation-apparmor"
 log_info         "${INSTALL_WATCHER}" "configure.activation-of-apparmor"
 run_silent       "${INSTALL_WATCHER}" "configure.apparmor.error" systemctl enable --now apparmor
 log_success      "${INSTALL_WATCHER}" "configure.apparmor-enabled"

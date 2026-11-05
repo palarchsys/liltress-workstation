@@ -14,7 +14,6 @@ source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_current_user
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.policy-usbguard"
 
 log_info         "${INSTALL_WATCHER}" "configure.write-of-the-rules-usbguard"
 install -d -m 750 /etc/usbguard /etc/usbguard/IPCAccessControl.d

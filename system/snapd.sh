@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle "${INSTALL_WATCHER}" "log.snapd"
 log_info "${INSTALL_WATCHER}" "log.installation-of-snapd"
 export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a

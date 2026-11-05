@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "install.installation-of-postfix"
 log_info         "${INSTALL_WATCHER}" "install.installation-of-postfix-send-only-internet-site"
 debconf_tmp="$(mktemp)"
 sed "s|__HOSTNAME__|$(hostname -f)|g" "$(locate_config_file postfix/debconf.conf)" | grep -v '^#' > "${debconf_tmp}"

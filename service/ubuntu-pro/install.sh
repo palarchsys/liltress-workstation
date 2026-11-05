@@ -12,7 +12,6 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
-log_subtitle     "${INSTALL_WATCHER}" "install.ubuntu-pro"
 
 log_info         "${INSTALL_WATCHER}" "install.installation-of-the-client-ubuntu-pro"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y ubuntu-pro-client" "install.ubuntu-pro.error"

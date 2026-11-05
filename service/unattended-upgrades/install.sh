@@ -12,7 +12,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "install.installation-unattended-upgrades"
 log_info         "${INSTALL_WATCHER}" "install.installation-of-unattended-upgrades"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y unattended-upgrades apt-listchanges" "install.unattended-upgrades.error"
 log_success      "${INSTALL_WATCHER}" "install.unattended-upgrades-installed"

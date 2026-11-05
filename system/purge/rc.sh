@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle "${INSTALL_WATCHER}" "log.purge-of-the-packages-rc-lynis-pkgs-7346"
 log_info "${INSTALL_WATCHER}" "log.check-of-the-packages-rc"
 mapfile -t rc_all < <(dpkg -l 2>/dev/null | awk '/^rc/{print $2}')
 rc_pkgs=()

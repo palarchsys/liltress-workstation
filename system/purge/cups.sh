@@ -16,7 +16,6 @@ require_root
 local_p=""
 local_unit=""
 cups_pkgs=()
-log_subtitle "${INSTALL_WATCHER}" "log.cups"
 for local_p in cups cups-daemon cups-browsed cups-core-drivers cups-server-common cups-filters; do
     if dpkg-query -W -f '${Status}\n' "${local_p}" 2>/dev/null | grep -q 'install ok'; then
         cups_pkgs+=("${local_p}")

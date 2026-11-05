@@ -16,7 +16,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.configuration-unbound-local-dns"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-unbound"
 
 if [[ ! -f /usr/share/dns/root.hints ]]; then

@@ -137,11 +137,6 @@ log_show() {
             echo "" >&2
             LOG_AFTER_TITLE=1
             ;;
-        subtitle)
-            echo "" >&2
-            set_color_blue "   ${value}"
-            echo "" >&2
-            ;;
         error)
             echo ""
             set_color_red "  -----------------------------------------------------------------------------"
@@ -162,11 +157,6 @@ log_success()  { log_show "${1:-BASH}" success "${2:-}" "${@:3}"; }
 log_warn()     { log_show "${1:-BASH}" warn "${2:-}" "${@:3}"; }
 log_debug()    { log_show "${1:-BASH}" debug "${2:-}" "${@:3}"; }
 log_title()    { log_show "${1:-BASH}" title "${2:-}" "${@:3}"; }
-log_subtitle() {
-    if [[ "${1:-BASH}" == "GO" ]]; then
-        log_show "${1:-BASH}" subtitle "${2:-}" "${@:3}"
-    fi
-}
 log_error()    { log_show "${1:-BASH}" error "${2:-}" "${@:3}"; }
 
 require_root() {
@@ -185,7 +175,6 @@ set_step_visible() {
 }
 
 set_step_hidden() {
-    echo "" >&2
     set_color_violet "═══ ↑ ↑ ═════════════════════════════════════════════════════════════════ ↑ ↑ ═══"
     set_color_violet " # $*"
     set_color_violet "═════════════════════════════════════════════════════════════════════════════════"

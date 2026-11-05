@@ -19,7 +19,6 @@ if [[ "${MAIL_ALERTS:-0}" != "1" ]]; then
     exit 0
 fi
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.credentials-smtp"
 log_info         "${INSTALL_WATCHER}" "configure.record-of-the-card-sasl"
 relay_host="${POSTFIX_MAIL_SMTP%:*}"
 relay_port="${POSTFIX_MAIL_SMTP##*:}"
@@ -42,13 +41,11 @@ fi
 chmod 600 /etc/postfix/sasl_passwd "${sasl_index}"
 log_success      "${INSTALL_WATCHER}" "configure.card-sasl-saved-reading-root-only"
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.name-of-mail"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-the-name-of-mail"
 printf '%s\n' "$(hostname -f)" > /etc/mailname
 chmod 644 /etc/mailname
 log_success      "${INSTALL_WATCHER}" "configure.mailname-saved" "$(hostname -f)"
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.relay-and-rewrite-of-the-sender"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-the-relay-and-of-the-sender"
 printf '/.*/ %s\n' "${POSTFIX_MAIL_ADDRESS}" > /etc/postfix/sender_canonical
 chmod 644 /etc/postfix/sender_canonical

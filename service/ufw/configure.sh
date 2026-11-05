@@ -14,7 +14,6 @@ source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_ssh_port
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.configuration-ufw-desktop-safe"
 copy_backup /etc/default/ufw
 copy_backup /etc/ufw/before.rules
 
@@ -61,7 +60,7 @@ log_info         "${INSTALL_WATCHER}" "configure.ssh-limit-on-the-port-detected-
 
 remove_ufw_marked() {
     local nums n
-    mapfile -t nums < <(LANG=C LC_ALL=C ufw status numbered \
+    mapfile -t nums < <(LANG=C LC_ALL=C LANGUAGE=C ufw status numbered \
         | awk -v open="${W_UFW_SSH_COMMENT_OPEN}" -v lan="${W_UFW_SSH_COMMENT_LAN}" '
             index($0, open) || index($0, lan) {
                 if (match($0, /\[[[:space:]]*[0-9]+\]/)) {
@@ -107,7 +106,7 @@ for prefix in "${deduped_prefixes[@]+"${deduped_prefixes[@]}"}"; do
 done
 
 if [[ ${#kept_prefixes[@]} -eq 0 ]]; then
-    if ! LANG=C LC_ALL=C ufw status | grep -qF "${W_UFW_SSH_COMMENT_OPEN}"; then
+    if ! LANG=C LC_ALL=C LANGUAGE=C ufw status | grep -qF "${W_UFW_SSH_COMMENT_OPEN}"; then
         run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw limit "${SSH_PORT}/tcp" comment "${W_UFW_SSH_COMMENT_OPEN}"
     fi
     log_warn         "${INSTALL_WATCHER}" "configure.no-pr-fixe-connected-ssh-stays-opened-on-all-the"
@@ -122,11 +121,10 @@ fi
 run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw allow in on lo
 run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw allow out on lo
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.activation-ufw"
 log_info         "${INSTALL_WATCHER}" "configure.activation-of-ufw"
 run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw --force enable
-if ! LANG=C LC_ALL=C ufw status | grep -qw "Status: active"; then
-    log_error        "${INSTALL_WATCHER}" "configure.ufw-is-not-active-after-enable" "$(LANG=C LC_ALL=C ufw status)"
+if ! LANG=C LC_ALL=C LANGUAGE=C ufw status | grep -qw "Status: active"; then
+    log_error        "${INSTALL_WATCHER}" "configure.ufw-is-not-active-after-enable" "$(LANG=C LC_ALL=C LANGUAGE=C ufw status)"
 fi
 log_success      "${INSTALL_WATCHER}" "configure.ufw-enabled-outgoing-allow"
 bash "${INSTALL_DIRECTORY}/service/ufw/egress.sh" "${INSTALL_WATCHER}" "${INSTALL_DIRECTORY}"

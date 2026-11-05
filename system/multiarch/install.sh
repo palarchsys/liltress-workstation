@@ -12,7 +12,6 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
-log_subtitle     "${INSTALL_WATCHER}" "install.multiarch-i386"
 
 if [[ "$(dpkg --print-architecture)" == "amd64" ]]; then
     log_info         "${INSTALL_WATCHER}" "install.check-of-the-architecture-i386"

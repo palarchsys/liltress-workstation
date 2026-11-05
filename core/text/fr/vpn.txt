@@ -171,7 +171,7 @@ Installation des paquets VPN échouée : {1}
 Paquets du client VPN installés.
 
 [vpn.configure.ok]
-Client VPN préparé.
+Client VPN préparé
 
 [vpn.profile.invalid]
 Le profil {1} est invalide.

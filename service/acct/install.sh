@@ -13,8 +13,7 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "install.accounting-and-pam-lynis-acct-auth"
-log_info         "${INSTALL_WATCHER}" "install.installation-of-the-accounting-and-of-pam"
+log_info         "${INSTALL_WATCHER}" "install.installation-of-acct"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y acct" "install.acct.error"
 run_optional     "${INSTALL_WATCHER}" "install.acct.error" systemctl enable --now acct
-log_success      "${INSTALL_WATCHER}" "install.packages-acct-sysstat-and-libpam-pwquality-insta"
+log_success      "${INSTALL_WATCHER}" "install.acct-installed"

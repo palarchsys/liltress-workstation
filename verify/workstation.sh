@@ -35,7 +35,6 @@ mkdir -p "$(dirname "${REPORT}")"
     echo
 } > "${REPORT}"
 
-log_subtitle "${INSTALL_WATCHER}" "log.contracts-passwords-apps"
 
 root_hash="$(awk -F: '$1=="root"{print $2}' /etc/shadow)"
 user_hash="$(awk -F: -v u="${CURRENT_USER}" '$1==u{print $2}' /etc/shadow)"
@@ -77,7 +76,6 @@ for b in gcc g++ cc make; do
     fi
 done
 
-log_subtitle "${INSTALL_WATCHER}" "log.ssh-ufw-services"
 
 root_login="$(get_sshd_value permitrootlogin)"
 if [[ "${root_login}" == "no" ]]; then
@@ -103,22 +101,17 @@ else
     report_fail "sshd -t échoue"
 fi
 
-if LANG=C LC_ALL=C ufw status | grep -qw "Status: active"; then
+if LANG=C LC_ALL=C LANGUAGE=C ufw status | grep -qw "Status: active"; then
     report_pass "UFW actif"
 else
     report_fail "UFW inactif"
 fi
-if LANG=C LC_ALL=C ufw status verbose | grep -qiE 'Default: deny \(incoming\), allow \(outgoing\)'; then
+if LANG=C LC_ALL=C LANGUAGE=C ufw status verbose | grep -qiE 'Default: deny \(incoming\), allow \(outgoing\)'; then
     report_pass "UFW outgoing ALLOW"
 else
-
-    if ufw status verbose | grep -qi 'Outgoing: allow'; then
-        report_pass "UFW outgoing ALLOW"
-    else
-        report_fail "UFW outgoing n'est pas allow"
-    fi
+    report_fail "UFW outgoing n'est pas allow"
 fi
-ufw_rules="$(LANG=C LC_ALL=C ufw status 2>/dev/null || true)"
+ufw_rules="$(LANG=C LC_ALL=C LANGUAGE=C ufw status 2>/dev/null || true)"
 if grep -qF 'SSH LAN' <<< "${ufw_rules}" || grep -qF 'SSH (limit)' <<< "${ufw_rules}"; then
     report_pass "SSH limité aux préfixes connectés"
 else
@@ -348,7 +341,6 @@ else
     report_fail "CrowdSec inactif"
 fi
 
-log_subtitle "${INSTALL_WATCHER}" "log.section-dns-local"
 if systemctl is-enabled --quiet unbound 2>/dev/null && systemctl is-active --quiet unbound; then
     report_pass "Unbound actif au démarrage"
 else
@@ -378,7 +370,6 @@ else
     report_fail "systemd-resolved n'est pas pointé vers Unbound"
 fi
 
-log_subtitle "${INSTALL_WATCHER}" "verify.workstation.title.4"
 
 if ! command -v pro >/dev/null 2>&1; then
     report_fail "ubuntu-pro-client absent"
@@ -427,7 +418,6 @@ else
     report_fail "Ubuntu Pro non attaché (obligatoire)"
 fi
 
-log_subtitle "${INSTALL_WATCHER}" "log.lynis"
 
 if command -v lynis >/dev/null 2>&1; then
     report_pass "lynis installé"
@@ -455,7 +445,6 @@ else
     report_fail "lynis absent"
 fi
 
-log_subtitle "${INSTALL_WATCHER}" "log.software-of-the-workstation"
 
 if dpkg-query -W -f '${Status}' snapd 2>/dev/null | grep -q 'install ok'; then
     report_pass "snapd installé"
@@ -468,7 +457,6 @@ else
     log_info "${INSTALL_WATCHER}" "log.snap-firefox-absent"
 fi
 
-log_subtitle "${INSTALL_WATCHER}" "log.start-2"
 root_src="$(findmnt -no SOURCE / 2>/dev/null || true)"
 if [[ -n "${root_src}" ]] && lsblk -sno TYPE "${root_src}" 2>/dev/null | grep -qx crypt; then
     report_pass "racine sur LUKS"
@@ -481,7 +469,6 @@ else
     report_warn "Secure Boot non actif"
 fi
 
-log_subtitle "${INSTALL_WATCHER}" "log.sources-apt"
 log_info "${INSTALL_WATCHER}" "log.check-of-the-workstation"
 if [[ -f /etc/apt/sources.list ]]; then
     if grep -q 'liltress' /etc/apt/sources.list; then

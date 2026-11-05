@@ -36,7 +36,6 @@ z /etc/cron.weekly 0700 root root -
 z /etc/cron.monthly 0700 root root -
 EOF
 log_success      "${INSTALL_WATCHER}" "configure.permissions-cron-sudoers-and-ssh-tightened"
-log_subtitle     "${INSTALL_WATCHER}" "configure.modules-protocols-and-systems-of-unused-files"
 log_info         "${INSTALL_WATCHER}" "configure.blacklist-of-the-protocols-unused"
 tee /etc/modprobe.d/disable-uncommon-protocols.conf > /dev/null << EOF
 blacklist dccp
@@ -69,7 +68,6 @@ log_success      "${INSTALL_WATCHER}" "configure.unused-fs-blacklisted"
 
 rm -f /etc/modules-load.d/kvm.conf
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.core-dumps-disabled"
 log_info         "${INSTALL_WATCHER}" "configure.deactivation-of-the-core-dumps"
 tee /etc/security/limits.d/90-disable-core.conf > /dev/null << EOF
 * soft core 0
@@ -77,7 +75,6 @@ tee /etc/security/limits.d/90-disable-core.conf > /dev/null << EOF
 EOF
 log_success      "${INSTALL_WATCHER}" "configure.limits-core-0-installed"
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.initramfs"
 log_info         "${INSTALL_WATCHER}" "configure.update-of-the-initramfs-modules-blacklist"
 run_optional     "${INSTALL_WATCHER}" "configure.kernel.error" update-initramfs -u
 log_success      "${INSTALL_WATCHER}" "configure.initramfs-updated-up-to-date-best-effort"

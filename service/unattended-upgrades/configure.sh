@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.configuration-unattended-upgrades-security-only"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-unattended-upgrades-security-on"
 ensure_directory /etc/apt/apt.conf.d 755
 

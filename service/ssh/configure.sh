@@ -18,7 +18,6 @@ source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_ssh_port
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.configuration-ssh-drop-in"
 log_info         "${INSTALL_WATCHER}" "configure.port-detected" "${SSH_PORT}"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-ssh"
 copy_backup /etc/ssh/sshd_config

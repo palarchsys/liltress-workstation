@@ -17,7 +17,6 @@ source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_current_user
 
-log_subtitle     "${INSTALL_WATCHER}" "configure.watchdogs-cron-root-cron-allow-not-restricted"
 
 cpu_quota="$(
     WATCHDOG_CPU_LIMIT="${WATCHDOG_CPU_LIMIT:-50}" \

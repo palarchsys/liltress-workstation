@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "install.accounting-and-pam-lynis-acct-auth"
-log_info         "${INSTALL_WATCHER}" "install.installation-of-the-accounting-and-of-pam"
+log_info         "${INSTALL_WATCHER}" "install.installation-of-libpam-pwquality"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y libpam-pwquality" "install.pam.error"
-log_success      "${INSTALL_WATCHER}" "install.packages-acct-sysstat-and-libpam-pwquality-insta"
+log_success      "${INSTALL_WATCHER}" "install.libpam-pwquality-installed"

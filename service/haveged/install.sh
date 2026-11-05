@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_subtitle     "${INSTALL_WATCHER}" "install.entropy-haveged-rng-tools-debian"
 log_info         "${INSTALL_WATCHER}" "install.installation-of-haveged-and-of-rng-tools-debian"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y haveged" "install.haveged.error"
 run_silent       "${INSTALL_WATCHER}" "install.haveged.error" systemctl enable --now haveged
