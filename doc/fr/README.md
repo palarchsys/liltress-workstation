@@ -119,6 +119,7 @@ Chaque fichier d'alerte est sous `/opt/liltress-workstation/cron/alerts`.<br/>
 Le courrier suit la langue `LANGUAGE`.<br/>
 Le courrier part seulement si `MAIL_ALERTS=1`.<br/>
 Une copie part vers Google Drive seulement si `RCLONE_ALERTS=1`, vers le distant et le dossier choisis.<br/>
+<br/>
 Le courrier part seulement si `MAIL_ALERTS=1`, si `WATCHDOG_MAIL` est défini, et si `/opt/liltress-workstation/cron/bin/send.sh` est exécutable.<br/>
 Un contrôle propre n'envoie pas de courrier.<br/>
 Si une ligne du journal est inconnue, ne lancez pas la commande.<br/>
@@ -195,8 +196,10 @@ Le message contient le résumé et l'extrait du journal.<br/>
 Lorsqu'un fichier a été déplacé, le courrier ajoute une commande de restauration par fichier.<br/>
 La commande est la même que celle du courrier à l'accès.<br/>
 La forme du journal est `/opt/liltress-workstation/cron/security_logs/clamav-YYYYMMDD-HHMMSS.log`.<br/>
+<br/>
 Un fichier illisible, sans ligne `FOUND`, n'envoie pas de courrier.<br/>
 Les lignes `Known viruses` et `Infected files` ne sont pas recopiées dans le courrier.<br/>
+<br/>
 Un processus `clamscan` arrêté par un signal envoie un courrier.<br/>
 Le courrier nomme le signal et chaque fichier non lu.<br/>
 Les autres fichiers de la passe sont analysés.<br/>
@@ -209,11 +212,13 @@ Le message contient le résumé et l'extrait du journal.<br/>
 Lorsqu'un fichier a été déplacé, le courrier ajoute une commande de restauration par fichier.<br/>
 La commande est la même que celle du courrier à l'accès.<br/>
 Une signature et un chemin déjà enregistrés dans `/opt/liltress-workstation/cron/scan-skip.seen` ne renvoient pas de courrier.<br/>
+<br/>
 Un processus `clamscan` arrêté par un signal envoie un courrier.<br/>
 Le courrier nomme le signal et chaque fichier non lu.<br/>
 Les autres fichiers de la passe sont analysés.<br/>
 Deux plantages de suite arrêtent la passe ClamAV.<br/>
 Le courrier dit alors que les fichiers restants n'ont pas été lus.<br/>
+<br/>
 Le tampon reste en place.<br/>
 La forme du journal est `/opt/liltress-workstation/cron/security_logs/idle-scan-YYYYMMDD-HHMMSS.log`.
 
@@ -233,6 +238,7 @@ La commande recalcule la base de propriétés rkhunter à partir du disque actue
 La ligne de succès est `Base de propriétés rkhunter enregistrée.`<br/>
 Une détection avérée déplace le fichier et joint la commande de restauration à la place.<br/>
 La commande de recalcul reste seulement lorsqu'aucun fichier avéré n'a été déplacé.<br/>
+<br/>
 Les fichiers de `/dev/shm` et la socket `/dev/log` sont autorisés dans `rkhunter.conf.local`.<br/>
 Ils ne produisent pas l'avertissement `Suspicious file types found in /dev`.<br/>
 L'extrait garde la ligne d'avertissement et les chemins qui la suivent.
@@ -242,6 +248,7 @@ L'extrait garde la ligne d'avertissement et les chemins qui la suivent.
 Le message est `Un redémarrage est utile. La machine n'a pas été redémarrée.`<br/>
 Ce courrier n'ajoute pas de bloc de commande.<br/>
 Le même ensemble de paquets ne renvoie pas de courrier.<br/>
+<br/>
 Un jeu en cours saute le courrier et laisse l'empreinte inchangée.<br/>
 Le script ne redémarre pas la machine.<br/>
 La forme du journal est `/opt/liltress-workstation/cron/security_logs/reboot-notice-YYYYMMDD-HHMMSS.log`.

@@ -119,6 +119,7 @@ Each alert file is stored under `/opt/liltress-workstation/cron/alerts`.<br/>
 The mail follows the `LANGUAGE` language.<br/>
 Mail leaves only when `MAIL_ALERTS=1`.<br/>
 A copy leaves for Google Drive only when `RCLONE_ALERTS=1`, to the chosen remote and folder.<br/>
+<br/>
 Mail is sent only when `MAIL_ALERTS=1`, `WATCHDOG_MAIL` is set, and `/opt/liltress-workstation/cron/bin/send.sh` is executable.<br/>
 A clean check does not send mail.<br/>
 If a journal line is unknown, do not run the command.<br/>
@@ -195,8 +196,10 @@ The message contains the summary and the journal excerpt.<br/>
 When a file was moved, the mail adds one restore command per file.<br/>
 The command is the same as in the on-access mail.<br/>
 The journal form is `/opt/liltress-workstation/cron/security_logs/clamav-YYYYMMDD-HHMMSS.log`.<br/>
+<br/>
 An unreadable file, with no `FOUND` line, does not send mail.<br/>
 The lines `Known viruses` and `Infected files` are not copied into the mail.<br/>
+<br/>
 A `clamscan` process stopped by a signal sends mail.<br/>
 The mail names the signal and each unread file.<br/>
 The other files of the pass are scanned.<br/>
@@ -209,11 +212,13 @@ The message contains the summary and the journal excerpt.<br/>
 When a file was moved, the mail adds one restore command per file.<br/>
 The command is the same as in the on-access mail.<br/>
 A signature and a path already recorded in `/opt/liltress-workstation/cron/scan-skip.seen` do not send mail again.<br/>
+<br/>
 A `clamscan` process stopped by a signal sends mail.<br/>
 The mail names the signal and each unread file.<br/>
 The other files of the pass are scanned.<br/>
 Two crashes in a row stop the ClamAV pass.<br/>
 The mail then says that the remaining files were not read.<br/>
+<br/>
 The stamp stays in place.<br/>
 The journal form is `/opt/liltress-workstation/cron/security_logs/idle-scan-YYYYMMDD-HHMMSS.log`.
 
@@ -233,6 +238,7 @@ The command recalculates the rkhunter property database from the current disk.<b
 The success line is `Base de propriétés rkhunter enregistrée.`<br/>
 A confirmed detection moves the file and attaches the restore command instead.<br/>
 The recalculation command stays only when no confirmed file was moved.<br/>
+<br/>
 The files in `/dev/shm` and the socket `/dev/log` are allowed in `rkhunter.conf.local`.<br/>
 They do not produce the warning `Suspicious file types found in /dev`.<br/>
 The excerpt keeps the warning line and the paths that follow it.
@@ -242,6 +248,7 @@ The excerpt keeps the warning line and the paths that follow it.
 The message is `Un redémarrage est utile. La machine n'a pas été redémarrée.`<br/>
 This mail does not add a command block.<br/>
 The same set of packages does not send mail again.<br/>
+<br/>
 A game that is running skips the mail and leaves the stamp unchanged.<br/>
 The script does not reboot the machine.<br/>
 The journal form is `/opt/liltress-workstation/cron/security_logs/reboot-notice-YYYYMMDD-HHMMSS.log`.

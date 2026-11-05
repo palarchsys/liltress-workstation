@@ -6,18 +6,22 @@ El puesto sigue en claro hasta que un perfil queda validado.<br/>
 La importación es `sudo ./liltress vpn import wireguard <nombre> <archivo>` o `sudo ./liltress vpn import openvpn <nombre> <archivo>`.<br/>
 Una importación que responde activa el modo VPN. El killswitch sigue armado hasta `sudo ./liltress vpn mode off`.<br/>
 `sudo ./liltress vpn mode on` lo reactiva cuando un perfil es válido.<br/>
+<br/>
 Cada VPN WireGuard es una carpeta `/opt/liltress-workstation/vpn/wireguard/<nombre>/`.<br/>
 Cada VPN OpenVPN es una carpeta `/opt/liltress-workstation/vpn/openvpn/<nombre>/`.<br/>
 Esa carpeta guarda la configuración y los archivos de certificado o auth que ella cita.<br/>
 El registro es `/opt/liltress-workstation/vpn/vpn.json`.<br/>
+<br/>
 `sudo ./liltress vpn list` muestra los perfiles y sus fechas. `sudo ./liltress vpn test <nombre>` repite la prueba.<br/>
 `sudo ./liltress vpn rm <nombre>` retira un perfil que no está abierto.<br/>
 `sudo ./liltress vpn switch <nombre>` pasa a otro perfil válido.<br/>
 SSH no pasa por el túnel.<br/>
+<br/>
 Si ningún perfil válido responde, la máquina arranca igual y el killswitch sigue armado.<br/>
 El archivo de desvío lleva un prefijo por línea, o una sola línea entre corchetes.<br/>
 El ejemplo es `[192.168.1.0/24, 200.200.200.0/24]`.<br/>
 Un `vpn switch` fallido no devuelve Internet directo.<br/>
+<br/>
 Unbound se reinicia tras un cambio de modo o un cambio de perfil.<br/>
 El IPv6 global queda bloqueado cuando el túnel no tiene IPv6.<br/>
 Un rango público escrito en el archivo sale en claro.
@@ -29,6 +33,7 @@ Un certificado escrito dentro del archivo permanece en el perfil.<br/>
 El primer `remote` es el servidor que se abre.<br/>
 Los scripts `up` y `down` del proveedor no se copian.<br/>
 El DNS del proveedor no se usa. Unbound sigue siendo el resolutor.<br/>
+<br/>
 `auth.txt` tiene dos líneas: el nombre, luego el secreto.<br/>
 Está junto al `.ovpn` antes de la importación, o se crea vacío en el perfil.<br/>
 Mientras faltan esas dos líneas, el perfil está importado y no se prueba.<br/>

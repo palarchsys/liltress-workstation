@@ -6,18 +6,22 @@ Der Rechner bleibt im direkten Netz, bis ein Profil bestätigt ist.<br/>
 Der Import ist `sudo ./liltress vpn import wireguard <Name> <Datei>` oder `sudo ./liltress vpn import openvpn <Name> <Datei>`.<br/>
 Ein Import, der antwortet, schaltet den VPN-Modus ein. Der Killswitch bleibt scharf bis `sudo ./liltress vpn mode off`.<br/>
 `sudo ./liltress vpn mode on` schaltet ihn wieder ein, wenn ein Profil gültig ist.<br/>
+<br/>
 Jedes WireGuard-VPN ist ein Ordner `/opt/liltress-workstation/vpn/wireguard/<Name>/`.<br/>
 Jedes OpenVPN-VPN ist ein Ordner `/opt/liltress-workstation/vpn/openvpn/<Name>/`.<br/>
 Der Ordner behält die Konfiguration und die Zertifikat- oder Auth-Dateien, die sie nennt.<br/>
 Das Register ist `/opt/liltress-workstation/vpn/vpn.json`.<br/>
+<br/>
 `sudo ./liltress vpn list` zeigt die Profile und ihre Daten. `sudo ./liltress vpn test <Name>` prüft eines erneut.<br/>
 `sudo ./liltress vpn rm <Name>` entfernt ein Profil, das nicht offen ist.<br/>
 `sudo ./liltress vpn switch <Name>` wechselt zu einem anderen gültigen Profil.<br/>
 SSH geht nicht durch den Tunnel.<br/>
+<br/>
 Wenn kein gültiges Profil mehr antwortet, startet der Rechner trotzdem und der Killswitch bleibt scharf.<br/>
 Die Umgehungsdatei hat ein Präfix pro Zeile, oder eine Zeile in Klammern.<br/>
 Das Beispiel ist `[192.168.1.0/24, 200.200.200.0/24]`.<br/>
 Ein fehlgeschlagener `vpn switch` stellt das direkte Internet nicht wieder her.<br/>
+<br/>
 Unbound wird nach einem Moduswechsel oder einer Umschaltung neu gestartet.<br/>
 Globales IPv6 ist gesperrt, wenn der Tunnel kein IPv6 hat.<br/>
 Ein öffentlicher Bereich in der Datei geht im Klartext hinaus.
@@ -29,6 +33,7 @@ Ein Zertifikat im Dateitext bleibt im Profil.<br/>
 Das erste `remote` ist der geöffnete Server.<br/>
 Die `up`- und `down`-Skripte des Anbieters werden nicht kopiert.<br/>
 Der DNS des Anbieters wird nicht benutzt. Unbound bleibt der Resolver.<br/>
+<br/>
 `auth.txt` hat zwei Zeilen: den Namen, dann das Geheimnis.<br/>
 Die Datei liegt vor dem Import neben der `.ovpn`, oder sie wird leer im Profil angelegt.<br/>
 Solange diese zwei Zeilen fehlen, ist das Profil importiert und wird nicht geprüft.<br/>

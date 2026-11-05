@@ -6,18 +6,22 @@ The workstation stays on the direct network until a profile is validated.<br/>
 Import with `sudo ./liltress vpn import wireguard <name> <file>` or `sudo ./liltress vpn import openvpn <name> <file>`.<br/>
 A working import turns VPN mode on. The killswitch stays on until `sudo ./liltress vpn mode off`.<br/>
 `sudo ./liltress vpn mode on` turns it on again when a profile is valid.<br/>
+<br/>
 Each WireGuard VPN is a directory `/opt/liltress-workstation/vpn/wireguard/<name>/`.<br/>
 Each OpenVPN VPN is a directory `/opt/liltress-workstation/vpn/openvpn/<name>/`.<br/>
 That directory keeps the configuration and the certificate or auth files it names.<br/>
 The registry is `/opt/liltress-workstation/vpn/vpn.json`.<br/>
+<br/>
 `sudo ./liltress vpn list` shows the profiles and their dates. `sudo ./liltress vpn test <name>` checks one again.<br/>
 `sudo ./liltress vpn rm <name>` removes one that is not up.<br/>
 `sudo ./liltress vpn switch <name>` moves to another valid profile.<br/>
 SSH stays off the tunnel.<br/>
+<br/>
 If no validated profile answers, the machine still boots and the killswitch stays on.<br/>
 The bypass file is one prefix per line, or one bracket line.<br/>
 The example is `[192.168.1.0/24, 200.200.200.0/24]`.<br/>
 A failed `vpn switch` does not restore direct Internet.<br/>
+<br/>
 Unbound is restarted after a mode change or a switch.<br/>
 Global IPv6 is blocked when the tunnel has no IPv6.<br/>
 A public range written in the file leaves in the clear.
@@ -29,6 +33,7 @@ A certificate written inside the file stays in the profile.<br/>
 The first `remote` is the server that is opened.<br/>
 Provider `up` and `down` scripts are not copied.<br/>
 Provider DNS is not used. Unbound stays the resolver.<br/>
+<br/>
 `auth.txt` has two lines: the name, then the secret.<br/>
 Put it next to the `.ovpn` before import, or fill the empty file created in the profile.<br/>
 Until those two lines exist, the profile is imported and is not tested.<br/>

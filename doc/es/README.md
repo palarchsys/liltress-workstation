@@ -119,6 +119,7 @@ Cada archivo de alerta queda en `/opt/liltress-workstation/cron/alerts`.<br/>
 El mensaje sigue el idioma `LANGUAGE`.<br/>
 El correo sale solo si `MAIL_ALERTS=1`.<br/>
 Una copia sale hacia Google Drive solo si `RCLONE_ALERTS=1`, hacia el remoto y la carpeta elegidos.<br/>
+<br/>
 El correo sale solo si `MAIL_ALERTS=1`, si `WATCHDOG_MAIL` está definido, y si `/opt/liltress-workstation/cron/bin/send.sh` es ejecutable.<br/>
 Un control limpio no envía correo.<br/>
 Si una línea del diario es desconocida, no lance la orden.<br/>
@@ -195,8 +196,10 @@ El mensaje contiene el resumen y el extracto del diario.<br/>
 Cuando un archivo fue movido, el correo añade una orden de restauración por archivo.<br/>
 La orden es la misma que la del correo al acceso.<br/>
 La forma del diario es `/opt/liltress-workstation/cron/security_logs/clamav-YYYYMMDD-HHMMSS.log`.<br/>
+<br/>
 Un archivo ilegible, sin línea `FOUND`, no envía correo.<br/>
 Las líneas `Known viruses` e `Infected files` no se copian en el correo.<br/>
+<br/>
 Un proceso `clamscan` detenido por una señal envía un correo.<br/>
 El correo nombra la señal y cada archivo no leído.<br/>
 Los demás archivos de la pasada se analizan.<br/>
@@ -209,11 +212,13 @@ El mensaje contiene el resumen y el extracto del diario.<br/>
 Cuando un archivo fue movido, el correo añade una orden de restauración por archivo.<br/>
 La orden es la misma que la del correo al acceso.<br/>
 Una firma y una ruta ya registradas en `/opt/liltress-workstation/cron/scan-skip.seen` no vuelven a enviar correo.<br/>
+<br/>
 Un proceso `clamscan` detenido por una señal envía un correo.<br/>
 El correo nombra la señal y cada archivo no leído.<br/>
 Los demás archivos de la pasada se analizan.<br/>
 Dos fallos seguidos detienen la pasada ClamAV.<br/>
 El correo dice entonces que los archivos restantes no fueron leídos.<br/>
+<br/>
 El sello permanece en su lugar.<br/>
 La forma del diario es `/opt/liltress-workstation/cron/security_logs/idle-scan-YYYYMMDD-HHMMSS.log`.
 
@@ -233,6 +238,7 @@ La orden recalcula la base de propiedades rkhunter a partir del disco actual.<br
 La línea de éxito es `Base de propriétés rkhunter enregistrée.`<br/>
 Una detección confirmada mueve el archivo y adjunta la orden de restauración en su lugar.<br/>
 La orden de recálculo permanece solo cuando ningún archivo confirmado fue movido.<br/>
+<br/>
 Los archivos de `/dev/shm` y el socket `/dev/log` están autorizados en `rkhunter.conf.local`.<br/>
 No producen el aviso `Suspicious file types found in /dev`.<br/>
 El extracto conserva la línea de aviso y las rutas que la siguen.
@@ -242,6 +248,7 @@ El extracto conserva la línea de aviso y las rutas que la siguen.
 El mensaje es `Un redémarrage est utile. La machine n'a pas été redémarrée.`<br/>
 Este correo no añade un bloque de orden.<br/>
 El mismo conjunto de paquetes no vuelve a enviar correo.<br/>
+<br/>
 Un juego en curso omite el correo y deja la huella sin cambio.<br/>
 El script no reinicia la máquina.<br/>
 La forma del diario es `/opt/liltress-workstation/cron/security_logs/reboot-notice-YYYYMMDD-HHMMSS.log`.

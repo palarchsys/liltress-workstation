@@ -6,18 +6,22 @@ Le poste reste en clair tant qu'aucun profil n'est validé.<br/>
 L'import est `sudo ./liltress vpn import wireguard <nom> <fichier>` ou `sudo ./liltress vpn import openvpn <nom> <fichier>`.<br/>
 Un import qui répond passe en mode VPN. Le killswitch reste armé jusqu'à `sudo ./liltress vpn mode off`.<br/>
 `sudo ./liltress vpn mode on` le réactive lorsqu'un profil est valide.<br/>
+<br/>
 Chaque VPN WireGuard est un dossier `/opt/liltress-workstation/vpn/wireguard/<nom>/`.<br/>
 Chaque VPN OpenVPN est un dossier `/opt/liltress-workstation/vpn/openvpn/<nom>/`.<br/>
 Ce dossier garde la configuration et les fichiers certificat ou auth qu'elle cite.<br/>
 Le registre est `/opt/liltress-workstation/vpn/vpn.json`.<br/>
+<br/>
 `sudo ./liltress vpn list` affiche les VPN et leurs dates. `sudo ./liltress vpn test <nom>` en refait l'essai.<br/>
 `sudo ./liltress vpn rm <nom>` retire un profil qui n'est pas ouvert.<br/>
 `sudo ./liltress vpn switch <nom>` passe à un autre profil valide.<br/>
 SSH ne passe pas par le tunnel.<br/>
+<br/>
 Si plus aucun profil valide ne répond, la machine démarre quand même et le killswitch reste armé.<br/>
 Le fichier de contournement contient un préfixe par ligne, ou une seule ligne entre crochets.<br/>
 L'exemple est `[192.168.1.0/24, 200.200.200.0/24]`.<br/>
 Un échec de `vpn switch` ne rend pas Internet direct.<br/>
+<br/>
 Unbound est relancé après un changement de mode ou une bascule.<br/>
 L'IPv6 global est bloqué lorsque le tunnel n'a pas d'IPv6.<br/>
 Une plage publique écrite dans le fichier sort en clair.
@@ -29,6 +33,7 @@ Un certificat écrit dans le fichier reste dans le profil.<br/>
 Le premier `remote` est le serveur ouvert.<br/>
 Les scripts `up` et `down` du fournisseur ne sont pas copiés.<br/>
 Le DNS du fournisseur n'est pas utilisé. Unbound reste le résolveur.<br/>
+<br/>
 `auth.txt` contient deux lignes : le nom, puis le secret.<br/>
 Il est à côté du `.ovpn` avant l'import, ou il est créé vide dans le profil.<br/>
 Tant que ces deux lignes manquent, le profil est importé et n'est pas essayé.<br/>
