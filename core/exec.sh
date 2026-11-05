@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/exec.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -28,8 +28,8 @@ run_watch() {
         return 0
     fi
     output=$("$@" 2>&1) || exit_code=$?
-    if [[ -n "${G_LOG_FILE:-}" && -n "${output}" ]]; then
-        printf '%s\n' "${output}" >> "${G_LOG_FILE}"
+    if [[ -n "${INSTALL_LOG_FILE:-}" && -n "${output}" ]]; then
+        printf '%s\n' "${output}" >> "${INSTALL_LOG_FILE}"
     fi
     if [[ "${exit_code}" -ne 0 ]]; then
         log_error "${watcher}" "${error_key}" "${output:-exit ${exit_code}}"
@@ -155,15 +155,15 @@ run_step() {
 
         step_exit=0
         step_log=""
-        if [[ -n "${G_LOG_DIR:-}" ]]; then
-            step_log="${G_LOG_DIR}/steps/$(echo "$step" | tr '/' '-').log"
-            mkdir -p "${G_LOG_DIR}/steps"
+        if [[ -n "${INSTALL_LOG_DIR:-}" ]]; then
+            step_log="${INSTALL_LOG_DIR}/steps/$(echo "$step" | tr '/' '-').log"
+            mkdir -p "${INSTALL_LOG_DIR}/steps"
             set +e
             bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type" 2>&1 | tee -a "$step_log"
             step_exit=${PIPESTATUS[0]}
             set -e
             log_index_append "${step}" "${step_exit}" "${step_log}"
-            publish_repo_logs "${G_LOG_DIR}"
+            publish_repo_logs "${INSTALL_LOG_DIR}"
         else
             set +e
             bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type"
@@ -199,7 +199,7 @@ run_install_plan() {
         fi
         if [[ -n "${when_var}" ]]; then
             case "${when_var}" in
-                G_MAIL_ALERTS|G_RCLONE_ALERTS|S_SERVER_TYPE|G_MODE_TEST|S_MODE_DEV) ;;
+                MAIL_ALERTS|RCLONE_ALERTS|S_SERVER_TYPE|MODE_TEST|S_MODE_DEV) ;;
                 *) log_error "${INSTALL_WATCHER:-BASH}" "log.condition.rejected" "${when_var}" ;;
             esac
             value="${!when_var:-}"
@@ -214,6 +214,11 @@ run_install_plan() {
                 run_step "${root}" "${target}"
             fi
         else
+            if [[ "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
+                echo "" >&2
+                set_color_blue "   $(get_text log.execution-of "${target}")"
+                echo "" >&2
+            fi
             run_install_action "${target}"
         fi
     done < <(python3 - "${plan}" << 'PY'
@@ -221,10 +226,10 @@ import json
 import sys
 
 allowed = {
-    "G_MAIL_ALERTS",
-    "G_RCLONE_ALERTS",
+    "MAIL_ALERTS",
+    "RCLONE_ALERTS",
     "S_SERVER_TYPE",
-    "G_MODE_TEST",
+    "MODE_TEST",
     "S_MODE_DEV",
 }
 env_allowed = set()

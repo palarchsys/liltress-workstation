@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : workstation/locale/en/log.txt
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -284,7 +284,7 @@ Installation of the fixes of security
 Fixes of security installed
 
 [log.g-watchdog-mail-is-empty-l-e-mail-of-end-of-inst]
-G_WATCHDOG_MAIL is empty: l'e-mail of end of installation cannot leave.
+WATCHDOG_MAIL is empty: l'e-mail of end of installation cannot leave.
 
 [log.send-of-the-e-mail-of-test-to]
 Send of the e-mail of test to {1}

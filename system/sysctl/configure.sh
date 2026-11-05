@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/sysctl/configure.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
-export G_INSTALL_DIRECTORY
 
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 # shellcheck disable=SC2155
 readonly DIR_SCRIPT_PATH="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
@@ -73,10 +71,10 @@ EOF
 
 cp -f /etc/sysctl.d/90-liltress-workstation.conf /etc/sysctl.d/99-zzz-liltress-workstation.conf
 chmod 644 /etc/sysctl.d/90-liltress-workstation.conf /etc/sysctl.d/99-zzz-liltress-workstation.conf
-install -d -m 755 "${G_CONFIG_BASE_DIRECTORY}/cron/bin"
+install -d -m 755 "${CONFIG_BASE_DIRECTORY}/cron/bin"
 install -m 755 "${DIR_SCRIPT_PATH}/w-sysctl-apply.sh" \
-    "${G_CONFIG_BASE_DIRECTORY}/cron/bin/w-sysctl-apply.sh"
-sed "s|__HF_BASE__|${G_CONFIG_BASE_DIRECTORY}|g" "$(locate_config_file system/sysctl.service)" \
+    "${CONFIG_BASE_DIRECTORY}/cron/bin/w-sysctl-apply.sh"
+sed "s|__HF_BASE__|${CONFIG_BASE_DIRECTORY}|g" "$(locate_config_file system/sysctl.service)" \
     > /etc/systemd/system/liltress-workstation-sysctl.service
 
 rm -f /etc/systemd/system/docker.service.wants/liltress-workstation-sysctl.service

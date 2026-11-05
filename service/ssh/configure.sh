@@ -1,21 +1,19 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ssh/configure.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
-export G_INSTALL_DIRECTORY
 
 # shellcheck disable=SC2155
 readonly DIR_SCRIPT_PATH="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 
 require_root
 get_ssh_port
@@ -56,10 +54,10 @@ for snippet in /etc/ssh/sshd_config.d/*.conf; do
     fi
 done
 
-ensure_directory "$(dirname "${G_SSH_BANNER_PATH}")" 755
+ensure_directory "$(dirname "${SSH_BANNER_PATH}")" 755
 ensure_directory /run/sshd 755
-printf '%s\n' "${G_BANNER_MESSAGE}" > "${G_SSH_BANNER_PATH}"
-chmod 644 "${G_SSH_BANNER_PATH}"
+printf '%s\n' "${BANNER_MESSAGE}" > "${SSH_BANNER_PATH}"
+chmod 644 "${SSH_BANNER_PATH}"
 
 log_info         "${INSTALL_WATCHER}" "configure.ssh.info.3"
 if ! sshd -t; then
@@ -72,7 +70,7 @@ fi
 
 log_info         "${INSTALL_WATCHER}" "configure.pass-of-ssh-in-service-not-only-the-activation-b"
 run_optional     "${INSTALL_WATCHER}" "configure.ssh.error.3" systemctl disable --now ssh.socket
-run_optional     "${INSTALL_WATCHER}" "configure.ssh.error.4" systemctl unmask "${G_SSH_SERVICE_NAME}.service"
-run_silent       "${INSTALL_WATCHER}" "configure.ssh.error.5" systemctl enable --now "${G_SSH_SERVICE_NAME}.service"
-run_silent       "${INSTALL_WATCHER}" "configure.ssh.error.6" systemctl reload-or-restart "${G_SSH_SERVICE_NAME}"
+run_optional     "${INSTALL_WATCHER}" "configure.ssh.error.4" systemctl unmask "${SSH_SERVICE_NAME}.service"
+run_silent       "${INSTALL_WATCHER}" "configure.ssh.error.5" systemctl enable --now "${SSH_SERVICE_NAME}.service"
+run_silent       "${INSTALL_WATCHER}" "configure.ssh.error.6" systemctl reload-or-restart "${SSH_SERVICE_NAME}"
 log_success      "${INSTALL_WATCHER}" "configure.hardened-ssh-root-forbidden-password-kept-port" "${SSH_PORT}"

@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/es/mail.txt
-# Updated at : 2026-10-29
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -44,7 +44,7 @@ directorio de instalación de los modèles ausente ({1})
 directorio template ausente ({1})
 
 [mail.g-mail-template-invalid-example-mail-html]
-G_MAIL_TEMPLATE no válido ({1}). ejemplo: mail.html
+MAIL_TEMPLATE no válido ({1}). ejemplo: mail.html
 
 [mail.name-of-template-denied-example-mail-html]
 nombre de modelo denegado ({1}). ejemplo: mail.html

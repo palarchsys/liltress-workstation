@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/mail.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -19,8 +19,8 @@ log_mail_fatal() {
 
 install_mail_templates() {
     local dest="$1"
-    local src="${G_INSTALL_DIRECTORY:?}/template"
-    local chosen="${G_MAIL_TEMPLATE:-mail.html}"
+    local src="${INSTALL_DIRECTORY:?}/template"
+    local chosen="${MAIL_TEMPLATE:-mail.html}"
     local f base n=0
     local nullglob_was=0
     [[ -d "${dest}" ]] || log_mail_fatal "$(get_text mail.directory-of-installation-of-the-mod-les-absent "${dest}")"
@@ -49,8 +49,8 @@ get_mail_name() {
     local here="${1:-}"
     local conf line
     local -a confs=()
-    [[ -n "${G_INSTALL_DIRECTORY:-}" ]] && confs+=("${G_INSTALL_DIRECTORY}/config/global.conf")
-    [[ -n "${G_CONFIG_BASE_DIRECTORY:-}" ]] && confs+=("${G_CONFIG_BASE_DIRECTORY}/src/config/global.conf")
+    [[ -n "${INSTALL_DIRECTORY:-}" ]] && confs+=("${INSTALL_DIRECTORY}/config/global.conf")
+    [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]] && confs+=("${CONFIG_BASE_DIRECTORY}/src/config/global.conf")
     if [[ -n "${here}" ]]; then
         confs+=(
             "${here}/../../src/config/global.conf"
@@ -60,14 +60,14 @@ get_mail_name() {
     fi
     for conf in "${confs[@]}"; do
         [[ -f "${conf}" ]] || continue
-        line="$(awk -F= '/^G_MAIL_TEMPLATE=/{gsub(/"/,"",$2); gsub(/[[:space:]]/,"",$2); print $2; exit}' "${conf}")"
+        line="$(awk -F= '/^MAIL_TEMPLATE=/{gsub(/"/,"",$2); gsub(/[[:space:]]/,"",$2); print $2; exit}' "${conf}")"
         if [[ -n "${line}" ]]; then
             printf '%s\n' "${line}"
             return 0
         fi
     done
-    if [[ -n "${G_MAIL_TEMPLATE:-}" ]]; then
-        printf '%s\n' "${G_MAIL_TEMPLATE}"
+    if [[ -n "${MAIL_TEMPLATE:-}" ]]; then
+        printf '%s\n' "${MAIL_TEMPLATE}"
         return 0
     fi
     printf '%s\n' "mail.html"
@@ -79,8 +79,8 @@ locate_mail_template() {
     local -a dirs=()
     name="$(get_mail_name "${here}")"
     check_mail_template_name "${name}" || return 1
-    [[ -n "${G_INSTALL_DIRECTORY:-}" ]] && dirs+=("${G_INSTALL_DIRECTORY}/template")
-    [[ -n "${G_CONFIG_BASE_DIRECTORY:-}" ]] && dirs+=("${G_CONFIG_BASE_DIRECTORY}/src/template")
+    [[ -n "${INSTALL_DIRECTORY:-}" ]] && dirs+=("${INSTALL_DIRECTORY}/template")
+    [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]] && dirs+=("${CONFIG_BASE_DIRECTORY}/src/template")
     if [[ -n "${here}" ]]; then
         dirs+=(
             "${here}/../../src/template"
@@ -107,9 +107,9 @@ render_mail() {
         mail_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
         for mail_candidate in \
             "${mail_here}/log.sh" \
-            "${G_PRODUCT_ROOT:-}/core/log.sh" \
-            "${G_INSTALL_DIRECTORY:-}/core/log.sh" \
-            "${G_INSTALL_DIRECTORY:-}/src/core/log.sh"
+            "${PRODUCT_ROOT:-}/core/log.sh" \
+            "${INSTALL_DIRECTORY:-}/core/log.sh" \
+            "${INSTALL_DIRECTORY:-}/src/core/log.sh"
         do
             if [[ -n "${mail_candidate}" && -f "${mail_candidate}" ]]; then
                 # shellcheck disable=SC1090
@@ -119,7 +119,7 @@ render_mail() {
         done
     fi
     if declare -F get_text >/dev/null 2>&1; then
-        load_text "${G_LANGUAGE:-en}"
+        load_text "${LANGUAGE:-en}"
         mail_module="$(get_text mail.module)"
         mail_redacted="$(get_text mail.redacted)"
         mail_redacted_key="$(get_text mail.redacted-key)"
@@ -132,14 +132,14 @@ render_mail() {
         mail_unreadable="unreadable template: {1}"
         mail_no_pre="template without a pre tag"
     fi
-    G_MAIL_TEMPLATE_FILE="${template}" \
-    G_MAIL_REDACT="${G_MAIL_REDACT:-0}" \
-    MAIL_LANG="${G_LANGUAGE:-en}" \
+    MAIL_TEMPLATE_FILE="${template}" \
+    MAIL_REDACT="${MAIL_REDACT:-0}" \
+    MAIL_LANG="${LANGUAGE:-en}" \
     MAIL_MODULE="${mail_module}" \
-    G_TEXT_REDACTED="${mail_redacted}" \
-    G_TEXT_REDACTED_KEY="${mail_redacted_key}" \
-    G_TEXT_TEMPLATE_UNREADABLE="${mail_unreadable}" \
-    G_TEXT_TEMPLATE_NO_PRE="${mail_no_pre}" \
+    TEXT_REDACTED="${mail_redacted}" \
+    TEXT_REDACTED_KEY="${mail_redacted_key}" \
+    TEXT_TEMPLATE_UNREADABLE="${mail_unreadable}" \
+    TEXT_TEMPLATE_NO_PRE="${mail_no_pre}" \
     python3 - << 'PY'
 import html
 import os
@@ -147,8 +147,8 @@ import re
 import sys
 from pathlib import Path
 
-redacted = os.environ.get("G_TEXT_REDACTED") or "[redacted]"
-redacted_key = os.environ.get("G_TEXT_REDACTED_KEY") or "[private key redacted]"
+redacted = os.environ.get("TEXT_REDACTED") or "[redacted]"
+redacted_key = os.environ.get("TEXT_REDACTED_KEY") or "[private key redacted]"
 token = re.escape(redacted)
 
 def redact(text):
@@ -170,7 +170,7 @@ def redact(text):
     )
     return text
 
-redact_on = os.environ.get("G_MAIL_REDACT", "0") == "1"
+redact_on = os.environ.get("MAIL_REDACT", "0") == "1"
 content = os.environ.get("CONTENT", "")
 note = os.environ.get("NOTE", "")
 advice = os.environ.get("ADVICE", "")
@@ -181,14 +181,14 @@ if redact_on:
 note = note.strip()
 advice = advice.strip()
 note_cmd = os.environ.get("NOTE_CMD", "").strip()
-path = Path(os.environ["G_MAIL_TEMPLATE_FILE"])
+path = Path(os.environ["MAIL_TEMPLATE_FILE"])
 try:
     tpl = path.read_text(encoding="utf-8")
 except OSError as exc:
-    unread = os.environ.get("G_TEXT_TEMPLATE_UNREADABLE") or "unreadable template: {1}"
+    unread = os.environ.get("TEXT_TEMPLATE_UNREADABLE") or "unreadable template: {1}"
     print(unread.replace("{1}", str(exc)), file=sys.stderr)
     sys.exit(1)
-for key in ("TITLE", "G_PROJECT_NAME", "HOSTNAME", "DATE", "MODULE_NAME", "MAIL_LANG", "MAIL_MODULE"):
+for key in ("TITLE", "PROJECT_NAME", "HOSTNAME", "DATE", "MODULE_NAME", "MAIL_LANG", "MAIL_MODULE"):
     tpl = tpl.replace("${" + key + "}", html.escape(os.environ.get(key, ""), quote=False))
 tpl = tpl.replace("${CONTENT}", html.escape(content, quote=False))
 if advice:
@@ -201,9 +201,24 @@ if note and note_cmd:
 else:
     tpl = re.sub(r"<!--NOTE_START-->.*?<!--NOTE_END-->", "", tpl, count=1, flags=re.S)
 if "<pre" not in tpl:
-    missing_pre = os.environ.get("G_TEXT_TEMPLATE_NO_PRE") or "template without a pre tag"
+    missing_pre = os.environ.get("TEXT_TEMPLATE_NO_PRE") or "template without a pre tag"
     print(missing_pre, file=sys.stderr)
     sys.exit(1)
 sys.stdout.write(tpl)
 PY
+}
+
+apply_postfix() {
+    local line key value host
+    host="$(hostname -f)"
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+        [[ -z "${line}" || "${line}" == \#* ]] && continue
+        key="${line%%=*}"
+        value="${line#*=}"
+        value="${value//__HOSTNAME__/${host}}"
+        value="${value//__RELAYHOST__/${relayhost}}"
+        value="${value//__PROJECT_NAME__/${PROJECT_NAME}}"
+        value="${value//__SASL_TYPE__/${sasl_type}}"
+        postconf -e "${key} = ${value}"
+    done < "$(locate_config_file postfix/main.keys)"
 }

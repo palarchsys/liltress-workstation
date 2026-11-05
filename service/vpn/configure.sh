@@ -8,21 +8,19 @@
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
-export G_INSTALL_DIRECTORY
-if [[ -z "${G_PRODUCT_ROOT:-}" ]]; then
-    G_PRODUCT_ROOT="${INSTALL_DIRECTORY}"
-    export G_PRODUCT_ROOT
+if [[ -z "${PRODUCT_ROOT:-}" ]]; then
+    PRODUCT_ROOT="${INSTALL_DIRECTORY}"
+    export PRODUCT_ROOT
 fi
 
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/service/vpn/lib.sh"
+source "${INSTALL_DIRECTORY}/service/vpn/lib.sh"
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/service/vpn/state.sh"
+source "${INSTALL_DIRECTORY}/service/vpn/state.sh"
 require_root
 
 render_vpn_unit() {
@@ -32,7 +30,7 @@ render_vpn_unit() {
     if [[ -f "${dest}" ]]; then
         copy_backup "${dest}"
     fi
-    sed "s|@ROOT@|${G_INSTALL_DIRECTORY}|g" "${src}" > "${dest}"
+    sed "s|@ROOT@|${INSTALL_DIRECTORY}|g" "${src}" > "${dest}"
     chmod 644 "${dest}"
 }
 

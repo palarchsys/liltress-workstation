@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/clamav/configure.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
-export G_INSTALL_DIRECTORY
 
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 # shellcheck disable=SC1091
 source "$(locate_config_file clamav/onaccess.conf)"
 require_root
@@ -45,7 +43,7 @@ log_subtitle     "${INSTALL_WATCHER}" "configure.configuration-clamav"
 log_info         "${INSTALL_WATCHER}" "configure.update-of-the-signatures-can-take-1-2-min"
 
 run_optional     "${INSTALL_WATCHER}" "configure.clamav.error" systemctl stop clamav-freshclam
-fresh_log="${G_LOG_DIR:-/var/log/liltress-workstation}/freshclam.log"
+fresh_log="${INSTALL_LOG_DIR:-/var/log/liltress-workstation}/freshclam.log"
 mkdir -p "$(dirname "${fresh_log}")"
 if freshclam --quiet >"${fresh_log}" 2>&1; then
     log_success      "${INSTALL_WATCHER}" "configure.signatures-clamav-mises-up-to-date"
@@ -57,13 +55,13 @@ run_silent       "${INSTALL_WATCHER}" "configure.clamav.error" systemctl enable 
 run_silent       "${INSTALL_WATCHER}" "configure.clamav.error" systemctl enable --now clamav-daemon
 
 get_current_user
-install -d -m 755 "${G_CONFIG_BASE_DIRECTORY}/cron/bin"
+install -d -m 755 "${CONFIG_BASE_DIRECTORY}/cron/bin"
 install -m 755 \
-    "${G_INSTALL_DIRECTORY}/service/cron/watchdogs/common.sh" \
-    "${G_INSTALL_DIRECTORY}/service/cron/watchdogs/clamav-event.sh" \
-    "${G_INSTALL_DIRECTORY}/service/cron/watchdogs/clamav-response.sh" \
-    "${G_CONFIG_BASE_DIRECTORY}/cron/bin/"
-rm -f "${G_CONFIG_BASE_DIRECTORY}/cron/clamav.conf"
+    "${INSTALL_DIRECTORY}/service/cron/watchdogs/common.sh" \
+    "${INSTALL_DIRECTORY}/service/cron/watchdogs/clamav-event.sh" \
+    "${INSTALL_DIRECTORY}/service/cron/watchdogs/clamav-response.sh" \
+    "${CONFIG_BASE_DIRECTORY}/cron/bin/"
+rm -f "${CONFIG_BASE_DIRECTORY}/cron/clamav.conf"
 
 download_dir="$(ensure_xdg_directory DOWNLOAD Downloads)"
 desktop_dir="$(ensure_xdg_directory DESKTOP Desktop)"
@@ -72,7 +70,7 @@ music_dir="$(ensure_xdg_directory MUSIC Music)"
 pictures_dir="$(ensure_xdg_directory PICTURES Pictures)"
 videos_dir="$(ensure_xdg_directory VIDEOS Videos)"
 
-event="${G_CONFIG_BASE_DIRECTORY}/cron/bin/clamav-event.sh"
+event="${CONFIG_BASE_DIRECTORY}/cron/bin/clamav-event.sh"
 clam_conf="/etc/clamav/clamd.conf"
 if [[ -f "${clam_conf}" ]]; then
     if ! grep -q "${W_ONACCESS_MARKER}" "${clam_conf}" \
@@ -154,20 +152,20 @@ RestartSec=${W_CLAMONACC_RESTART_SEC}
 EOF
 run_silent       "${INSTALL_WATCHER}" "configure.clamav.error" systemctl daemon-reload
 
-export W_BASE="${G_CONFIG_BASE_DIRECTORY}"
+export W_BASE="${CONFIG_BASE_DIRECTORY}"
 export W_SCAN_SKIP_HOME="${CURRENT_HOME}"
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/service/cron/watchdogs/scan-skip-lib.sh"
+source "${INSTALL_DIRECTORY}/service/cron/watchdogs/scan-skip-lib.sh"
 ensure_scan_skip_file "${CURRENT_HOME}"
-bash "${G_INSTALL_DIRECTORY}/service/cron/watchdogs/apply-scan-skip.sh"
+bash "${INSTALL_DIRECTORY}/service/cron/watchdogs/apply-scan-skip.sh"
 run_silent       "${INSTALL_WATCHER}" "configure.clamav.error" systemctl enable --now "${clam_unit}"
 run_silent       "${INSTALL_WATCHER}" "configure.clamav.error" systemctl restart clamav-daemon
 run_silent       "${INSTALL_WATCHER}" "configure.clamav.error" systemctl restart "${clam_unit}"
 
 sleep 3
 if ! systemctl is-active --quiet "${clam_unit}"; then
-    journalctl -u "${clam_unit}" -n 40 --no-pager > "${G_LOG_DIR:-/var/log/liltress-workstation}/clamonacc.log" 2>&1 || true
-    log_error        "${INSTALL_WATCHER}" "configure.clamonacc-stays-not-active-detail-clamonacc-log" "${G_LOG_DIR:-/var/log/liltress-workstation}"
+    journalctl -u "${clam_unit}" -n 40 --no-pager > "${INSTALL_LOG_DIR:-/var/log/liltress-workstation}/clamonacc.log" 2>&1 || true
+    log_error        "${INSTALL_WATCHER}" "configure.clamonacc-stays-not-active-detail-clamonacc-log" "${INSTALL_LOG_DIR:-/var/log/liltress-workstation}"
 fi
 zone_label="les dossiers utilisateur, /tmp, /var/tmp et /opt"
 if [[ "${W_ONACCESS_MOUNTS}" == "1" ]]; then

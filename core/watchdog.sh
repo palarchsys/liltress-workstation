@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -9,12 +9,12 @@ if ! declare -F get_text >/dev/null 2>&1; then
     text_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     for text_candidate in \
         "${text_here}/log.sh" \
-        "${G_CONFIG_BASE_DIRECTORY:-}/src/core/log.sh" \
+        "${CONFIG_BASE_DIRECTORY:-}/src/core/log.sh" \
         "${W_BASE:-}/src/core/log.sh" \
-        "${G_BASE:-}/src/core/log.sh" \
-        "${G_INSTALL_DIRECTORY:-}/core/log.sh" \
-        "${G_PRODUCT_ROOT:-}/core/log.sh" \
-        "${G_PRODUCT_ROOT:-}/../core/log.sh"
+        "${BASE:-}/src/core/log.sh" \
+        "${INSTALL_DIRECTORY:-}/core/log.sh" \
+        "${PRODUCT_ROOT:-}/core/log.sh" \
+        "${PRODUCT_ROOT:-}/../share/core/log.sh"
     do
         if [[ -n "${text_candidate}" && -f "${text_candidate}" ]]; then
             # shellcheck disable=SC1090
@@ -28,10 +28,10 @@ fi
 get_product_base() {
     if [[ -n "${W_BASE:-}" ]]; then
         printf '%s' "${W_BASE}"
-    elif [[ -n "${G_CONFIG_BASE_DIRECTORY:-}" ]]; then
-        printf '%s' "${G_CONFIG_BASE_DIRECTORY}"
-    elif [[ -n "${G_BASE:-}" ]]; then
-        printf '%s' "${G_BASE}"
+    elif [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
+        printf '%s' "${CONFIG_BASE_DIRECTORY}"
+    elif [[ -n "${BASE:-}" ]]; then
+        printf '%s' "${BASE}"
     else
         printf '%s' "/opt/liltress"
     fi
@@ -88,17 +88,17 @@ send_crash_mail() {
     fi
     trap - EXIT
     [[ "${status}" -eq 0 ]] && return 0
-    log_alert "$(get_crash_sentence "${G_CRASH_LABEL:-${W_CRASH_LABEL:-contrôle}}" "${status}")" || true
+    log_alert "$(get_crash_sentence "${CRASH_LABEL:-${W_CRASH_LABEL:-contrôle}}" "${status}")" || true
 }
 
 arm_crash_mail() {
-    G_CRASH_LABEL="$1"
+    CRASH_LABEL="$1"
     W_CRASH_LABEL="$1"
     trap send_crash_mail EXIT
 }
 
 get_cpu_quota_percent() {
-    local limit="${G_WATCHDOG_CPU_LIMIT:-50}"
+    local limit="${WATCHDOG_CPU_LIMIT:-50}"
     local n=1
     if [[ ! "${limit}" =~ ^[0-9]+$ ]]; then
         limit=50
@@ -119,15 +119,15 @@ run_limited() {
         *e*) errexit=1 ;;
     esac
     set +e
-    if [[ "${G_LIMIT_WRAP:-1}" == "0" ]]; then
+    if [[ "${LIMIT_WRAP:-1}" == "0" ]]; then
         "$@"
         status=$?
     else
         if command -v nice >/dev/null 2>&1; then
-            cmd+=(nice -n "${G_WATCHDOG_LIMIT_NICE:-19}")
+            cmd+=(nice -n "${WATCHDOG_LIMIT_NICE:-19}")
         fi
         if command -v ionice >/dev/null 2>&1; then
-            cmd+=(ionice -c "${G_WATCHDOG_LIMIT_IO_NICE:-3}")
+            cmd+=(ionice -c "${WATCHDOG_LIMIT_IO_NICE:-3}")
         fi
         if [[ "${#cmd[@]}" -eq 0 ]]; then
             "$@" &
@@ -153,11 +153,11 @@ run_limited() {
 }
 
 get_alert_excerpt() {
-    load_text "${G_LANGUAGE:-en}"
-    G_TEXT_EXCERPT_MORE="$(get_text alert.excerpt.more)" \
-    G_TEXT_EXCERPT_ATTR="$(get_text alert.excerpt.attr)" \
-    G_TEXT_REDACTED="$(get_text mail.redacted)" \
-    G_TEXT_REDACTED_KEY="$(get_text mail.redacted-key)" \
+    load_text "${LANGUAGE:-en}"
+    TEXT_EXCERPT_MORE="$(get_text alert.excerpt.more)" \
+    TEXT_EXCERPT_ATTR="$(get_text alert.excerpt.attr)" \
+    TEXT_REDACTED="$(get_text mail.redacted)" \
+    TEXT_REDACTED_KEY="$(get_text mail.redacted-key)" \
     python3 - "${1:-}" << 'PY'
 import os
 import re
@@ -165,15 +165,15 @@ import sys
 from pathlib import Path
 
 EXCERPT_MORE = os.environ.get(
-    "G_TEXT_EXCERPT_MORE",
+    "TEXT_EXCERPT_MORE",
     "... {1} ligne(s) supplémentaire(s) non recopiées",
 )
 EXCERPT_ATTR = os.environ.get(
-    "G_TEXT_EXCERPT_ATTR",
+    "TEXT_EXCERPT_ATTR",
     "... {1} ligne(s) d'attribut supplémentaire(s) non recopiées",
 )
-REDACTED = os.environ.get("G_TEXT_REDACTED", "[masqué]")
-REDACTED_KEY = os.environ.get("G_TEXT_REDACTED_KEY", "[clé privée masquée]")
+REDACTED = os.environ.get("TEXT_REDACTED", "[masqué]")
+REDACTED_KEY = os.environ.get("TEXT_REDACTED_KEY", "[clé privée masquée]")
 
 
 def fill_count(template, count):
@@ -382,7 +382,7 @@ PY
 }
 
 invoke_clamav() {
-    if [[ "${G_CLAM_MODE:-scan}" == "daemon" ]]; then
+    if [[ "${CLAM_MODE:-scan}" == "daemon" ]]; then
         run_limited clamdscan --fdpass --infected --no-summary -- "$@"
     else
         clamscan --infected --no-summary -- "$@"
@@ -392,7 +392,7 @@ invoke_clamav() {
 scan_clamav_batch() {
     local status=0 signal=0 streak=0 path errexit=0 tool="clamscan"
     [[ "$#" -gt 0 ]] || return 0
-    if [[ "${G_CLAM_MODE:-scan}" == "daemon" ]]; then
+    if [[ "${CLAM_MODE:-scan}" == "daemon" ]]; then
         tool="clamdscan"
     fi
     case $- in
@@ -421,7 +421,7 @@ scan_clamav_batch() {
             streak=$((streak + 1))
             if [[ "${streak}" -ge 2 ]]; then
                 printf '%s planté signal %s, contrôle arrêté\n' "${tool}" "${signal}"
-                G_CLAM_STOP=1
+                CLAM_STOP=1
                 W_CLAMAV_STOP=1
                 return 0
             fi
@@ -436,8 +436,8 @@ list_clamav_scan() {
     local file_list="$1"
     local path batch_max
     local -a batch=()
-    batch_max="${G_CLAM_BATCH:-80}"
-    G_CLAM_STOP=0
+    batch_max="${CLAM_BATCH:-80}"
+    CLAM_STOP=0
     W_CLAMAV_STOP=0
     while IFS= read -r -d '' path || [[ -n "${path}" ]]; do
         [[ -n "${path}" ]] || continue
@@ -445,10 +445,10 @@ list_clamav_scan() {
         if [[ "${#batch[@]}" -eq "${batch_max}" ]]; then
             scan_clamav_batch "${batch[@]}" || true
             batch=()
-            [[ "${G_CLAM_STOP}" == 1 ]] && break
+            [[ "${CLAM_STOP}" == 1 ]] && break
         fi
     done < "${file_list}"
-    if [[ "${#batch[@]}" -gt 0 && "${G_CLAM_STOP}" != 1 ]]; then
+    if [[ "${#batch[@]}" -gt 0 && "${CLAM_STOP}" != 1 ]]; then
         scan_clamav_batch "${batch[@]}" || true
     fi
     return 0
@@ -762,8 +762,8 @@ write_quarantine_holder() {
     local target="$1"
     shift
     local pid="" comm="" uid="" name=""
-    G_QUARANTINE_PID=""
-    G_QUARANTINE_COMM=""
+    QUARANTINE_PID=""
+    QUARANTINE_COMM=""
     pid="$(read_quarantine_holder "${target}")"
     [[ -n "${pid}" && "${pid}" =~ ^[0-9]+$ ]] || return 1
     if [[ "${pid}" == "1" ]]; then
@@ -786,8 +786,8 @@ write_quarantine_holder() {
             return 0
         fi
     done
-    G_QUARANTINE_PID="${pid}"
-    G_QUARANTINE_COMM="${comm}"
+    QUARANTINE_PID="${pid}"
+    QUARANTINE_COMM="${comm}"
     return 1
 }
 
@@ -795,8 +795,8 @@ take_quarantine_file() {
     local origin="$1"
     local quarantine base stamp dest
     quarantine="${W_CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
-    G_MOVE_ACTION="déplacement refusé"
-    G_MOVE_STORED="${origin}"
+    MOVE_ACTION="déplacement refusé"
+    MOVE_STORED="${origin}"
     base="$(basename -- "${origin}")"
     [[ -n "${base}" && "${base}" != "/" && "${base}" != "." ]] || base="inconnu"
     if [[ ! -d "${quarantine}" ]]; then
@@ -810,8 +810,8 @@ take_quarantine_file() {
         return 0
     fi
     if [[ ! -e "${origin}" ]]; then
-        G_MOVE_ACTION="fichier déjà absent"
-        G_MOVE_STORED="absent"
+        MOVE_ACTION="fichier déjà absent"
+        MOVE_STORED="absent"
         return 0
     fi
     if [[ ! -f "${origin}" || -L "${origin}" ]]; then
@@ -820,10 +820,10 @@ take_quarantine_file() {
     stamp="$(date +%Y%m%d-%H%M%S-%N)"
     dest="${quarantine}/${stamp}-${base}"
     if mv -- "${origin}" "${dest}"; then
-        G_MOVE_ACTION="déplacé en quarantaine"
-        G_MOVE_STORED="${dest}"
+        MOVE_ACTION="déplacé en quarantaine"
+        MOVE_STORED="${dest}"
     else
-        G_MOVE_STORED="${origin}"
+        MOVE_STORED="${origin}"
     fi
     return 0
 }
@@ -839,8 +839,8 @@ signal_quarantine_holder() {
             printf '%s\n' "$(get_text watchdog.process-not-stopped "${reason}")"
             return 0
         fi
-        pid="${G_QUARANTINE_PID:-}"
-        comm="${G_QUARANTINE_COMM:-}"
+        pid="${QUARANTINE_PID:-}"
+        comm="${QUARANTINE_COMM:-}"
         [[ -n "${pid}" ]] || continue
         if kill -TERM "${pid}" 2>/dev/null; then
             printf '%s\n' "$(get_text watchdog.process-stopped "${pid}" "${comm}")"
@@ -857,8 +857,8 @@ record_quarantine_log() {
     local log="$2"
     shift 2
     local path reason phrase quarantine
-    G_CONFIRMED_COUNT=0
-    G_MOVED_COUNT=0
+    CONFIRMED_COUNT=0
+    MOVED_COUNT=0
     [[ -n "${log}" && -f "${log}" ]] || return 0
     quarantine="${W_CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
     while IFS= read -r path; do
@@ -867,7 +867,7 @@ record_quarantine_log() {
             "${quarantine}"|"${quarantine}"/*) continue ;;
         esac
         [[ -f "${path}" && ! -L "${path}" ]] || continue
-        G_CONFIRMED_COUNT=$((G_CONFIRMED_COUNT + 1))
+        CONFIRMED_COUNT=$((CONFIRMED_COUNT + 1))
         case "${path}" in
             /etc/passwd|/etc/shadow|/etc/sudoers|/etc/ssh/sshd_config|/etc/ufw/ufw.conf|/usr/bin/sudo|/usr/bin/passwd|/usr/sbin/sshd)
                 printf '%s\n' "$(get_text watchdog.not-updated-in-quarantine "${path}")"
@@ -879,14 +879,14 @@ record_quarantine_log() {
             continue
         fi
         take_quarantine_file "${path}"
-        if [[ "${G_MOVE_ACTION}" != "déplacé en quarantaine" ]]; then
-            printf '%s\n' "${G_MOVE_ACTION} : ${path}"
+        if [[ "${MOVE_ACTION}" != "déplacé en quarantaine" ]]; then
+            printf '%s\n' "${MOVE_ACTION} : ${path}"
             continue
         fi
-        record_quarantine_origin "${source}" "${path}" "${G_MOVE_STORED}" "${source}" || true
-        phrase="$(signal_quarantine_holder "${path}" "${G_MOVE_STORED}" "$@")"
-        printf '%s\n' "$(get_text watchdog.moved-in-quarantine-quarantine "${path}" "${phrase}" "${G_MOVE_STORED}")"
-        G_MOVED_COUNT=$((G_MOVED_COUNT + 1))
+        record_quarantine_origin "${source}" "${path}" "${MOVE_STORED}" "${source}" || true
+        phrase="$(signal_quarantine_holder "${path}" "${MOVE_STORED}" "$@")"
+        printf '%s\n' "$(get_text watchdog.moved-in-quarantine-quarantine "${path}" "${phrase}" "${MOVE_STORED}")"
+        MOVED_COUNT=$((MOVED_COUNT + 1))
     done < <(python3 - "${source}" "${log}" << 'PY'
 import re
 import sys
@@ -922,14 +922,14 @@ PY
 render_egress_body() {
     local kernel="$1"
     local audit="${2:-}"
-    G_EGRESS_AUDIT_FILE="${audit}" python3 - "${kernel}" << 'PY'
+    EGRESS_AUDIT_FILE="${audit}" python3 - "${kernel}" << 'PY'
 import os
 import re
 import sys
 from pathlib import Path
 
 kernel_path = Path(sys.argv[1])
-audit_path = os.environ.get("G_EGRESS_AUDIT_FILE", "")
+audit_path = os.environ.get("EGRESS_AUDIT_FILE", "")
 kernel_lines = []
 seen = set()
 if kernel_path.is_file():
@@ -1075,7 +1075,7 @@ render_alert_advice() {
     ADVICE_HOLD=0
     catalog="$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}")")/alert-advice.txt"
     [[ -f "${catalog}" ]] || return 0
-    load_text "${G_LANGUAGE:-en}"
+    load_text "${LANGUAGE:-en}"
     rendered=""
     rendered="$(
         python3 - "${tool}" "${log}" "${summary}" "${catalog}" << 'PY'
@@ -1134,8 +1134,8 @@ def load_dirs(spec):
     return data
 
 
-LANG_TEXT = load_dirs(os.environ.get("G_TEXT_LANG_DIRS", ""))
-EN_TEXT = load_dirs(os.environ.get("G_TEXT_EN_DIRS", ""))
+LANG_TEXT = load_dirs(os.environ.get("TEXT_LANG_DIRS", ""))
+EN_TEXT = load_dirs(os.environ.get("TEXT_EN_DIRS", ""))
 
 
 def text_get(key):
@@ -1799,11 +1799,11 @@ write_alert_file() {
 copy_alert_drive() {
     local alert="${1:-}"
     local base remote path config
-    [[ "${G_RCLONE_ALERTS:-0}" == "1" ]] || return 0
+    [[ "${RCLONE_ALERTS:-0}" == "1" ]] || return 0
     [[ -n "${alert}" && -f "${alert}" ]] || return 0
     base="$(get_product_base)"
-    remote="${G_RCLONE_REMOTE:-}"
-    path="${G_RCLONE_PATH:-}"
+    remote="${RCLONE_REMOTE:-}"
+    path="${RCLONE_PATH:-}"
     config="${base}/cron/rclone.conf"
     if [[ -z "${remote}" || -z "${path}" || ! -f "${config}" ]]; then
         printf '%s\n' "$(get_text watchdog.copy-drive-ignored)" >&2
@@ -1877,15 +1877,15 @@ log_alert() {
     if [[ -z "${TITLE:-}" ]]; then
         TITLE="$(get_text alert.title.module "${module}")"
     fi
-    if [[ -z "${G_PROJECT_NAME:-}" ]]; then
+    if [[ -z "${PROJECT_NAME:-}" ]]; then
         if [[ -n "${W_BASE:-}" ]]; then
-            G_PROJECT_NAME="Liltress Workstation"
+            PROJECT_NAME="Liltress Workstation"
         else
-            G_PROJECT_NAME="Liltress"
+            PROJECT_NAME="Liltress"
         fi
     fi
     write_alert_file "${alert}" "${summary}" "${excerpt}" "${ADVICE:-}" "${NOTE:-}" "${NOTE_CMD:-}"
-    if [[ "${G_MAIL_ALERTS:-0}" == "1" && -n "${G_WATCHDOG_MAIL:-}" ]]; then
+    if [[ "${MAIL_ALERTS:-0}" == "1" && -n "${WATCHDOG_MAIL:-}" ]]; then
         send="$(send_path)" || true
         if [[ -n "${send}" ]]; then
             TITLE="${TITLE}" \
@@ -1896,9 +1896,9 @@ ${excerpt}" \
             NOTE="${NOTE:-}" \
             NOTE_CMD="${NOTE_CMD:-}" \
             ADVICE="${ADVICE:-}" \
-            G_WATCHDOG_MAIL="${G_WATCHDOG_MAIL}" \
-            G_PROJECT_NAME="${G_PROJECT_NAME}" \
-            G_MAIL_TEMPLATE="${G_MAIL_TEMPLATE:-mail.html}" \
+            WATCHDOG_MAIL="${WATCHDOG_MAIL}" \
+            PROJECT_NAME="${PROJECT_NAME}" \
+            MAIL_TEMPLATE="${MAIL_TEMPLATE:-mail.html}" \
                 bash "${send}" || true
         fi
     fi
@@ -1947,7 +1947,7 @@ deliver_mail() {
         echo "$(get_text watchdog.mail-not-sent-empty-body "${MODULE_NAME:-?}")" >&2
         exit 0
     fi
-    if [[ "${G_MAIL_ABOUT:-0}" == "1" ]]; then
+    if [[ "${MAIL_ABOUT:-0}" == "1" ]]; then
         CONTENT="$(render_mail_about)
 
 ${detail}"
@@ -1958,27 +1958,27 @@ ${detail}"
     DATE="${DATE:-$(date '+%Y-%m-%d %H:%M:%S')}"
     TITLE="${TITLE:-$(get_text alert.title.short)}"
     MODULE_NAME="${MODULE_NAME:-$(get_text alert.module.mail)}"
-    if [[ -z "${G_PROJECT_NAME:-}" ]]; then
+    if [[ -z "${PROJECT_NAME:-}" ]]; then
         if [[ -n "${W_BASE:-}" ]]; then
-            G_PROJECT_NAME="Liltress Workstation"
+            PROJECT_NAME="Liltress Workstation"
         else
-            G_PROJECT_NAME="Liltress"
+            PROJECT_NAME="Liltress"
         fi
     fi
-    export TITLE G_PROJECT_NAME HOSTNAME DATE MODULE_NAME CONTENT
+    export TITLE PROJECT_NAME HOSTNAME DATE MODULE_NAME CONTENT
     export NOTE="${NOTE:-}"
     export NOTE_CMD="${NOTE_CMD:-}"
     export ADVICE="${ADVICE:-}"
     _mail_sh=""
     for _candidate in \
         "${script_dir}/mail.sh" \
-        "${G_CONFIG_BASE_DIRECTORY:-}/cron/bin/mail.sh" \
-        "${G_CONFIG_BASE_DIRECTORY:-}/src/core/mail.sh" \
-        "${G_INSTALL_DIRECTORY:-}/core/mail.sh" \
-        "${G_INSTALL_DIRECTORY:-}/../core/mail.sh" \
+        "${CONFIG_BASE_DIRECTORY:-}/cron/bin/mail.sh" \
+        "${CONFIG_BASE_DIRECTORY:-}/src/core/mail.sh" \
+        "${INSTALL_DIRECTORY:-}/core/mail.sh" \
+        "${INSTALL_DIRECTORY:-}/../share/core/mail.sh" \
         "${script_dir}/../../../core/mail.sh" \
-        "${script_dir}/../../../../core/mail.sh" \
-        "${script_dir}/../core/mail.sh" \
+        "${script_dir}/../../../../share/core/mail.sh" \
+        "${script_dir}/../share/core/mail.sh" \
         "${script_dir}/../../core/mail.sh" \
         "${script_dir}/../../src/core/mail.sh"
     do
@@ -1997,8 +1997,8 @@ ${detail}"
         echo "$(get_text watchdog.mail-not-sent-template-html-not-found "${MODULE_NAME}")" >&2
         exit 0
     }
-    if [[ "${G_MAIL_REDACT:-0}" == "1" ]]; then
-        if ! MAIL_CONTENT="$(G_MAIL_REDACT=1 render_mail "${tpl}")"; then
+    if [[ "${MAIL_REDACT:-0}" == "1" ]]; then
+        if ! MAIL_CONTENT="$(MAIL_REDACT=1 render_mail "${tpl}")"; then
             echo "$(get_text watchdog.mail-not-sent-template-html-invalid "${MODULE_NAME}")" >&2
             exit 0
         fi
@@ -2010,12 +2010,12 @@ ${detail}"
         printf '%s\n' "${MAIL_CONTENT}" > "${HTML_REPORT}" || true
         copy_alert_drive "${HTML_REPORT}" || true
     fi
-    if [[ "${G_MAIL_REQUIRE_FLAG:-0}" == "1" ]]; then
-        if [[ "${G_MAIL_ALERTS:-0}" != "1" || -z "${G_WATCHDOG_MAIL:-}" ]]; then
+    if [[ "${MAIL_REQUIRE_FLAG:-0}" == "1" ]]; then
+        if [[ "${MAIL_ALERTS:-0}" != "1" || -z "${WATCHDOG_MAIL:-}" ]]; then
             echo "$(get_text watchdog.mail-not-sent-alerts-e-mail-off "${MODULE_NAME:-?}")" >&2
             exit 0
         fi
-    elif [[ -z "${G_WATCHDOG_MAIL:-}" ]]; then
+    elif [[ -z "${WATCHDOG_MAIL:-}" ]]; then
         echo "$(get_text watchdog.mail-not-sent-destinataire-or-empty-body "${MODULE_NAME:-?}")" >&2
         exit 0
     fi
@@ -2023,7 +2023,9 @@ ${detail}"
         echo "$(get_text watchdog.mail-not-sent-command-mail-absent "${MODULE_NAME:-?}")" >&2
         exit 0
     fi
-    printf '%s\n' "${MAIL_CONTENT}" | mail -s "${G_PROJECT_NAME} - ${HOSTNAME} - ${MODULE_NAME}" \
+    printf '%s\n' "${MAIL_CONTENT}" | mail -s "${PROJECT_NAME} - ${HOSTNAME} - ${MODULE_NAME}" \
         -a "Content-Type: text/html; charset=UTF-8" \
-        "${G_WATCHDOG_MAIL}"
+        "${WATCHDOG_MAIL}"
 }
+
+

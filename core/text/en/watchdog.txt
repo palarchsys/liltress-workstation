@@ -46,6 +46,18 @@ Mail not sent ({1}): command mail absent.
 [watchdog.execution-since-a-directory-temporary]
 execution since a directory temporary
 
+[watchdog.list-of-integrity-absent]
+integrity list absent
+
+[watchdog.ausearch-absent]
+ausearch absent
+
+[watchdog.initial-rep-re-written]
+initial marker written
+
+[watchdog.no-execution-temporary]
+no temporary execution
+
 [watchdog.invalid-memory-access]
 invalid memory access
 

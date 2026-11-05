@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : liltress
-# Updated at : 2026-10-28
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -10,9 +10,9 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 if [[ -f "${ROOT}/core/launch.sh" ]]; then
     # shellcheck disable=SC1091
     source "${ROOT}/core/launch.sh"
-elif [[ -f "${ROOT}/../core/launch.sh" ]]; then
+elif [[ -f "${ROOT}/../share/core/launch.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${ROOT}/../core/launch.sh"
+    source "${ROOT}/../share/core/launch.sh"
 else
     printf 'launch.sh introuvable depuis %s\n' "${ROOT}" >&2
     exit 1

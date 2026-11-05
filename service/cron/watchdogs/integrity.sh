@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/integrity.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -21,7 +21,7 @@ list=""
 for candidate in \
     "${W_BASE}/config/integrity/paths.list" \
     "${W_BASE}/src/config/integrity/paths.list" \
-    "${G_INSTALL_DIRECTORY:-}/config/integrity/paths.list"
+    "${INSTALL_DIRECTORY:-}/config/integrity/paths.list"
 do
     [[ -f "${candidate}" ]] || continue
     list="${candidate}"

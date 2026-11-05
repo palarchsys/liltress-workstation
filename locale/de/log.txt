@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : workstation/locale/de/log.txt
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -284,7 +284,7 @@ Installation der Korrekturen von Sicherheit
 Korrekturen von Sicherheit installiert
 
 [log.g-watchdog-mail-is-empty-l-e-mail-of-end-of-inst]
-G_WATCHDOG_MAIL ist leer: l'e-mail von Ende von Installation kann nicht gehen.
+WATCHDOG_MAIL ist leer: l'e-mail von Ende von Installation kann nicht gehen.
 
 [log.send-of-the-e-mail-of-test-to]
 Senden des e-mail von Test zu {1}

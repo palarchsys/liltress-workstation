@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/es/install.txt
-# Updated at : 2026-10-29
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -65,7 +65,7 @@ UFW instalado
 USBGuard instalado, servicio parado hasta la política
 
 [install.g-config-base-directory-invalid-in-global-conf]
-G_CONFIG_BASE_DIRECTORY no válido en global.conf ({1}).
+CONFIG_BASE_DIRECTORY no válido en global.conf ({1}).
 
 [install.root-of-install-rejected]
 Raíz de install rechazada: {1}
@@ -164,7 +164,7 @@ Retirada de los nombres de dominio de /etc/hosts
 Nombres de dominio retirados de /etc/hosts
 
 [install.lib.info.5]
-Preparación del acceso local G_MODE_TEST
+Preparación del acceso local MODE_TEST
 
 [install.lib.info.6]
 Retirada del certificado de prueba del magasin sistema
@@ -173,7 +173,7 @@ Retirada del certificado de prueba del magasin sistema
 Certificado de prueba retirado del magasin sistema
 
 [install.lib.success.5]
-Acceso local G_MODE_TEST listo, navegador en http://127.0.0.1
+Acceso local MODE_TEST listo, navegador en http://127.0.0.1
 
 [install.lib.error.16]
 Imposible de déterminer el usuario corriente (SUDO_USER vacío, ningún uid≥1000).

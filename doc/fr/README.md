@@ -64,7 +64,7 @@ sudo ./liltress configure
 `sudo ./liltress configure` pose les questions ci-dessous, écrit `global.conf` en mode `644` et `secrets.conf` en mode `600` en root, puis lance `script/run.sh`.<br/>
 `secrets.conf` reste sur la machine. Ne le copiez pas dans un message, un ticket ou un dépôt.<br/>
 La première question choisit la langue.<br/>
-La valeur est `G_LANGUAGE`.<br/>
+La valeur est `LANGUAGE`.<br/>
 Le défaut est l'anglais.<br/>
 
 | Question | Réponse attendue |
@@ -74,7 +74,7 @@ Le défaut est l'anglais.<br/>
 | Serveur | `hôte:port`, par exemple `smtp-mail.outlook.com:587`. Sans crochets. Demandé seulement si les alertes sont activées. |
 | Login | Une adresse e-mail. |
 | Password | Le mot de passe d'application du fournisseur, de 8 à 128 caractères. Les espaces sont retirés. Les guillemets, `$`, `\` et l'apostrophe inverse sont refusés. Jamais le mot de passe du compte. |
-| From | Une adresse e-mail. `G_WATCHDOG_MAIL` reçoit la même adresse. |
+| From | Une adresse e-mail. `WATCHDOG_MAIL` reçoit la même adresse. |
 | Activer l'envoi des alertes vers Google Drive (Y/N). | `Y` ou `y` active la copie. `N`, `n` ou `non` la coupe. Activé demande le nom distant et le dossier, puis lance `rclone config`. Le jeton reste sur la machine, mode 600. Coupé, rclone n'est pas installé. |
 | Distant | Nom distant. Lettres, chiffres ou tiret, 1 à 32 caractères. Seulement si la copie est activée. |
 | Dossier | Dossier distant. Pas de `..` et pas de chemin local absolu. Seulement si la copie est activée. |
@@ -101,8 +101,8 @@ L'installation pose les paquets et les services ci-dessous.
 | apparmor | Profils de la distribution. `service/apparmor/userns.sh` retire un profil hfu qui n'est pas livré. |
 | aide | Base d'intégrité `/var/lib/aide/aide.db`. |
 | unattended-upgrades | Origines de sécurité. `Automatic-Reboot` vaut `false`. |
-| postfix | Envoie le courrier d'alerte. Posé seulement lorsque `G_MAIL_ALERTS=1`. |
-| rclone | Copie un fichier d'alerte vers Google Drive. Posé seulement lorsque `G_RCLONE_ALERTS=1`. |
+| postfix | Envoie le courrier d'alerte. Posé seulement lorsque `MAIL_ALERTS=1`. |
+| rclone | Copie un fichier d'alerte vers Google Drive. Posé seulement lorsque `RCLONE_ALERTS=1`. |
 | lynis | Audit de durcissement. |
 | ubuntu-pro-client | Attache le jeton Ubuntu Pro. Hors LTS, esm-infra, esm-apps et Livepatch ne sont pas activés. Sur une LTS, leur échec n'arrête pas l'installation. |
 | acct, sysstat, libpam-pwquality | Comptabilité des processus, statistiques d'activité, qualité des mots de passe. |
@@ -222,10 +222,10 @@ WireGuard : un `.conf`.<br/>
 ## 📋 E-mails d'alerte
 
 Chaque fichier d'alerte est sous `/opt/liltress-workstation/cron/alerts`.<br/>
-Le courrier suit la langue `G_LANGUAGE`.<br/>
-Le courrier part seulement si `G_MAIL_ALERTS=1`.<br/>
-Une copie part vers Google Drive seulement si `G_RCLONE_ALERTS=1`, vers le distant et le dossier choisis.<br/>
-Le courrier part seulement si `G_MAIL_ALERTS=1`, si `G_WATCHDOG_MAIL` est défini, et si `/opt/liltress-workstation/cron/bin/send.sh` est exécutable.<br/>
+Le courrier suit la langue `LANGUAGE`.<br/>
+Le courrier part seulement si `MAIL_ALERTS=1`.<br/>
+Une copie part vers Google Drive seulement si `RCLONE_ALERTS=1`, vers le distant et le dossier choisis.<br/>
+Le courrier part seulement si `MAIL_ALERTS=1`, si `WATCHDOG_MAIL` est défini, et si `/opt/liltress-workstation/cron/bin/send.sh` est exécutable.<br/>
 Un contrôle propre n'envoie pas de courrier.<br/>
 Si une ligne du journal est inconnue, ne lancez pas la commande.<br/>
 Gardez le courrier.
@@ -417,7 +417,7 @@ sudo ./liltress lynis
 ```
 
 Lance `lynis audit system --quick --no-colors` et écrit le rapport sous `<source>/log/lynis-<stamp>/`.<br/>
-`G_LYNIS_MIN_SCORE` vaut 80.<br/>
+`LYNIS_MIN_SCORE` vaut 80.<br/>
 `verify/workstation.sh` accepte un `hardening_index` supérieur ou égal à ce seuil.
 
 ## ▪️ Base AIDE

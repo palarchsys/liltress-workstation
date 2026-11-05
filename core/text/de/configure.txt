@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/de/configure.txt
-# Updated at : 2026-10-29
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -119,43 +119,52 @@ Schreiben der Regeln USBGuard
 Kontingent CPU ungültig ({1})
 
 [configure.g-ssh-banner-path-invalid-example-etc-ssh-sshd-b]
-{1}: G_SSH_BANNER_PATH ungültig (« {2} »). Beispiel: /etc/ssh/sshd_banner
+{1}: SSH_BANNER_PATH ungültig (« {2} »). Beispiel: /etc/ssh/sshd_banner
 
 [configure.g-ssh-service-name-invalid-example-ssh]
-{1}: G_SSH_SERVICE_NAME ungültig (« {2} »). Beispiel: ssh
+{1}: SSH_SERVICE_NAME ungültig (« {2} »). Beispiel: ssh
 
 [configure.g-ssh-client-alive-interval-invalid-example-300]
-{1}: G_SSH_CLIENT_ALIVE_INTERVAL ungültig (« {2} »). Beispiel: 300
+{1}: SSH_CLIENT_ALIVE_INTERVAL ungültig (« {2} »). Beispiel: 300
 
 [configure.g-watchdog-cpu-limit-invalid-example-50]
-{1}: G_WATCHDOG_CPU_LIMIT ungültig (« {2} »). Beispiel: 50
+{1}: WATCHDOG_CPU_LIMIT ungültig (« {2} »). Beispiel: 50
 
 [configure.g-watchdog-limit-nice-invalid-example-19]
-{1}: G_WATCHDOG_LIMIT_NICE ungültig (« {2} »). Beispiel: 19
+{1}: WATCHDOG_LIMIT_NICE ungültig (« {2} »). Beispiel: 19
 
 [configure.g-watchdog-limit-io-nice-invalid-example-3]
-{1}: G_WATCHDOG_LIMIT_IO_NICE ungültig (« {2} »). Beispiel: 3
+{1}: WATCHDOG_LIMIT_IO_NICE ungültig (« {2} »). Beispiel: 3
 
 [configure.g-mail-alerts-invalid-example-0-or-1]
-{1}: G_MAIL_ALERTS ungültig (« {2} »). Beispiel: 0 oder 1
+{1}: MAIL_ALERTS ungültig (« {2} »). Beispiel: 0 oder 1
 
 [configure.g-rclone-alerts-invalid-example-0-or-1]
-{1}: G_RCLONE_ALERTS ungültig (« {2} »). Beispiel: 0 oder 1
+{1}: RCLONE_ALERTS ungültig (« {2} »). Beispiel: 0 oder 1
 
 [configure.g-rclone-remote-invalid-example-gdrive]
-{1}: G_RCLONE_REMOTE ungültig (« {2} »). Beispiel: gdrive
+{1}: RCLONE_REMOTE ungültig (« {2} »). Beispiel: gdrive
 
 [configure.g-rclone-path-invalid-example-liltress-alerts]
-{1}: G_RCLONE_PATH ungültig (« {2} »). Beispiel: liltress-alerts
+{1}: RCLONE_PATH ungültig (« {2} »). Beispiel: liltress-alerts
 
 [configure.g-mail-template-invalid-example-mail-html]
-{1}: G_MAIL_TEMPLATE ungültig (« {2} »). Beispiel: mail.html
+{1}: MAIL_TEMPLATE ungültig (« {2} »). Beispiel: mail.html
 
 [configure.g-mail-template-not-found-example-a-file-html-of]
-{1}: G_MAIL_TEMPLATE nicht gefunden ({2}). Beispiel: ein Datei.html des Verzeichnis template/
+{1}: MAIL_TEMPLATE nicht gefunden ({2}). Beispiel: ein Datei.html des Verzeichnis template/
+
+[configure.g-postfix-mail-address-must-be-an-address-email]
+{1}: POSTFIX_MAIL_ADDRESS ungültig (« {2} »). Beispiel: relay@example.com
+
+[configure.g-watchdog-mail-must-be-an-address-email-example]
+{1}: WATCHDOG_MAIL ungültig (« {2} »). Beispiel: relay@example.com
+
+[configure.g-postfix-mail-smtp-invalid-example-smtp-mail-ou]
+{1}: POSTFIX_MAIL_SMTP ungültig (« {2} »). Beispiel: smtp.gmail.com:587
 
 [configure.g-watchdog-mail-must-be-the-same-address-that-g]
-{1}: G_WATCHDOG_MAIL muss dieselbe Adresse dass G_POSTFIX_MAIL_ADDRESS.
+{1}: WATCHDOG_MAIL muss dieselbe Adresse dass POSTFIX_MAIL_ADDRESS.
 
 [configure.the-fields-e-mail-must-be-vides-when-the-alerts]
 {1}: die Felder e-mail müssen vides wenn die Alarme sind aus.
@@ -167,7 +176,7 @@ global.conf fehlt ({1}). Beispiel:./liltress konfiguriert
 Geheimnisse.conf fehlt ({1}). Beispiel:./liltress konfiguriert
 
 [configure.g-language-invalid-values-in-fr-of-es]
-{1}: G_LANGUAGE ungültig (« {2} »). Werte: en, fr, de, es.
+{1}: LANGUAGE ungültig (« {2} »). Werte: en, fr, de, es.
 
 [configure.core-watchdog-sh-not-found]
 core/watchdog.sh nicht gefunden ({1})

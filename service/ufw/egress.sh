@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ufw/egress.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -12,25 +12,23 @@
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
-export G_INSTALL_DIRECTORY
 
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 # shellcheck disable=SC1091
 source "$(locate_config_file ufw/egress.conf)"
 
-install -d -m 750 "${G_CONFIG_BASE_DIRECTORY}/cron"
+install -d -m 750 "${CONFIG_BASE_DIRECTORY}/cron"
 umask 077
-cat > "${G_CONFIG_BASE_DIRECTORY}/cron/egress.conf" << EOF
+cat > "${CONFIG_BASE_DIRECTORY}/cron/egress.conf" << EOF
 W_NET_ISOLATE_SEC=${W_NET_ISOLATE_SEC}
 EOF
 umask 022
-chmod 600 "${G_CONFIG_BASE_DIRECTORY}/cron/egress.conf"
+chmod 600 "${CONFIG_BASE_DIRECTORY}/cron/egress.conf"
 
-install -d -m 755 "${G_CONFIG_BASE_DIRECTORY}/cron/bin"
-cat > "${G_CONFIG_BASE_DIRECTORY}/cron/bin/egress-table.sh" << 'EOF'
+install -d -m 755 "${CONFIG_BASE_DIRECTORY}/cron/bin"
+cat > "${CONFIG_BASE_DIRECTORY}/cron/bin/egress-table.sh" << 'EOF'
 #!/bin/bash
 set -euo pipefail
 command -v nft >/dev/null 2>&1 || exit 0
@@ -51,7 +49,7 @@ nft add rule inet w_egress output meta l4proto udp th sport 546 th dport 547 acc
 nft add rule inet w_egress output meta l4proto udp th dport 161 meta pkttype '{ broadcast, multicast }' accept
 nft add rule inet w_egress output meta l4proto '{ tcp, udp }' limit rate 30/minute log prefix 'w-egress '
 EOF
-chmod 755 "${G_CONFIG_BASE_DIRECTORY}/cron/bin/egress-table.sh"
+chmod 755 "${CONFIG_BASE_DIRECTORY}/cron/bin/egress-table.sh"
 cat > /etc/systemd/system/w-egress-table.service << EOF
 [Unit]
 Description=Pose le journal des flux sortants
@@ -60,7 +58,7 @@ Before=w-boot-chain.service
 
 [Service]
 Type=oneshot
-ExecStart=${G_CONFIG_BASE_DIRECTORY}/cron/bin/egress-table.sh
+ExecStart=${CONFIG_BASE_DIRECTORY}/cron/bin/egress-table.sh
 RemainAfterExit=yes
 
 [Install]
@@ -75,5 +73,5 @@ if ! command -v nft >/dev/null 2>&1; then
     exit 0
 fi
 log_info "${INSTALL_WATCHER}" "log.install-of-the-journal-of-the-flow-outbound"
-bash "${G_CONFIG_BASE_DIRECTORY}/cron/bin/egress-table.sh"
+bash "${CONFIG_BASE_DIRECTORY}/cron/bin/egress-table.sh"
 log_success "${INSTALL_WATCHER}" "log.journal-of-the-flow-active-outbound"

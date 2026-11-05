@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -70,8 +70,8 @@ emit_log() {
     local tag="$1"
     local msg="$2"
     local max="$3"
-    if [[ -n "${G_LANGUAGE:-}" ]]; then
-        load_text "${G_LANGUAGE}"
+    if [[ -n "${LANGUAGE:-}" ]]; then
+        load_text "${LANGUAGE}"
     fi
     if [[ "$tag" != "DEBUG" ]]; then
         msg="$(shorten_logs_paths "$msg")"
@@ -113,7 +113,7 @@ log_show() {
     local value=""
     value="$(get_text "${key}" "$@")"
     if [[ "${type}" != "title" ]]; then
-        G_LOG_AFTER_TITLE=0
+        LOG_AFTER_TITLE=0
     fi
     if [[ "${watcher}" == "GO" ]]; then
         log_emit_go "${type}" "${key}" "${value}"
@@ -123,19 +123,19 @@ log_show() {
         return 0
     fi
     case "${type}" in
-        info)    emit_log INFO "${value}" "${G_LOG_FIT_MAX:-62}" ;;
-        success) emit_log SUCCESS "${value}" "${G_LOG_FIT_MAX:-62}" ;;
-        warn)    emit_log WARNING "${value}" "${G_LOG_FIT_MAX:-62}" ;;
+        info)    emit_log INFO "${value}" "${LOG_FIT_MAX:-62}" ;;
+        success) emit_log SUCCESS "${value}" "${LOG_FIT_MAX:-62}" ;;
+        warn)    emit_log WARNING "${value}" "${LOG_FIT_MAX:-62}" ;;
         debug)   emit_log DEBUG "${value}" 0 ;;
         title)
-            if [[ "${G_LOG_AFTER_TITLE:-0}" != "1" ]]; then
+            if [[ "${LOG_AFTER_TITLE:-0}" != "1" ]]; then
                 echo "" >&2
             fi
             set_color_blue "  -----------------------------------------------------------------------------"
             set_color_blue "   ${value}"
             set_color_blue "  -----------------------------------------------------------------------------"
             echo "" >&2
-            G_LOG_AFTER_TITLE=1
+            LOG_AFTER_TITLE=1
             ;;
         subtitle)
             echo "" >&2
@@ -148,9 +148,9 @@ log_show() {
             set_color_red "   ${value}"
             set_color_red "  -----------------------------------------------------------------------------"
             echo ""
-            if [[ -n "${G_LOG_DIR:-}" ]]; then
-                printf '%s\n' "${value}" >> "${G_LOG_DIR}/errors.log" 2>/dev/null || true
-                log_show "${watcher}" info "log.journals" "${G_LOG_DIR}"
+            if [[ -n "${INSTALL_LOG_DIR:-}" ]]; then
+                printf '%s\n' "${value}" >> "${INSTALL_LOG_DIR}/errors.log" 2>/dev/null || true
+                log_show "${watcher}" info "log.journals" "${INSTALL_LOG_DIR}"
             fi
             exit 1
             ;;
@@ -175,10 +175,10 @@ require_root() {
 
 set_step_visible() {
 
-    if [[ "${G_STEP_BANNERS:-0}" -eq 1 ]]; then
+    if [[ "${STEP_BANNERS:-0}" -eq 1 ]]; then
         echo "" >&2
     fi
-    G_STEP_BANNERS=1
+    STEP_BANNERS=1
     set_color_violet "═════════════════════════════════════════════════════════════════════════════════"
     set_color_violet " # $*"
     set_color_violet "═══ ↓ ↓ ═════════════════════════════════════════════════════════════════ ↓ ↓ ═══"
@@ -195,7 +195,7 @@ set_step_hidden() {
 
 
 check_debug_log() {
-    [[ "${G_DEBUG_INSTALL_LOGS:-0}" == "1" || "${G_DEBUG_INSTALL_LOG:-0}" == "1" ]]
+    [[ "${DEBUG_INSTALL_LOGS:-0}" == "1" || "${DEBUG_INSTALL_LOG:-0}" == "1" ]]
 }
 
 check_log_path_private() {
@@ -217,7 +217,7 @@ check_log_path_private() {
 
 publish_repo_logs() {
     local path="${1:-}"
-    local root="${G_INSTALL_DIRECTORY:-}"
+    local root="${INSTALL_DIRECTORY:-}"
     [[ -n "$path" && -e "$path" && -n "$root" ]] || return 0
     local abs_root abs_path
     abs_root="$(cd "$root" 2>/dev/null && pwd)" || return 0
@@ -272,9 +272,9 @@ log_index_append() {
     local log_path="$3"
     local line
     line="$(date -Iseconds)"$'\t'"${step}"$'\t'"${exit_code}"$'\t'"${log_path}"
-    if [[ -n "${G_LOG_DIR:-}" ]]; then
-        mkdir -p "${G_LOG_DIR}/steps"
-        printf '%s\n' "${line}" >> "${G_LOG_DIR}/steps/INDEX.tsv"
+    if [[ -n "${INSTALL_LOG_DIR:-}" ]]; then
+        mkdir -p "${INSTALL_LOG_DIR}/steps"
+        printf '%s\n' "${line}" >> "${INSTALL_LOG_DIR}/steps/INDEX.tsv"
     fi
 }
 
@@ -306,7 +306,7 @@ get_distribution_label() {
 }
 
 init_install_log() {
-    local root="${G_INSTALL_DIRECTORY:-.}"
+    local root="${INSTALL_DIRECTORY:-.}"
     local stamp name kind old_umask os_label
     stamp="$(date '+%Y%m%d-%H%M%S')"
     kind="${S_SERVER_TYPE:-}"
@@ -319,35 +319,35 @@ init_install_log() {
     fi
     name="install-${stamp}-${kind}"
 
-    G_LOG_DIR="${root}/log/${name}"
-    G_LOG_SYS=""
+    INSTALL_LOG_DIR="${root}/log/${name}"
+    LOG_SYS=""
     old_umask="$(umask)"
     umask 022
-    mkdir -p "${G_LOG_DIR}/steps"
-    G_LOG_FILE="${G_LOG_DIR}/install.log"
-    : > "${G_LOG_FILE}"
+    mkdir -p "${INSTALL_LOG_DIR}/steps"
+    INSTALL_LOG_FILE="${INSTALL_LOG_DIR}/install.log"
+    : > "${INSTALL_LOG_FILE}"
     umask "${old_umask}"
-    export G_LOG_DIR G_LOG_FILE G_LOG_SYS
+    export INSTALL_LOG_DIR INSTALL_LOG_FILE LOG_SYS
 
     os_label="$(get_distribution_label)"
-    printf '%s\n' "os          : ${os_label}" >> "${G_LOG_FILE}"
+    printf '%s\n' "os          : ${os_label}" >> "${INSTALL_LOG_FILE}"
 
     {
-        echo "$(get_text log.install-log "${G_PROJECT_NAME:-Liltress}")"
+        echo "$(get_text log.install-log "${PROJECT_NAME:-Liltress}")"
         echo "date        : $(date -Iseconds)"
         echo "hostname    : $(hostname 2>/dev/null || echo '?')"
         echo "os          : ${os_label}"
         echo "user        : ${CURRENT_USER:-}"
         echo "S_SERVER_TYPE : ${S_SERVER_TYPE:-}"
-        echo "G_MODE_TEST   : ${G_MODE_TEST:-}"
+        echo "MODE_TEST   : ${MODE_TEST:-}"
         echo "S_MODE_DEV    : ${S_MODE_DEV:-}"
         echo "DIR         : ${root}"
-        echo "log dir     : ${G_LOG_DIR}"
+        echo "log dir     : ${INSTALL_LOG_DIR}"
         echo "uname       : $(uname -a 2>/dev/null || true)"
-    } | tee "${G_LOG_DIR}/meta.txt" >/dev/null
+    } | tee "${INSTALL_LOG_DIR}/meta.txt" >/dev/null
 
-    exec > >(tee -a "${G_LOG_FILE}") 2>&1
-    publish_repo_logs "${G_LOG_DIR}"
+    exec > >(tee -a "${INSTALL_LOG_FILE}") 2>&1
+    publish_repo_logs "${INSTALL_LOG_DIR}"
 }
 
 collect_common_snapshot() {
@@ -393,12 +393,12 @@ collect_common_snapshot() {
 }
 
 collect_install_log() {
-    [[ -n "${G_LOG_DIR:-}" && -d "${G_LOG_DIR}" ]] || return 0
-    [[ "${G_LOGS_COLLECTED:-0}" == "1" ]] && return 0
-    G_LOGS_COLLECTED=1
-    export G_LOGS_COLLECTED
+    [[ -n "${INSTALL_LOG_DIR:-}" && -d "${INSTALL_LOG_DIR}" ]] || return 0
+    [[ "${LOGS_COLLECTED:-0}" == "1" ]] && return 0
+    LOGS_COLLECTED=1
+    export LOGS_COLLECTED
 
-    local snap="${G_LOG_DIR}/snapshot"
+    local snap="${INSTALL_LOG_DIR}/snapshot"
     mkdir -p "$snap"
     log_info "${INSTALL_WATCHER:-BASH}" "install.log.info" "${snap}"
     collect_common_snapshot "${snap}"
@@ -412,14 +412,14 @@ collect_install_log() {
 
     {
         echo "$(get_text log.g-collect-install-log "$(date -Iseconds)")"
-        echo "dossier : ${G_LOG_DIR}"
+        echo "dossier : ${INSTALL_LOG_DIR}"
         echo "os          : $(get_distribution_label)"
         echo "$(get_text log.see-install-log-errors-log-and-steps-index-tsv)"
         echo "$(get_text log.software-snapshot-software-and-snapshot-journal)"
     } > "${snap}/COLLECTED.txt"
 
     log_info "${INSTALL_WATCHER:-BASH}" "install.log.info.2"
-    publish_repo_logs "${G_LOG_DIR}"
+    publish_repo_logs "${INSTALL_LOG_DIR}"
 }
 
 install_exit() {
@@ -427,7 +427,7 @@ install_exit() {
     if [[ "${code}" -ne 0 ]]; then
         collect_install_log || true
     fi
-    publish_repo_logs "${G_LOG_DIR:-}" || true
+    publish_repo_logs "${INSTALL_LOG_DIR:-}" || true
 }
 
 ask() {
@@ -467,13 +467,13 @@ check_installer_directory() {
 
 remove_installer_tree() {
     local root="" base="" mail="" conf="" tmp="" back="" rm_rc=0
-    root="$(cd -- "${G_INSTALL_DIRECTORY:?}" && pwd -P)" || return 1
-    base="$(cd -- "${G_CONFIG_BASE_DIRECTORY:?}" && pwd -P)" || return 1
+    root="$(cd -- "${INSTALL_DIRECTORY:?}" && pwd -P)" || return 1
+    base="$(cd -- "${CONFIG_BASE_DIRECTORY:?}" && pwd -P)" || return 1
     check_installer_directory "${root}" "${base}" || return 1
     if [[ -f "${root}/core/mail.sh" ]]; then
         mail="${root}/core/mail.sh"
-    elif [[ -f "${root}/../core/mail.sh" ]]; then
-        mail="${root}/../core/mail.sh"
+    elif [[ -f "${root}/../share/core/mail.sh" ]]; then
+        mail="${root}/../share/core/mail.sh"
     else
         return 2
     fi
@@ -510,7 +510,7 @@ remove_installer_tree() {
 }
 
 refresh_aide_after_remove() {
-    local base="${G_CONFIG_BASE_DIRECTORY:-}"
+    local base="${CONFIG_BASE_DIRECTORY:-}"
     local log="/var/lib/aide/hf-remove-refresh.log"
     local aide_rc=0
     [[ -n "${base}" && -f /etc/aide/aide.conf ]] || return 0
@@ -536,7 +536,7 @@ refresh_aide_after_remove() {
         fi
     else
         log_warn "${INSTALL_WATCHER:-BASH}" "install.log.warn"
-        G_LOG_FIT_MAX=0 log_warn "${INSTALL_WATCHER:-BASH}" "install.log.warn.5" "${log}"
+        LOG_FIT_MAX=0 log_warn "${INSTALL_WATCHER:-BASH}" "install.log.warn.5" "${log}"
         return 0
     fi
     if [[ "${aide_rc}" -ne 0 ]]; then
@@ -548,22 +548,22 @@ refresh_aide_after_remove() {
 
 offer_remove_installer() {
     local root="" base="" answer="" rc=0
-    if [[ "${G_MODE_TEST:-0}" == "1" || "${S_MODE_DEV:-0}" == "1" ]]; then
+    if [[ "${MODE_TEST:-0}" == "1" || "${S_MODE_DEV:-0}" == "1" ]]; then
         return 0
     fi
     if [[ ! -r /dev/tty ]]; then
         log_warn "${INSTALL_WATCHER:-BASH}" "install.log.warn.7"
         return 0
     fi
-    root="$(cd -- "${G_INSTALL_DIRECTORY:?}" && pwd -P)" || {
+    root="$(cd -- "${INSTALL_DIRECTORY:?}" && pwd -P)" || {
         log_warn "${INSTALL_WATCHER:-BASH}" "install.log.warn.8"
         return 0
     }
-    base="${G_CONFIG_BASE_DIRECTORY:-}"
+    base="${CONFIG_BASE_DIRECTORY:-}"
 
     log_title "${INSTALL_WATCHER:-BASH}" "install.log.title"
     log_info "${INSTALL_WATCHER:-BASH}" "install.log.info.4"
-    G_LOG_FIT_MAX=0 log_info "${INSTALL_WATCHER:-BASH}" "install.log.info.5" "${root}"
+    LOG_FIT_MAX=0 log_info "${INSTALL_WATCHER:-BASH}" "install.log.info.5" "${root}"
     while true; do
         ask "Supprimer" answer
         answer="${answer#"${answer%%[![:space:]]*}"}"
@@ -605,21 +605,21 @@ offer_remove_installer() {
 }
 
 collect_manual() {
-    local root="${G_INSTALL_DIRECTORY:-.}"
+    local root="${INSTALL_DIRECTORY:-.}"
     local stamp name old_umask
     stamp="$(date '+%Y%m%d-%H%M%S')"
     name="snapshot-${stamp}-$(hostname -s 2>/dev/null || hostname)"
     S_SERVER_TYPE="${S_SERVER_TYPE:-manual}"
-    G_LOG_DIR="${root}/log/${name}"
-    G_LOG_SYS=""
+    INSTALL_LOG_DIR="${root}/log/${name}"
+    LOG_SYS=""
     old_umask="$(umask)"
     umask 022
-    mkdir -p "${G_LOG_DIR}/snapshot"
+    mkdir -p "${INSTALL_LOG_DIR}/snapshot"
     umask "${old_umask}"
-    export G_LOG_DIR G_LOG_SYS S_SERVER_TYPE
-    unset G_LOGS_COLLECTED
+    export INSTALL_LOG_DIR LOG_SYS S_SERVER_TYPE
+    unset LOGS_COLLECTED
     collect_install_log
-    log_info "${INSTALL_WATCHER:-BASH}" "install.log.info.9" "${G_LOG_DIR}"
+    log_info "${INSTALL_WATCHER:-BASH}" "install.log.info.9" "${INSTALL_LOG_DIR}"
 }
 
 get_log_copy_limit() {
@@ -627,7 +627,7 @@ get_log_copy_limit() {
 }
 
 log_note() {
-    local snap="${G_LOG_DIR:-}"
+    local snap="${INSTALL_LOG_DIR:-}"
     [[ -n "${snap}" ]] || return 0
     mkdir -p "${snap}/snapshot"
     printf '%s\n' "$1" >> "${snap}/snapshot/truncated.txt"
@@ -714,10 +714,10 @@ copy_installed_logs() {
     for src in "${paths[@]}"; do
         copy_log_tree "${src}" "${dest}"
     done
-    if [[ -n "${G_CONFIG_BASE_DIRECTORY:-}" ]]; then
-        copy_log_tree "${G_CONFIG_BASE_DIRECTORY}/cron/cron_logs" "${dest}"
-        copy_log_tree "${G_CONFIG_BASE_DIRECTORY}/cron/security_logs" "${dest}"
-        copy_log_tree "${G_CONFIG_BASE_DIRECTORY}/cron/alerts" "${dest}"
+    if [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
+        copy_log_tree "${CONFIG_BASE_DIRECTORY}/cron/cron_logs" "${dest}"
+        copy_log_tree "${CONFIG_BASE_DIRECTORY}/cron/security_logs" "${dest}"
+        copy_log_tree "${CONFIG_BASE_DIRECTORY}/cron/alerts" "${dest}"
     fi
     return 0
 }
@@ -750,7 +750,7 @@ collect_text_dirs() {
     local lang="$1"
     local text_here="" text_product="" text_base="" candidate="" resolved="" seen="|"
     text_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    text_product="${G_PRODUCT_ROOT:-}"
+    text_product="${PRODUCT_ROOT:-}"
     if [[ -z "${text_product}" ]]; then
         text_product="$(cd -- "${text_here}/.." && pwd)"
     fi
@@ -758,10 +758,10 @@ collect_text_dirs() {
         text_base="$(get_product_base)"
     elif [[ -n "${W_BASE:-}" ]]; then
         text_base="${W_BASE}"
-    elif [[ -n "${G_CONFIG_BASE_DIRECTORY:-}" ]]; then
-        text_base="${G_CONFIG_BASE_DIRECTORY}"
-    elif [[ -n "${G_BASE:-}" ]]; then
-        text_base="${G_BASE}"
+    elif [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
+        text_base="${CONFIG_BASE_DIRECTORY}"
+    elif [[ -n "${BASE:-}" ]]; then
+        text_base="${BASE}"
     else
         text_base="/opt/liltress"
     fi
@@ -771,13 +771,13 @@ collect_text_dirs() {
         "${text_product}/core/text/${lang}"
         "${text_base}/src/core/text/${lang}"
         "${text_base}/core/text/${lang}"
-        "${G_INSTALL_DIRECTORY:-}/core/text/${lang}"
+        "${INSTALL_DIRECTORY:-}/core/text/${lang}"
         "${text_product}/locale/${lang}"
         "${text_base}/src/locale/${lang}"
         "${text_base}/locale/${lang}"
     )
-    if [[ -n "${G_TEXT_DIR:-}" ]]; then
-        text_candidates+=("${G_TEXT_DIR}/${lang}")
+    if [[ -n "${TEXT_DIR:-}" ]]; then
+        text_candidates+=("${TEXT_DIR}/${lang}")
     fi
     for candidate in "${text_candidates[@]}"; do
         [[ -n "${candidate}" && -d "${candidate}" ]] || continue
@@ -819,20 +819,20 @@ read_text_file() {
 }
 
 load_text() {
-    local lang="${1:-${G_LANGUAGE:-en}}"
+    local lang="${1:-${LANGUAGE:-en}}"
     local dir="" file="" joined="" key=""
     if ! check_language "${lang}"; then
         lang="en"
     fi
-    if [[ -z "${G_LANGUAGE:-}" ]]; then
-        G_LANGUAGE="en"
+    if [[ -z "${LANGUAGE:-}" ]]; then
+        LANGUAGE="en"
     fi
-    if [[ "${G_TEXT_LANGUAGE:-}" == "${lang}" && "${G_TEXT_READY:-0}" == "1" && "${G_TEXT_DIR_LOADED:-}" == "${G_TEXT_DIR:-}" ]]; then
-        export G_LANGUAGE
+    if [[ "${TEXT_LANGUAGE:-}" == "${lang}" && "${TEXT_READY:-0}" == "1" && "${TEXT_DIR_LOADED:-}" == "${TEXT_DIR:-}" ]]; then
+        export LANGUAGE
         return 0
     fi
-    declare -gA G_TEXT_ENGLISH=()
-    declare -gA G_TEXT_SELECTED=()
+    declare -gA TEXT_ENGLISH=()
+    declare -gA TEXT_SELECTED=()
     local -a english_dirs=() selected_dirs=()
     collect_text_dirs en english_dirs
     if [[ "${lang}" == "en" ]]; then
@@ -843,29 +843,29 @@ load_text() {
     for dir in "${english_dirs[@]}"; do
         for file in "${dir}"/*.txt; do
             [[ -f "${file}" ]] || continue
-            read_text_file "${file}" G_TEXT_ENGLISH
+            read_text_file "${file}" TEXT_ENGLISH
         done
     done
     if [[ "${lang}" == "en" ]]; then
-        for key in "${!G_TEXT_ENGLISH[@]}"; do
-            G_TEXT_SELECTED["${key}"]="${G_TEXT_ENGLISH[${key}]}"
+        for key in "${!TEXT_ENGLISH[@]}"; do
+            TEXT_SELECTED["${key}"]="${TEXT_ENGLISH[${key}]}"
         done
     else
         for dir in "${selected_dirs[@]}"; do
             for file in "${dir}"/*.txt; do
                 [[ -f "${file}" ]] || continue
-                read_text_file "${file}" G_TEXT_SELECTED
+                read_text_file "${file}" TEXT_SELECTED
             done
         done
     fi
     joined="$(IFS=:; printf '%s' "${english_dirs[*]}")"
-    G_TEXT_EN_DIRS="${joined}"
+    TEXT_EN_DIRS="${joined}"
     joined="$(IFS=:; printf '%s' "${selected_dirs[*]}")"
-    G_TEXT_LANG_DIRS="${joined}"
-    G_TEXT_LANGUAGE="${lang}"
-    G_TEXT_DIR_LOADED="${G_TEXT_DIR:-}"
-    G_TEXT_READY=1
-    export G_LANGUAGE G_TEXT_EN_DIRS G_TEXT_LANG_DIRS
+    TEXT_LANG_DIRS="${joined}"
+    TEXT_LANGUAGE="${lang}"
+    TEXT_DIR_LOADED="${TEXT_DIR:-}"
+    TEXT_READY=1
+    export LANGUAGE TEXT_EN_DIRS TEXT_LANG_DIRS
 }
 
 apply_text() {
@@ -896,17 +896,17 @@ apply_text() {
 get_text() {
     local key="$1"
     shift
-    local lang="${G_LANGUAGE:-en}" text=""
+    local lang="${LANGUAGE:-en}" text=""
     if ! check_language "${lang}"; then
         lang="en"
     fi
-    if [[ "${G_TEXT_LANGUAGE:-}" != "${lang}" || "${G_TEXT_READY:-0}" != "1" || "${G_TEXT_DIR_LOADED:-}" != "${G_TEXT_DIR:-}" ]]; then
+    if [[ "${TEXT_LANGUAGE:-}" != "${lang}" || "${TEXT_READY:-0}" != "1" || "${TEXT_DIR_LOADED:-}" != "${TEXT_DIR:-}" ]]; then
         load_text "${lang}"
     fi
-    if [[ -n "${G_TEXT_SELECTED[${key}]+x}" ]]; then
-        text="${G_TEXT_SELECTED[${key}]}"
-    elif [[ -n "${G_TEXT_ENGLISH[${key}]+x}" ]]; then
-        text="${G_TEXT_ENGLISH[${key}]}"
+    if [[ -n "${TEXT_SELECTED[${key}]+x}" ]]; then
+        text="${TEXT_SELECTED[${key}]}"
+    elif [[ -n "${TEXT_ENGLISH[${key}]+x}" ]]; then
+        text="${TEXT_ENGLISH[${key}]}"
     else
         printf '%s' "${key}"
         return 0
@@ -957,51 +957,51 @@ read_text_record() {
 
 read_language_file() {
     local file="$1" line="" value=""
-    if [[ -z "${G_LANGUAGE:-}" ]]; then
-        G_LANGUAGE="en"
+    if [[ -z "${LANGUAGE:-}" ]]; then
+        LANGUAGE="en"
     fi
     if [[ -f "${file}" ]]; then
-        line="$(grep -E '^G_LANGUAGE=' -- "${file}" | head -n 1 || true)"
+        line="$(grep -E '^LANGUAGE=' -- "${file}" | head -n 1 || true)"
         if [[ -n "${line}" ]]; then
-            value="${line#G_LANGUAGE=}"
+            value="${line#LANGUAGE=}"
             value="${value%\"}"
             value="${value#\"}"
             value="${value%\'}"
             value="${value#\'}"
             if check_language "${value}"; then
-                G_LANGUAGE="${value}"
+                LANGUAGE="${value}"
             elif [[ -z "${value}" ]]; then
-                G_LANGUAGE="en"
+                LANGUAGE="en"
             fi
         fi
     fi
-    if ! check_language "${G_LANGUAGE}"; then
-        G_LANGUAGE="en"
+    if ! check_language "${LANGUAGE}"; then
+        LANGUAGE="en"
     fi
-    export G_LANGUAGE
-    load_text "${G_LANGUAGE}"
+    export LANGUAGE
+    load_text "${LANGUAGE}"
 }
 
 # Command substitution starts a subshell. A catalog loaded there is discarded.
 # Load once in this shell so later lookups reuse the arrays.
 load_product_text() {
     local lang_file=""
-    if [[ -n "${G_PRODUCT_ROOT:-}" && -f "${G_PRODUCT_ROOT}/config/global.conf" ]]; then
-        lang_file="${G_PRODUCT_ROOT}/config/global.conf"
-    elif [[ -n "${G_INSTALL_DIRECTORY:-}" && -f "${G_INSTALL_DIRECTORY}/config/global.conf" ]]; then
-        lang_file="${G_INSTALL_DIRECTORY}/config/global.conf"
+    if [[ -n "${PRODUCT_ROOT:-}" && -f "${PRODUCT_ROOT}/config/global.conf" ]]; then
+        lang_file="${PRODUCT_ROOT}/config/global.conf"
+    elif [[ -n "${INSTALL_DIRECTORY:-}" && -f "${INSTALL_DIRECTORY}/config/global.conf" ]]; then
+        lang_file="${INSTALL_DIRECTORY}/config/global.conf"
     fi
     if [[ -n "${lang_file}" ]]; then
         read_language_file "${lang_file}"
         return 0
     fi
-    if [[ -n "${G_LANGUAGE:-}" ]]; then
-        load_text "${G_LANGUAGE}"
+    if [[ -n "${LANGUAGE:-}" ]]; then
+        load_text "${LANGUAGE}"
     fi
 }
 
 ask_language() {
-    local current="${G_LANGUAGE:-en}" hint="" choice="" lang=""
+    local current="${LANGUAGE:-en}" hint="" choice="" lang=""
     check_language "${current}" || current="en"
     for lang in en fr de es; do
         hint="$(read_text_record "${lang}" "configure.language.hint")"
@@ -1018,16 +1018,16 @@ ask_language() {
     choice="${choice#"${choice%%[![:space:]]*}"}"
     choice="${choice%"${choice##*[![:space:]]}"}"
     case "${choice}" in
-        "") G_LANGUAGE="${current}" ;;
-        1|en|EN) G_LANGUAGE="en" ;;
-        2|fr|FR) G_LANGUAGE="fr" ;;
-        3|de|DE) G_LANGUAGE="de" ;;
-        4|es|ES) G_LANGUAGE="es" ;;
-        *) G_LANGUAGE="en" ;;
+        "") LANGUAGE="${current}" ;;
+        1|en|EN) LANGUAGE="en" ;;
+        2|fr|FR) LANGUAGE="fr" ;;
+        3|de|DE) LANGUAGE="de" ;;
+        4|es|ES) LANGUAGE="es" ;;
+        *) LANGUAGE="en" ;;
     esac
-    export G_LANGUAGE
-    G_TEXT_READY=0
-    load_text "${G_LANGUAGE}"
+    export LANGUAGE
+    TEXT_READY=0
+    load_text "${LANGUAGE}"
 }
 
 load_product_text

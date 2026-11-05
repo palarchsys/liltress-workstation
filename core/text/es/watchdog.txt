@@ -46,6 +46,18 @@ Mail no enviado ({1}): orden mail ausente.
 [watchdog.execution-since-a-directory-temporary]
 ejecución desde un directorio temporal
 
+[watchdog.list-of-integrity-absent]
+lista de integridad ausente
+
+[watchdog.ausearch-absent]
+ausearch ausente
+
+[watchdog.initial-rep-re-written]
+marca inicial escrita
+
+[watchdog.no-execution-temporary]
+ninguna ejecución temporal
+
 [watchdog.invalid-memory-access]
 acceso a memoria no válido
 

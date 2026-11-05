@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : workstation/locale/es/log.txt
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -284,7 +284,7 @@ Instalación de los correcciones de seguridad
 Correcciones de seguridad instalados
 
 [log.g-watchdog-mail-is-empty-l-e-mail-of-end-of-inst]
-G_WATCHDOG_MAIL es vacío: l'e-mail de fin de instalación no puede salir.
+WATCHDOG_MAIL es vacío: l'e-mail de fin de instalación no puede salir.
 
 [log.send-of-the-e-mail-of-test-to]
 Envío del e-mail de prueba a {1}

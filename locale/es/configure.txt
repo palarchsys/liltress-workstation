@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : workstation/locale/es/configure.txt
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -230,19 +230,19 @@ Archivo bouncer ausente: {1}
 Forma anfitrión:puerto, por ejemplo smtp-mail.outlook.com:587.
 
 [configure.g-postfix-mail-address-must-be-an-address-email]
-{1}: G_POSTFIX_MAIL_ADDRESS debe ser una dirección e-mail (« {2} »). ejemplo: toi@exemple.com
+{1}: POSTFIX_MAIL_ADDRESS debe ser una dirección e-mail (« {2} »). ejemplo: toi@exemple.com
 
 [configure.g-postfix-mail-password-invalid-example-the-pass]
-{1}: G_POSTFIX_MAIL_PASSWORD no válido. ejemplo: el contraseña de aplicación del proveedor, sin espacios
+{1}: POSTFIX_MAIL_PASSWORD no válido. ejemplo: el contraseña de aplicación del proveedor, sin espacios
 
 [configure.g-postfix-mail-smtp-invalid-example-smtp-mail-ou]
-{1}: G_POSTFIX_MAIL_SMTP no válido (« {2} »). ejemplo: smtp-mail.outlook.com:587
+{1}: POSTFIX_MAIL_SMTP no válido (« {2} »). ejemplo: smtp-mail.outlook.com:587
 
 [configure.g-postfix-smtp-login-must-be-an-address-email-ex]
-{1}: G_POSTFIX_SMTP_LOGIN debe ser una dirección e-mail (« {2} »). ejemplo: toi@exemple.com
+{1}: POSTFIX_SMTP_LOGIN debe ser una dirección e-mail (« {2} »). ejemplo: toi@exemple.com
 
 [configure.g-watchdog-mail-must-be-an-address-email-example]
-{1}: G_WATCHDOG_MAIL debe ser una dirección e-mail (« {2} »). ejemplo: toi@exemple.com
+{1}: WATCHDOG_MAIL debe ser una dirección e-mail (« {2} »). ejemplo: toi@exemple.com
 
 [configure.global-conf-the-only-command-source-allowed-load]
 global.conf: la única orden fuente permitida carga secretos.conf. ejemplo:./liltress configura
@@ -557,25 +557,25 @@ La copia hacia Google Drive es opcional. Desactivada, rclone no se instala.
 Una contraseña se muestra con asteriscos, luego una segunda línea pide la confirmación.
 
 [configure.dollar-outside-r-f-rences-autoris-es-w-project-s]
-{1}: dollar fuera de références autorisées (W_PROJECT_SLUG, G_CONFIG_BASE_DIRECTORY, G_INSTALL_DIRECTORY).
+{1}: dollar fuera de références autorisées (W_PROJECT_SLUG, CONFIG_BASE_DIRECTORY, INSTALL_DIRECTORY).
 
 [configure.g-project-name-invalid-example-liltress-workstat]
-{1}: G_PROJECT_NAME no válido (« {2} »). ejemplo: Liltress Workstation
+{1}: PROJECT_NAME no válido (« {2} »). ejemplo: Liltress Workstation
 
 [configure.w-project-slug-invalid-example-liltress-workstat]
 {1}: W_PROJECT_SLUG no válido (« {2} »). ejemplo: liltress-workstation
 
 [configure.g-project-version-invalid-example-0-2]
-{1}: G_PROJECT_VERSION no válido (« {2} »). ejemplo: 0.2
+{1}: PROJECT_VERSION no válido (« {2} »). ejemplo: 0.2
 
 [configure.g-debug-install-log-invalid-example-0]
-{1}: G_DEBUG_INSTALL_LOG no válido (« {2} »). ejemplo: 0
+{1}: DEBUG_INSTALL_LOG no válido (« {2} »). ejemplo: 0
 
 [configure.g-mode-test-invalid-example-1]
-{1}: G_MODE_TEST no válido (« {2} »). ejemplo: 1
+{1}: MODE_TEST no válido (« {2} »). ejemplo: 1
 
 [configure.g-lynis-min-score-invalid-example-80]
-{1}: G_LYNIS_MIN_SCORE no válido (« {2} »). ejemplo: 80
+{1}: LYNIS_MIN_SCORE no válido (« {2} »). ejemplo: 80
 
 [configure.w-os-id-invalid-example-ubuntu]
 {1}: W_OS_ID no válido (« {2} »). ejemplo: ubuntu
@@ -584,13 +584,13 @@ Una contraseña se muestra con asteriscos, luego una segunda línea pide la conf
 {1}: W_OS_VERSION no válido (« {2} »). ejemplo: 26.04
 
 [configure.g-banner-message-empty-yet-no-safe]
-{1}: G_BANNER_MESSAGE vacío o no seguro.
+{1}: BANNER_MESSAGE vacío o no seguro.
 
 [configure.g-ssh-max-auth-tries-invalid-example-4]
-{1}: G_SSH_MAX_AUTH_TRIES no válido (« {2} »). ejemplo: 4
+{1}: SSH_MAX_AUTH_TRIES no válido (« {2} »). ejemplo: 4
 
 [configure.g-ssh-client-alive-count-max-invalid-example-2]
-{1}: G_SSH_CLIENT_ALIVE_COUNT_MAX no válido (« {2} »). ejemplo: 2
+{1}: SSH_CLIENT_ALIVE_COUNT_MAX no válido (« {2} »). ejemplo: 2
 
 [configure.w-ssh-login-grace-time-invalid-example-30]
 {1}: W_SSH_LOGIN_GRACE_TIME no válido (« {2} »). ejemplo: 30
@@ -608,13 +608,13 @@ Una contraseña se muestra con asteriscos, luego una segunda línea pide la conf
 {1}: W_FAILLOCK_FAIL_INTERVAL no válido (« {2} »). ejemplo: 900
 
 [configure.g-config-base-directory-invalid-example-opt-lilt]
-{1}: G_CONFIG_BASE_DIRECTORY no válido (« {2} »). ejemplo: /opt/liltress-workstation
+{1}: CONFIG_BASE_DIRECTORY no válido (« {2} »). ejemplo: /opt/liltress-workstation
 
 [configure.g-secret-directory-invalid-example-opt-liltress]
-{1}: G_SECRET_DIRECTORY no válido (« {2} »). ejemplo: /opt/liltress-workstation/secrets
+{1}: SECRET_DIRECTORY no válido (« {2} »). ejemplo: /opt/liltress-workstation/secrets
 
 [configure.g-ubuntu-pro-token-invalid-example-the-token-alp]
-{1}: G_UBUNTU_PRO_TOKEN no válido. ejemplo: el token alphanumérique del tableau de borde Ubuntu Pro (https://ubuntu.com/pro/dashboard)
+{1}: UBUNTU_PRO_TOKEN no válido. ejemplo: el token alphanumérique del tableau de borde Ubuntu Pro (https://ubuntu.com/pro/dashboard)
 
 [configure.global-conf-syntax-shell-invalid-example-liltres]
 global.conf: sintaxis shell no válido. ejemplo:./liltress configura

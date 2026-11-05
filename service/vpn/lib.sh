@@ -6,8 +6,8 @@
 # =============================================================================
 
 get_vpn_root() {
-    if [[ -n "${G_INSTALL_DIRECTORY:-}" ]]; then
-        printf '%s\n' "${G_INSTALL_DIRECTORY}"
+    if [[ -n "${INSTALL_DIRECTORY:-}" ]]; then
+        printf '%s\n' "${INSTALL_DIRECTORY}"
         return 0
     fi
     local here
@@ -16,7 +16,7 @@ get_vpn_root() {
 }
 
 get_vpn_home() {
-    local base="${G_CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+    local base="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
     printf '%s/vpn\n' "${base}"
 }
 
@@ -490,7 +490,7 @@ check_vpn_encrypted() {
 send_vpn_alert() {
     local profile="$1" proto="$2" endpoint="$3" reason="$4"
     local send root
-    [[ "${G_MAIL_ALERTS:-0}" == "1" ]] || return 0
+    [[ "${MAIL_ALERTS:-0}" == "1" ]] || return 0
     root="$(get_vpn_root)"
     send="${root}/service/cron/watchdogs/send.sh"
     [[ -f "${send}" ]] || return 0
@@ -498,8 +498,8 @@ send_vpn_alert() {
     MODULE_NAME="$(get_vpn_text vpn.mail.module)"
     CONTENT="$(get_vpn_text vpn.mail.body "${profile}" "${proto}" "${endpoint}" "${reason}")"
     export TITLE MODULE_NAME CONTENT
-    export W_BASE="${G_CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
-    export G_PRODUCT_ROOT="${root}"
+    export W_BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+    export PRODUCT_ROOT="${root}"
     bash "${send}" >/dev/null 2>&1 || true
 }
 

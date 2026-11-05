@@ -128,7 +128,7 @@
           "service": "postfix",
           "path": "service/postfix/install.sh",
           "when": {
-            "var": "G_MAIL_ALERTS",
+            "var": "MAIL_ALERTS",
             "eq": "1"
           }
         },
@@ -137,7 +137,7 @@
           "service": "postfix",
           "path": "service/postfix/configure.sh",
           "when": {
-            "var": "G_MAIL_ALERTS",
+            "var": "MAIL_ALERTS",
             "eq": "1"
           }
         },
@@ -146,7 +146,7 @@
           "service": "rclone",
           "path": "service/rclone/install.sh",
           "when": {
-            "var": "G_RCLONE_ALERTS",
+            "var": "RCLONE_ALERTS",
             "eq": "1"
           }
         }

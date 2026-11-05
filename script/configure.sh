@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/configure.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -136,10 +136,10 @@ set_config_default
 
 _saved_dir_set=0
 _saved_dir=""
-if [[ -n "${G_INSTALL_DIRECTORY+x}" ]]; then
+if [[ -n "${INSTALL_DIRECTORY+x}" ]]; then
     _saved_dir_set=1
-    _saved_dir="${G_INSTALL_DIRECTORY}"
-    unset G_INSTALL_DIRECTORY || true
+    _saved_dir="${INSTALL_DIRECTORY}"
+    unset INSTALL_DIRECTORY || true
 fi
 if [[ -f "${DIR_SCRIPT}/config/global.conf" ]]; then
     set +u
@@ -148,7 +148,7 @@ if [[ -f "${DIR_SCRIPT}/config/global.conf" ]]; then
     set -u
 fi
 if [[ "${_saved_dir_set}" == "1" ]]; then
-    G_INSTALL_DIRECTORY="${_saved_dir}"
+    INSTALL_DIRECTORY="${_saved_dir}"
 fi
 unset _saved_dir _saved_dir_set
 if [[ -f "${DIR_SCRIPT}/config/secrets.conf" ]]; then
@@ -167,7 +167,7 @@ set_color_violet "════════════════════�
 log_subtitle     "${INSTALL_WATCHER}" "configure.script.title"
 log_info         "${INSTALL_WATCHER}" "configure.ubuntu-pro-token-url"
 log_info         "${INSTALL_WATCHER}" "configure.letters-and-digits-without-spaces"
-prompt G_UBUNTU_PRO_TOKEN \
+prompt UBUNTU_PRO_TOKEN \
     "Jeton Ubuntu Pro" \
     "C1abcdefghij1234567890" \
     "" \
@@ -175,11 +175,11 @@ prompt G_UBUNTU_PRO_TOKEN \
     "Lettres et chiffres seulement, entre 6 et 100, sans espace."
 
 clear_mail() {
-    G_POSTFIX_SMTP_LOGIN=""
-    G_POSTFIX_MAIL_ADDRESS=""
-    G_POSTFIX_MAIL_PASSWORD=""
-    G_POSTFIX_MAIL_SMTP=""
-    G_WATCHDOG_MAIL=""
+    POSTFIX_SMTP_LOGIN=""
+    POSTFIX_MAIL_ADDRESS=""
+    POSTFIX_MAIL_PASSWORD=""
+    POSTFIX_MAIL_SMTP=""
+    WATCHDOG_MAIL=""
 }
 
 check_smtp_probe() {
@@ -189,16 +189,16 @@ check_smtp_probe() {
         run_silent_apt   "${INSTALL_WATCHER}" "install -y swaks" "configure.script.error.5"
     fi
     out="$(swaks \
-        --to "${G_POSTFIX_MAIL_ADDRESS}" \
-        --from "${G_POSTFIX_MAIL_ADDRESS}" \
-        --server "${G_POSTFIX_MAIL_SMTP}" \
+        --to "${POSTFIX_MAIL_ADDRESS}" \
+        --from "${POSTFIX_MAIL_ADDRESS}" \
+        --server "${POSTFIX_MAIL_SMTP}" \
         --auth LOGIN \
-        --auth-user "${G_POSTFIX_SMTP_LOGIN}" \
-        --auth-password "${G_POSTFIX_MAIL_PASSWORD}" \
+        --auth-user "${POSTFIX_SMTP_LOGIN}" \
+        --auth-password "${POSTFIX_MAIL_PASSWORD}" \
         --tls \
         --timeout 25 \
         2>&1)" || rc=$?
-    safe="${out//${G_POSTFIX_MAIL_PASSWORD}/$(get_text mail.redacted)}"
+    safe="${out//${POSTFIX_MAIL_PASSWORD}/$(get_text mail.redacted)}"
     if [[ "${rc}" -eq 0 ]] && printf '%s\n' "${safe}" | grep -qE '(^|[^0-9])250([^0-9]|$)'; then
         return 0
     fi
@@ -220,7 +220,7 @@ while true; do
 
             log_subtitle     "${INSTALL_WATCHER}" "configure.server-smtp"
             log_info         "${INSTALL_WATCHER}" "configure.form-host-port-for-example-smtp-mail-outlook-com"
-            prompt G_POSTFIX_MAIL_SMTP \
+            prompt POSTFIX_MAIL_SMTP \
                 "$(get_text configure.server)" \
                 "smtp-mail.outlook.com:587" \
                 "" \
@@ -229,7 +229,7 @@ while true; do
 
             log_subtitle     "${INSTALL_WATCHER}" "configure.login-smtp"
             log_info         "${INSTALL_WATCHER}" "configure.address-email-serving-of-login"
-            prompt G_POSTFIX_SMTP_LOGIN \
+            prompt POSTFIX_SMTP_LOGIN \
                 "$(get_text configure.login)" \
                 "$(get_text configure.toi-exemple-com)" \
                 "" \
@@ -238,7 +238,7 @@ while true; do
 
             log_subtitle     "${INSTALL_WATCHER}" "configure.password-of-application"
             log_info         "${INSTALL_WATCHER}" "configure.spaces-removed-the-line-following-confirms"
-            prompt G_POSTFIX_MAIL_PASSWORD \
+            prompt POSTFIX_MAIL_PASSWORD \
                 "$(get_text configure.password)" \
                 "mot-de-passe-application" \
                 "" \
@@ -247,18 +247,18 @@ while true; do
 
             log_subtitle     "${INSTALL_WATCHER}" "configure.sender"
             log_info         "${INSTALL_WATCHER}" "configure.the-alerts-leave-toward-this-same-address"
-            prompt G_POSTFIX_MAIL_ADDRESS \
+            prompt POSTFIX_MAIL_ADDRESS \
                 "$(get_text configure.from)" \
                 "$(get_text configure.toi-exemple-com)" \
                 "" \
                 email \
                 "$(get_text configure.enter-the-address-email-sender)"
-            G_WATCHDOG_MAIL="${G_POSTFIX_MAIL_ADDRESS}"
+            WATCHDOG_MAIL="${POSTFIX_MAIL_ADDRESS}"
 
             log_subtitle     "${INSTALL_WATCHER}" "configure.attempt-of-send"
             log_info         "${INSTALL_WATCHER}" "configure.attempt-of-send-swaks-checks-server-login-passwo"
             if check_smtp_probe; then
-                G_MAIL_ALERTS=1
+                MAIL_ALERTS=1
                 log_success      "${INSTALL_WATCHER}" "configure.attempt-of-send-accepted"
                 break
             fi
@@ -268,7 +268,7 @@ while true; do
         N|n|non)
             log_info         "${INSTALL_WATCHER}" "configure.cutoff-of-the-alerts-email"
             clear_mail
-            G_MAIL_ALERTS=0
+            MAIL_ALERTS=0
             log_success      "${INSTALL_WATCHER}" "configure.alerts-email-off-the-checks-will-start-without-s-2"
             break
             ;;
@@ -280,14 +280,14 @@ done
 
 clear_drive() {
     local base
-    G_RCLONE_ALERTS=0
-    base="${G_CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+    RCLONE_ALERTS=0
+    base="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
     rm -f "${base}/cron/rclone.conf"
 }
 
 ask_drive_alert() {
     local choice="" base config old_umask
-    base="${G_CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+    base="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
     log_subtitle     "${INSTALL_WATCHER}" "configure.alerts-toward-google-drive"
     log_info         "${INSTALL_WATCHER}" "configure.enable-the-send-of-the-alerts-toward-google-driv"
     while true; do
@@ -296,18 +296,18 @@ ask_drive_alert() {
         IFS= read -r choice || log_error        "${INSTALL_WATCHER}" "configure.input-interrupted"
         case "${choice}" in
             Y|y)
-                : "${G_RCLONE_REMOTE:=gdrive}"
-                : "${G_RCLONE_PATH:=liltress-alerts}"
-                prompt G_RCLONE_REMOTE \
+                : "${RCLONE_REMOTE:=gdrive}"
+                : "${RCLONE_PATH:=liltress-alerts}"
+                prompt RCLONE_REMOTE \
                     "Distant" \
                     "gdrive" \
-                    "${G_RCLONE_REMOTE}" \
+                    "${RCLONE_REMOTE}" \
                     remote \
                     "Lettres, chiffres ou tiret, de 1 à 32 caractères."
-                prompt G_RCLONE_PATH \
+                prompt RCLONE_PATH \
                     "Dossier" \
                     "liltress-alerts" \
-                    "${G_RCLONE_PATH}" \
+                    "${RCLONE_PATH}" \
                     drive_path \
                     "Dossier distant, sans .. et sans chemin local."
                 if ! command -v rclone >/dev/null 2>&1; then
@@ -319,7 +319,7 @@ ask_drive_alert() {
                 rm -f "${config}"
                 old_umask="$(umask)"
                 umask 077
-                if ! RCLONE_CONFIG="${config}" rclone config create "${G_RCLONE_REMOTE}" drive; then
+                if ! RCLONE_CONFIG="${config}" rclone config create "${RCLONE_REMOTE}" drive; then
                     umask "${old_umask}"
                     rm -f "${config}"
                     log_warn         "${INSTALL_WATCHER}" "configure.the-configuration-rclone-was-rejected"
@@ -333,8 +333,8 @@ ask_drive_alert() {
                     continue
                 fi
                 chmod 600 "${config}"
-                if check_drive_probe "${G_RCLONE_REMOTE}" "${G_RCLONE_PATH}" "${config}"; then
-                    G_RCLONE_ALERTS=1
+                if check_drive_probe "${RCLONE_REMOTE}" "${RCLONE_PATH}" "${config}"; then
+                    RCLONE_ALERTS=1
                     log_success      "${INSTALL_WATCHER}" "configure.attempt-google-drive-accepted"
                     return 0
                 fi
@@ -359,10 +359,10 @@ ask_drive_alert
 log_subtitle     "${INSTALL_WATCHER}" "configure.mode-test"
 log_info         "${INSTALL_WATCHER}" "configure.1-no-removal-0-question-at-the-end-of-installati"
 log_info         "${INSTALL_WATCHER}" "configure.entry-keeps-the-value-in-progress-1-by-default"
-prompt G_MODE_TEST \
+prompt MODE_TEST \
     "$(get_text configure.mode-test)" \
     "1" \
-    "${G_MODE_TEST:-1}" \
+    "${MODE_TEST:-1}" \
     bool01 \
     "$(get_text configure.enter-0-or-1)"
 

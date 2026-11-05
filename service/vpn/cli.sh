@@ -9,8 +9,8 @@ set -euo pipefail
 
 VPN_SRC="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd -- "${VPN_SRC}/../.." && pwd)"
-export G_PRODUCT_ROOT="${ROOT}"
-export G_INSTALL_DIRECTORY="${ROOT}"
+export PRODUCT_ROOT="${ROOT}"
+export INSTALL_DIRECTORY="${ROOT}"
 INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
 export INSTALL_WATCHER
 

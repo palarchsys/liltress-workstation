@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/09_watchdog_branches.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -40,7 +40,7 @@ t_add_tools() {
 t_set_user() {
     local name="$1"
     t_clear_holder
-    work="${G_ARTIFACTS}/branch/${name}"
+    work="${ARTIFACTS}/branch/${name}"
     rm -rf "${work}"
     base="${work}/base"
     bin="${base}/cron/bin"
@@ -595,7 +595,7 @@ cat > "${work}/probe.sh" << EOF
 set +e
 export W_BASE="${base}"
 export W_CLAMAV_QUARANTINE_DIR="${work}/quarantine"
-source "${parent}/core/watchdog.sh"
+source "${parent}/share/core/watchdog.sh"
 result="${work}/quarantine-result.txt"
 : > "\${result}"
 sample="${work}/samples/plain.txt"
@@ -604,7 +604,7 @@ log="${work}/warn.log"
 printf '%s\n' "Rootkit Hunter version 1.4.6" "Warning: The file properties have changed" "\${sample}" > "\${log}"
 : > "${work}/holder.pid"
 record_quarantine_log rkhunter "\${log}" systemd sshd unbound fail2ban gamescope > "${work}/warn.out"
-if [[ "\${G_CONFIRMED_COUNT}" -eq 0 ]] && [[ ! -e "${base}/cron/quarantine.registry" ]] && [[ -f "\${sample}" ]]; then
+if [[ "\${CONFIRMED_COUNT}" -eq 0 ]] && [[ ! -e "${base}/cron/quarantine.registry" ]] && [[ -f "\${sample}" ]]; then
     printf '%s\n' "warn-ok" >> "\${result}"
 fi
 evil="${work}/samples/evil.bin"
@@ -641,7 +641,7 @@ render_egress_body "${work}/kern.txt" "" > "${work}/egress-plain.out"
 if grep -q 'w-egress' "${work}/egress-plain.out" && ! grep -q 'Processus' "${work}/egress-plain.out"; then
     printf '%s\n' "plain-ok" >> "\${result}"
 fi
-restore_out="\$(bash "${parent}/core/quarantine-restore.sh" 20261022-010101-1-evil 2>&1)"
+restore_out="\$(bash "${parent}/share/core/quarantine-restore.sh" 20261022-010101-1-evil 2>&1)"
 restore_rc=\$?
 if [[ "\${restore_rc}" -eq 1 ]] && printf '%s\n' "\${restore_out}" | grep -Eq 'root requis|identifiant absent du registre'; then
     printf '%s\n' "restore-ok" >> "\${result}"
@@ -668,8 +668,8 @@ t_clear_holder
 
 t_section "chemins AIDE dans l'alerte"
 # shellcheck disable=SC1091
-source "${parent}/core/watchdog.sh"
-work="${G_ARTIFACTS}/branch/aide-paths"
+source "${parent}/share/core/watchdog.sh"
+work="${ARTIFACTS}/branch/aide-paths"
 rm -rf "${work}"
 mkdir -p "${work}"
 {
@@ -785,11 +785,11 @@ else
 fi
 
 t_section "conseils de faux positif"
-advice_work="${G_ARTIFACTS}/branch/advice"
+advice_work="${ARTIFACTS}/branch/advice"
 rm -rf "${advice_work}"
 mkdir -p "${advice_work}/base/cron"
 hold_note="Une classe de ce journal n'est pas un faux positif à enregistrer. Ne lancez pas la commande ci-dessous tant qu'elle est présente."
-G_MAIL_ALERTS=0
+MAIL_ALERTS=0
 W_BASE="${advice_work}/base"
 
 unset W_AIDE_REFRESH W_RKHUNTER_REFRESH W_CHKROOTKIT_IGNORE W_DEBSUMS_IGNORE NOTE NOTE_CMD ADVICE ADVICE_HOLD || true
@@ -801,7 +801,7 @@ f++++++++++++++++++: /etc/systemd/system/snap-gnome\x2d46\x2d2404-177.mount
 l++++++++++++++++++: /etc/systemd/system/snapd.mounts.target.wants/snap-gnome\x2d46\x2d2404-177.mount
 EOF
 LOG="${snap_log}" LOG_FILE="${snap_log}" ALERT_FILE="${snap_alert}" MODULE_NAME="Aide" \
-    W_AIDE_REFRESH=1 W_BASE="${W_BASE}" G_MAIL_ALERTS=0 \
+    W_AIDE_REFRESH=1 W_BASE="${W_BASE}" MAIL_ALERTS=0 \
     log_alert "AIDE: changements détectés (code 1, détail ${snap_log})"
 snap_ok=1
 for path in \
@@ -827,11 +827,11 @@ else
 fi
 
 en_alert="${advice_work}/aide-snap-en.alert"
-saved_lang="${G_LANGUAGE:-fr}"
-G_LANGUAGE=en
-G_TEXT_READY=0
+saved_lang="${LANGUAGE:-fr}"
+LANGUAGE=en
+TEXT_READY=0
 LOG="${snap_log}" LOG_FILE="${snap_log}" ALERT_FILE="${en_alert}" MODULE_NAME="Aide" \
-    W_AIDE_REFRESH=1 W_BASE="${W_BASE}" G_MAIL_ALERTS=0 \
+    W_AIDE_REFRESH=1 W_BASE="${W_BASE}" MAIL_ALERTS=0 \
     log_alert "AIDE: changes detected (code 1, detail ${snap_log})"
 en_ok=1
 grep -Fq 'snapd mount unit' "${en_alert}" || en_ok=0
@@ -839,8 +839,8 @@ grep -Fq "sudo bash ${W_BASE}/bin/aide-refresh-db.sh" "${en_alert}" || en_ok=0
 en_title="$(grep -n 'snapd mount unit' "${en_alert}" | head -n 1 | cut -d: -f1 || true)"
 en_cmd="$(grep -n 'aide-refresh-db.sh' "${en_alert}" | head -n 1 | cut -d: -f1 || true)"
 [[ -n "${en_title}" && -n "${en_cmd}" && "${en_title}" -lt "${en_cmd}" ]] || en_ok=0
-G_LANGUAGE="${saved_lang}"
-G_TEXT_READY=0
+LANGUAGE="${saved_lang}"
+TEXT_READY=0
 if [[ "${en_ok}" -eq 1 ]]; then
     t_pass "branch.usr.aide.advice.en" "titre anglais puis commande de base"
 else
@@ -852,7 +852,7 @@ echo_log="${advice_work}/chk-echo.log"
 echo_alert="${advice_work}/chk-echo.alert"
 printf '%s\n' "Checking \`echo'... INFECTED" > "${echo_log}"
 LOG="${echo_log}" LOG_FILE="${echo_log}" ALERT_FILE="${echo_alert}" MODULE_NAME="Chkrootkit" \
-    W_CHKROOTKIT_IGNORE=1 W_BASE="${W_BASE}" G_MAIL_ALERTS=0 \
+    W_CHKROOTKIT_IGNORE=1 W_BASE="${W_BASE}" MAIL_ALERTS=0 \
     log_alert "chkrootkit: ligne infectée"
 echo_ok=1
 grep -Fq 'debsums' "${echo_alert}" || echo_ok=0
@@ -875,7 +875,7 @@ unk_log="${advice_work}/aide-unknown.log"
 unk_alert="${advice_work}/aide-unknown.alert"
 printf '%s\n' 'f++++++++++++++++++: /var/opt/not-catalog/evil.bin' > "${unk_log}"
 LOG="${unk_log}" LOG_FILE="${unk_log}" ALERT_FILE="${unk_alert}" MODULE_NAME="Aide" \
-    W_AIDE_REFRESH=1 W_BASE="${W_BASE}" G_MAIL_ALERTS=0 \
+    W_AIDE_REFRESH=1 W_BASE="${W_BASE}" MAIL_ALERTS=0 \
     log_alert "AIDE: changements détectés (code 1, détail ${unk_log})"
 unk_ok=1
 grep -Fq '/var/opt/not-catalog/evil.bin' "${unk_alert}" || unk_ok=0
@@ -897,7 +897,7 @@ uid_log="${advice_work}/rk-uid.log"
 uid_alert="${advice_work}/rk-uid.alert"
 printf '%s\n' "Warning: User 'toor' has a UID of 0" > "${uid_log}"
 LOG="${uid_log}" LOG_FILE="${uid_log}" ALERT_FILE="${uid_alert}" MODULE_NAME="Rkhunter" \
-    W_RKHUNTER_REFRESH=1 W_BASE="${W_BASE}" G_MAIL_ALERTS=0 \
+    W_RKHUNTER_REFRESH=1 W_BASE="${W_BASE}" MAIL_ALERTS=0 \
     log_alert "rkhunter warnings"
 uid_ok=1
 grep -Fq 'UID 0' "${uid_alert}" || uid_ok=0
@@ -914,7 +914,7 @@ else
 fi
 
 unset W_AIDE_REFRESH W_RKHUNTER_REFRESH W_CHKROOTKIT_IGNORE NOTE NOTE_CMD ADVICE ADVICE_HOLD || true
-if python3 - "${parent}/core/alert-advice.txt" << 'PY'
+if python3 - "${parent}/share/core/alert-advice.txt" << 'PY'
 import re
 import sys
 from pathlib import Path
@@ -981,7 +981,7 @@ for unit in auditd clamav-daemon clamav-freshclam clamonacc fail2ban crowdsec; d
 done
 
 t_section "langue"
-if grep -q 'G_LANGUAGE="fr"' "${T_ROOT}/config/global.conf" \
+if grep -q 'LANGUAGE="fr"' "${T_ROOT}/config/global.conf" \
     && awk '
         /^if \[\[ "\$\{1:-\}" == "--check" \]\]; then/ { check = NR }
         /^ask_language$/ { ask = NR }
@@ -989,11 +989,11 @@ if grep -q 'G_LANGUAGE="fr"' "${T_ROOT}/config/global.conf" \
         END { exit !(check && ask && prompt && check < ask && ask < prompt) }
       ' "${T_ROOT}/script/configure.sh"
 then
-    t_pass "text.language" "G_LANGUAGE=fr et la question précède les autres"
+    t_pass "text.language" "LANGUAGE=fr et la question précède les autres"
 else
     t_fail "text.language" "langue absente du test ou question trop tard"
 fi
-if python3 - "${T_ROOT}/../core/text" "${T_ROOT}/locale" << 'PY'
+if python3 - "${T_ROOT}/../share/core/text" "${T_ROOT}/locale" << 'PY'
 import re
 import sys
 from pathlib import Path

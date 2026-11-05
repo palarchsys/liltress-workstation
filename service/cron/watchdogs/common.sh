@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/common.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,72 +18,40 @@ fi
 
 log_pass()  { printf '%s %s\n' "$(date -Iseconds)" "$*" | tee -a "${LOG_FILE}"; }
 
-source_text_engine() {
-    local origin="$1"
-    local candidate="" dir="" hops=0 product=""
-    if declare -F get_text >/dev/null 2>&1; then
-        return 0
+here_watchdog="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+for candidate_watchdog in \
+    "${here_watchdog}/../../../core/watchdog-load.sh" \
+    "${here_watchdog}/../../../../share/core/watchdog-load.sh" \
+    "${INSTALL_DIRECTORY:-}/core/watchdog-load.sh" \
+    "${CONFIG_BASE_DIRECTORY:-}/src/core/watchdog-load.sh" \
+    "${W_BASE:-}/src/core/watchdog-load.sh"
+do
+    if [[ -n "${candidate_watchdog}" && -f "${candidate_watchdog}" ]]; then
+        # shellcheck disable=SC1090
+        source "${candidate_watchdog}"
+        break
     fi
-    if [[ -z "${G_PRODUCT_ROOT:-}" ]]; then
-        dir="${origin}"
-        while [[ -n "${dir}" && "${dir}" != "/" && "${hops}" -lt 16 ]]; do
-            if [[ -d "${dir}/locale/en" && -f "${dir}/core/log.sh" ]]; then
-                product="${dir}"
-                break
-            fi
-            dir="$(dirname -- "${dir}")"
-            hops=$((hops + 1))
-        done
-        if [[ -n "${product}" ]]; then
-            G_PRODUCT_ROOT="${product}"
-            export G_PRODUCT_ROOT
-        fi
-    fi
-    for candidate in \
-        "${origin}/log.sh" \
-        "${G_PRODUCT_ROOT:-}/core/log.sh" \
-        "${origin}/../../../../core/log.sh" \
-        "${origin}/../../../core/log.sh" \
-        "${W_BASE:-}/src/core/log.sh" \
-        "${G_BASE:-}/src/core/log.sh" \
-        "${G_CONFIG_BASE_DIRECTORY:-}/src/core/log.sh" \
-        "${G_INSTALL_DIRECTORY:-}/core/log.sh" \
-        "${G_INSTALL_DIRECTORY:-}/src/core/log.sh" \
-        "${G_PRODUCT_ROOT:-}/../core/log.sh"
-    do
-        if [[ -n "${candidate}" && -f "${candidate}" ]]; then
+done
+if ! declare -F load_shared_watchdog >/dev/null 2>&1; then
+    dir_watchdog="${here_watchdog}"
+    hops_watchdog=0
+    while [[ -n "${dir_watchdog}" && "${dir_watchdog}" != "/" && "${hops_watchdog}" -lt 16 ]]; do
+        if [[ -f "${dir_watchdog}/core/watchdog-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${candidate}"
-            return 0
+            source "${dir_watchdog}/core/watchdog-load.sh"
+            break
         fi
+        dir_watchdog="$(dirname -- "${dir_watchdog}")"
+        hops_watchdog=$((hops_watchdog + 1))
     done
-    return 1
-}
-
-load_shared_watchdog() {
-    local here="$1"
-    local candidate=""
-    source_text_engine "${here}" || true
-    for candidate in \
-        "${here}/watchdog.sh" \
-        "${here}/../../../core/watchdog.sh" \
-        "${here}/../../../../core/watchdog.sh" \
-        "${W_BASE:-}/cron/bin/watchdog.sh" \
-        "${G_CONFIG_BASE_DIRECTORY:-}/cron/bin/watchdog.sh"
-    do
-        if [[ -n "${candidate}" && -f "${candidate}" ]]; then
-            # shellcheck disable=SC1090
-            source "${candidate}"
-            return 0
-        fi
-    done
-    if declare -F get_text >/dev/null 2>&1; then
-        printf '%s\n' "$(get_text log.watchdog-not-found)" >&2
-    else
-        printf '%s\n' "watchdog.sh not found" >&2
-    fi
-    return 1
-}
-
-load_shared_watchdog "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+fi
+if declare -F load_shared_watchdog >/dev/null 2>&1; then
+    load_shared_watchdog "${here_watchdog}" || exit 1
+elif [[ -f "${here_watchdog}/watchdog.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "${here_watchdog}/watchdog.sh"
+else
+    printf '%s\n' "watchdog-load.sh not found" >&2
+    exit 1
+fi
 

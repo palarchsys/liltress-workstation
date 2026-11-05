@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/aide/init-db.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
-export G_INSTALL_DIRECTORY
 
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
 log_subtitle "${INSTALL_WATCHER}" "log.baseline-help"
@@ -20,7 +18,7 @@ log_info "${INSTALL_WATCHER}" "log.the-calculation-of-the-fingerprints-can-take-
 log_info "${INSTALL_WATCHER}" "log.the-detail-stays-in-the-journal-not-in-the-termi"
 
 log_info "${INSTALL_WATCHER}" "log.record-of-the-baseline-help"
-aide_log="${G_LOG_DIR:-/var/log/liltress-workstation}/aide-init.log"
+aide_log="${INSTALL_LOG_DIR:-/var/log/liltress-workstation}/aide-init.log"
 mkdir -p "$(dirname "${aide_log}")"
 
 rm -f /var/lib/aide/aide.db.new /var/lib/aide/aide.db.new.gz

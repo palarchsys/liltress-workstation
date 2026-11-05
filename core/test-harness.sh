@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/test-harness.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -10,8 +10,8 @@ t_get_timestamp() { date '+%Y-%m-%d %H:%M:%S'; }
 t_log() {
     local line="[$(t_get_timestamp)] $*"
     printf '%s\n' "$line"
-    if [[ -n "${G_RUN_LOG:-}" ]]; then
-        printf '%s\n' "$line" >> "${G_RUN_LOG}"
+    if [[ -n "${RUN_LOG:-}" ]]; then
+        printf '%s\n' "$line" >> "${RUN_LOG}"
     fi
     if [[ -n "${T_SUITE_LOG:-}" ]]; then
         printf '%s\n' "$line" >> "${T_SUITE_LOG}"
@@ -72,25 +72,25 @@ t_begin() {
     local stamp
     stamp="$(date '+%Y%m%d-%H%M%S')"
     T_OUTPUT="${T_TEST_DIRECTORY}/output/${stamp}"
-    G_ARTIFACTS="${T_OUTPUT}/artifacts"
+    ARTIFACTS="${T_OUTPUT}/artifacts"
     T_SUITE_DIRECTORY="${T_OUTPUT}/suites"
-    G_RUN_LOG="${T_OUTPUT}/run.log"
+    RUN_LOG="${T_OUTPUT}/run.log"
     T_RESULT_TSV="${T_OUTPUT}/results.tsv"
-    mkdir -p "${G_ARTIFACTS}" "${T_SUITE_DIRECTORY}"
-    : > "${G_RUN_LOG}"
+    mkdir -p "${ARTIFACTS}" "${T_SUITE_DIRECTORY}"
+    : > "${RUN_LOG}"
     : > "${T_RESULT_TSV}"
     local language_line="" language_value=""
-    G_LANGUAGE="en"
+    LANGUAGE="en"
     if [[ -f "${T_ROOT}/config/global.conf" ]]; then
-        language_line="$(grep -E '^G_LANGUAGE=' -- "${T_ROOT}/config/global.conf" | head -n 1 || true)"
-        language_value="${language_line#G_LANGUAGE=}"
+        language_line="$(grep -E '^LANGUAGE=' -- "${T_ROOT}/config/global.conf" | head -n 1 || true)"
+        language_value="${language_line#LANGUAGE=}"
         language_value="${language_value%\"}"
         language_value="${language_value#\"}"
         case "${language_value}" in
-            en|fr|de|es) G_LANGUAGE="${language_value}" ;;
+            en|fr|de|es) LANGUAGE="${language_value}" ;;
         esac
     fi
-    export T_TEST_DIRECTORY T_ROOT T_OUTPUT G_ARTIFACTS T_SUITE_DIRECTORY G_RUN_LOG T_RESULT_TSV PROFILE G_LANGUAGE
+    export T_TEST_DIRECTORY T_ROOT T_OUTPUT ARTIFACTS T_SUITE_DIRECTORY RUN_LOG T_RESULT_TSV PROFILE LANGUAGE
     TOTAL_PASS=0
     TOTAL_FAIL=0
     TOTAL_WARN=0
@@ -104,11 +104,11 @@ t_begin() {
 }
 
 t_run_suite() {
-    local suite g_suite_name
+    local suite suite_name
     for suite in "${T_TEST_DIRECTORY}/suites/"[0-9][0-9]_*.sh; do
         [[ -f "${suite}" ]] || continue
-        g_suite_name="$(basename "${suite}" .sh)"
-        export T_SUITE_LOG="${T_SUITE_DIRECTORY}/${g_suite_name}.log"
+        suite_name="$(basename "${suite}" .sh)"
+        export T_SUITE_LOG="${T_SUITE_DIRECTORY}/${suite_name}.log"
         : > "${T_SUITE_LOG}"
         T_PASS=0
         T_FAIL=0
@@ -116,7 +116,7 @@ t_run_suite() {
         T_SKIP=0
         t_log ""
         t_log "════════════════════════════════════════════════════════════════"
-        t_log " SUITE ${g_suite_name}"
+        t_log " SUITE ${suite_name}"
         t_log "════════════════════════════════════════════════════════════════"
         # shellcheck disable=SC1090
         source "${suite}"
@@ -124,7 +124,7 @@ t_run_suite() {
         TOTAL_FAIL=$((TOTAL_FAIL + T_FAIL))
         TOTAL_WARN=$((TOTAL_WARN + T_WARN))
         TOTAL_SKIP=$((TOTAL_SKIP + T_SKIP))
-        t_log "suite ${g_suite_name}: ${T_PASS} pass, ${T_FAIL} fail, ${T_WARN} warn, ${T_SKIP} skip"
+        t_log "suite ${suite_name}: ${T_PASS} pass, ${T_FAIL} fail, ${T_WARN} warn, ${T_SKIP} skip"
     done
 }
 

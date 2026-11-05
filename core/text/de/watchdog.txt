@@ -46,6 +46,18 @@ Mail nicht gesendet ({1}): Befehl mail fehlt.
 [watchdog.execution-since-a-directory-temporary]
 Ausführung seit ein Verzeichnis temporär
 
+[watchdog.list-of-integrity-absent]
+Integritätsliste fehlt
+
+[watchdog.ausearch-absent]
+ausearch fehlt
+
+[watchdog.initial-rep-re-written]
+Anfangsmarke geschrieben
+
+[watchdog.no-execution-temporary]
+keine temporäre Ausführung
+
 [watchdog.invalid-memory-access]
 ungültiger Speicherzugriff
 

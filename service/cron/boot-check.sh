@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/boot-check.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -55,9 +55,9 @@ do
     fi
 done
 if [[ -n "${global_conf}" ]]; then
-    value="$(grep -E '^G_WATCHDOG_CPU_LIMIT=' "${global_conf}" | tail -1 | cut -d= -f2-)"
+    value="$(grep -E '^WATCHDOG_CPU_LIMIT=' "${global_conf}" | tail -1 | cut -d= -f2-)"
     [[ "${value}" =~ ^[0-9]+$ ]] && limit="${value}"
-    value="$(grep -E '^G_WATCHDOG_LIMIT_NICE=' "${global_conf}" | tail -1 | cut -d= -f2-)"
+    value="$(grep -E '^WATCHDOG_LIMIT_NICE=' "${global_conf}" | tail -1 | cut -d= -f2-)"
     [[ "${value}" =~ ^[0-9]+$ ]] && nice_want="${value}"
 fi
 want_pct=$((limit * nproc_n))
@@ -98,7 +98,7 @@ elif printf '%s' "${ufw_line}" | grep -Eqi 'active|actif'; then
 else
     record_boot_mark ECART "ufw ${ufw_line:-illisible}"
 fi
-if [[ -f "${W_BASE}/cron/mail.conf" ]] && grep -q '^G_MAIL_ALERTS="1"$' "${W_BASE}/cron/mail.conf"; then
+if [[ -f "${W_BASE}/cron/mail.conf" ]] && grep -q '^MAIL_ALERTS="1"$' "${W_BASE}/cron/mail.conf"; then
     if systemctl is-active --quiet postfix; then
         record_boot_mark OK "postfix actif"
     else

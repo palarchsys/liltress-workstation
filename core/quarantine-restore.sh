@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/quarantine-restore.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -14,11 +14,11 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 for candidate in \
     "${script_dir}/log.sh" \
-    "${script_dir}/../core/log.sh" \
+    "${script_dir}/../share/core/log.sh" \
     "${script_dir}/../src/core/log.sh" \
-    "${G_CONFIG_BASE_DIRECTORY:-}/src/core/log.sh" \
-    "${G_INSTALL_DIRECTORY:-}/core/log.sh" \
-    "${G_INSTALL_DIRECTORY:-}/src/core/log.sh"
+    "${CONFIG_BASE_DIRECTORY:-}/src/core/log.sh" \
+    "${INSTALL_DIRECTORY:-}/core/log.sh" \
+    "${INSTALL_DIRECTORY:-}/src/core/log.sh"
 do
     if [[ -n "${candidate}" && -f "${candidate}" ]]; then
         # shellcheck disable=SC1090
@@ -30,7 +30,7 @@ done
 if [[ "$(basename -- "${script_dir}")" == "bin" ]]; then
     base="$(dirname -- "${script_dir}")"
 else
-    base="${G_CONFIG_BASE_DIRECTORY:-${W_BASE:-${G_BASE:-/opt/liltress}}}"
+    base="${CONFIG_BASE_DIRECTORY:-${W_BASE:-${BASE:-/opt/liltress}}}"
 fi
 if [[ -f "${base}/config/global.conf" ]] && declare -F read_language_file >/dev/null 2>&1; then
     read_language_file "${base}/config/global.conf"

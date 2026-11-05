@@ -18,13 +18,13 @@ done
 
 if [[ -z "${root}" ]]; then
     t_fail "route.check" "agents/route.sh introuvable au-dessus de ${T_ROOT}"
-elif bash "${root}/agents/route.sh" --check > "${G_ARTIFACTS}/route.txt"; then
+elif bash "${root}/agents/route.sh" --check > "${ARTIFACTS}/route.txt"; then
     t_pass "route.check" "fichiers cités présents"
 else
-    t_fail "route.check" "$(tr '\n' ' ' < "${G_ARTIFACTS}/route.txt")"
+    t_fail "route.check" "$(tr '\n' ' ' < "${ARTIFACTS}/route.txt")"
 fi
 
-if [[ -n "${root}" ]] && python3 - "${root}/agents/maps/commands.csv" "${root}/core/launch.sh" > "${G_ARTIFACTS}/commands.txt" 2>&1 << 'PY'
+if [[ -n "${root}" ]] && python3 - "${root}/agents/maps/commands.csv" "${root}/share/core/launch.sh" > "${ARTIFACTS}/commands.txt" 2>&1 << 'PY'
 import csv
 import sys
 from pathlib import Path
@@ -92,7 +92,7 @@ PY
 then
     t_pass "commands.csv" "liste alignée sur les commandes"
 else
-    t_fail "commands.csv" "$(tr '\n' ' ' < "${G_ARTIFACTS}/commands.txt" 2>/dev/null || true)"
+    t_fail "commands.csv" "$(tr '\n' ' ' < "${ARTIFACTS}/commands.txt" 2>/dev/null || true)"
 fi
 
 if [[ -n "${root}" ]]; then
@@ -133,7 +133,7 @@ if [[ -n "${root}" ]]; then
         t_fail "help.server" "écran serveur incomplet"
     fi
 
-    if python3 - "${root}" > "${G_ARTIFACTS}/order.txt" 2>&1 << 'PY'
+    if python3 - "${root}" > "${ARTIFACTS}/order.txt" 2>&1 << 'PY'
 import json
 import re
 import sys
@@ -190,7 +190,7 @@ PY
     then
         t_pass "order.maps" "tableaux alignés sur install.json"
     else
-        t_fail "order.maps" "$(tr '\n' ' ' < "${G_ARTIFACTS}/order.txt" 2>/dev/null || true)"
+        t_fail "order.maps" "$(tr '\n' ' ' < "${ARTIFACTS}/order.txt" 2>/dev/null || true)"
     fi
 
     if bash "${root}/scripts/render-install.sh" --print workstation | cmp -s - "${root}/workstation/install.sh" \

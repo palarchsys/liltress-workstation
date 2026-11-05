@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/fs.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,25 +11,25 @@ locate_config_file() {
     local seen="|"
     local roots=()
 
-    if [[ -n "${G_INSTALL_DIRECTORY:-}" ]]; then
-        roots+=("${G_INSTALL_DIRECTORY}")
+    if [[ -n "${INSTALL_DIRECTORY:-}" ]]; then
+        roots+=("${INSTALL_DIRECTORY}")
     fi
-    if [[ -n "${G_PRODUCT_ROOT:-}" ]]; then
-        roots+=("${G_PRODUCT_ROOT}")
+    if [[ -n "${PRODUCT_ROOT:-}" ]]; then
+        roots+=("${PRODUCT_ROOT}")
     fi
-    if [[ -n "${G_CONFIG_BASE_DIRECTORY:-}" ]]; then
-        roots+=("${G_CONFIG_BASE_DIRECTORY}/src" "${G_CONFIG_BASE_DIRECTORY}")
+    if [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
+        roots+=("${CONFIG_BASE_DIRECTORY}/src" "${CONFIG_BASE_DIRECTORY}")
     fi
     if [[ -n "${W_BASE:-}" ]]; then
         roots+=("${W_BASE}/src" "${W_BASE}")
     fi
-    if [[ -n "${G_BASE:-}" ]]; then
-        roots+=("${G_BASE}/src" "${G_BASE}")
+    if [[ -n "${BASE:-}" ]]; then
+        roots+=("${BASE}/src" "${BASE}")
     fi
-    for probe in "${G_INSTALL_DIRECTORY:-}" "${G_PRODUCT_ROOT:-}"; do
+    for probe in "${INSTALL_DIRECTORY:-}" "${PRODUCT_ROOT:-}"; do
         [[ -n "${probe}" && -d "${probe}" ]] || continue
         if shared_parent="$(cd -- "${probe}/.." && pwd)"; then
-            if [[ -d "${shared_parent}/core" && -d "${shared_parent}/config" ]]; then
+            if [[ -d "${shared_parent}/share/core" && -d "${shared_parent}/config" ]]; then
                 roots+=("${shared_parent}")
                 break
             fi
@@ -117,4 +117,23 @@ ensure_directory() {
 check_user() {
     local user="$1"
     id "$user" >/dev/null 2>&1
+}
+
+set_usb_rule() {
+    local key="$1" value="$2"
+    if grep -q "^${key}=" "${daemon_conf}"; then
+        sed -i "s|^${key}=.*|${key}=${value}|" "${daemon_conf}"
+    else
+        printf '%s=%s\n' "${key}" "${value}" >> "${daemon_conf}"
+    fi
+}
+
+load_usb_rule() {
+    local line key value
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+        [[ -z "${line}" || "${line}" == \#* ]] && continue
+        key="${line%%=*}"
+        value="${line#*=}"
+        set_usb_rule "${key}" "${value}"
+    done < "$(locate_config_file usbguard/daemon.conf)"
 }

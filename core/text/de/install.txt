@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/de/install.txt
-# Updated at : 2026-10-29
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -65,7 +65,7 @@ UFW installiert
 USBGuard installiert, Dienst gestoppt bis die Policy
 
 [install.g-config-base-directory-invalid-in-global-conf]
-G_CONFIG_BASE_DIRECTORY ungültig in global.conf ({1}).
+CONFIG_BASE_DIRECTORY ungültig in global.conf ({1}).
 
 [install.root-of-install-rejected]
 Wurzel von install abgelehnt: {1}
@@ -164,7 +164,7 @@ Entfernung der Namen von Domain von /etc/hosts
 Namen von Domain entfernt von /etc/hosts
 
 [install.lib.info.5]
-Vorbereitung des Zugriff lokal G_MODE_TEST
+Vorbereitung des Zugriff lokal MODE_TEST
 
 [install.lib.info.6]
 Entfernung des Zertifikat von Test des magasin System
@@ -173,7 +173,7 @@ Entfernung des Zertifikat von Test des magasin System
 Zertifikat von Test entfernt des magasin System
 
 [install.lib.success.5]
-Zugriff lokal G_MODE_TEST bereit, Browser auf http://127.0.0.1
+Zugriff lokal MODE_TEST bereit, Browser auf http://127.0.0.1
 
 [install.lib.error.16]
 Unmöglich von déterminer Benutzer gängig (SUDO_USER leer, kein uid≥1000).

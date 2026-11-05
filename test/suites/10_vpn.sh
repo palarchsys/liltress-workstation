@@ -12,10 +12,10 @@ cfg_dir="${T_ROOT}/config/vpn"
 
 while IFS= read -r file; do
     rel="${file#"${T_ROOT}/"}"
-    if bash -n "${file}" 2>"${G_ARTIFACTS}/vpn-bash-n.err"; then
+    if bash -n "${file}" 2>"${ARTIFACTS}/vpn-bash-n.err"; then
         t_pass "vpn.syntax:${rel}" "bash -n"
     else
-        t_fail "vpn.syntax:${rel}" "$(tr '\n' ' ' < "${G_ARTIFACTS}/vpn-bash-n.err")"
+        t_fail "vpn.syntax:${rel}" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-bash-n.err")"
     fi
 done < <(find "${vpn_dir}" -name '*.sh' -type f | sort)
 
@@ -35,7 +35,7 @@ else
     t_fail "vpn.launch" "branche absente"
 fi
 
-if python3 - "${T_ROOT}/script/install.json" > "${G_ARTIFACTS}/vpn-order.txt" 2>&1 << 'PY'
+if python3 - "${T_ROOT}/script/install.json" > "${ARTIFACTS}/vpn-order.txt" 2>&1 << 'PY'
 import json
 import sys
 from pathlib import Path
@@ -60,17 +60,17 @@ PY
 then
     t_pass "vpn.order" "install.json"
 else
-    t_fail "vpn.order" "$(tr '\n' ' ' < "${G_ARTIFACTS}/vpn-order.txt")"
+    t_fail "vpn.order" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-order.txt")"
 fi
 
 forbid_phrase="$(printf '%s%s%s%s' 'ufw ' 'default ' 'deny ' 'outgoing')"
-if grep -RInE -- "wg-quick|${forbid_phrase}|disable_ipv6|resolvconf" "${vpn_dir}" "${cfg_dir}" > "${G_ARTIFACTS}/vpn-forbid.txt"; then
-    t_fail "vpn.forbid" "$(tr '\n' ' ' < "${G_ARTIFACTS}/vpn-forbid.txt" | head -c 400)"
+if grep -RInE -- "wg-quick|${forbid_phrase}|disable_ipv6|resolvconf" "${vpn_dir}" "${cfg_dir}" > "${ARTIFACTS}/vpn-forbid.txt"; then
+    t_fail "vpn.forbid" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-forbid.txt" | head -c 400)"
 else
     t_pass "vpn.forbid" "mots absents"
 fi
 
-if python3 - "${cfg_dir}/vpn.conf" "${T_ROOT}/service/ufw/egress.sh" "${vpn_dir}/lib.sh" > "${G_ARTIFACTS}/vpn-prio.txt" 2>&1 << 'PY'
+if python3 - "${cfg_dir}/vpn.conf" "${T_ROOT}/service/ufw/egress.sh" "${vpn_dir}/lib.sh" > "${ARTIFACTS}/vpn-prio.txt" 2>&1 << 'PY'
 import re
 import sys
 from pathlib import Path
@@ -91,11 +91,11 @@ PY
 then
     t_pass "vpn.priority" "-150"
 else
-    t_fail "vpn.priority" "$(tr '\n' ' ' < "${G_ARTIFACTS}/vpn-prio.txt")"
+    t_fail "vpn.priority" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-prio.txt")"
 fi
 
-if grep -RIn 'ct state established,related accept' "${vpn_dir}" "${cfg_dir}" > "${G_ARTIFACTS}/vpn-ct.txt"; then
-    t_fail "vpn.ct" "$(tr '\n' ' ' < "${G_ARTIFACTS}/vpn-ct.txt" | head -c 400)"
+if grep -RIn 'ct state established,related accept' "${vpn_dir}" "${cfg_dir}" > "${ARTIFACTS}/vpn-ct.txt"; then
+    t_fail "vpn.ct" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-ct.txt" | head -c 400)"
 else
     t_pass "vpn.ct" "pas d'accept established"
 fi
@@ -108,7 +108,7 @@ fi
 
 # shellcheck disable=SC1091
 source "${vpn_dir}/lib.sh"
-parse_dir="${G_ARTIFACTS}/vpn-parse"
+parse_dir="${ARTIFACTS}/vpn-parse"
 mkdir -p "${parse_dir}"
 printf '192.168.1.0/24\n' > "${parse_dir}/lan"
 printf '200.200.200.0/24\n' > "${parse_dir}/public"
@@ -144,21 +144,21 @@ else
 fi
 
 marker="$(printf '%s%s =' 'Private' 'Key')"
-printf '[Interface]\n%s not-a-real-secret\n' "${marker}" > "${G_ARTIFACTS}/fake-wg.conf"
-printf 'remote example.invalid 1194 udp\nca ca.crt\n' > "${G_ARTIFACTS}/fake.ovpn"
+printf '[Interface]\n%s not-a-real-secret\n' "${marker}" > "${ARTIFACTS}/fake-wg.conf"
+printf 'remote example.invalid 1194 udp\nca ca.crt\n' > "${ARTIFACTS}/fake.ovpn"
 needle="$(printf '%s%s =' 'Private' 'Key')"
-if git -C "${T_ROOT}" grep -n -F -e "${needle}" -- . ':!test/output' > "${G_ARTIFACTS}/vpn-secret-grep.txt" 2>/dev/null; then
-    t_fail "vpn.secret-grep" "$(tr '\n' ' ' < "${G_ARTIFACTS}/vpn-secret-grep.txt" | head -c 300)"
+if git -C "${T_ROOT}" grep -n -F -e "${needle}" -- . ':!test/output' > "${ARTIFACTS}/vpn-secret-grep.txt" 2>/dev/null; then
+    t_fail "vpn.secret-grep" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-secret-grep.txt" | head -c 300)"
 else
     t_pass "vpn.secret-grep" "chaîne absente du suivi"
 fi
-if git -C "${T_ROOT}" ls-files | grep -E '(^|/)profiles/' > "${G_ARTIFACTS}/vpn-profiles.txt"; then
-    t_fail "vpn.profiles" "$(tr '\n' ' ' < "${G_ARTIFACTS}/vpn-profiles.txt")"
+if git -C "${T_ROOT}" ls-files | grep -E '(^|/)profiles/' > "${ARTIFACTS}/vpn-profiles.txt"; then
+    t_fail "vpn.profiles" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-profiles.txt")"
 else
     t_pass "vpn.profiles" "aucun profil versionné"
 fi
 
-if python3 - "${T_ROOT}/../core/text" "${T_ROOT}/locale" > "${G_ARTIFACTS}/vpn-keys.txt" 2>&1 << 'PY'
+if python3 - "${T_ROOT}/../share/core/text" "${T_ROOT}/locale" > "${ARTIFACTS}/vpn-keys.txt" 2>&1 << 'PY'
 import re
 import sys
 from pathlib import Path
@@ -189,7 +189,7 @@ PY
 then
     t_pass "vpn.keys" "quatre langues, deux arbres"
 else
-    t_fail "vpn.keys" "$(tr '\n' ' ' < "${G_ARTIFACTS}/vpn-keys.txt")"
+    t_fail "vpn.keys" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-keys.txt")"
 fi
 
 mode_ok=1
@@ -225,10 +225,10 @@ else
     t_fail "vpn.mode" "commande ou constante absente"
 fi
 
-state_root="${G_ARTIFACTS}/vpn-state-root"
+state_root="${ARTIFACTS}/vpn-state-root"
 mkdir -p "${state_root}"
-saved_base="${G_CONFIG_BASE_DIRECTORY:-}"
-export G_CONFIG_BASE_DIRECTORY="${state_root}"
+saved_base="${CONFIG_BASE_DIRECTORY:-}"
+export CONFIG_BASE_DIRECTORY="${state_root}"
 # shellcheck disable=SC1091
 source "${vpn_dir}/state.sh"
 state_ok=1
@@ -255,9 +255,9 @@ if check_vpn_profile_valid office; then
     state_ok=0
 fi
 if [[ -n "${saved_base}" ]]; then
-    export G_CONFIG_BASE_DIRECTORY="${saved_base}"
+    export CONFIG_BASE_DIRECTORY="${saved_base}"
 else
-    unset G_CONFIG_BASE_DIRECTORY
+    unset CONFIG_BASE_DIRECTORY
 fi
 if [[ "${state_ok}" -eq 1 ]]; then
     t_pass "vpn.state" "dates conservées, essai encore accepté"
@@ -267,8 +267,8 @@ fi
 
 # shellcheck disable=SC1091
 source "${vpn_dir}/import.sh"
-import_root="${G_ARTIFACTS}/vpn-import-root"
-import_src="${G_ARTIFACTS}/vpn-import-src"
+import_root="${ARTIFACTS}/vpn-import-root"
+import_src="${ARTIFACTS}/vpn-import-src"
 rm -rf "${import_root}" "${import_src}"
 mkdir -p "${import_src}" "${import_root}"
 printf 'ca-body\n' > "${import_src}/ca.crt"
@@ -290,8 +290,8 @@ cert client.crt
 key client.key
 crl-verify crl.pem
 EOF
-saved_import="${G_CONFIG_BASE_DIRECTORY:-}"
-export G_CONFIG_BASE_DIRECTORY="${import_root}"
+saved_import="${CONFIG_BASE_DIRECTORY:-}"
+export CONFIG_BASE_DIRECTORY="${import_root}"
 import_ok=1
 if ! install_vpn_openvpn "cg-usa" "${import_src}/openvpn.ovpn"; then
     import_ok=0
@@ -329,7 +329,7 @@ wait_auth="${import_root}/vpn/openvpn/cg-wait/auth.txt"
 if check_vpn_auth_file "${wait_auth}"; then
     import_ok=0
 fi
-wg_src="${G_ARTIFACTS}/vpn-import-wg.conf"
+wg_src="${ARTIFACTS}/vpn-import-wg.conf"
 {
     printf '%s\n' '[Interface]'
     printf '%s%s = %s\n' 'Private' 'Key' 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa='
@@ -349,9 +349,9 @@ grep -q 'Table = off' "${wg_profile}/runtime" || import_ok=0
 grep -q 'DNS' "${wg_profile}/runtime" && import_ok=0
 grep -q '203.0.113.20:51820' "${wg_profile}/runtime" || import_ok=0
 if [[ -n "${saved_import}" ]]; then
-    export G_CONFIG_BASE_DIRECTORY="${saved_import}"
+    export CONFIG_BASE_DIRECTORY="${saved_import}"
 else
-    unset G_CONFIG_BASE_DIRECTORY
+    unset CONFIG_BASE_DIRECTORY
 fi
 if [[ "${import_ok}" -eq 1 ]]; then
     t_pass "vpn.import.files" "certificats, auth.txt et WireGuard"

@@ -1,29 +1,29 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/lib.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 set -euo pipefail
 
-if [[ -z "${G_PRODUCT_ROOT:-}" ]]; then
-    if [[ -n "${G_INSTALL_DIRECTORY:-}" ]]; then
-        G_PRODUCT_ROOT="${G_INSTALL_DIRECTORY}"
+if [[ -z "${PRODUCT_ROOT:-}" ]]; then
+    if [[ -n "${INSTALL_DIRECTORY:-}" ]]; then
+        PRODUCT_ROOT="${INSTALL_DIRECTORY}"
     else
-        G_PRODUCT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+        PRODUCT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
     fi
 fi
-export G_PRODUCT_ROOT
+export PRODUCT_ROOT
 
-if [[ -f "${G_PRODUCT_ROOT}/../core/bootstrap.sh" ]]; then
+if [[ -f "${PRODUCT_ROOT}/../share/core/bootstrap.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${G_PRODUCT_ROOT}/../core/bootstrap.sh"
-elif [[ -f "${G_PRODUCT_ROOT}/core/bootstrap.sh" ]]; then
+    source "${PRODUCT_ROOT}/../share/core/bootstrap.sh"
+elif [[ -f "${PRODUCT_ROOT}/core/bootstrap.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${G_PRODUCT_ROOT}/core/bootstrap.sh"
+    source "${PRODUCT_ROOT}/core/bootstrap.sh"
 else
-    printf 'bootstrap core not found from %s\n' "${G_PRODUCT_ROOT}" >&2
+    printf 'bootstrap core not found from %s\n' "${PRODUCT_ROOT}" >&2
     exit 1
 fi
 source_core log.sh
@@ -32,8 +32,8 @@ source_core fs.sh
 
 check_workstation() {
     [[ "${S_SERVER_TYPE:-}" == "WORKSTATION" || "${W_PROJECT_SLUG:-}" == "liltress-workstation" ]] && return 0
-    [[ -n "${G_PRODUCT_ROOT:-}" && -f "${G_PRODUCT_ROOT}/config/global.conf" ]] || return 1
-    grep -qE '^(S_SERVER_TYPE="WORKSTATION"|W_PROJECT_SLUG="liltress-workstation")$' "${G_PRODUCT_ROOT}/config/global.conf"
+    [[ -n "${PRODUCT_ROOT:-}" && -f "${PRODUCT_ROOT}/config/global.conf" ]] || return 1
+    grep -qE '^(S_SERVER_TYPE="WORKSTATION"|W_PROJECT_SLUG="liltress-workstation")$' "${PRODUCT_ROOT}/config/global.conf"
 }
 
 check_repository_key() {
@@ -267,7 +267,7 @@ lock_npm_to_main_user() {
 }
 
 get_local_browser() {
-    [[ "${G_MODE_TEST:-0}" == "1" || "${S_MODE_DEV:-0}" == "1" ]]
+    [[ "${MODE_TEST:-0}" == "1" || "${S_MODE_DEV:-0}" == "1" ]]
 }
 
 apply_runtime_urls() {
@@ -275,29 +275,29 @@ apply_runtime_urls() {
         S_KEYCLOAK_PUBLIC_BASE_URL="http://127.0.0.1:${S_PORT_KEYCLOAK}"
         S_MATRIX_PUBLIC_BASE_URL="http://127.0.0.1:${S_PORT_SYNAPSE}"
         S_ELEMENT_PUBLIC_BASE_URL="http://127.0.0.1:${S_PORT_ELEMENT}"
-        G_PUBLIC_BASE_URL="http://127.0.0.1:${S_PORT_WEB_UI}"
-        G_API_BASE_URL="http://127.0.0.1:${S_PORT_WEB_API}"
-        G_CORS_ORIGINS="http://127.0.0.1:${S_PORT_WEB_UI}"
-        G_LIVEKIT_URL="ws://127.0.0.1:${S_PORT_LIVEKIT_SFU}"
-        G_JWT_URL="http://127.0.0.1:${S_PORT_LIVEKIT_JWT}"
+        S_PUBLIC_BASE_URL="http://127.0.0.1:${S_PORT_WEB_UI}"
+        S_API_BASE_URL="http://127.0.0.1:${S_PORT_WEB_API}"
+        S_CORS_ORIGINS="http://127.0.0.1:${S_PORT_WEB_UI}"
+        S_LIVEKIT_URL="ws://127.0.0.1:${S_PORT_LIVEKIT_SFU}"
+        S_JWT_URL="http://127.0.0.1:${S_PORT_LIVEKIT_JWT}"
         S_WIREGUARD_HOST="127.0.0.1"
-        G_WIREGUARD_UI_URL="http://127.0.0.1:${S_PORT_WIREGUARD_UI}"
+        S_WIREGUARD_UI_URL="http://127.0.0.1:${S_PORT_WIREGUARD_UI}"
     else
-        G_PUBLIC_BASE_URL="https://${S_DOMAIN}"
-        G_API_BASE_URL="https://${S_DOMAIN_WEB_API}"
-        G_CORS_ORIGINS="https://${S_DOMAIN}"
-        G_LIVEKIT_URL="wss://${S_DOMAIN_LIVEKIT_SFU}"
-        G_JWT_URL="https://${S_DOMAIN_LIVEKIT_JWT}"
+        S_PUBLIC_BASE_URL="https://${S_DOMAIN}"
+        S_API_BASE_URL="https://${S_DOMAIN_WEB_API}"
+        S_CORS_ORIGINS="https://${S_DOMAIN}"
+        S_LIVEKIT_URL="wss://${S_DOMAIN_LIVEKIT_SFU}"
+        S_JWT_URL="https://${S_DOMAIN_LIVEKIT_JWT}"
         S_WIREGUARD_HOST="${S_DOMAIN_WIREGUARD}"
-        G_WIREGUARD_UI_URL="https://${S_DOMAIN_WIREGUARD}"
+        S_WIREGUARD_UI_URL="https://${S_DOMAIN_WIREGUARD}"
     fi
     export S_KEYCLOAK_PUBLIC_BASE_URL S_MATRIX_PUBLIC_BASE_URL S_ELEMENT_PUBLIC_BASE_URL
-    export G_PUBLIC_BASE_URL G_API_BASE_URL G_CORS_ORIGINS
-    export G_LIVEKIT_URL G_JWT_URL S_WIREGUARD_HOST G_WIREGUARD_UI_URL
+    export S_PUBLIC_BASE_URL S_API_BASE_URL S_CORS_ORIGINS
+    export S_LIVEKIT_URL S_JWT_URL S_WIREGUARD_HOST S_WIREGUARD_UI_URL
 }
 
 set_mode_test_turnstile() {
-    [[ "${G_MODE_TEST:-0}" == "1" ]] || return 0
+    [[ "${MODE_TEST:-0}" == "1" ]] || return 0
     S_TURNSTILE_SITE_KEY="1x00000000000000000000AA"
     S_TURNSTILE_SECRET_KEY="1x0000000000000000000000000000000AA"
     export S_TURNSTILE_SITE_KEY S_TURNSTILE_SECRET_KEY
@@ -305,13 +305,13 @@ set_mode_test_turnstile() {
 
 strip_mode_test_host() {
     [[ -f /etc/hosts ]] || return 0
-    grep -q '# BEGIN liltress G_MODE_TEST' /etc/hosts || return 0
+    grep -q '# BEGIN liltress MODE_TEST' /etc/hosts || return 0
     log_info "${INSTALL_WATCHER:-BASH}" "install.lib.info.4"
     local tmp
     tmp="$(mktemp)"
     awk '
-        $0 == "# BEGIN liltress G_MODE_TEST" { skip = 1; next }
-        $0 == "# END liltress G_MODE_TEST" { skip = 0; next }
+        $0 == "# BEGIN liltress MODE_TEST" { skip = 1; next }
+        $0 == "# END liltress MODE_TEST" { skip = 0; next }
         skip { next }
         { print }
     ' /etc/hosts > "${tmp}"
@@ -321,7 +321,7 @@ strip_mode_test_host() {
 }
 
 apply_mode_test_local() {
-    [[ "${G_MODE_TEST:-0}" == "1" ]] || return 0
+    [[ "${MODE_TEST:-0}" == "1" ]] || return 0
 
     local live="/etc/letsencrypt/live/${S_DOMAIN}"
     log_info "${INSTALL_WATCHER:-BASH}" "install.lib.info.5"

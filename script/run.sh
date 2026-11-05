@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/run.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -10,28 +10,28 @@
 INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
 export INSTALL_WATCHER
 
-G_INSTALL_DIRECTORY="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." &>/dev/null && pwd)"
-export G_INSTALL_DIRECTORY
+INSTALL_DIRECTORY="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." &>/dev/null && pwd)"
+export INSTALL_DIRECTORY
 
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/script/config-check.sh"
-if ! require_prepared_config "${G_INSTALL_DIRECTORY}"; then
+source "${INSTALL_DIRECTORY}/script/config-check.sh"
+if ! require_prepared_config "${INSTALL_DIRECTORY}"; then
     printf "$(get_text log.ninstallation-rejected-prepare-the-two-files-n)" >&2
-    printf "$(get_text log.bash-liltress-configures "${G_INSTALL_DIRECTORY}")" >&2
-    printf "$(get_text log.bash-liltress-check "${G_INSTALL_DIRECTORY}")" >&2
+    printf "$(get_text log.bash-liltress-configures "${INSTALL_DIRECTORY}")" >&2
+    printf "$(get_text log.bash-liltress-check "${INSTALL_DIRECTORY}")" >&2
     exit 1
 fi
-readonly G_INSTALL_DIRECTORY
+readonly INSTALL_DIRECTORY
 
 clear
 
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
 
 require_root
-chmod 755 "${G_INSTALL_DIRECTORY}/liltress"
+chmod 755 "${INSTALL_DIRECTORY}/liltress"
 get_operating_system
 get_current_user
 get_ssh_port
@@ -40,6 +40,7 @@ set_color_violet "════════════════════�
 set_color_violet "$(get_text log.liltress-workstation-hardening-workstation)"
 set_color_violet "═════════════════════════════════════════════════════════════════════════════════"
 
+echo ""
 echo "$(get_text log.current-user-home "${CURRENT_USER}" "${CURRENT_HOME}")"
 echo "$(get_text log.port-ssh-detected "${SSH_PORT}")"
 echo "$(get_text log.os "${OS_PRETTY}")"
@@ -73,27 +74,27 @@ run_install_action() {
             log_success "${INSTALL_WATCHER}" "log.fixes-of-security-installed"
             ;;
         test-mail)
-            if [[ "${G_MAIL_ALERTS:-0}" == "1" ]]; then
-                if [[ -z "${G_WATCHDOG_MAIL:-}" ]]; then
+            if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
+                if [[ -z "${WATCHDOG_MAIL:-}" ]]; then
                     log_error "${INSTALL_WATCHER}" "log.g-watchdog-mail-is-empty-l-e-mail-of-end-of-inst"
                 fi
-                log_info "${INSTALL_WATCHER}" "log.send-of-the-e-mail-of-test-to" "${G_WATCHDOG_MAIL}"
+                log_info "${INSTALL_WATCHER}" "log.send-of-the-e-mail-of-test-to" "${WATCHDOG_MAIL}"
                 export TITLE="$(get_text mail.install.test.title)"
                 export MODULE_NAME="$(get_text mail.install.module)"
-                export G_PROJECT_NAME
-                export G_WATCHDOG_MAIL
-                export CONTENT="$(get_text mail.install.test.body "${G_PROJECT_NAME}" "${G_WATCHDOG_MAIL}")"
-                if ! bash "${G_INSTALL_DIRECTORY}/service/cron/watchdogs/send.sh"; then
-                    log_error "${INSTALL_WATCHER}" "log.l-e-mail-of-test-toward-was-not-accepted-by-post" "${G_WATCHDOG_MAIL}"
+                export PROJECT_NAME
+                export WATCHDOG_MAIL
+                export CONTENT="$(get_text mail.install.test.body "${PROJECT_NAME}" "${WATCHDOG_MAIL}")"
+                if ! bash "${INSTALL_DIRECTORY}/service/cron/watchdogs/send.sh"; then
+                    log_error "${INSTALL_WATCHER}" "log.l-e-mail-of-test-toward-was-not-accepted-by-post" "${WATCHDOG_MAIL}"
                 fi
-                log_success "${INSTALL_WATCHER}" "log.e-mail-of-test-sent-to" "${G_WATCHDOG_MAIL}"
+                log_success "${INSTALL_WATCHER}" "log.e-mail-of-test-sent-to" "${WATCHDOG_MAIL}"
             else
                 log_info "${INSTALL_WATCHER}" "log.alerts-e-mail-off-no-message-of-end-not-is-sent"
             fi
             ;;
         reboot-notice)
             set_step_hidden "$(get_text run.close.done)"
-            log_info "${INSTALL_WATCHER}" "log.journals" "${G_LOG_DIR}"
+            log_info "${INSTALL_WATCHER}" "log.journals" "${INSTALL_LOG_DIR}"
             log_info "${INSTALL_WATCHER}" "log.lynis-manual-hint"
             reboot_needed=0
             [[ -f /var/run/reboot-required ]] && reboot_needed=1
@@ -116,4 +117,5 @@ run_install_action() {
     esac
 }
 
-run_install_plan "${G_INSTALL_DIRECTORY}" "${G_INSTALL_DIRECTORY}/script/install.json"
+run_install_plan "${INSTALL_DIRECTORY}" "${INSTALL_DIRECTORY}/script/install.json"
+echo ""

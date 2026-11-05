@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/de/mail.txt
-# Updated at : 2026-10-29
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -44,7 +44,7 @@ Verzeichnis von Installation der modèles fehlt ({1})
 Verzeichnis template fehlt ({1})
 
 [mail.g-mail-template-invalid-example-mail-html]
-G_MAIL_TEMPLATE ungültig ({1}). Beispiel: mail.html
+MAIL_TEMPLATE ungültig ({1}). Beispiel: mail.html
 
 [mail.name-of-template-denied-example-mail-html]
 Name von Vorlage verweigert ({1}). Beispiel: mail.html

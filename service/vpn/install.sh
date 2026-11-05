@@ -1,24 +1,22 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/install.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
-export G_INSTALL_DIRECTORY
-if [[ -z "${G_PRODUCT_ROOT:-}" ]]; then
-    G_PRODUCT_ROOT="${INSTALL_DIRECTORY}"
-    export G_PRODUCT_ROOT
+if [[ -z "${PRODUCT_ROOT:-}" ]]; then
+    PRODUCT_ROOT="${INSTALL_DIRECTORY}"
+    export PRODUCT_ROOT
 fi
 
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
 log_subtitle     "${INSTALL_WATCHER}" "vpn.install.title"

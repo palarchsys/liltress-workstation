@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ufw/configure.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
-export G_INSTALL_DIRECTORY
 
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_ssh_port
 
@@ -131,4 +129,4 @@ if ! LANG=C LC_ALL=C ufw status | grep -qw "Status: active"; then
     log_error        "${INSTALL_WATCHER}" "configure.ufw-is-not-active-after-enable" "$(LANG=C LC_ALL=C ufw status)"
 fi
 log_success      "${INSTALL_WATCHER}" "configure.ufw-enabled-outgoing-allow"
-bash "${G_INSTALL_DIRECTORY}/service/ufw/egress.sh" "${INSTALL_WATCHER}" "${G_INSTALL_DIRECTORY}"
+bash "${INSTALL_DIRECTORY}/service/ufw/egress.sh" "${INSTALL_WATCHER}" "${INSTALL_DIRECTORY}"

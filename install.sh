@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : install.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 set -euo pipefail
 
-REPO_URL="${G_REPO_URL:-https://github.com/palarchsys/liltress-workstation}"
-BRANCH="${G_BRANCH:-main}"
+REPO_URL="${REPO_URL:-https://github.com/palarchsys/liltress-workstation}"
+BRANCH="${BRANCH:-main}"
 
 if [[ "${EUID}" -ne 0 ]]; then
     echo "$(get_text install.this-script-must-be-executed-as-root-sudo)" >&2
@@ -33,17 +33,17 @@ if [[ -z "${extracted}" || ! -f "${extracted}/config/global.conf" ]]; then
 fi
 
 config_base="$(
-    unset G_INSTALL_DIRECTORY
+    unset INSTALL_DIRECTORY
     set +u
     # shellcheck disable=SC1091
     source "${extracted}/config/global.conf"
-    printf '%s\n' "${G_CONFIG_BASE_DIRECTORY}"
+    printf '%s\n' "${CONFIG_BASE_DIRECTORY}"
 )"
 if [[ -z "${config_base}" || "${config_base}" != /opt/* || "${config_base}" == *..* || "${config_base}" == *[[:space:]]* ]]; then
     echo "$(get_text install.g-config-base-directory-invalid-in-global-conf "${config_base:-vide}")" >&2
     exit 1
 fi
-INSTALL_ROOT="${G_INSTALL_ROOT:-${config_base}/src}"
+INSTALL_ROOT="${INSTALL_ROOT:-${config_base}/src}"
 if [[ "${INSTALL_ROOT}" != /* || "${INSTALL_ROOT}" == "/" || "${INSTALL_ROOT}" == *..* || "${INSTALL_ROOT}" == *[[:space:]]* ]]; then
     echo "$(get_text install.root-of-install-rejected "${INSTALL_ROOT}")" >&2
     exit 1
@@ -52,7 +52,7 @@ fi
 mkdir -p "${INSTALL_ROOT}"
 keep=""
 mkdir -p "${tmp}/keep"
-if [[ -f "${INSTALL_ROOT}/config/global.conf" ]] && grep -q '^G_CONFIG_PREPARED=1$' "${INSTALL_ROOT}/config/global.conf" && [[ -f "${INSTALL_ROOT}/config/secrets.conf" ]]; then
+if [[ -f "${INSTALL_ROOT}/config/global.conf" ]] && grep -q '^CONFIG_PREPARED=1$' "${INSTALL_ROOT}/config/global.conf" && [[ -f "${INSTALL_ROOT}/config/secrets.conf" ]]; then
     cp -a "${INSTALL_ROOT}/config/global.conf" "${INSTALL_ROOT}/config/secrets.conf" "${tmp}/keep/"
     keep=1
 fi

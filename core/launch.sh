@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/launch.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 load_launch_text() {
     local root="$1"
     local launch_here="" launch_candidate=""
-    if [[ -z "${G_PRODUCT_ROOT:-}" ]]; then
-        G_PRODUCT_ROOT="${root}"
-        export G_PRODUCT_ROOT
+    if [[ -z "${PRODUCT_ROOT:-}" ]]; then
+        PRODUCT_ROOT="${root}"
+        export PRODUCT_ROOT
     fi
     if ! declare -F get_text >/dev/null 2>&1; then
         launch_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -30,7 +30,7 @@ load_launch_text() {
         && [[ -f "${root}/config/global.conf" ]]; then
         read_language_file "${root}/config/global.conf"
     elif declare -F load_text >/dev/null 2>&1; then
-        load_text "${G_LANGUAGE:-en}"
+        load_text "${LANGUAGE:-en}"
     fi
 }
 

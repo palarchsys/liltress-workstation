@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/02_file_graph.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -84,7 +84,7 @@ t_section "carte sasl selon postfix"
 if grep -q 'get_sasl_map_type' "${T_ROOT}/service/postfix/configure.sh" \
    && grep -q 'sasl_passwd.db' "${T_ROOT}/service/postfix/configure.sh" \
    && grep -q 'sasl_passwd.cdb' "${T_ROOT}/service/postfix/configure.sh" \
-   && grep -q '__SASL_TYPE__' "${T_ROOT}/service/postfix/configure.sh" \
+   && grep -q '__SASL_TYPE__' "${T_ROOT}/core/mail.sh" \
    && grep -q '__SASL_TYPE__:/etc/postfix/sasl_passwd' "${T_ROOT}/config/postfix/main.keys" \
    && ! grep -q 'hash:/etc/postfix/sasl_passwd' "${T_ROOT}/config/postfix/main.keys" \
    && ! grep -q 'cdb:/etc/postfix/sasl_passwd' "${T_ROOT}/config/postfix/main.keys"; then
@@ -199,9 +199,9 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && ! grep -q 'clamdscan' "${skip_clam}" \
    && grep -q 'list_clamav_scan' "${skip_clam}" \
    && grep -q 'report_clamav' "${skip_clam}" \
-   && grep -q 'clamscan --infected --no-summary' "${T_ROOT}/../core/watchdog.sh" \
-   && grep -q 'planté signal' "${T_ROOT}/../core/watchdog.sh" \
-   && grep -q 'tool="clamscan"' "${T_ROOT}/../core/watchdog.sh" \
+   && grep -q 'clamscan --infected --no-summary' "${T_ROOT}/../share/core/watchdog.sh" \
+   && grep -q 'planté signal' "${T_ROOT}/../share/core/watchdog.sh" \
+   && grep -q 'tool="clamscan"' "${T_ROOT}/../share/core/watchdog.sh" \
    && grep -q 'scan-skip.sh list' "${T_ROOT}/locale/fr/log.txt" \
    && grep -q 'log.usage-sudo-bash-bin-scan-skip-sh-list' "${skip_cmd}" \
    && grep -q 'scan-skip.sh add' "${T_ROOT}/locale/fr/log.txt" \
@@ -223,12 +223,12 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -q 'rkhunter warnings' "${T_ROOT}/locale/fr/watchdog.txt" \
    && grep -q 'chkrootkit a produit une sortie' "${T_ROOT}/locale/fr/watchdog.txt" \
    && grep -q 'reset_debsums_log' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
-   && grep -q '"apt-get", "clean"' "${T_ROOT}/../core/watchdog.sh" \
-   && grep -q 'Dir::Cache::archives' "${T_ROOT}/../core/watchdog.sh" \
-   && grep -q '"install", "--reinstall", "-y", "--", pkg' "${T_ROOT}/../core/watchdog.sh" \
-   && grep -q '/var/cache/apt/archives' "${T_ROOT}/../core/watchdog.sh" \
+   && grep -q '"apt-get", "clean"' "${T_ROOT}/../share/core/watchdog.sh" \
+   && grep -q 'Dir::Cache::archives' "${T_ROOT}/../share/core/watchdog.sh" \
+   && grep -q '"install", "--reinstall", "-y", "--", pkg' "${T_ROOT}/../share/core/watchdog.sh" \
+   && grep -q '/var/cache/apt/archives' "${T_ROOT}/../share/core/watchdog.sh" \
    && grep -q 'W_RKHUNTER_REFRESH=1' "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
-   && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/../core/watchdog.sh" \
+   && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/../share/core/watchdog.sh" \
    && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/service/rkhunter/configure.sh" \
    && grep -q 'get_text watchdog.clamav-in' "${T_ROOT}/service/cron/watchdogs/clamav-event.sh" \
    && grep -q 'ClamAV :' "${T_ROOT}/locale/fr/watchdog.txt" \
@@ -270,7 +270,7 @@ work="$(mktemp -d)"
 trap 'rm -rf "${work}"' EXIT
 printf '%s\n' '#!/bin/sh' 'echo 4' > "${work}/nproc"
 chmod 755 "${work}/nproc"
-got="$(PATH="${work}:${PATH}" G_WATCHDOG_CPU_LIMIT=20 bash -c 'source "$1" && get_cpu_quota_percent' _ "${root}/../core/watchdog.sh")"
+got="$(PATH="${work}:${PATH}" WATCHDOG_CPU_LIMIT=20 bash -c 'source "$1" && get_cpu_quota_percent' _ "${root}/../share/core/watchdog.sh")"
 [[ "${got}" == "80" ]]
 grep -qF 'get_cpu_quota_percent' "${root}/service/cron/configure.sh"
 grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-boot-scan.service"
@@ -278,7 +278,7 @@ grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-idle-scan.service"
 grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-reboot-notice.service"
 grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-periodic-scan.service"
 grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-hourly-scan.service"
-! grep -qF 'CPUQuota=${G_WATCHDOG_CPU_LIMIT}%' \
+! grep -qF 'CPUQuota=${WATCHDOG_CPU_LIMIT}%' \
     "${root}/service/cron/configure.sh" \
     "${root}/config/cron/w-boot-scan.service" \
     "${root}/config/cron/w-idle-scan.service" \
@@ -290,7 +290,7 @@ CPU
 if [[ "${cpu_rc}" -eq 0 ]]; then
     t_pass "graph.cpu.quota" "20 % de la machine, CPUQuota multiplié par le nombre de CPU"
 else
-    t_fail "graph.cpu.quota" "CPUQuota doit valoir G_WATCHDOG_CPU_LIMIT fois le nombre de CPU"
+    t_fail "graph.cpu.quota" "CPUQuota doit valoir WATCHDOG_CPU_LIMIT fois le nombre de CPU"
 fi
 
 t_section "chaîne de démarrage"
@@ -371,9 +371,9 @@ work="$(mktemp -d)"
 trap 'rm -rf "${work}"' EXIT
 mkdir -p "${work}/cron/bin" "${work}/bin"
 cat > "${work}/cron/mail.conf" << EOF
-G_MAIL_ALERTS="1"
-G_WATCHDOG_MAIL="alerts@example.com"
-G_PROJECT_NAME="Liltress Workstation"
+MAIL_ALERTS="1"
+WATCHDOG_MAIL="alerts@example.com"
+PROJECT_NAME="Liltress Workstation"
 EOF
 cat > "${work}/cron/bin/send.sh" << 'EOF'
 #!/usr/bin/env bash
@@ -570,7 +570,7 @@ if grep -qF 'Liltress Workstation' "${readme}" \
    && ! grep -R -qF 'disable_ipv6' "${T_ROOT}/docs" \
    && ! grep -R -qF 'PasswordAuthentication no' "${T_ROOT}/docs" \
    && grep -qF 'Ne le copiez pas dans un message, un ticket ou un dépôt.' "${fr}" \
-   && grep -qF 'G_LYNIS_MIN_SCORE' "${en}" \
+   && grep -qF 'LYNIS_MIN_SCORE' "${en}" \
    && grep -qF 'is 80' "${en}" \
    && awk '
         /^## 📋 Before you start$/ { h[++n] = NR }
@@ -607,7 +607,7 @@ alerts_ok=1
 for lang in en fr de es; do
     page="${T_ROOT}/doc/${lang}/README.md"
     grep -q '/opt/liltress-workstation/cron/alerts' "${page}" || alerts_ok=0
-    grep -q 'G_RCLONE_ALERTS=1' "${page}" || alerts_ok=0
+    grep -q 'RCLONE_ALERTS=1' "${page}" || alerts_ok=0
     grep -q "Activer l'envoi des alertes vers Google Drive (Y/N)." "${page}" || alerts_ok=0
     if grep -qF 'rclone.conf' "${page}"; then
         alerts_ok=0
@@ -620,7 +620,7 @@ if ! python3 - "${T_ROOT}/script/install.json" << 'PY'
 import json, sys
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 hits = [step for category in data["categories"] for step in category["steps"] if step.get("path") == "service/rclone/install.sh"]
-sys.exit(0 if len(hits) == 1 and hits[0].get("when", {}).get("var") == "G_RCLONE_ALERTS" and str(hits[0]["when"].get("eq")) == "1" else 1)
+sys.exit(0 if len(hits) == 1 and hits[0].get("when", {}).get("var") == "RCLONE_ALERTS" and str(hits[0]["when"].get("eq")) == "1" else 1)
 PY
 then
     alerts_ok=0
@@ -655,13 +655,13 @@ chmod 755 "${work}/bin/rclone"
 export W_BASE="${work}" PATH="${work}/bin:${PATH}"
 export W_SENT="${work}/sent" W_RCLONE="${work}/rclone.log"
 # shellcheck disable=SC1091
-source "${mono}/core/watchdog.sh"
+source "${mono}/share/core/watchdog.sh"
 LOG_FILE="${work}/sec.log"
 ALERT_FILE="${work}/cron/alerts/sample.txt"
 : > "${LOG_FILE}"
-G_MAIL_ALERTS=0
-G_RCLONE_ALERTS=0
-G_WATCHDOG_MAIL=""
+MAIL_ALERTS=0
+RCLONE_ALERTS=0
+WATCHDOG_MAIL=""
 NOTE=""
 NOTE_CMD=""
 TITLE=""
@@ -670,9 +670,9 @@ log_alert "essai archive"
 grep -q 'essai archive' "${ALERT_FILE}"
 [[ ! -e "${W_SENT}" ]]
 [[ ! -s "${W_RCLONE}" ]]
-G_RCLONE_ALERTS=1
-G_RCLONE_REMOTE="gdrive"
-G_RCLONE_PATH="liltress-alerts"
+RCLONE_ALERTS=1
+RCLONE_REMOTE="gdrive"
+RCLONE_PATH="liltress-alerts"
 printf 'token\n' > "${work}/cron/rclone.conf"
 log_alert "essai drive"
 grep -q 'gdrive:liltress-alerts' "${W_RCLONE}"
@@ -717,7 +717,7 @@ awk '
     /infections-already-signal-es/ { known = NR }
     END { exit !(inf && call && known && inf < call && last < known) }
 ' "${root}/service/cron/watchdogs/idle-scan.sh"
-grep -q 'G_CLAM_MODE=daemon' "${root}/service/cron/watchdogs/clamav.sh"
+grep -q 'CLAM_MODE=daemon' "${root}/service/cron/watchdogs/clamav.sh"
 grep -q 'flock -n 9' "${root}/service/cron/watchdogs/clamav.sh"
 ! grep -q 'clamdscan' "${root}/service/cron/watchdogs/clamav.sh"
 grep -q 'detect-and-apply.sh' "${root}/service/apparmor/configure.sh"
@@ -742,7 +742,7 @@ grep -q 'th dport 161 meta pkttype' "${root}/service/ufw/egress.sh"
 grep -q 'w-egress-table.service' "${root}/service/ufw/egress.sh"
 grep -q 'config/integrity/paths.list' "${root}/service/cron/configure.sh"
 grep -Fq 'cron/bin/integrity.sh' "${root}/service/cron/configure.sh"
-grep -Fq '${G_CONFIG_BASE_DIRECTORY}/config/global.conf' "${root}/service/cron/configure.sh"
+grep -Fq '${CONFIG_BASE_DIRECTORY}/config/global.conf' "${root}/service/cron/configure.sh"
 ! grep -q 'W_NET_ISOLATE=' "${root}/config/ufw/egress.conf"
 ! grep -q 'W_NET_ISOLATE:-' "${root}/service/cron/watchdogs/clamav-response.sh"
 grep -q 'W_NET_ISOLATE_SEC=120' "${root}/config/ufw/egress.conf"
@@ -771,11 +771,11 @@ grep -q 'flux sortant suspect bloqué' "${root}/locale/fr/watchdog.txt"
 grep -q 'quarantine.registry' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'w_isolate' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'flux sortants hors des ports 53, 80 et 443' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'record_quarantine_origin' "${root}/../core/watchdog.sh"
-grep -q 'quarantine-restore.sh' "${root}/../core/watchdog.sh"
+grep -q 'record_quarantine_origin' "${root}/../share/core/watchdog.sh"
+grep -q 'quarantine-restore.sh' "${root}/../share/core/watchdog.sh"
 grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/rkhunter.sh"
 grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/chkrootkit.sh"
-grep -q 'non mis en quarantaine' "${root}/../core/text/fr/watchdog.txt"
+grep -q 'non mis en quarantaine' "${root}/../share/core/text/fr/watchdog.txt"
 ! grep -q 'display:flex' "${root}/template/mail.html"
 ! grep -q 'width:840px' "${root}/template/mail.html"
 ! grep -q 'min-width:100%' "${root}/template/mail.html"
@@ -795,7 +795,7 @@ grep -q 'overflow-x:auto' "${root}/template/mail.html"
 grep -q '<pre' "${root}/template/mail.html"
 grep -q 'quarantine-restore.sh' "${root}/service/cron/configure.sh"
 grep -q 'mail-test.sh' "${root}/service/cron/configure.sh"
-grep -q 'send_mail_test' "${root}/../core/mail-test.sh"
+grep -q 'send_mail_test' "${root}/../share/core/mail-test.sh"
 WATCH
 if [[ "${watch_rc}" -eq 0 ]]; then
     t_pass "graph.watch" "surveillance continue et contrôles au démarrage"
@@ -854,7 +854,7 @@ t_check_prefix_order() {
         /^# Shared$/ { if (!s) s = NR }
         /^# Server$/ { if (!v) v = NR }
         /^# Workstation$/ { if (!w) w = NR }
-        /^G_[A-Z0-9_]+=/ { if (seen >= 2) bad = 1; if (seen < 1) seen = 1 }
+        /^[A-Z][A-Z0-9_]+=/ && $0 !~ /^[SW]_/ { if (seen >= 2) bad = 1; if (seen < 1) seen = 1 }
         /^S_[A-Z0-9_]+=/ { if (seen >= 3) bad = 1; if (seen < 2) seen = 2 }
         /^W_[A-Z0-9_]+=/ { seen = 3 }
         END { exit (s && v && w && s < v && v < w && !bad) ? 0 : 1 }
@@ -875,7 +875,7 @@ do
     fi
 done
 if [[ -z "${prefix_bad}" ]] \
-    && grep -q '^G_CONFIG_BASE_DIRECTORY="/opt/liltress-workstation"$' "${T_ROOT}/config/global.conf" \
+    && grep -q '^CONFIG_BASE_DIRECTORY="/opt/liltress-workstation"$' "${T_ROOT}/config/global.conf" \
     && grep -q '^W_PROJECT_SLUG="liltress-workstation"$' "${T_ROOT}/config/global.conf" \
     && ! grep -q 'W_PROJECT_SLUG}' "${T_ROOT}/config/global.conf"; then
     t_pass "graph.prefix.order" "HF puis HFS puis HFU"

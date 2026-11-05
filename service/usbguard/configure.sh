@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/usbguard/configure.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
-export G_INSTALL_DIRECTORY
 
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_current_user
 
@@ -42,24 +40,6 @@ if [[ ! -f "${daemon_conf}" ]]; then
     install -m 600 /dev/null "${daemon_conf}"
 fi
 
-set_usb_rule() {
-    local key="$1" value="$2"
-    if grep -q "^${key}=" "${daemon_conf}"; then
-        sed -i "s|^${key}=.*|${key}=${value}|" "${daemon_conf}"
-    else
-        printf '%s=%s\n' "${key}" "${value}" >> "${daemon_conf}"
-    fi
-}
-
-load_usb_rule() {
-    local line key value
-    while IFS= read -r line || [[ -n "${line}" ]]; do
-        [[ -z "${line}" || "${line}" == \#* ]] && continue
-        key="${line%%=*}"
-        value="${line#*=}"
-        set_usb_rule "${key}" "${value}"
-    done < "$(locate_config_file usbguard/daemon.conf)"
-}
 load_usb_rule
 set_usb_rule IPCAllowedUsers "root ${CURRENT_USER}"
 chmod 600 "${daemon_conf}"

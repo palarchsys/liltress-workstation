@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/run.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -64,9 +64,9 @@ fi
 if [[ -f "${T_ROOT}/core/test-harness.sh" ]]; then
     # shellcheck disable=SC1091
     source "${T_ROOT}/core/test-harness.sh"
-elif [[ -f "${T_ROOT}/../core/test-harness.sh" ]]; then
+elif [[ -f "${T_ROOT}/../share/core/test-harness.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${T_ROOT}/../core/test-harness.sh"
+    source "${T_ROOT}/../share/core/test-harness.sh"
 else
     printf 'test-harness.sh introuvable depuis %s\n' "${T_ROOT}" >&2
     exit 1

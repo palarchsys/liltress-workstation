@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/fr/configure.txt
-# Updated at : 2026-10-29
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -119,43 +119,52 @@ Utilisez : ./liltress configure [--check]
 quota CPU invalide ({1})
 
 [configure.g-ssh-banner-path-invalid-example-etc-ssh-sshd-b]
-{1} : G_SSH_BANNER_PATH invalide (« {2} »). exemple : /etc/ssh/sshd_banner
+{1} : SSH_BANNER_PATH invalide (« {2} »). exemple : /etc/ssh/sshd_banner
 
 [configure.g-ssh-service-name-invalid-example-ssh]
-{1} : G_SSH_SERVICE_NAME invalide (« {2} »). exemple : ssh
+{1} : SSH_SERVICE_NAME invalide (« {2} »). exemple : ssh
 
 [configure.g-ssh-client-alive-interval-invalid-example-300]
-{1} : G_SSH_CLIENT_ALIVE_INTERVAL invalide (« {2} »). exemple : 300
+{1} : SSH_CLIENT_ALIVE_INTERVAL invalide (« {2} »). exemple : 300
 
 [configure.g-watchdog-cpu-limit-invalid-example-50]
-{1} : G_WATCHDOG_CPU_LIMIT invalide (« {2} »). exemple : 50
+{1} : WATCHDOG_CPU_LIMIT invalide (« {2} »). exemple : 50
 
 [configure.g-watchdog-limit-nice-invalid-example-19]
-{1} : G_WATCHDOG_LIMIT_NICE invalide (« {2} »). exemple : 19
+{1} : WATCHDOG_LIMIT_NICE invalide (« {2} »). exemple : 19
 
 [configure.g-watchdog-limit-io-nice-invalid-example-3]
-{1} : G_WATCHDOG_LIMIT_IO_NICE invalide (« {2} »). exemple : 3
+{1} : WATCHDOG_LIMIT_IO_NICE invalide (« {2} »). exemple : 3
 
 [configure.g-mail-alerts-invalid-example-0-or-1]
-{1} : G_MAIL_ALERTS invalide (« {2} »). exemple : 0 ou 1
+{1} : MAIL_ALERTS invalide (« {2} »). exemple : 0 ou 1
 
 [configure.g-rclone-alerts-invalid-example-0-or-1]
-{1} : G_RCLONE_ALERTS invalide (« {2} »). exemple : 0 ou 1
+{1} : RCLONE_ALERTS invalide (« {2} »). exemple : 0 ou 1
 
 [configure.g-rclone-remote-invalid-example-gdrive]
-{1} : G_RCLONE_REMOTE invalide (« {2} »). exemple : gdrive
+{1} : RCLONE_REMOTE invalide (« {2} »). exemple : gdrive
 
 [configure.g-rclone-path-invalid-example-liltress-alerts]
-{1} : G_RCLONE_PATH invalide (« {2} »). exemple : liltress-alerts
+{1} : RCLONE_PATH invalide (« {2} »). exemple : liltress-alerts
 
 [configure.g-mail-template-invalid-example-mail-html]
-{1} : G_MAIL_TEMPLATE invalide (« {2} »). exemple : mail.html
+{1} : MAIL_TEMPLATE invalide (« {2} »). exemple : mail.html
 
 [configure.g-mail-template-not-found-example-a-file-html-of]
-{1} : G_MAIL_TEMPLATE introuvable ({2}). exemple : un fichier .html du dossier template/
+{1} : MAIL_TEMPLATE introuvable ({2}). exemple : un fichier .html du dossier template/
+
+[configure.g-postfix-mail-address-must-be-an-address-email]
+{1} : POSTFIX_MAIL_ADDRESS invalide (« {2} »). exemple : relay@example.com
+
+[configure.g-watchdog-mail-must-be-an-address-email-example]
+{1} : WATCHDOG_MAIL invalide (« {2} »). exemple : relay@example.com
+
+[configure.g-postfix-mail-smtp-invalid-example-smtp-mail-ou]
+{1} : POSTFIX_MAIL_SMTP invalide (« {2} »). exemple : smtp.gmail.com:587
 
 [configure.g-watchdog-mail-must-be-the-same-address-that-g]
-{1} : G_WATCHDOG_MAIL doit être la même adresse que G_POSTFIX_MAIL_ADDRESS.
+{1} : WATCHDOG_MAIL doit être la même adresse que POSTFIX_MAIL_ADDRESS.
 
 [configure.the-fields-e-mail-must-be-vides-when-the-alerts]
 {1} : les champs e-mail doivent être vides quand les alertes sont coupées.
@@ -167,7 +176,7 @@ global.conf absent ({1}). exemple : ./liltress configure
 secrets.conf absent ({1}). exemple : ./liltress configure
 
 [configure.g-language-invalid-values-in-fr-of-es]
-{1} : G_LANGUAGE invalide (« {2} »). Valeurs : en, fr, de, es.
+{1} : LANGUAGE invalide (« {2} »). Valeurs : en, fr, de, es.
 
 [configure.core-watchdog-sh-not-found]
 core/watchdog.sh introuvable ({1})

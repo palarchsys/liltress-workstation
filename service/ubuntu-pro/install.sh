@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ubuntu-pro/install.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
-export G_INSTALL_DIRECTORY
 
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 log_subtitle     "${INSTALL_WATCHER}" "install.ubuntu-pro"
 
@@ -23,11 +21,11 @@ log_info         "${INSTALL_WATCHER}" "install.check-of-the-attachment-ubuntu-pr
 if check_ubuntu_pro; then
     log_success      "${INSTALL_WATCHER}" "install.ubuntu-pro-already-attached"
 else
-    if [[ -z "${G_UBUNTU_PRO_TOKEN// /}" ]]; then
-        log_error        "${INSTALL_WATCHER}" "install.ubuntu-pro-missing-token-in-secrets-conf-rerun-b" "${G_INSTALL_DIRECTORY}"
+    if [[ -z "${UBUNTU_PRO_TOKEN// /}" ]]; then
+        log_error        "${INSTALL_WATCHER}" "install.ubuntu-pro-missing-token-in-secrets-conf-rerun-b" "${INSTALL_DIRECTORY}"
     fi
     log_info         "${INSTALL_WATCHER}" "install.attachment-of-ubuntu-pro"
-    attach_out=$(pro attach "${G_UBUNTU_PRO_TOKEN}" 2>&1) && attach_rc=0 || attach_rc=$?
+    attach_out=$(pro attach "${UBUNTU_PRO_TOKEN}" 2>&1) && attach_rc=0 || attach_rc=$?
     if [[ "${attach_rc}" -eq 0 ]]; then
         log_success      "${INSTALL_WATCHER}" "install.ubuntu-pro-machine-attached"
     elif echo "${attach_out}" | grep -qiE 'already attached'; then

@@ -1,8 +1,11 @@
 # =============================================================================
 # File       : core/text/de/log.txt
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
+
+[log.16s-12s-12s]
+%-16s %-12s %-12s %s\n
 
 [log.36s]
 %-36s {1}
@@ -281,7 +284,7 @@ Der Befehl ist fehlgeschlagen: {1}
 {1}
 
 [run.script.error.4]
-G_WATCHDOG_MAIL ist leer: l'e-mail von Ende von Installation kann nicht gehen.
+WATCHDOG_MAIL ist leer: l'e-mail von Ende von Installation kann nicht gehen.
 
 [run.script.info.8]
 {1}

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/mail-test.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -14,11 +14,11 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 for candidate in \
     "${script_dir}/log.sh" \
-    "${script_dir}/../core/log.sh" \
+    "${script_dir}/../share/core/log.sh" \
     "${script_dir}/../src/core/log.sh" \
-    "${G_CONFIG_BASE_DIRECTORY:-}/src/core/log.sh" \
-    "${G_INSTALL_DIRECTORY:-}/core/log.sh" \
-    "${G_INSTALL_DIRECTORY:-}/src/core/log.sh"
+    "${CONFIG_BASE_DIRECTORY:-}/src/core/log.sh" \
+    "${INSTALL_DIRECTORY:-}/core/log.sh" \
+    "${INSTALL_DIRECTORY:-}/src/core/log.sh"
 do
     if [[ -n "${candidate}" && -f "${candidate}" ]]; then
         # shellcheck disable=SC1090
@@ -33,14 +33,14 @@ send_mail_test() {
     if [[ "$(basename -- "${script_dir}")" == "bin" ]]; then
         base="$(dirname -- "${script_dir}")"
     else
-        base="${G_CONFIG_BASE_DIRECTORY:-}"
+        base="${CONFIG_BASE_DIRECTORY:-}"
     fi
     if [[ -z "${base}" || ! -f "${base}/config/global.conf" ]]; then
         printf '%s\n' "$(get_text mail.configuration-absent)" >&2
         exit 1
     fi
-    export G_INSTALL_DIRECTORY="${base}"
-    export G_CONFIG_BASE_DIRECTORY="${base}"
+    export INSTALL_DIRECTORY="${base}"
+    export CONFIG_BASE_DIRECTORY="${base}"
     read_language_file "${base}/config/global.conf"
     # shellcheck disable=SC1091
     source "${base}/config/global.conf"
@@ -52,25 +52,25 @@ send_mail_test() {
         # shellcheck disable=SC1091
         source "${base}/cron/bin/watchdog.conf"
     fi
-    if [[ -z "${G_WATCHDOG_MAIL:-}" && -f "${base}/config/secrets.conf" ]]; then
+    if [[ -z "${WATCHDOG_MAIL:-}" && -f "${base}/config/secrets.conf" ]]; then
         # shellcheck disable=SC1091
         source "${base}/config/secrets.conf"
     fi
-    export G_CONFIG_BASE_DIRECTORY="${base}"
-    if [[ -z "${G_PROJECT_NAME:-}" ]]; then
-        G_PROJECT_NAME="Liltress"
+    export CONFIG_BASE_DIRECTORY="${base}"
+    if [[ -z "${PROJECT_NAME:-}" ]]; then
+        PROJECT_NAME="Liltress"
     fi
-    export G_PROJECT_NAME
+    export PROJECT_NAME
     send_sh="${base}/cron/bin/send.sh"
     if [[ ! -f "${send_sh}" ]]; then
         printf '%s\n' "$(get_text mail.send-not-found)" >&2
         exit 1
     fi
-    if [[ "${G_MAIL_ALERTS:-0}" != "1" ]]; then
+    if [[ "${MAIL_ALERTS:-0}" != "1" ]]; then
         printf '%s\n' "$(get_text mail.alerts-e-mail-off)" >&2
         exit 1
     fi
-    if [[ -z "${G_WATCHDOG_MAIL:-}" ]]; then
+    if [[ -z "${WATCHDOG_MAIL:-}" ]]; then
         printf '%s\n' "$(get_text mail.destinataire-absent)" >&2
         exit 1
     fi
@@ -78,13 +78,13 @@ send_mail_test() {
         printf '%s\n' "$(get_text mail.command-mail-absent)" >&2
         exit 1
     fi
-    if [[ ! -f "${base}/cron/bin/${G_MAIL_TEMPLATE:-mail.html}" ]]; then
+    if [[ ! -f "${base}/cron/bin/${MAIL_TEMPLATE:-mail.html}" ]]; then
         printf '%s\n' "$(get_text mail.template-absent)" >&2
         exit 1
     fi
-    export G_MAIL_TEMPLATE="${G_MAIL_TEMPLATE:-mail.html}"
-    export G_MAIL_ALERTS
-    export G_WATCHDOG_MAIL
+    export MAIL_TEMPLATE="${MAIL_TEMPLATE:-mail.html}"
+    export MAIL_ALERTS
+    export WATCHDOG_MAIL
     export TITLE="$(get_text mail.test.title)"
     export MODULE_NAME="$(get_text mail.test.module)"
     # One sample line is longer than the 800px floor.
@@ -112,7 +112,7 @@ $(get_text mail.test.line-short)"
 if [[ "$(basename -- "${script_dir}")" == "bin" ]]; then
     base="$(dirname -- "${script_dir}")"
 else
-    base="${G_CONFIG_BASE_DIRECTORY:-}"
+    base="${CONFIG_BASE_DIRECTORY:-}"
 fi
 if [[ -n "${base}" && -f "${base}/config/global.conf" ]] && declare -F read_language_file >/dev/null 2>&1; then
     read_language_file "${base}/config/global.conf"

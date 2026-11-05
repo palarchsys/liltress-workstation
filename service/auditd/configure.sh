@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/auditd/configure.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
-export G_INSTALL_DIRECTORY
 
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_current_user
 
@@ -38,7 +36,7 @@ write_audit_list() {
             virt) check_virtual_machine || continue ;;
             *) continue ;;
         esac
-        path="${path//__HF_BASE__/${G_CONFIG_BASE_DIRECTORY}}"
+        path="${path//__HF_BASE__/${CONFIG_BASE_DIRECTORY}}"
         write_audit_watch "${path}" "${key}"
     done < "$(locate_config_file auditd/watches.list)"
 }

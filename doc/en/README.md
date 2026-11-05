@@ -64,7 +64,7 @@ sudo ./liltress configure
 `sudo ./liltress configure` asks the questions below, writes `global.conf` mode `644` and `secrets.conf` mode `600` as root, then starts `script/run.sh`.<br/>
 `secrets.conf` stays on the machine. Do not copy it into a message, a ticket, or a repository.<br/>
 The first question chooses the language.<br/>
-The value is `G_LANGUAGE`.<br/>
+The value is `LANGUAGE`.<br/>
 The default is English.<br/>
 
 | Question         | Expected answer                                                                                                                                     |
@@ -74,7 +74,7 @@ The default is English.<br/>
 | Serveur          | `host:port`, for example `smtp-mail.outlook.com:587`. No brackets. Asked only when alerts are enabled.                                              |
 | Login            | An e-mail address.                                                                                                                                  |
 | Password         | The provider application password, 8 to 128 characters. Spaces are removed. Quotes, `$`, `\` and backticks are refused. Never the account password. |
-| From             | An e-mail address. `G_WATCHDOG_MAIL` receives the same address.                                                                                    |
+| From             | An e-mail address. `WATCHDOG_MAIL` receives the same address.                                                                                    |
 | Activer l'envoi des alertes vers Google Drive (Y/N). | `Y` or `y` enables the copy. `N`, `n` or `non` disables it. Enabled asks for the remote name and the folder, then runs `rclone config`. The token stays on the machine, mode 600. Disabled does not install rclone. |
 | Distant          | Remote name. Letters, digits or a hyphen, 1 to 32 characters. Asked only when the copy is enabled.                                                  |
 | Dossier          | Remote folder. No `..` and no local absolute path. Asked only when the copy is enabled.                                                             |
@@ -101,8 +101,8 @@ The installation places the packages and services below.
 | apparmor                                        | Distribution profiles. `service/apparmor/userns.sh` removes an hfu profile that is not shipped.                          |
 | aide                                            | File integrity database `/var/lib/aide/aide.db`.                                                                         |
 | unattended-upgrades                             | Security origins. `Automatic-Reboot` is `false`.                                                                         |
-| postfix                                         | Sends alert mail. Installed only when `G_MAIL_ALERTS=1`.                                                                |
-| rclone                                          | Copies an alert file to Google Drive. Installed only when `G_RCLONE_ALERTS=1`.                                          |
+| postfix                                         | Sends alert mail. Installed only when `MAIL_ALERTS=1`.                                                                |
+| rclone                                          | Copies an alert file to Google Drive. Installed only when `RCLONE_ALERTS=1`.                                          |
 | lynis                                           | Hardening audit.                                                                                                         |
 | ubuntu-pro-client                               | Attaches the Ubuntu Pro token. A non-LTS release does not enable esm-infra, esm-apps or Livepatch. On an LTS release, a failure to enable them does not stop the installation. |
 | acct, sysstat, libpam-pwquality                 | Process accounting, activity stats, password quality.                                                                    |
@@ -222,10 +222,10 @@ WireGuard: one `.conf`.<br/>
 ## 📋 Alert emails
 
 Each alert file is stored under `/opt/liltress-workstation/cron/alerts`.<br/>
-The mail follows the `G_LANGUAGE` language.<br/>
-Mail leaves only when `G_MAIL_ALERTS=1`.<br/>
-A copy leaves for Google Drive only when `G_RCLONE_ALERTS=1`, to the chosen remote and folder.<br/>
-Mail is sent only when `G_MAIL_ALERTS=1`, `G_WATCHDOG_MAIL` is set, and `/opt/liltress-workstation/cron/bin/send.sh` is executable.<br/>
+The mail follows the `LANGUAGE` language.<br/>
+Mail leaves only when `MAIL_ALERTS=1`.<br/>
+A copy leaves for Google Drive only when `RCLONE_ALERTS=1`, to the chosen remote and folder.<br/>
+Mail is sent only when `MAIL_ALERTS=1`, `WATCHDOG_MAIL` is set, and `/opt/liltress-workstation/cron/bin/send.sh` is executable.<br/>
 A clean check does not send mail.<br/>
 If a journal line is unknown, do not run the command.<br/>
 Keep the mail.
@@ -417,7 +417,7 @@ sudo ./liltress lynis
 ```
 
 Runs `lynis audit system --quick --no-colors` and writes the report under `<source>/log/lynis-<stamp>/`.<br/>
-`G_LYNIS_MIN_SCORE` is 80.<br/>
+`LYNIS_MIN_SCORE` is 80.<br/>
 `verify/workstation.sh` accepts a `hardening_index` greater than or equal to that score.
 
 ## ▪️ AIDE baseline

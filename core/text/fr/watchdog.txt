@@ -46,6 +46,18 @@ Mail non envoyé ({1}) : commande mail absente.
 [watchdog.execution-since-a-directory-temporary]
 exécution depuis un répertoire temporaire
 
+[watchdog.list-of-integrity-absent]
+liste d'intégrité absente
+
+[watchdog.ausearch-absent]
+ausearch absent
+
+[watchdog.initial-rep-re-written]
+repère initial écrit
+
+[watchdog.no-execution-temporary]
+aucune exécution temporaire
+
 [watchdog.invalid-memory-access]
 accès mémoire invalide
 

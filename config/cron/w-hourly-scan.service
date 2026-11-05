@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : config/cron/w-hourly-scan.service
-# Updated at : 2026-10-28
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -10,7 +10,7 @@ After=local-fs.target multi-user.target
 
 [Service]
 Type=oneshot
-Nice=${G_WATCHDOG_LIMIT_NICE}
+Nice=${WATCHDOG_LIMIT_NICE}
 IOSchedulingClass=idle
 CPUQuota=${cpu_quota}%
-ExecStart=${G_CONFIG_BASE_DIRECTORY}/cron/bin/hourly-scan.sh
+ExecStart=${CONFIG_BASE_DIRECTORY}/cron/bin/hourly-scan.sh

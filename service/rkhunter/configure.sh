@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/rkhunter/configure.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
-export G_INSTALL_DIRECTORY
 
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_current_user
 W_ACCOUNT_USER="${CURRENT_USER}"
@@ -29,7 +27,7 @@ if grep -qE '^[[:space:]]*WEB_CMD=' /etc/rkhunter.conf; then
 fi
 
 log_info         "${INSTALL_WATCHER}" "configure.base-rkhunter-propupd-after-the-purge-of-the-pac"
-install -d -m 755 "${G_CONFIG_BASE_DIRECTORY}/bin"
+install -d -m 755 "${CONFIG_BASE_DIRECTORY}/bin"
 install -m 755 \
     "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/refresh-db.sh" \
-    "${G_CONFIG_BASE_DIRECTORY}/bin/rkhunter-refresh-db.sh"
+    "${CONFIG_BASE_DIRECTORY}/bin/rkhunter-refresh-db.sh"

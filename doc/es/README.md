@@ -64,7 +64,7 @@ sudo ./liltress configure
 `sudo ./liltress configure` hace las preguntas de abajo, escribe `global.conf` en modo `644` y `secrets.conf` en modo `600` como root, y después inicia `script/run.sh`.<br/>
 `secrets.conf` permanece en la máquina. No lo copie en un mensaje, un ticket o un repositorio.<br/>
 La primera pregunta elige el idioma.<br/>
-El valor es `G_LANGUAGE`.<br/>
+El valor es `LANGUAGE`.<br/>
 El valor predeterminado es el inglés.<br/>
 
 | Pregunta         | Respuesta esperada                                                                                                                                                                   |
@@ -74,7 +74,7 @@ El valor predeterminado es el inglés.<br/>
 | Serveur          | `host:puerto`, por ejemplo `smtp-mail.outlook.com:587`. Sin corchetes. Solo si las alertas están activadas.                                                                          |
 | Login            | Una dirección de correo.                                                                                                                                                             |
 | Password         | La contraseña de aplicación del proveedor, de 8 a 128 caracteres. Los espacios se quitan. Las comillas, `$`, `\` y la comilla inversa se rechazan. Nunca la contraseña de la cuenta. |
-| From             | Una dirección de correo. `G_WATCHDOG_MAIL` recibe la misma dirección.                                                                                                               |
+| From             | Una dirección de correo. `WATCHDOG_MAIL` recibe la misma dirección.                                                                                                               |
 | Activer l'envoi des alertes vers Google Drive (Y/N). | `Y` o `y` activa la copia. `N`, `n` o `non` la corta. Activada, se le pregunta el nombre remoto y la carpeta, y después se ejecuta `rclone config`. El testigo permanece en la máquina, modo 600. Cortada, rclone no se instala. |
 | Distant          | Nombre remoto. Letras, dígitos o guion, de 1 a 32 caracteres. Solo si la copia está activada.                                                                                        |
 | Dossier          | Carpeta remota. Sin `..` y sin ruta local absoluta. Solo si la copia está activada.                                                                                                  |
@@ -101,8 +101,8 @@ La instalación coloca los paquetes y servicios de abajo.
 | apparmor                                        | Perfiles de la distribución. `service/apparmor/userns.sh` retira un perfil hfu que no se entrega.                                                                              |
 | aide                                            | Base de integridad `/var/lib/aide/aide.db`.                                                                                                                                    |
 | unattended-upgrades                             | Orígenes de seguridad. `Automatic-Reboot` vale `false`.                                                                                                                        |
-| postfix                                         | Envía el correo de alerta. Instalado solo cuando `G_MAIL_ALERTS=1`.                                                                                                           |
-| rclone                                          | Copia un archivo de alerta a Google Drive. Instalado solo cuando `G_RCLONE_ALERTS=1`.                                                                                         |
+| postfix                                         | Envía el correo de alerta. Instalado solo cuando `MAIL_ALERTS=1`.                                                                                                           |
+| rclone                                          | Copia un archivo de alerta a Google Drive. Instalado solo cuando `RCLONE_ALERTS=1`.                                                                                         |
 | lynis                                           | Auditoría de endurecimiento.                                                                                                                                                   |
 | ubuntu-pro-client                               | Adjunta el token de Ubuntu Pro. Fuera de una LTS no se activan esm-infra, esm-apps ni Livepatch. En una LTS, un fallo al activarlos no detiene la instalación. |
 | acct, sysstat, libpam-pwquality                 | Contabilidad de procesos, estadísticas de actividad, calidad de las contraseñas.                                                                                               |
@@ -222,10 +222,10 @@ WireGuard: un `.conf`.<br/>
 ## 📋 Correos de alerta
 
 Cada archivo de alerta queda en `/opt/liltress-workstation/cron/alerts`.<br/>
-El mensaje sigue el idioma `G_LANGUAGE`.<br/>
-El correo sale solo si `G_MAIL_ALERTS=1`.<br/>
-Una copia sale hacia Google Drive solo si `G_RCLONE_ALERTS=1`, hacia el remoto y la carpeta elegidos.<br/>
-El correo sale solo si `G_MAIL_ALERTS=1`, si `G_WATCHDOG_MAIL` está definido, y si `/opt/liltress-workstation/cron/bin/send.sh` es ejecutable.<br/>
+El mensaje sigue el idioma `LANGUAGE`.<br/>
+El correo sale solo si `MAIL_ALERTS=1`.<br/>
+Una copia sale hacia Google Drive solo si `RCLONE_ALERTS=1`, hacia el remoto y la carpeta elegidos.<br/>
+El correo sale solo si `MAIL_ALERTS=1`, si `WATCHDOG_MAIL` está definido, y si `/opt/liltress-workstation/cron/bin/send.sh` es ejecutable.<br/>
 Un control limpio no envía correo.<br/>
 Si una línea del diario es desconocida, no lance la orden.<br/>
 Conserve el correo.
@@ -417,7 +417,7 @@ sudo ./liltress lynis
 ```
 
 Lanza `lynis audit system --quick --no-colors` y escribe el informe bajo `<source>/log/lynis-<stamp>/`.<br/>
-`G_LYNIS_MIN_SCORE` vale 80.<br/>
+`LYNIS_MIN_SCORE` vale 80.<br/>
 `verify/workstation.sh` acepta un `hardening_index` superior o igual a ese umbral.
 
 ## ▪️ Base AIDE

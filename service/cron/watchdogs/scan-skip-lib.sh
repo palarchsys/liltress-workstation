@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-skip-lib.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -100,9 +100,9 @@ locate_scan_skip_file() {
     here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     if ! declare -F locate_config_file >/dev/null 2>&1; then
         for candidate in \
-            "${G_INSTALL_DIRECTORY:-}/core/fs.sh" \
+            "${INSTALL_DIRECTORY:-}/core/fs.sh" \
             "${here}/../../../core/fs.sh" \
-            "${here}/../../../../core/fs.sh" \
+            "${here}/../../../../share/core/fs.sh" \
             "${here}/../../src/core/fs.sh" \
             "${W_BASE}/src/core/fs.sh"
         do
@@ -119,7 +119,7 @@ locate_scan_skip_file() {
         fi
     fi
     for candidate in \
-        "${G_INSTALL_DIRECTORY:-}/config/clamav/scan-skip.paths" \
+        "${INSTALL_DIRECTORY:-}/config/clamav/scan-skip.paths" \
         "${here}/../../../config/clamav/scan-skip.paths" \
         "${here}/../../src/config/clamav/scan-skip.paths" \
         "${W_BASE}/src/config/clamav/scan-skip.paths"
@@ -128,8 +128,8 @@ locate_scan_skip_file() {
         printf '%s\n' "${candidate}"
         return 0
     done
-    if [[ -n "${G_INSTALL_DIRECTORY:-}" ]]; then
-        printf '%s\n' "${G_INSTALL_DIRECTORY}/config/clamav/scan-skip.paths"
+    if [[ -n "${INSTALL_DIRECTORY:-}" ]]; then
+        printf '%s\n' "${INSTALL_DIRECTORY}/config/clamav/scan-skip.paths"
         return 0
     fi
     printf '%s\n' "${W_BASE}/src/config/clamav/scan-skip.paths"
@@ -142,7 +142,7 @@ ensure_scan_skip_file() {
     legacy="${W_BASE}/cron/scan-skip.paths"
     dest="${template}"
     if [[ "${dest}" != "${W_BASE}/"* ]]; then
-        if [[ -z "${G_CONFIG_BASE_DIRECTORY:-}" || "${dest}" != "${G_CONFIG_BASE_DIRECTORY}/"* ]]; then
+        if [[ -z "${CONFIG_BASE_DIRECTORY:-}" || "${dest}" != "${CONFIG_BASE_DIRECTORY}/"* ]]; then
             dest="${W_BASE}/src/config/clamav/scan-skip.paths"
         fi
     fi

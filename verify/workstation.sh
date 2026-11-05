@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : verify/workstation.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-G_INSTALL_DIRECTORY="${INSTALL_DIRECTORY}"
-export G_INSTALL_DIRECTORY
 
-source "${G_INSTALL_DIRECTORY}/core/lib.sh"
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_current_user
 get_ssh_port
@@ -21,9 +19,9 @@ get_operating_system
 PASS=0
 FAIL=0
 WARNN=0
-REPORT="${G_LOG_DIR:-.}/verify-report-WORKSTATION-$(date +%Y%m%d-%H%M%S).md"
+REPORT="${INSTALL_LOG_DIR:-.}/verify-report-WORKSTATION-$(date +%Y%m%d-%H%M%S).md"
 
-report_pass()   { PASS=$((PASS+1));  G_LOG_FIT_MAX=0 log_success "${INSTALL_WATCHER}" "log.ok-3" "$*"; echo "$(get_text log.ok-4 "$*")" >> "${REPORT}"; }
+report_pass()   { PASS=$((PASS+1));  LOG_FIT_MAX=0 log_success "${INSTALL_WATCHER}" "log.ok-3" "$*"; echo "$(get_text log.ok-4 "$*")" >> "${REPORT}"; }
 report_fail()   { FAIL=$((FAIL+1));  set_color_red "FAIL  $*";     echo "- FAIL  $*" >> "${REPORT}"; }
 report_warn()   { WARNN=$((WARNN+1)); log_warn "${INSTALL_WATCHER}" "verify.workstation.warn" "WARN  $*";   echo "- WARN  $*" >> "${REPORT}"; }
 
@@ -186,7 +184,7 @@ if grep -q '^DEFAULT_FORWARD_POLICY="ACCEPT"' /etc/default/ufw 2>/dev/null; then
 else
     report_fail "UFW forward policy n'est pas ACCEPT"
 fi
-if [[ "${G_MAIL_ALERTS:-0}" == "1" ]]; then
+if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
     if systemctl is-active --quiet postfix; then
         report_pass "Postfix actif"
     else
@@ -246,7 +244,7 @@ if systemctl is-enabled --quiet w-hourly-scan.timer 2>/dev/null; then
 else
     report_fail "timer de passe horaire absent"
 fi
-boot_bin="${G_CONFIG_BASE_DIRECTORY}/cron/bin/boot-scan.sh"
+boot_bin="${CONFIG_BASE_DIRECTORY}/cron/bin/boot-scan.sh"
 if [[ -f "${boot_bin}" ]] \
     && grep -q 'integrity.sh' "${boot_bin}" \
     && grep -q 'behavior.sh' "${boot_bin}" \
@@ -276,7 +274,7 @@ else
     report_fail "exclusions minimales absentes"
 fi
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/config/clamav/onaccess.conf"
+source "${INSTALL_DIRECTORY}/config/clamav/onaccess.conf"
 if [[ "${W_ONACCESS_MOUNTS}" == "1" ]]; then
     mount_ok=1
     if [[ -d /media ]] && ! grep -q '^OnAccessIncludePath /media$' "${clam_conf}"; then
@@ -297,8 +295,8 @@ else
     report_pass "montages hors surveillance continue"
 fi
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/config/ufw/egress.conf"
-response="${G_CONFIG_BASE_DIRECTORY}/cron/bin/clamav-response.sh"
+source "${INSTALL_DIRECTORY}/config/ufw/egress.conf"
+response="${CONFIG_BASE_DIRECTORY}/cron/bin/clamav-response.sh"
 if [[ -f "${response}" ]] \
     && grep -q 'kill -TERM' "${response}" \
     && ! grep -q 'W_CLAMAV_KILL' "${response}" \
@@ -308,7 +306,7 @@ if [[ -f "${response}" ]] \
 else
     report_fail "signal ou isolation absent de clamav-response.sh"
 fi
-if [[ -x "${G_INSTALL_DIRECTORY}/service/apparmor/detect-and-apply.sh" ]]; then
+if [[ -x "${INSTALL_DIRECTORY}/service/apparmor/detect-and-apply.sh" ]]; then
     report_pass "détection AppArmor exécutable"
 else
     report_fail "detect-and-apply.sh absent ou non exécutable"
@@ -439,14 +437,14 @@ if command -v lynis >/dev/null 2>&1; then
         report_warn "custom.prf manquant"
     fi
     log_info "${INSTALL_WATCHER}" "log.audit-lynis-quick"
-    lynis audit system --quick --no-colors --auditor liltress-workstation-verify > "${G_LOG_DIR:-/tmp}/lynis-verify.txt" 2>&1 || true
+    lynis audit system --quick --no-colors --auditor liltress-workstation-verify > "${INSTALL_LOG_DIR:-/tmp}/lynis-verify.txt" 2>&1 || true
     score="$(awk -F= '/hardening_index=/{print $2}' /var/log/lynis-report.dat 2>/dev/null | tail -1)"
     if [[ "${score}" =~ ^[0-9]+$ ]]; then
         echo "$(get_text log.lynis-hardening-index "${score}")" >> "${REPORT}"
-        if [[ "${score}" -ge "${G_LYNIS_MIN_SCORE}" ]]; then
-            report_pass "Lynis ${score} ≥ ${G_LYNIS_MIN_SCORE}"
+        if [[ "${score}" -ge "${LYNIS_MIN_SCORE}" ]]; then
+            report_pass "Lynis ${score} ≥ ${LYNIS_MIN_SCORE}"
         else
-            report_fail "Lynis ${score} < ${G_LYNIS_MIN_SCORE}"
+            report_fail "Lynis ${score} < ${LYNIS_MIN_SCORE}"
             awk -F= '/^warning\[\]=/{print "   [INFO]  Lynis " $2}' /var/log/lynis-report.dat 2>/dev/null | head -20 || true
         fi
     else
@@ -495,7 +493,7 @@ fi
 report_pass "dépôt Lynis CISOfy ajouté uniquement (lynis.list)"
 
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/service/vpn/lib.sh"
+source "${INSTALL_DIRECTORY}/service/vpn/lib.sh"
 vpn_state="$(get_vpn_verify_state || true)"
 vpn_kind="${vpn_state%% *}"
 vpn_name="${vpn_state#* }"

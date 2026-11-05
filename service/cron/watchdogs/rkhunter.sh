@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/rkhunter.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -36,7 +36,7 @@ set +e
 rkhunter --check --skip-keypress --report-warnings-only --nocolors >> "${LOG_FILE}" 2>&1
 rc=$?
 set -e
-G_CONFIRMED_COUNT=0
+CONFIRMED_COUNT=0
 confirmed_tmp="$(mktemp)"
 record_quarantine_log rkhunter "${LOG_FILE}" systemd sshd unbound fail2ban gamescope > "${confirmed_tmp}" || true
 if [[ -s "${confirmed_tmp}" ]]; then
@@ -48,13 +48,13 @@ if [[ "${rc}" -ge 128 ]]; then
 elif [[ "${rc}" -ge 2 ]]; then
     log_alert "$(get_text watchdog.rkhunter-error-rc "${rc}")"
 elif [[ "${rc}" -eq 1 ]]; then
-    if [[ "${G_CONFIRMED_COUNT:-0}" -eq 0 ]]; then
+    if [[ "${CONFIRMED_COUNT:-0}" -eq 0 ]]; then
         W_RKHUNTER_REFRESH=1 \
             log_alert "$(get_text watchdog.rkhunter-warnings-see "${LOG_FILE}")"
     else
         log_alert "$(get_text watchdog.rkhunter-warnings-see "${LOG_FILE}")"
     fi
-elif [[ "${G_CONFIRMED_COUNT:-0}" -gt 0 ]]; then
+elif [[ "${CONFIRMED_COUNT:-0}" -gt 0 ]]; then
     log_alert "$(get_text watchdog.rkhunter-warnings-see "${LOG_FILE}")"
 else
     log_pass "rkhunter OK"

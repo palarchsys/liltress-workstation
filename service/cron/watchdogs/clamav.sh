@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/clamav.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
 # Purpose    : Boot and periodic ClamAV walk of /home, /opt and /tmp.
-# Note       : G_CLAM_MODE=daemon selects the running daemon in the shared scanner.
+# Note       : CLAM_MODE=daemon selects the running daemon in the shared scanner.
 # Note       : The file list is created under /run/liltress-workstation.
 # Note       : An anchored OnAccessExcludePath is pruned as its path.
 # Note       : W_CLAMAV_DEFER=1 skips the pass while a game is running.
@@ -45,8 +45,8 @@ if [[ "${W_CLAMAV_DEFER:-0}" == "1" ]]; then
 fi
 
 if [[ -S /run/clamav/clamd.ctl || -S /var/run/clamav/clamd.ctl ]]; then
-    G_CLAM_MODE=daemon
-    export G_CLAM_MODE
+    CLAM_MODE=daemon
+    export CLAM_MODE
 fi
 
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"

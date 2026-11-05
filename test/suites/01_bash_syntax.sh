@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/01_bash_syntax.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -26,13 +26,15 @@ t_check_cartouche() {
 t_section "bash -n"
 MONO="$(cd -- "${T_ROOT}/.." && pwd)"
 find_paths=("${T_ROOT}")
-for extra in "${MONO}/core" "${MONO}/scripts" "${MONO}/agents"; do
+for extra in "${MONO}/share" "${MONO}/scripts" "${MONO}/agents"; do
     [[ -d "${extra}" ]] && find_paths+=("${extra}")
 done
 while IFS= read -r file; do
     rel="${file#"${MONO}/"}"
     if [[ "${file}" == "${T_ROOT}/"* ]]; then
         cart_rel="${file#"${T_ROOT}/"}"
+    elif [[ "${rel}" == share/* ]]; then
+        cart_rel="${rel#share/}"
     else
         cart_rel="${rel}"
     fi
@@ -41,10 +43,10 @@ while IFS= read -r file; do
     else
         t_fail "syntax.cartouche:${rel}" "cartouche absent ou différent de la loi style"
     fi
-    if bash -n "${file}" 2>"${G_ARTIFACTS}/bash-n.err"; then
+    if bash -n "${file}" 2>"${ARTIFACTS}/bash-n.err"; then
         t_pass "syntax:${rel}" "bash -n"
     else
-        t_fail "syntax:${rel}" "$(tr '\n' ' ' < "${G_ARTIFACTS}/bash-n.err")"
+        t_fail "syntax:${rel}" "$(tr '\n' ' ' < "${ARTIFACTS}/bash-n.err")"
     fi
 done < <(find "${find_paths[@]}" \
     -name '*.sh' -type f \

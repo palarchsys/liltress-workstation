@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : verify/alerts.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
 
@@ -29,12 +29,12 @@ elif [[ -n "${1:-}" ]]; then
     exit 2
 fi
 
-G_INSTALL_DIRECTORY="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-export G_INSTALL_DIRECTORY
+INSTALL_DIRECTORY="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+export INSTALL_DIRECTORY
 # shellcheck disable=SC1091
-source "${G_INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/config/global.conf"
 
-BASE="${G_CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
 BIN="${BASE}/cron/bin"
 LOG_DIR="${BASE}/cron/security_logs"
 MAIL_CONF="${BASE}/cron/mail.conf"
@@ -49,40 +49,14 @@ FAIL=0
 WARN=0
 REASONS=()
 
-report_section() {
-    printf '\n===== %s =====\n' "$1"
-}
-
-record_fail() {
-    FAIL=$((FAIL + 1))
-    REASONS+=("ECHEC   $*")
-}
-
-record_warn() {
-    WARN=$((WARN + 1))
-    REASONS+=("A_VOIR  $*")
-}
-
-record_pass() {
-    printf "$(get_text log.ok ""$*"")"
-}
-
-check_unit_word() {
-    local unit="$1"
-    local active
-    active="$(systemctl is-active "${unit}" 2>/dev/null || true)"
-    case "${active}" in
-        active) printf "$(get_text log.ok-2)" ;;
-        inactive|failed|activating|deactivating) printf "$(get_text log.inactive)" ;;
-        *) printf "$(get_text log.absent)" ;;
-    esac
-}
+# shellcheck disable=SC1091
+source "${INSTALL_DIRECTORY}/core/verify.sh"
 
 printf "$(get_text log.liltress-workstation-checks-that-send-an-alert-n)"
 printf "$(get_text log.date-2 "$(date -Iseconds)")"
 printf "$(get_text log.host "$(hostname -s 2>/dev/null || hostname)")"
 printf "$(get_text log.base "${BASE}")"
-if [[ "${G_MAIL_ALERTS:-0}" == "1" ]]; then
+if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
     printf "$(get_text log.alerts-enabled-n)"
 else
     printf "$(get_text log.alerts-off-n)"
@@ -99,7 +73,7 @@ periodic_word="$(check_unit_word w-periodic-scan.timer)"
 printf "$(get_text log.36s ""w-periodic-scan.timer"")" "${periodic_word}"
 [[ "${periodic_word}" == "OK" ]] || record_fail "timer d'analyse ClamAV périodique ${periodic_word}"
 hourly_word="$(check_unit_word w-hourly-scan.timer)"
-printf '%-36s %s\n' "w-hourly-scan.timer" "${hourly_word}"
+printf "$(get_text log.36s "w-hourly-scan.timer")" "${hourly_word}"
 [[ "${hourly_word}" == "OK" ]] || record_fail "timer de passe horaire ${hourly_word}"
 if [[ -x "${BIN}/boot-scan.sh" ]] \
     && grep -q 'integrity.sh' "${BIN}/boot-scan.sh" \
@@ -167,12 +141,12 @@ if [[ "$(check_unit_word clamonacc.service)" == "OK" ]]; then
 fi
 for unit in clamav-daemon.service clamav-freshclam.service "${clam_unit}" fail2ban.service auditd.service crowdsec.service crowdsec-firewall-bouncer.service; do
     word="$(check_unit_word "${unit}")"
-    printf '%-36s %s\n' "${unit}" "${word}"
+    printf "$(get_text log.36s "${unit}")" "${word}"
     [[ "${word}" == "OK" ]] || record_fail "service ${unit} ${word}"
 done
-if [[ "${G_MAIL_ALERTS:-0}" == "1" ]]; then
+if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
     word="$(check_unit_word postfix.service)"
-    printf '%-36s %s\n' "postfix.service" "${word}"
+    printf "$(get_text log.36s "postfix.service")" "${word}"
     [[ "${word}" == "OK" ]] || record_fail "postfix ${word}"
 else
     record_pass "postfix non exigé : alertes coupées"
@@ -213,9 +187,9 @@ if command -v mail >/dev/null 2>&1; then
 else
     record_fail "commande mail absente"
 fi
-if [[ "${G_MAIL_ALERTS:-0}" == "1" && -z "${G_WATCHDOG_MAIL:-}" ]]; then
+if [[ "${MAIL_ALERTS:-0}" == "1" && -z "${WATCHDOG_MAIL:-}" ]]; then
     record_fail "alertes activées sans destinataire"
-elif [[ "${G_MAIL_ALERTS:-0}" == "1" ]]; then
+elif [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
     record_pass "destinataire défini"
 else
     record_pass "aucun destinataire exigé : alertes coupées"
@@ -223,7 +197,7 @@ fi
 
 if [[ "${send}" -eq 0 ]]; then
     record_pass "essai non lancé (--no-send)"
-elif [[ "${G_MAIL_ALERTS:-0}" != "1" ]]; then
+elif [[ "${MAIL_ALERTS:-0}" != "1" ]]; then
     record_pass "essai non lancé : alertes coupées"
 elif [[ "${FAIL}" -ne 0 ]]; then
     record_warn "essai non lancé : le chemin du courrier a déjà un échec"
@@ -235,8 +209,8 @@ else
     export CONTENT="Contrôle Liltress Workstation. Ce message confirme que les alertes partent. Jeton ${stamp}."
     export NOTE=""
     export NOTE_CMD=""
-    export G_PROJECT_NAME="${G_PROJECT_NAME:-Liltress Workstation}"
-    export G_MAIL_TEMPLATE="${G_MAIL_TEMPLATE:-mail.html}"
+    export PROJECT_NAME="${PROJECT_NAME:-Liltress Workstation}"
+    export MAIL_TEMPLATE="${MAIL_TEMPLATE:-mail.html}"
     started="$(date +%s)"
     probe="$(bash "${BIN}/send.sh" 2>&1 || true)"
     if printf '%s\n' "${probe}" | grep -q 'Mail non envoyé'; then
