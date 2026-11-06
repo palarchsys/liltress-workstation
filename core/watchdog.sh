@@ -1671,22 +1671,19 @@ def section(group):
     hidden = len(lines) - len(shown)
     text = "\n".join(lines)
     command = command_for(rec, group["paths"], shown, text)
-    parts = [resolve(rec.get("title")) or rec["id"]]
+    parts = ["@@BLOCK@@", "@@H@@ " + (resolve(rec.get("title")) or rec["id"])]
     notice = resolve(rec.get("notice"))
     if notice:
         parts.append(notice)
-    parts.append(text_get("alert.label.lines"))
+    parts.append("@@H@@ " + text_get("alert.label.lines"))
     parts.extend(shown)
     if hidden:
         parts.append(apply_text(text_get("alert.label.more"), hidden))
-    parts.append("")
-    parts.append(text_get("alert.label.command"))
+    parts.append("@@H@@ " + text_get("alert.label.command"))
     parts.append(command)
-    parts.append("")
-    parts.append(text_get("alert.label.benign"))
+    parts.append("@@H@@ " + text_get("alert.label.benign"))
     parts.append(resolve(rec.get("benign", "")))
-    parts.append("")
-    parts.append(text_get("alert.label.malicious"))
+    parts.append("@@H@@ " + text_get("alert.label.malicious"))
     parts.append(resolve(rec.get("malicious", "")))
     return "\n".join(parts).rstrip()
 

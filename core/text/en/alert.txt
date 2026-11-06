@@ -769,16 +769,16 @@ value absent from the journal
 A class in this journal is not a false positive to record. Do not run the command below while it is present.
 
 [alert.label.benign]
-Expected return if this is a false positive:
+A normal result looks like this
 
 [alert.label.command]
-Command:
+Command to run
 
 [alert.label.lines]
-Lines:
+What changed
 
 [alert.label.malicious]
-Return that indicates a malicious file:
+A worrying result looks like this
 
 [alert.label.more]
 ... {1} other line(s) of this finding not copied

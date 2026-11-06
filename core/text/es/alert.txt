@@ -769,16 +769,16 @@ valor ausente del diario
 Una clase de este diario no es un falso positivo que registrar. No ejecute la orden de abajo mientras esté presente.
 
 [alert.label.benign]
-Retorno esperado si es un falso positivo:
+Un resultado normal se parece a esto
 
 [alert.label.command]
-Orden:
+Orden para comprobar
 
 [alert.label.lines]
-Líneas:
+Lo que ha cambiado
 
 [alert.label.malicious]
-Retorno que indica un archivo malicioso:
+Un resultado preocupante se parece a esto
 
 [alert.label.more]
 ... {1} otra(s) línea(s) de este hallazgo no copiada(s)

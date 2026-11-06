@@ -4,6 +4,18 @@
 # Creator    : palarchsys
 # =============================================================================
 
+[mail.read]
+Das Journal steht oben. Jeder Befund zeigt danach den Befehl, ein normales Beispiel und ein bedenkliches Beispiel.
+
+[mail.seen]
+Journal
+
+[mail.check]
+Den Befund lesen
+
+[mail.next]
+Was danach zu tun ist
+
 [mail.module]
 Modul:
 

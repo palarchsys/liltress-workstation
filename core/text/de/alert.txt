@@ -769,16 +769,16 @@ Wert fehlt im Journal
 Eine Klasse in diesem Journal ist kein Fehlalarm zum Speichern. Starten Sie den Befehl unten nicht, solange sie vorhanden ist.
 
 [alert.label.benign]
-Erwartete Rückgabe bei einem Fehlalarm:
+Ein normales Ergebnis sieht so aus
 
 [alert.label.command]
-Befehl:
+Befehl zum Prüfen
 
 [alert.label.lines]
-Zeilen:
+Was sich geändert hat
 
 [alert.label.malicious]
-Rückgabe, die eine bösartige Datei anzeigt:
+Ein bedenkliches Ergebnis sieht so aus
 
 [alert.label.more]
 ... {1} weitere Zeile(n) dieses Befunds nicht kopiert

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/aide/init-db.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
@@ -15,6 +15,11 @@ require_root
 
 log_info "${INSTALL_WATCHER}" "log.the-calculation-of-the-fingerprints-can-take-sev"
 log_info "${INSTALL_WATCHER}" "log.the-detail-stays-in-the-journal-not-in-the-termi"
+
+if systemctl cat apt-listchanges.timer >/dev/null 2>&1; then
+    systemctl disable --now apt-listchanges.timer >/dev/null 2>&1 || true
+    log_info "${INSTALL_WATCHER}" "log.apt-listchanges-timer-stopped-before-the-aide-bas"
+fi
 
 log_info "${INSTALL_WATCHER}" "log.record-of-the-baseline-help"
 aide_log="${INSTALL_LOG_DIR:-/var/log/liltress-workstation}/aide-init.log"

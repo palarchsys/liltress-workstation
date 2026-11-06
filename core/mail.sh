@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/mail.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
@@ -121,12 +121,20 @@ render_mail() {
     if declare -F get_text >/dev/null 2>&1; then
         load_text "${LANGUAGE:-en}"
         mail_module="$(get_text mail.module)"
+        mail_read="$(get_text mail.read)"
+        mail_seen="$(get_text mail.seen)"
+        mail_check="$(get_text mail.check)"
+        mail_next="$(get_text mail.next)"
         mail_redacted="$(get_text mail.redacted)"
         mail_redacted_key="$(get_text mail.redacted-key)"
         mail_unreadable="$(get_text mail.template-unreadable)"
         mail_no_pre="$(get_text mail.template-no-pre)"
     else
         mail_module="Module:"
+        mail_read="The journal is at the top. Each finding then shows the command, a normal example, and a worrying example."
+        mail_seen="Journal"
+        mail_check="How to read the finding"
+        mail_next="What to do next"
         mail_redacted="[redacted]"
         mail_redacted_key="[private key redacted]"
         mail_unreadable="unreadable template: {1}"
@@ -136,6 +144,10 @@ render_mail() {
     MAIL_REDACT="${MAIL_REDACT:-0}" \
     MAIL_LANG="${LANGUAGE:-en}" \
     MAIL_MODULE="${mail_module}" \
+    MAIL_READ="${mail_read}" \
+    MAIL_SEEN="${mail_seen}" \
+    MAIL_CHECK="${mail_check}" \
+    MAIL_NEXT="${mail_next}" \
     TEXT_REDACTED="${mail_redacted}" \
     TEXT_REDACTED_KEY="${mail_redacted_key}" \
     TEXT_TEMPLATE_UNREADABLE="${mail_unreadable}" \
@@ -181,6 +193,81 @@ if redact_on:
 note = note.strip()
 advice = advice.strip()
 note_cmd = os.environ.get("NOTE_CMD", "").strip()
+
+def advice_parts(text):
+    blocks = []
+    title = None
+    lines = []
+    marked = False
+
+    def flush():
+        nonlocal title, lines
+        body = "\n".join(lines).strip()
+        if title is not None or body:
+            blocks.append((title, body))
+        title = None
+        lines = []
+
+    for line in text.splitlines():
+        if line.startswith("@@H@@"):
+            marked = True
+            flush()
+            title = line[5:].strip()
+            lines = []
+        elif line.strip() == "@@BLOCK@@":
+            marked = True
+            flush()
+        else:
+            lines.append(line)
+    flush()
+    return marked, blocks
+
+def advice_plain(text):
+    marked, blocks = advice_parts(text)
+    if not marked:
+        return text
+    out = []
+    for title, body in blocks:
+        if title:
+            if out and out[-1] != "":
+                out.append("")
+            out.append(title)
+        if body:
+            out.append(body)
+    return "\n".join(out).strip()
+
+def mail_heading(text):
+    return (
+        '<div style="margin:0 0 8px;font-size:13px;line-height:1.4;font-weight:bold;'
+        'color:#93c5fd;font-family:Arial,Helvetica,sans-serif;">'
+        + html.escape(text, quote=False)
+        + "</div>"
+    )
+
+def mail_pre(text):
+    return (
+        '<pre style="margin:0 0 16px;width:100%;max-width:100%;box-sizing:border-box;'
+        'display:block;background-color:#020617;border:1px solid #334155;border-radius:8px;'
+        'padding:12px;color:#e2e8f0;font-family:Consolas,Courier New,monospace;font-size:13px;'
+        'line-height:1.45;white-space:pre-wrap;word-wrap:break-word;word-break:break-word;overflow-wrap:break-word;overflow-x:auto;">'
+        + html.escape(text, quote=False)
+        + "</pre>"
+    )
+
+def advice_html(text):
+    marked, blocks = advice_parts(text)
+    if not marked:
+        return mail_pre(text)
+    chunks = []
+    for title, body in blocks:
+        if title:
+            chunks.append(mail_heading(title))
+        if body:
+            chunks.append(mail_pre(body))
+    return "".join(chunks)
+
+plain_advice = advice_plain(advice)
+html_advice = advice_html(advice) if advice else ""
 path = Path(os.environ["MAIL_TEMPLATE_FILE"])
 try:
     tpl = path.read_text(encoding="utf-8")
@@ -188,11 +275,12 @@ except OSError as exc:
     unread = os.environ.get("TEXT_TEMPLATE_UNREADABLE") or "unreadable template: {1}"
     print(unread.replace("{1}", str(exc)), file=sys.stderr)
     sys.exit(1)
-for key in ("TITLE", "PROJECT_NAME", "HOSTNAME", "DATE", "MODULE_NAME", "MAIL_LANG", "MAIL_MODULE"):
+for key in ("TITLE", "PROJECT_NAME", "HOSTNAME", "DATE", "MODULE_NAME", "MAIL_LANG", "MAIL_MODULE", "MAIL_READ", "MAIL_SEEN", "MAIL_CHECK", "MAIL_NEXT"):
     tpl = tpl.replace("${" + key + "}", html.escape(os.environ.get(key, ""), quote=False))
 tpl = tpl.replace("${CONTENT}", html.escape(content, quote=False))
 if advice:
-    tpl = tpl.replace("${ADVICE}", html.escape(advice, quote=False))
+    tpl = tpl.replace("${ADVICE}", html.escape(plain_advice, quote=False))
+    tpl = tpl.replace("${ADVICE_HTML}", html_advice)
 else:
     tpl = re.sub(r"<!--ADVICE_START-->.*?<!--ADVICE_END-->", "", tpl, count=1, flags=re.S)
 if note and note_cmd:

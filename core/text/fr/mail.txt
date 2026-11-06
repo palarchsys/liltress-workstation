@@ -4,6 +4,18 @@
 # Creator    : palarchsys
 # =============================================================================
 
+[mail.read]
+Le journal est en haut. Chaque constat montre ensuite la commande, un exemple normal et un exemple inquiétant.
+
+[mail.seen]
+Journal
+
+[mail.check]
+Lecture du constat
+
+[mail.next]
+Suite à donner
+
 [mail.module]
 Module :
 

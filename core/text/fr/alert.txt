@@ -769,16 +769,16 @@ valeur absente du journal
 Une classe de ce journal n'est pas un faux positif à enregistrer. Ne lancez pas la commande ci-dessous tant qu'elle est présente.
 
 [alert.label.benign]
-Retour attendu si faux positif :
+Un résultat normal ressemble à ceci
 
 [alert.label.command]
-Commande :
+Commande à lancer
 
 [alert.label.lines]
-Lignes :
+Ce qui a changé
 
 [alert.label.malicious]
-Retour qui indique un fichier malveillant :
+Un résultat inquiétant ressemble à ceci
 
 [alert.label.more]
 ... {1} autre(s) ligne(s) de ce constat non recopiée(s)

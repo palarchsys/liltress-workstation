@@ -160,6 +160,9 @@ Bereinigung der Pakete rc (Lynis PKGS-7346)
 [log.purge-workstation-finished]
 Bereinigung workstation beendet
 
+[log.apt-listchanges-timer-stopped-before-the-aide-bas]
+Der apt-listchanges-Timer wird vor der AIDE-Basis abgeschaltet.
+
 [log.record-of-the-baseline-help]
 Aufzeichnung der Referenzbasis AIDE
 

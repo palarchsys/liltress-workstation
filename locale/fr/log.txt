@@ -160,6 +160,9 @@ Purge des paquets rc (Lynis PKGS-7346)
 [log.purge-workstation-finished]
 Purge workstation terminée
 
+[log.apt-listchanges-timer-stopped-before-the-aide-bas]
+La minuterie apt-listchanges est coupée avant la base AIDE.
+
 [log.record-of-the-baseline-help]
 Enregistrement de la base de référence AIDE
 
