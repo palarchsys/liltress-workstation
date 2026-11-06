@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/idle-scan.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
@@ -73,6 +73,10 @@ if [[ -s "${file_list}" ]]; then
     rc=$?
 else
     rc=0
+    touch "${stamp}"
+    chmod 644 "${stamp}"
+    log_pass "$(get_text watchdog.clamscan-nothing-to-examine)"
+    exit 0
 fi
 trap - PIPE
 set -e

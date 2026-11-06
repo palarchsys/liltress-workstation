@@ -43,6 +43,9 @@ chkrootkit absent — skip
 [watchdog.clamscan-absent-skip]
 clamscan absent — skip
 
+[watchdog.clamscan-nothing-to-examine]
+No file to examine.
+
 [watchdog.scan-clamav-already-in-progress]
 scan ClamAV already in progress
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/mail-test.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -14,8 +14,10 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 for candidate in \
     "${script_dir}/log.sh" \
+    "${script_dir}/../cron/bin/log.sh" \
     "${script_dir}/../share/core/log.sh" \
     "${script_dir}/../src/core/log.sh" \
+    "${script_dir}/../core/log.sh" \
     "${CONFIG_BASE_DIRECTORY:-}/src/core/log.sh" \
     "${INSTALL_DIRECTORY:-}/core/log.sh" \
     "${INSTALL_DIRECTORY:-}/src/core/log.sh"
@@ -29,6 +31,10 @@ done
 
 send_mail_test() {
     local script_dir base send_sh wide err_file
+    if ! declare -F get_text >/dev/null 2>&1; then
+        printf '%s\n' "get_text absent" >&2
+        exit 1
+    fi
     script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     if [[ "$(basename -- "${script_dir}")" == "bin" ]]; then
         base="$(dirname -- "${script_dir}")"
@@ -42,6 +48,10 @@ send_mail_test() {
     export INSTALL_DIRECTORY="${base}"
     export CONFIG_BASE_DIRECTORY="${base}"
     read_language_file "${base}/config/global.conf"
+    if ! declare -F get_text >/dev/null 2>&1; then
+        printf '%s\n' "get_text absent" >&2
+        exit 1
+    fi
     # shellcheck disable=SC1091
     source "${base}/config/global.conf"
     if [[ -f "${base}/cron/mail.conf" ]]; then

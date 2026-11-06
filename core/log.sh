@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
@@ -620,6 +620,15 @@ remove_installer_tree() {
         rm -rf -- "${tmp}"
         return 2
     fi
+    [[ -f "${root}/core/log.sh" ]] && install -m 644 -- "${root}/core/log.sh" "${tmp}/log.sh"
+    [[ -f "${root}/core/watchdog-load.sh" ]] && install -m 644 -- "${root}/core/watchdog-load.sh" "${tmp}/watchdog-load.sh"
+    [[ -f "${root}/core/fs.sh" ]] && install -m 644 -- "${root}/core/fs.sh" "${tmp}/fs.sh"
+    [[ -d "${root}/core/text" ]] && cp -a "${root}/core/text" "${tmp}/text"
+    [[ -d "${root}/locale" ]] && cp -a "${root}/locale" "${tmp}/locale"
+    [[ -f "${root}/config/chkrootkit/patterns.ignore" ]] \
+        && install -m 644 -- "${root}/config/chkrootkit/patterns.ignore" "${tmp}/patterns.ignore"
+    [[ -f "${root}/config/clamav/onaccess.conf" ]] \
+        && install -m 644 -- "${root}/config/clamav/onaccess.conf" "${tmp}/onaccess.conf"
     back="$(pwd -P 2>/dev/null || true)"
     cd / || { rm -rf -- "${tmp}"; return 1; }
     rm -rf -- "${root}" || rm_rc=$?
@@ -631,6 +640,25 @@ remove_installer_tree() {
             cd -- "${back}" || true
         fi
         return 4
+    fi
+    [[ -f "${tmp}/log.sh" ]] && install -m 644 -- "${tmp}/log.sh" "${base}/src/core/log.sh"
+    [[ -f "${tmp}/watchdog-load.sh" ]] && install -m 644 -- "${tmp}/watchdog-load.sh" "${base}/src/core/watchdog-load.sh"
+    [[ -f "${tmp}/fs.sh" ]] && install -m 644 -- "${tmp}/fs.sh" "${base}/src/core/fs.sh"
+    if [[ -d "${tmp}/text" ]]; then
+        install -d -m 755 -- "${base}/src/core/text"
+        cp -a "${tmp}/text/." "${base}/src/core/text/"
+    fi
+    if [[ -d "${tmp}/locale" ]]; then
+        install -d -m 755 -- "${base}/src/locale"
+        cp -a "${tmp}/locale/." "${base}/src/locale/"
+    fi
+    if [[ -f "${tmp}/patterns.ignore" ]]; then
+        install -d -m 755 -- "${base}/src/config/chkrootkit"
+        install -m 644 -- "${tmp}/patterns.ignore" "${base}/src/config/chkrootkit/patterns.ignore"
+    fi
+    if [[ -f "${tmp}/onaccess.conf" ]]; then
+        install -d -m 755 -- "${base}/src/config/clamav"
+        install -m 644 -- "${tmp}/onaccess.conf" "${base}/src/config/clamav/onaccess.conf"
     fi
     rm -rf -- "${tmp}"
     if [[ -n "${back}" && -d "${back}" ]]; then

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/chkrootkit/install.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,6 +18,10 @@ require_root
 
 log_info         "${INSTALL_WATCHER}" "install.installation-of-chkrootkit-2"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y chkrootkit" "install.chkrootkit.error"
+if systemctl cat chkrootkit.timer >/dev/null 2>&1; then
+    run_optional "${INSTALL_WATCHER}" "install.chkrootkit.error" systemctl disable --now chkrootkit.timer
+    run_optional "${INSTALL_WATCHER}" "install.chkrootkit.error" systemctl mask chkrootkit.timer
+fi
 install -d -m 755 "${CONFIG_BASE_DIRECTORY}/bin"
 install -m 755 "${DIR_SCRIPT_PATH}/ignore-log.sh" "${CONFIG_BASE_DIRECTORY}/bin/chkrootkit-ignore-log.sh"
 ignore_src="$(locate_config_file chkrootkit/patterns.ignore || true)"

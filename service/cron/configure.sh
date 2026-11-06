@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/configure.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
@@ -48,6 +48,49 @@ advice_src="$(dirname -- "${watch_src}")/alert-advice.txt"
 [[ -f "${advice_src}" ]] || log_error        "${INSTALL_WATCHER}" "configure.core-alert-advice-txt-not-found" "${advice_src}"
 cp -f "${advice_src}" "${CONFIG_BASE_DIRECTORY}/cron/bin/alert-advice.txt"
 chmod 644 "${CONFIG_BASE_DIRECTORY}/cron/bin/alert-advice.txt"
+
+copy_runtime_file() {
+    local src="$1" dest="$2" mode="$3" src_real="" dest_real=""
+    [[ -f "${src}" ]] || log_error "${INSTALL_WATCHER}" "configure.core-watchdog-sh-not-found" "${src}"
+    src_real="$(readlink -f "${src}")"
+    if [[ -f "${dest}" ]]; then
+        dest_real="$(readlink -f "${dest}" 2>/dev/null || true)"
+        [[ "${src_real}" == "${dest_real}" ]] && return 0
+    fi
+    install -d -m 755 "$(dirname -- "${dest}")"
+    install -m "${mode}" "${src_real}" "${dest}"
+}
+
+copy_runtime_dir() {
+    local src="$1" dest="$2" src_real="" dest_real=""
+    [[ -d "${src}" ]] || return 0
+    src_real="$(readlink -f "${src}")"
+    if [[ -d "${dest}" ]]; then
+        dest_real="$(readlink -f "${dest}" 2>/dev/null || true)"
+        [[ "${src_real}" == "${dest_real}" ]] && return 0
+    fi
+    install -d -m 755 "${dest}"
+    cp -a "${src_real}/." "${dest}/"
+}
+
+copy_runtime_file "${INSTALL_DIRECTORY}/core/log.sh" \
+    "${CONFIG_BASE_DIRECTORY}/cron/bin/log.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/log.sh" \
+    "${CONFIG_BASE_DIRECTORY}/bin/log.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/log.sh" \
+    "${CONFIG_BASE_DIRECTORY}/src/core/log.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/watchdog-load.sh" \
+    "${CONFIG_BASE_DIRECTORY}/src/core/watchdog-load.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/fs.sh" \
+    "${CONFIG_BASE_DIRECTORY}/src/core/fs.sh" 644
+copy_runtime_dir "${INSTALL_DIRECTORY}/core/text" \
+    "${CONFIG_BASE_DIRECTORY}/core/text"
+copy_runtime_dir "${INSTALL_DIRECTORY}/locale" \
+    "${CONFIG_BASE_DIRECTORY}/locale"
+ignore_src="$(locate_config_file chkrootkit/patterns.ignore || true)"
+if [[ -n "${ignore_src}" && -f "${ignore_src}" ]]; then
+    install -m 644 "${ignore_src}" "${CONFIG_BASE_DIRECTORY}/cron/bin/chkrootkit.ignore"
+fi
 
 umask 077
 cat > "${CONFIG_BASE_DIRECTORY}/cron/mail.conf" << EOF

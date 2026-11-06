@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : config/cron/w-boot-chain.service
-# Updated at : 2026-10-28
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
@@ -14,3 +14,4 @@ Type=oneshot
 ExecStart=-${systemctl_bin} start --wait w-boot-scan.service
 ExecStart=-${systemctl_bin} start --wait w-idle-scan.service
 ExecStart=-${systemctl_bin} start --wait w-reboot-notice.service
+ExecStart=/bin/sh -c 'failed=0; for unit in w-boot-scan.service w-idle-scan.service w-reboot-notice.service; do ${systemctl_bin} is-failed --quiet "$$unit" && failed=1; done; exit "$$failed"'

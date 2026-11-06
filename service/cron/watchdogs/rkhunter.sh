@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/rkhunter.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
@@ -33,7 +33,8 @@ for allow in '/dev/shm/*' '/dev/shm/*/*' '/dev/shm/*/*/*' '/dev/log'; do
     fi
 done
 set +e
-rkhunter --check --skip-keypress --report-warnings-only --nocolors >> "${LOG_FILE}" 2>&1
+# A stuck read on a pty must not hold the rest of the pass.
+timeout --signal=TERM 900 rkhunter --check --skip-keypress --report-warnings-only --nocolors >> "${LOG_FILE}" 2>&1
 rc=$?
 set -e
 CONFIRMED_COUNT=0

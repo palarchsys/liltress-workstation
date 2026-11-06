@@ -1,10 +1,11 @@
 # =============================================================================
 # File       : config/fail2ban/jail.local
-# Updated at : 2026-10-15
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
 [DEFAULT]
+ignoreip = 127.0.0.1/8 ::1
 allowipv6 = auto
 banaction = ufw
 banaction_allports = ufw

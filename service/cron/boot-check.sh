@@ -1,12 +1,29 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/boot-check.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
 set -u
 W_BASE="${W_BASE:-/opt/liltress-workstation}"
+if [[ -f "${W_BASE}/bin/log.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "${W_BASE}/bin/log.sh"
+elif [[ -f "${W_BASE}/cron/bin/log.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "${W_BASE}/cron/bin/log.sh"
+elif [[ -f "${W_BASE}/src/core/log.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "${W_BASE}/src/core/log.sh"
+fi
+if ! declare -F get_text >/dev/null 2>&1; then
+    printf '%s\n' "get_text absent" >&2
+    exit 1
+fi
+if [[ -f "${W_BASE}/config/global.conf" ]]; then
+    read_language_file "${W_BASE}/config/global.conf"
+fi
 
 if [[ "${EUID}" -ne 0 ]]; then
     printf "$(get_text log.run-this-command-with-sudo-n)" >&2

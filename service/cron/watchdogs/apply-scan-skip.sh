@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/apply-scan-skip.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -34,7 +34,7 @@ fi
 
 load_onaccess_exclude() {
     local candidate found=""
-    W_ONACCESS_FIXED_EXCLUDE="${W_ONACCESS_FIXED_EXCLUDE:-/var/lib/snapd /snap /var/lib/clamav/quarantine /var/lib/clamav/tmp /opt/liltress-workstation /var/log}"
+    W_ONACCESS_FIXED_EXCLUDE="${W_ONACCESS_FIXED_EXCLUDE:-/var/lib/snapd /snap /var/lib/clamav/quarantine /var/lib/clamav/tmp /var/log}"
     for candidate in \
         "${INSTALL_DIRECTORY:-}/config/clamav/onaccess.conf" \
         "${W_BASE}/src/config/clamav/onaccess.conf" \
@@ -55,9 +55,6 @@ load_onaccess_exclude() {
         [[ -n "${path}" ]] || continue
         W_ONACCESS_FIXED+=("${path}")
     done
-    if [[ -n "${W_BASE:-}" ]]; then
-        W_ONACCESS_FIXED+=("${W_BASE}")
-    fi
     local kept=()
     for path in "${W_ONACCESS_FIXED[@]+"${W_ONACCESS_FIXED[@]}"}"; do
         [[ "${path}" == "${W_BASE}/src" ]] && continue

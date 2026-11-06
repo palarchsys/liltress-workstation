@@ -490,6 +490,9 @@ Unidad clamonacc no encontrado: la vigilancia continúa no puede démarrer.
 [configure.clamonacc-stays-not-active-detail-clamonacc-log]
 clamonacc permanece no activo. Detalle: {1}/clamonacc.log
 
+[configure.clamonacc-exclude-stopped-the-watches]
+Una exclusión de ClamAV detuvo las vigilancias. Detalle: {1}/clamonacc.log
+
 [configure.clamav-launched-in-monitoring-continues-on]
 ClamAV lanzado en vigilancia continúa en {1}
 

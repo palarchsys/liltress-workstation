@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/clamav/configure.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
@@ -162,9 +162,14 @@ run_silent       "${INSTALL_WATCHER}" "configure.clamav.error" systemctl restart
 run_silent       "${INSTALL_WATCHER}" "configure.clamav.error" systemctl restart "${clam_unit}"
 
 sleep 3
+clam_log="${INSTALL_LOG_DIR:-/var/log/liltress-workstation}/clamonacc.log"
+mkdir -p "$(dirname -- "${clam_log}")"
+journalctl -u "${clam_unit}" -b --no-pager > "${clam_log}" 2>&1 || true
 if ! systemctl is-active --quiet "${clam_unit}"; then
-    journalctl -u "${clam_unit}" -n 40 --no-pager > "${INSTALL_LOG_DIR:-/var/log/liltress-workstation}/clamonacc.log" 2>&1 || true
     log_error        "${INSTALL_WATCHER}" "configure.clamonacc-stays-not-active-detail-clamonacc-log" "${INSTALL_LOG_DIR:-/var/log/liltress-workstation}"
+fi
+if grep -q "can't exclude" "${clam_log}"; then
+    log_error        "${INSTALL_WATCHER}" "configure.clamonacc-exclude-stopped-the-watches" "${INSTALL_LOG_DIR:-/var/log/liltress-workstation}"
 fi
 zone_label="les dossiers utilisateur, /tmp, /var/tmp et /opt"
 if [[ "${W_ONACCESS_MOUNTS}" == "1" ]]; then

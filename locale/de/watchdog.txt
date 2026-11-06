@@ -43,6 +43,9 @@ chkrootkit fehlt — skip
 [watchdog.clamscan-absent-skip]
 clamscan fehlt — skip
 
+[watchdog.clamscan-nothing-to-examine]
+Keine Datei zu prüfen.
+
 [watchdog.scan-clamav-already-in-progress]
 Prüfung ClamAV bereits läuft
 

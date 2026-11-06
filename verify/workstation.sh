@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : verify/workstation.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
@@ -269,7 +269,7 @@ if [[ -f "${clam_conf}" ]] \
     && grep -q '/var/lib/clamav/quarantine' "${clam_conf}" \
     && grep -q '/var/lib/clamav/tmp' "${clam_conf}" \
     && grep -q '/var/log' "${clam_conf}" \
-    && grep -q '/opt/liltress-workstation' "${clam_conf}"; then
+    && ! grep -Eq '^OnAccessExcludePath[[:space:]]+\^?/opt/liltress-workstation/?\$?[[:space:]]*$' "${clam_conf}"; then
     report_pass "exclusions minimales présentes"
 else
     report_fail "exclusions minimales absentes"

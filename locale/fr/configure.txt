@@ -490,6 +490,9 @@ Unité clamonacc introuvable : la surveillance continue ne peut pas démarrer.
 [configure.clamonacc-stays-not-active-detail-clamonacc-log]
 clamonacc ne reste pas actif. Détail : {1}/clamonacc.log
 
+[configure.clamonacc-exclude-stopped-the-watches]
+Une exclusion ClamAV a arrêté les veilles. Détail : {1}/clamonacc.log
+
 [configure.clamav-launched-in-monitoring-continues-on]
 ClamAV lancé en surveillance continue sur {1}
 

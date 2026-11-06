@@ -490,6 +490,9 @@ Unit clamonacc not found: the monitoring continues cannot démarrer.
 [configure.clamonacc-stays-not-active-detail-clamonacc-log]
 clamonacc stays not active. Detail: {1}/clamonacc.log
 
+[configure.clamonacc-exclude-stopped-the-watches]
+A ClamAV exclude stopped the watches. Detail: {1}/clamonacc.log
+
 [configure.clamav-launched-in-monitoring-continues-on]
 ClamAV launched in monitoring continues on {1}
 

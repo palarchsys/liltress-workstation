@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/common.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
@@ -53,5 +53,8 @@ elif [[ -f "${here_watchdog}/watchdog.sh" ]]; then
 else
     printf '%s\n' "watchdog-load.sh not found" >&2
     exit 1
+fi
+if declare -F read_language_file >/dev/null 2>&1 && [[ -f "${W_BASE}/config/global.conf" ]]; then
+    read_language_file "${W_BASE}/config/global.conf"
 fi
 

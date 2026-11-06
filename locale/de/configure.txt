@@ -490,6 +490,9 @@ Unit clamonacc nicht gefunden: die Überwachung fährt fort kann nicht démarrer
 [configure.clamonacc-stays-not-active-detail-clamonacc-log]
 clamonacc bleibt nicht aktiv. Detail: {1}/clamonacc.log
 
+[configure.clamonacc-exclude-stopped-the-watches]
+Ein ClamAV-Ausschluss hat die Überwachungen angehalten. Detail: {1}/clamonacc.log
+
 [configure.clamav-launched-in-monitoring-continues-on]
 ClamAV gestartet in Überwachung fährt fort auf {1}
 
