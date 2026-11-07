@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -10,7 +10,6 @@ if ! declare -F get_text >/dev/null 2>&1; then
     for text_candidate in \
         "${text_here}/log.sh" \
         "${CONFIG_BASE_DIRECTORY:-}/src/core/log.sh" \
-        "${W_BASE:-}/src/core/log.sh" \
         "${BASE:-}/src/core/log.sh" \
         "${INSTALL_DIRECTORY:-}/core/log.sh" \
         "${PRODUCT_ROOT:-}/core/log.sh" \
@@ -26,9 +25,7 @@ if ! declare -F get_text >/dev/null 2>&1; then
 fi
 
 get_product_base() {
-    if [[ -n "${W_BASE:-}" ]]; then
-        printf '%s' "${W_BASE}"
-    elif [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
+    if [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
         printf '%s' "${CONFIG_BASE_DIRECTORY}"
     elif [[ -n "${BASE:-}" ]]; then
         printf '%s' "${BASE}"
@@ -88,12 +85,11 @@ send_crash_mail() {
     fi
     trap - EXIT
     [[ "${status}" -eq 0 ]] && return 0
-    log_alert "$(get_crash_sentence "${CRASH_LABEL:-${W_CRASH_LABEL:-contrôle}}" "${status}")" || true
+    log_alert "$(get_crash_sentence "${CRASH_LABEL:-contrôle}" "${status}")" || true
 }
 
 arm_crash_mail() {
     CRASH_LABEL="$1"
-    W_CRASH_LABEL="$1"
     trap send_crash_mail EXIT
 }
 
@@ -174,7 +170,6 @@ EXCERPT_ATTR = os.environ.get(
 )
 REDACTED = os.environ.get("TEXT_REDACTED", "[masqué]")
 REDACTED_KEY = os.environ.get("TEXT_REDACTED_KEY", "[clé privée masquée]")
-
 
 def fill_count(template, count):
     def repl(match):
@@ -422,7 +417,6 @@ scan_clamav_batch() {
             if [[ "${streak}" -ge 2 ]]; then
                 printf '%s planté signal %s, contrôle arrêté\n' "${tool}" "${signal}"
                 CLAM_STOP=1
-                W_CLAMAV_STOP=1
                 return 0
             fi
         else
@@ -438,7 +432,6 @@ list_clamav_scan() {
     local -a batch=()
     batch_max="${CLAM_BATCH:-80}"
     CLAM_STOP=0
-    W_CLAMAV_STOP=0
     while IFS= read -r -d '' path || [[ -n "${path}" ]]; do
         [[ -n "${path}" ]] || continue
         batch+=("${path}")
@@ -794,7 +787,7 @@ write_quarantine_holder() {
 take_quarantine_file() {
     local origin="$1"
     local quarantine base stamp dest
-    quarantine="${W_CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
+    quarantine="${CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
     MOVE_ACTION="déplacement refusé"
     MOVE_STORED="${origin}"
     base="$(basename -- "${origin}")"
@@ -860,7 +853,7 @@ record_quarantine_log() {
     CONFIRMED_COUNT=0
     MOVED_COUNT=0
     [[ -n "${log}" && -f "${log}" ]] || return 0
-    quarantine="${W_CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
+    quarantine="${CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
     while IFS= read -r path; do
         [[ -n "${path}" ]] || continue
         case "${path}" in
@@ -1443,8 +1436,12 @@ def is_etc_path(path):
 
 
 def quote_join(values, limit=40):
-    shown = list(values)[:limit]
-    return " ".join(shlex.quote(value) for value in shown)
+    # One quoted word per line. A single line of many paths exceeds 998
+    # characters and the mail fold splits a path in the middle.
+    shown = [shlex.quote(value) for value in list(values)[:limit]]
+    if len(shown) <= 1:
+        return shown[0] if shown else ""
+    return " \\\n  ".join(shown)
 
 
 def drop_empty_loops(script, present):
@@ -1793,29 +1790,6 @@ write_alert_file() {
     } > "${alert}" || true
 }
 
-copy_alert_drive() {
-    local alert="${1:-}"
-    local base remote path config
-    [[ "${RCLONE_ALERTS:-0}" == "1" ]] || return 0
-    [[ -n "${alert}" && -f "${alert}" ]] || return 0
-    base="$(get_product_base)"
-    remote="${RCLONE_REMOTE:-}"
-    path="${RCLONE_PATH:-}"
-    config="${base}/cron/rclone.conf"
-    if [[ -z "${remote}" || -z "${path}" || ! -f "${config}" ]]; then
-        printf '%s\n' "$(get_text watchdog.copy-drive-ignored)" >&2
-        return 0
-    fi
-    if ! command -v rclone >/dev/null 2>&1; then
-        printf '%s\n' "$(get_text watchdog.copy-drive-ignored-rclone-absent)" >&2
-        return 0
-    fi
-    if ! RCLONE_CONFIG="${config}" rclone copy "${alert}" "${remote}:${path}" >/dev/null 2>&1; then
-        printf '%s\n' "$(get_text watchdog.copy-drive-rejected-the-file-local-is-kept)" >&2
-    fi
-    return 0
-}
-
 log_alert() {
     local summary="$*"
     local excerpt="" module log alert line send base note="" note_cmd="" tool=""
@@ -1843,17 +1817,17 @@ log_alert() {
         ADVICE=""
         ADVICE_HOLD=0
     else
-        if [[ "${W_AIDE_REFRESH:-}" == "1" ]]; then
+        if [[ "${AIDE_REFRESH:-}" == "1" ]]; then
             note="$(get_text alert.note.aide)"
             note_cmd="sudo bash ${base}/bin/aide-refresh-db.sh"
-        elif [[ "${W_RKHUNTER_REFRESH:-}" == "1" ]]; then
+        elif [[ "${RKHUNTER_REFRESH:-}" == "1" ]]; then
             set_rkhunter_note
             note="${NOTE}"
             note_cmd="${NOTE_CMD}"
-        elif [[ "${W_CHKROOTKIT_IGNORE:-}" == "1" && -n "${log}" ]]; then
+        elif [[ "${CHKROOTKIT_IGNORE:-}" == "1" && -n "${log}" ]]; then
             note="$(get_text alert.note.chkrootkit)"
             note_cmd="sudo bash ${base}/bin/chkrootkit-ignore-log.sh '${log}'"
-        elif [[ "${W_DEBSUMS_IGNORE:-}" == "1" && -n "${log}" ]]; then
+        elif [[ "${DEBSUMS_IGNORE:-}" == "1" && -n "${log}" ]]; then
             note="$(get_text alert.note.debsums)"
             note_cmd="sudo bash ${base}/bin/debsums-ignore-log.sh '${log}'"
         fi
@@ -1875,11 +1849,7 @@ log_alert() {
         TITLE="$(get_text alert.title.module "${module}")"
     fi
     if [[ -z "${PROJECT_NAME:-}" ]]; then
-        if [[ -n "${W_BASE:-}" ]]; then
-            PROJECT_NAME="Liltress Workstation"
-        else
-            PROJECT_NAME="Liltress"
-        fi
+        PROJECT_NAME="Liltress"
     fi
     write_alert_file "${alert}" "${summary}" "${excerpt}" "${ADVICE:-}" "${NOTE:-}" "${NOTE_CMD:-}"
     if [[ "${MAIL_ALERTS:-0}" == "1" && -n "${WATCHDOG_MAIL:-}" ]]; then
@@ -1899,7 +1869,6 @@ ${excerpt}" \
                 bash "${send}" || true
         fi
     fi
-    copy_alert_drive "${alert}" || true
 }
 
 report_clamav() {
@@ -1956,11 +1925,7 @@ ${detail}"
     TITLE="${TITLE:-$(get_text alert.title.short)}"
     MODULE_NAME="${MODULE_NAME:-$(get_text alert.module.mail)}"
     if [[ -z "${PROJECT_NAME:-}" ]]; then
-        if [[ -n "${W_BASE:-}" ]]; then
-            PROJECT_NAME="Liltress Workstation"
-        else
-            PROJECT_NAME="Liltress"
-        fi
+        PROJECT_NAME="Liltress"
     fi
     export TITLE PROJECT_NAME HOSTNAME DATE MODULE_NAME CONTENT
     export NOTE="${NOTE:-}"
@@ -2005,7 +1970,6 @@ ${detail}"
     fi
     if [[ -n "${HTML_REPORT:-}" ]]; then
         printf '%s\n' "${MAIL_CONTENT}" > "${HTML_REPORT}" || true
-        copy_alert_drive "${HTML_REPORT}" || true
     fi
     if [[ "${MAIL_REQUIRE_FLAG:-0}" == "1" ]]; then
         if [[ "${MAIL_ALERTS:-0}" != "1" || -z "${WATCHDOG_MAIL:-}" ]]; then
@@ -2024,5 +1988,4 @@ ${detail}"
         -a "Content-Type: text/html; charset=UTF-8" \
         "${WATCHDOG_MAIL}"
 }
-
 

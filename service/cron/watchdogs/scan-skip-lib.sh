@@ -5,7 +5,7 @@
 # Creator    : palarchsys
 # =============================================================================
 
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
+BASE="${BASE:-/opt/liltress-workstation}"
 
 render_scan_skip_path() {
     python3 - "$1" << 'PY'
@@ -27,17 +27,17 @@ check_scan_skip_forbidden() {
 
 get_scan_skip_home() {
     local line trimmed home homes=""
-    if [[ "${W_SCAN_SKIP_HOME:-}" =~ ^/home/[^/]+$ ]]; then
-        printf '%s\n' "${W_SCAN_SKIP_HOME}"
+    if [[ "${SCAN_SKIP_HOME:-}" =~ ^/home/[^/]+$ ]]; then
+        printf '%s\n' "${SCAN_SKIP_HOME}"
         return 0
     fi
-    [[ -f "${W_SCAN_SKIP_FILE}" ]] || return 1
+    [[ -f "${SCAN_SKIP_FILE}" ]] || return 1
     while IFS= read -r line || [[ -n "${line}" ]]; do
         if [[ "${line}" =~ ^[[:space:]]*#[[:space:]]*home=(/home/[^/]+)[[:space:]]*$ ]]; then
             printf '%s\n' "${BASH_REMATCH[1]}"
             return 0
         fi
-    done < "${W_SCAN_SKIP_FILE}"
+    done < "${SCAN_SKIP_FILE}"
     while IFS= read -r line || [[ -n "${line}" ]]; do
         trimmed="${line#"${line%%[![:space:]]*}"}"
         trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
@@ -49,7 +49,7 @@ get_scan_skip_home() {
                 *) homes="${homes}|${home}|" ;;
             esac
         fi
-    done < "${W_SCAN_SKIP_FILE}"
+    done < "${SCAN_SKIP_FILE}"
     homes="${homes#|}"
     homes="${homes%|}"
     [[ -n "${homes}" && "${homes}" != *"|"* ]] || return 1
@@ -77,9 +77,9 @@ check_scan_skip_path() {
 }
 
 collect_scan_skip_path() {
-    W_SCAN_SKIP_VALID=()
-    W_SCAN_SKIP_BAD=()
-    [[ -f "${W_SCAN_SKIP_FILE}" ]] || return 0
+    SCAN_SKIP_VALID=()
+    SCAN_SKIP_BAD=()
+    [[ -f "${SCAN_SKIP_FILE}" ]] || return 0
     local line norm seen="|"
     while IFS= read -r line || [[ -n "${line}" ]]; do
         line="${line#"${line%%[![:space:]]*}"}"
@@ -88,11 +88,11 @@ collect_scan_skip_path() {
         if norm="$(check_scan_skip_path "${line}")"; then
             [[ "${seen}" == *"|${norm}|"* ]] && continue
             seen="${seen}${norm}|"
-            W_SCAN_SKIP_VALID+=("${norm}")
+            SCAN_SKIP_VALID+=("${norm}")
         else
-            W_SCAN_SKIP_BAD+=("${line}")
+            SCAN_SKIP_BAD+=("${line}")
         fi
-    done < "${W_SCAN_SKIP_FILE}"
+    done < "${SCAN_SKIP_FILE}"
 }
 
 locate_scan_skip_file() {
@@ -104,7 +104,7 @@ locate_scan_skip_file() {
             "${here}/../../../core/fs.sh" \
             "${here}/../../../../share/core/fs.sh" \
             "${here}/../../src/core/fs.sh" \
-            "${W_BASE}/src/core/fs.sh"
+            "${BASE}/src/core/fs.sh"
         do
             [[ -n "${candidate}" && -f "${candidate}" ]] || continue
             # shellcheck disable=SC1090
@@ -122,7 +122,7 @@ locate_scan_skip_file() {
         "${INSTALL_DIRECTORY:-}/config/clamav/scan-skip.paths" \
         "${here}/../../../config/clamav/scan-skip.paths" \
         "${here}/../../src/config/clamav/scan-skip.paths" \
-        "${W_BASE}/src/config/clamav/scan-skip.paths"
+        "${BASE}/src/config/clamav/scan-skip.paths"
     do
         [[ -n "${candidate}" && -f "${candidate}" ]] || continue
         printf '%s\n' "${candidate}"
@@ -132,21 +132,21 @@ locate_scan_skip_file() {
         printf '%s\n' "${INSTALL_DIRECTORY}/config/clamav/scan-skip.paths"
         return 0
     fi
-    printf '%s\n' "${W_BASE}/src/config/clamav/scan-skip.paths"
+    printf '%s\n' "${BASE}/src/config/clamav/scan-skip.paths"
 }
 
 ensure_scan_skip_file() {
     local home="$1"
     local template legacy dest base
     template="$(locate_scan_skip_file)"
-    legacy="${W_BASE}/cron/scan-skip.paths"
+    legacy="${BASE}/cron/scan-skip.paths"
     dest="${template}"
-    if [[ "${dest}" != "${W_BASE}/"* ]]; then
+    if [[ "${dest}" != "${BASE}/"* ]]; then
         if [[ -z "${CONFIG_BASE_DIRECTORY:-}" || "${dest}" != "${CONFIG_BASE_DIRECTORY}/"* ]]; then
-            dest="${W_BASE}/src/config/clamav/scan-skip.paths"
+            dest="${BASE}/src/config/clamav/scan-skip.paths"
         fi
     fi
-    W_SCAN_SKIP_FILE="${dest}"
+    SCAN_SKIP_FILE="${dest}"
     if [[ -f "${dest}" ]] && ! grep -q '__HOME__' "${dest}"; then
         return 0
     fi
@@ -159,7 +159,7 @@ ensure_scan_skip_file() {
     fi
     [[ "${home}" =~ ^/home/[^/]+$ && -d "${home}" ]] || return 1
     [[ -f "${template}" ]] || return 1
-    base="${W_BASE}"
+    base="${BASE}"
     install -d -m 755 "$(dirname "${dest}")"
     sed -e "s|__HOME__|${home}|g" -e "s|__HFU_BASE__|${base}|g" "${template}" > "${dest}.new"
     cat "${dest}.new" > "${dest}"
@@ -168,4 +168,4 @@ ensure_scan_skip_file() {
     chown root:root "${dest}"
 }
 
-W_SCAN_SKIP_FILE="$(locate_scan_skip_file)"
+SCAN_SKIP_FILE="$(locate_scan_skip_file)"

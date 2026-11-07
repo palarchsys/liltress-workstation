@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/test-harness.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -59,6 +59,9 @@ t_check_command() { command -v "$1" >/dev/null 2>&1; }
 t_load_project_config() {
     # shellcheck disable=SC1091
     set +u
+    if [[ -f "${T_ROOT}/config/user.conf" ]]; then
+        source "${T_ROOT}/config/user.conf"
+    fi
     source "${T_ROOT}/config/global.conf"
     set -u
 }
@@ -79,10 +82,14 @@ t_begin() {
     mkdir -p "${ARTIFACTS}" "${T_SUITE_DIRECTORY}"
     : > "${RUN_LOG}"
     : > "${T_RESULT_TSV}"
-    local language_line="" language_value=""
+    local language_line="" language_value="" language_file=""
     LANGUAGE="en"
-    if [[ -f "${T_ROOT}/config/global.conf" ]]; then
-        language_line="$(grep -E '^LANGUAGE=' -- "${T_ROOT}/config/global.conf" | head -n 1 || true)"
+    language_file="${T_ROOT}/config/global.conf"
+    if [[ -f "${T_ROOT}/config/user.conf" ]] && grep -qE '^LANGUAGE=' -- "${T_ROOT}/config/user.conf"; then
+        language_file="${T_ROOT}/config/user.conf"
+    fi
+    if [[ -f "${language_file}" ]]; then
+        language_line="$(grep -E '^LANGUAGE=' -- "${language_file}" | head -n 1 || true)"
         language_value="${language_line#LANGUAGE=}"
         language_value="${language_value%\"}"
         language_value="${language_value#\"}"

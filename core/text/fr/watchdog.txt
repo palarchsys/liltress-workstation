@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/fr/watchdog.txt
-# Updated at : 2026-10-29
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -93,15 +93,6 @@ non mis en quarantaine : {1}
 
 [watchdog.moved-in-quarantine-quarantine]
 déplacé en quarantaine : {1} ; {2} ; quarantaine {3}
-
-[watchdog.copy-drive-ignored]
-Copie Drive ignorée.
-
-[watchdog.copy-drive-ignored-rclone-absent]
-Copie Drive ignorée : rclone absent.
-
-[watchdog.copy-drive-rejected-the-file-local-is-kept]
-Copie Drive refusée. Le fichier local est conservé.
 
 [watchdog.clamav-crashed-twice-in-a-row-signal-the-check-s]
 ClamAV a planté deux fois de suite (signal {1}, {2}). Le contrôle s'est arrêté. Les fichiers restants n'ont pas été analysés.

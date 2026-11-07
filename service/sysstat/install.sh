@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/sysstat/install.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,5 +18,7 @@ run_silent_apt   "${INSTALL_WATCHER}" "install -y sysstat" "install.sysstat.erro
 if [[ -f /etc/default/sysstat ]]; then
     sed -i 's/ENABLED="false"/ENABLED="true"/' /etc/default/sysstat
 fi
-run_optional     "${INSTALL_WATCHER}" "install.sysstat.error" systemctl enable --now sysstat
+if check_workstation; then
+    run_optional "${INSTALL_WATCHER}" "install.sysstat.error" systemctl enable --now sysstat
+fi
 log_success      "${INSTALL_WATCHER}" "install.sysstat-installed"

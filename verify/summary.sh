@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : verify/summary.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -25,7 +25,17 @@ REPORT=""
 # shellcheck disable=SC1090
 source "${status_file}"
 
-log_info "${INSTALL_WATCHER}" "verify.workstation.info.5" "Check : ${PASS} OK / ${WARN} WARN / ${FAIL} FAIL"
+log_check_count() {
+    local label="$1"
+    local value="$2"
+    local line=""
+    printf -v line '%-15s: %s' "${label}" "${value}"
+    log_info "${INSTALL_WATCHER}" "verify.workstation.info.5" "${line}"
+}
+
+log_check_count "$(get_text log.check-success)" "${PASS}"
+log_check_count "$(get_text log.check-warnings)" "${WARN}"
+log_check_count "$(get_text log.check-fails)" "${FAIL}"
 if [[ "${FAIL}" -eq 0 ]]; then
     log_success "${INSTALL_WATCHER}" "log.check-workstation-ok"
 else

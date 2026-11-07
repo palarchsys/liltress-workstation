@@ -1,32 +1,37 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/debsums/install.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
-# shellcheck disable=SC2155
-readonly DIR_SCRIPT_PATH="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+
 source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
 log_info         "${INSTALL_WATCHER}" "install.installation-of-debsums"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y debsums" "install.debsums.error"
-install -d -m 755 "${CONFIG_BASE_DIRECTORY}/bin"
-install -m 755 "${DIR_SCRIPT_PATH}/ignore-log.sh" "${CONFIG_BASE_DIRECTORY}/bin/debsums-ignore-log.sh"
-
-cron_line="$(grep -v '^#' "$(locate_config_file debsums/check.conf)" | head -1)"
-if [[ -f /etc/default/debsums ]]; then
-    if grep -q '^CRON_CHECK=' /etc/default/debsums; then
-        sed -i "s/^CRON_CHECK=.*/${cron_line}/" /etc/default/debsums
-    else
-        printf '%s\n' "${cron_line}" >> /etc/default/debsums
-    fi
-else
-    printf '%s\n' "${cron_line}" > /etc/default/debsums
+if check_workstation; then
+    install -d -m 755 "${CONFIG_BASE_DIRECTORY}/bin"
+    install -m 755 "${INSTALL_DIRECTORY}/service/debsums/ignore-log.sh" "${CONFIG_BASE_DIRECTORY}/bin/debsums-ignore-log.sh"
 fi
-log_success      "${INSTALL_WATCHER}" "install.debsums-installed"
+cron_line="$(grep -vE '^[[:space:]]*(#|$)' "$(locate_config_file debsums/check.conf)" | head -1)"
+if [[ -z "${cron_line}" ]]; then
+    log_error        "${INSTALL_WATCHER}" "install.line-cron-check-not-found"
+fi
+if [[ -f /etc/default/debsums ]]; then
+    sed -i "s/^#*CRON_CHECK=.*/${cron_line}/" /etc/default/debsums
+    grep -q '^CRON_CHECK=' /etc/default/debsums || echo "${cron_line}" >> /etc/default/debsums
+else
+    echo "${cron_line}" > /etc/default/debsums
+fi
+chmod 644 /etc/default/debsums
+log_success      "${INSTALL_WATCHER}" "install.installation-debsums-finished" "${cron_line}"
+
+log_info         "${INSTALL_WATCHER}" "install.inclusion-of-the-units-possibly-added"
+run_silent       "${INSTALL_WATCHER}" "install.debsums.error" systemctl daemon-reload
+log_success      "${INSTALL_WATCHER}" "install.systemd-reloaded"

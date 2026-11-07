@@ -1,11 +1,8 @@
 # =============================================================================
 # File       : core/text/es/configure.txt
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
-
-[configure.activation-apparmor]
-Activación AppArmor
 
 [configure.activation-of-fail2ban]
 Activación de Fail2Ban
@@ -66,9 +63,6 @@ Inicio de sesión
 
 [configure.password]
 Password
-
-[configure.policy-usbguard]
-Política USBGuard
 
 [configure.quota-cpu-not-found]
 cuota CPU no encontrado
@@ -139,15 +133,6 @@ cuota CPU no válido ({1})
 [configure.g-mail-alerts-invalid-example-0-or-1]
 {1}: MAIL_ALERTS no válido (« {2} »). ejemplo: 0 o 1
 
-[configure.g-rclone-alerts-invalid-example-0-or-1]
-{1}: RCLONE_ALERTS no válido (« {2} »). ejemplo: 0 o 1
-
-[configure.g-rclone-remote-invalid-example-gdrive]
-{1}: RCLONE_REMOTE no válido (« {2} »). ejemplo: gdrive
-
-[configure.g-rclone-path-invalid-example-liltress-alerts]
-{1}: RCLONE_PATH no válido (« {2} »). ejemplo: liltress-alerts
-
 [configure.g-mail-template-invalid-example-mail-html]
 {1}: MAIL_TEMPLATE no válido (« {2} »). ejemplo: mail.html
 
@@ -192,6 +177,9 @@ Unidad clamonacc no encontrado: la vigilancia continúa no puede démarrer.
 
 [configure.clamav.error.12]
 clamonacc permanece no activo. Detalle: {1}/clamonacc.log
+
+[configure.clamonacc-exclude-stopped-the-watches]
+Una exclusión de ClamAV detuvo las vigilancias. Detalle: {1}/clamonacc.log
 
 [configure.auditd.error]
 El comando falló: {1}
@@ -319,9 +307,6 @@ Token de Ubuntu Pro
 [configure.script.error.5]
 El comando falló: {1}
 
-[configure.script.error.8]
-El comando falló: {1}
-
 [configure.clamav.warn]
 Freshclam incompleto, el servicio continúa
 
@@ -384,3 +369,26 @@ El comando falló: {1}
 
 [configure.swap.error]
 El comando falló: {1}
+[configure.backtick-forbidden]
+{1}: apóstrofo invertido prohibido.
+
+[configure.command-subst-forbidden]
+{1}: $(...) prohibido.
+
+[configure.config-prepared-must]
+{1}: CONFIG_PREPARED debe valer 1. ejemplo: ./liltress configure
+
+[configure.secret-prepared-must]
+{1}: SECRET_PREPARED debe valer 1. ejemplo: ./liltress configure
+
+[configure.user-conf-absent]
+user.conf ausente. ejemplo: {1}
+
+[configure.user-conf-no-source]
+user.conf: ningún comando source.
+
+[configure.secrets-conf-mode]
+secrets.conf: permisos {1}, se espera 600. ejemplo: chmod 600 config/secrets.conf
+
+[configure.main-user-same-as-cron]
+{1}: MAIN_USER y CRON_USER son iguales (« {2} »). ejemplo: una cuenta SSH distinta de cronexecutor

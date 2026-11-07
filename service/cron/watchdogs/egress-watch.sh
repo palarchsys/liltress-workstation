@@ -11,12 +11,12 @@
 # -----------------------------------------------------------------------------
 
 set -euo pipefail
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
+BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${W_BASE}/cron/bin/common.sh"
-if [[ -f "${W_BASE}/cron/egress.conf" ]]; then
+source "${BASE}/cron/bin/common.sh"
+if [[ -f "${BASE}/cron/egress.conf" ]]; then
     # shellcheck disable=SC1091
-    source "${W_BASE}/cron/egress.conf"
+    source "${BASE}/cron/egress.conf"
 fi
 LOG_FILE="${LOG_DIR}/egress-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/egress-${STAMP}.txt"
@@ -27,12 +27,12 @@ if ! command -v journalctl >/dev/null 2>&1; then
     exit 0
 fi
 
-stamp="${W_BASE}/cron/egress.stamp"
+stamp="${BASE}/cron/egress.stamp"
 
 record_egress_stamp() {
     local moment
     moment="$(date '+%Y-%m-%d %H:%M:%S')"
-    install -d -m 750 "${W_BASE}/cron"
+    install -d -m 750 "${BASE}/cron"
     printf '%s\n' "${moment}" > "${stamp}"
     chmod 600 "${stamp}"
 }
@@ -108,7 +108,7 @@ strip_egress_routine() {
 }
 
 get_isolate_seconds() {
-    local sec="${W_NET_ISOLATE_SEC:-120}"
+    local sec="${NET_ISOLATE_SEC:-120}"
     if [[ ! "${sec}" =~ ^[0-9]+$ ]] || [[ "${sec}" -lt 30 ]] || [[ "${sec}" -gt 300 ]]; then
         sec=120
     fi
@@ -119,16 +119,16 @@ list_egress_suspects() {
     local kernel="$1"
     local audit="$2"
     local registry="$3"
-    W_EGRESS_KERNEL="${kernel}" W_EGRESS_AUDIT="${audit}" W_EGRESS_REGISTRY="${registry}" python3 - << 'PY'
+    EGRESS_KERNEL="${kernel}" EGRESS_AUDIT="${audit}" EGRESS_REGISTRY="${registry}" python3 - << 'PY'
 import ipaddress
 import os
 import re
 import sys
 from pathlib import Path
 
-kernel_path = Path(os.environ.get("W_EGRESS_KERNEL", ""))
-audit_path = Path(os.environ.get("W_EGRESS_AUDIT", ""))
-registry_path = Path(os.environ.get("W_EGRESS_REGISTRY", ""))
+kernel_path = Path(os.environ.get("EGRESS_KERNEL", ""))
+audit_path = Path(os.environ.get("EGRESS_AUDIT", ""))
+registry_path = Path(os.environ.get("EGRESS_REGISTRY", ""))
 
 def parse_sockaddr(token):
     token = token.strip().strip('"')
@@ -296,7 +296,7 @@ if command -v ausearch >/dev/null 2>&1; then
         ausearch -k w-egress --start ${formatted} > "${audit_tmp}" 2>/dev/null || true
     fi
 fi
-list_egress_suspects "${found}" "${audit_tmp}" "${W_BASE}/cron/quarantine.registry" > "${suspects}" || true
+list_egress_suspects "${found}" "${audit_tmp}" "${BASE}/cron/quarantine.registry" > "${suspects}" || true
 if [[ ! -s "${suspects}" ]]; then
     log_pass "$(get_text watchdog.no-flow-suspicious-outbound)"
     exit 0

@@ -101,8 +101,8 @@ t_write_runner() {
     cat > "${work}/run.sh" << EOF
 #!/usr/bin/env bash
 export PATH="${work}/path"
-export W_BASE="${base}"
-export W_CLAMAV_QUARANTINE_DIR="${work}/quarantine"
+export BASE="${base}"
+export CLAMAV_QUARANTINE_DIR="${work}/quarantine"
 ${extra}
 set +e
 /usr/bin/bash "${script}" > "${work}/stdout.txt" 2> "${work}/stderr.txt"
@@ -122,7 +122,7 @@ t_show_box() {
         --dev /dev
         --setenv PATH "${work}/path"
         --setenv HOME "${work}"
-        --setenv W_BASE "${base}"
+        --setenv BASE "${base}"
     )
     if [[ -n "${proc_bind}" ]]; then
         args+=(--bind "${proc_bind}" /proc)
@@ -381,7 +381,7 @@ fi
 
 t_set_user egress-watch.sh
 printf '%s\n' '2026-01-02 03:04:05' > "${base}/cron/egress.stamp"
-printf '%s\n' 'W_NET_ISOLATE_SEC=45' > "${base}/cron/egress.conf"
+printf '%s\n' 'NET_ISOLATE_SEC=45' > "${base}/cron/egress.conf"
 t_set_journal_stub "oct. 25 06:20:00 host kernel: w-egress IN= OUT=enp1s0 SRC=192.168.122.110 DST=203.0.113.50 PROTO=TCP SPT=40000 DPT=4444"
 t_set_ausearch_stub 0 "$(printf '%s\n' \
     'type=SYSCALL msg=audit(1.1:2): arch=c000003e syscall=42 success=yes comm="evil" exe="/tmp/evil" pid=30 uid=1000' \
@@ -399,7 +399,7 @@ fi
 
 t_set_user egress-watch.sh
 printf '%s\n' '2026-01-02 03:04:05' > "${base}/cron/egress.stamp"
-printf '%s\n' 'W_NET_ISOLATE_SEC=10' > "${base}/cron/egress.conf"
+printf '%s\n' 'NET_ISOLATE_SEC=10' > "${base}/cron/egress.conf"
 printf '%s\n' $'20261025-010101-1-curl\t2026-10-25T01:01:01+02:00\tclamav\t/usr/bin/curl\t/var/lib/clamav/quarantine/20261025-010101-1-curl\tEicar' > "${base}/cron/quarantine.registry"
 t_set_journal_stub "oct. 25 06:21:00 host kernel: w-egress IN= OUT=enp1s0 SRC=192.168.122.110 DST=198.51.100.8 PROTO=TCP SPT=41000 DPT=8443"
 t_set_ausearch_stub 0 "$(printf '%s\n' \
@@ -457,8 +457,8 @@ t_set_user clamav-response.sh
 sample="${work}/samples/note.txt"
 printf 'note\n' > "${sample}"
 : > "${work}/holder.pid"
-t_run_user "${bin}/clamav-response.sh" "" "export W_CLAMAV_EVENT_FILE=${sample}
-export W_CLAMAV_EVENT_VIRUS=Eicar"
+t_run_user "${bin}/clamav-response.sh" "" "export CLAMAV_EVENT_FILE=${sample}
+export CLAMAV_EVENT_VIRUS=Eicar"
 if [[ "$(t_check_got_status)" == "0" ]] && t_log_has "déplacé en quarantaine" \
     && [[ -n "$(find "${work}/quarantine" -type f -print)" ]] \
     && grep -q 'w_isolate' "${work}/nft.log" && grep -q 'dport 53' "${work}/nft.log" \
@@ -471,8 +471,8 @@ else
 fi
 
 t_set_user clamav-response.sh
-t_run_user "${bin}/clamav-response.sh" "" "export W_CLAMAV_EVENT_FILE=${work}/samples/missing.txt
-export W_CLAMAV_EVENT_VIRUS=Eicar"
+t_run_user "${bin}/clamav-response.sh" "" "export CLAMAV_EVENT_FILE=${work}/samples/missing.txt
+export CLAMAV_EVENT_VIRUS=Eicar"
 if [[ "$(t_check_got_status)" == "0" ]] && t_log_has "fichier déjà absent"; then
     t_pass "branch.usr.response.absent" "fichier déjà absent"
 else
@@ -483,8 +483,8 @@ t_set_user clamav-response.sh
 sample="${work}/samples/note.txt"
 printf 'note\n' > "${sample}"
 printf '1\n' > "${work}/holder.pid"
-t_run_user "${bin}/clamav-response.sh" "" "export W_CLAMAV_EVENT_FILE=${sample}
-export W_CLAMAV_EVENT_VIRUS=Eicar"
+t_run_user "${bin}/clamav-response.sh" "" "export CLAMAV_EVENT_FILE=${sample}
+export CLAMAV_EVENT_VIRUS=Eicar"
 if [[ "$(t_check_got_status)" == "0" ]] && t_log_has "pid 1"; then
     t_pass "branch.usr.response.pid1" "pid 1 conservé"
 else
@@ -495,8 +495,8 @@ t_set_user clamav-response.sh
 sample="${work}/samples/note.txt"
 printf 'note\n' > "${sample}"
 printf '42424242\n' > "${work}/holder.pid"
-t_run_user "${bin}/clamav-response.sh" "" "export W_CLAMAV_EVENT_FILE=${sample}
-export W_CLAMAV_EVENT_VIRUS=Eicar"
+t_run_user "${bin}/clamav-response.sh" "" "export CLAMAV_EVENT_FILE=${sample}
+export CLAMAV_EVENT_VIRUS=Eicar"
 if [[ "$(t_check_got_status)" == "0" ]] && t_log_has "uid 0"; then
     t_pass "branch.usr.response.uid" "uid 0 conservé"
 else
@@ -509,8 +509,8 @@ printf 'note\n' > "${sample}"
 mkdir -p "${work}/fakeproc/42424242"
 : > "${work}/fakeproc/42424242/comm"
 printf '42424242\n' > "${work}/holder.pid"
-t_run_user "${bin}/clamav-response.sh" "${work}/fakeproc" "export W_CLAMAV_EVENT_FILE=${sample}
-export W_CLAMAV_EVENT_VIRUS=Eicar"
+t_run_user "${bin}/clamav-response.sh" "${work}/fakeproc" "export CLAMAV_EVENT_FILE=${sample}
+export CLAMAV_EVENT_VIRUS=Eicar"
 if [[ "$(t_check_got_status)" == "0" ]] && t_log_has "nom absent"; then
     t_pass "branch.usr.response.empty" "nom vide conservé"
 else
@@ -521,8 +521,8 @@ t_set_user clamav-response.sh
 sample="${work}/samples/note.txt"
 printf 'note\n' > "${sample}"
 t_set_holder gamescope
-t_run_user "${bin}/clamav-response.sh" "" "export W_CLAMAV_EVENT_FILE=${sample}
-export W_CLAMAV_EVENT_VIRUS=Eicar"
+t_run_user "${bin}/clamav-response.sh" "" "export CLAMAV_EVENT_FILE=${sample}
+export CLAMAV_EVENT_VIRUS=Eicar"
 if [[ "$(t_check_got_status)" == "0" ]] && t_log_has "non arrêté : gamescope" && kill -0 "${holder_pid}" 2>/dev/null; then
     t_pass "branch.usr.response.deny" "gamescope conservé"
 else
@@ -534,8 +534,8 @@ t_set_user clamav-response.sh
 sample="${work}/samples/note.txt"
 printf 'note\n' > "${sample}"
 t_set_holder worker
-t_run_user "${bin}/clamav-response.sh" "" "export W_CLAMAV_EVENT_FILE=${sample}
-export W_CLAMAV_EVENT_VIRUS=Eicar"
+t_run_user "${bin}/clamav-response.sh" "" "export CLAMAV_EVENT_FILE=${sample}
+export CLAMAV_EVENT_VIRUS=Eicar"
 if [[ "$(t_check_got_status)" == "0" ]] && t_log_has ") arrêté" && ! kill -0 "${holder_pid}" 2>/dev/null; then
     t_pass "branch.usr.response.term" "TERM envoyé"
 else
@@ -549,8 +549,8 @@ printf 'note\n' > "${sample}"
 mkdir -p "${work}/fakeproc/42424242"
 printf '%s' 'worker' > "${work}/fakeproc/42424242/comm"
 printf '42424242\n' > "${work}/holder.pid"
-t_run_user "${bin}/clamav-response.sh" "${work}/fakeproc" "export W_CLAMAV_EVENT_FILE=${sample}
-export W_CLAMAV_EVENT_VIRUS=Eicar"
+t_run_user "${bin}/clamav-response.sh" "${work}/fakeproc" "export CLAMAV_EVENT_FILE=${sample}
+export CLAMAV_EVENT_VIRUS=Eicar"
 if [[ "$(t_check_got_status)" == "0" ]] && t_log_has "signal refusé"; then
     t_pass "branch.usr.response.refused" "signal refusé"
 else
@@ -561,8 +561,8 @@ t_set_user clamav-response.sh
 sample="${work}/samples/note.txt"
 printf 'note\n' > "${sample}"
 rm -f "${work}/path/nft"
-t_run_user "${bin}/clamav-response.sh" "" "export W_CLAMAV_EVENT_FILE=${sample}
-export W_CLAMAV_EVENT_VIRUS=Eicar"
+t_run_user "${bin}/clamav-response.sh" "" "export CLAMAV_EVENT_FILE=${sample}
+export CLAMAV_EVENT_VIRUS=Eicar"
 if [[ "$(t_check_got_status)" == "0" ]] && t_log_has "nft absent" && [[ ! -e "${work}/nft.log" ]]; then
     t_pass "branch.usr.response.nft-absent" "nft absent"
 else
@@ -575,9 +575,9 @@ t_check_user_sec() {
     local expect="$3"
     t_set_user clamav-response.sh
     printf 'note\n' > "${work}/samples/note.txt"
-    printf 'W_NET_ISOLATE_SEC=%s\n' "${raw}" > "${base}/cron/egress.conf"
-    t_run_user "${bin}/clamav-response.sh" "" "export W_CLAMAV_EVENT_FILE=${work}/samples/note.txt
-export W_CLAMAV_EVENT_VIRUS=Eicar"
+    printf 'NET_ISOLATE_SEC=%s\n' "${raw}" > "${base}/cron/egress.conf"
+    t_run_user "${bin}/clamav-response.sh" "" "export CLAMAV_EVENT_FILE=${work}/samples/note.txt
+export CLAMAV_EVENT_VIRUS=Eicar"
     if [[ "$(t_check_got_status)" == "0" ]] && t_log_has "isolation ${expect}s" \
         && grep -q -- "--on-active=${expect}" "${work}/systemd-run.log"; then
         t_pass "${id}" "durée ${expect}"
@@ -593,8 +593,8 @@ t_set_user egress-watch.sh
 cat > "${work}/probe.sh" << EOF
 #!/usr/bin/env bash
 set +e
-export W_BASE="${base}"
-export W_CLAMAV_QUARANTINE_DIR="${work}/quarantine"
+export BASE="${base}"
+export CLAMAV_QUARANTINE_DIR="${work}/quarantine"
 source "${parent}/share/core/watchdog.sh"
 result="${work}/quarantine-result.txt"
 : > "\${result}"
@@ -790,9 +790,9 @@ rm -rf "${advice_work}"
 mkdir -p "${advice_work}/base/cron"
 hold_note="Une classe de ce journal n'est pas un faux positif à enregistrer. Ne lancez pas la commande ci-dessous tant qu'elle est présente."
 MAIL_ALERTS=0
-W_BASE="${advice_work}/base"
+BASE="${advice_work}/base"
 
-unset W_AIDE_REFRESH W_RKHUNTER_REFRESH W_CHKROOTKIT_IGNORE W_DEBSUMS_IGNORE NOTE NOTE_CMD ADVICE ADVICE_HOLD || true
+unset AIDE_REFRESH RKHUNTER_REFRESH CHKROOTKIT_IGNORE DEBSUMS_IGNORE NOTE NOTE_CMD ADVICE ADVICE_HOLD || true
 snap_log="${advice_work}/aide-snap.log"
 snap_alert="${advice_work}/aide-snap.alert"
 cat > "${snap_log}" << 'EOF'
@@ -801,7 +801,7 @@ f++++++++++++++++++: /etc/systemd/system/snap-gnome\x2d46\x2d2404-177.mount
 l++++++++++++++++++: /etc/systemd/system/snapd.mounts.target.wants/snap-gnome\x2d46\x2d2404-177.mount
 EOF
 LOG="${snap_log}" LOG_FILE="${snap_log}" ALERT_FILE="${snap_alert}" MODULE_NAME="Aide" \
-    W_AIDE_REFRESH=1 W_BASE="${W_BASE}" MAIL_ALERTS=0 \
+    AIDE_REFRESH=1 BASE="${BASE}" MAIL_ALERTS=0 \
     log_alert "AIDE: changements détectés (code 1, détail ${snap_log})"
 snap_ok=1
 for path in \
@@ -814,7 +814,7 @@ done
 grep -Fq "snap info gnome-46-2404" "${snap_alert}" || snap_ok=0
 grep -Fq 'Unité de montage snapd' "${snap_alert}" || snap_ok=0
 grep -Fq 'publisher: canonical' "${snap_alert}" || snap_ok=0
-grep -Fq "sudo bash ${W_BASE}/bin/aide-refresh-db.sh" "${snap_alert}" || snap_ok=0
+grep -Fq "sudo bash ${BASE}/bin/aide-refresh-db.sh" "${snap_alert}" || snap_ok=0
 grep -Fq "${hold_note}" "${snap_alert}" && snap_ok=0
 snap_at="$(grep -n 'snap info gnome-46-2404' "${snap_alert}" | head -n 1 | cut -d: -f1 || true)"
 refresh_at="$(grep -n 'aide-refresh-db.sh' "${snap_alert}" | head -n 1 | cut -d: -f1 || true)"
@@ -831,11 +831,11 @@ saved_lang="${LANGUAGE:-fr}"
 LANGUAGE=en
 TEXT_READY=0
 LOG="${snap_log}" LOG_FILE="${snap_log}" ALERT_FILE="${en_alert}" MODULE_NAME="Aide" \
-    W_AIDE_REFRESH=1 W_BASE="${W_BASE}" MAIL_ALERTS=0 \
+    AIDE_REFRESH=1 BASE="${BASE}" MAIL_ALERTS=0 \
     log_alert "AIDE: changes detected (code 1, detail ${snap_log})"
 en_ok=1
 grep -Fq 'snapd mount unit' "${en_alert}" || en_ok=0
-grep -Fq "sudo bash ${W_BASE}/bin/aide-refresh-db.sh" "${en_alert}" || en_ok=0
+grep -Fq "sudo bash ${BASE}/bin/aide-refresh-db.sh" "${en_alert}" || en_ok=0
 en_title="$(grep -n 'snapd mount unit' "${en_alert}" | head -n 1 | cut -d: -f1 || true)"
 en_cmd="$(grep -n 'aide-refresh-db.sh' "${en_alert}" | head -n 1 | cut -d: -f1 || true)"
 [[ -n "${en_title}" && -n "${en_cmd}" && "${en_title}" -lt "${en_cmd}" ]] || en_ok=0
@@ -847,12 +847,12 @@ else
     t_fail "branch.usr.aide.advice.en" "$(tr '\n' ' ' < "${en_alert}" 2>/dev/null || true)"
 fi
 
-unset W_AIDE_REFRESH W_RKHUNTER_REFRESH W_CHKROOTKIT_IGNORE NOTE NOTE_CMD ADVICE ADVICE_HOLD || true
+unset AIDE_REFRESH RKHUNTER_REFRESH CHKROOTKIT_IGNORE NOTE NOTE_CMD ADVICE ADVICE_HOLD || true
 echo_log="${advice_work}/chk-echo.log"
 echo_alert="${advice_work}/chk-echo.alert"
 printf '%s\n' "Checking \`echo'... INFECTED" > "${echo_log}"
 LOG="${echo_log}" LOG_FILE="${echo_log}" ALERT_FILE="${echo_alert}" MODULE_NAME="Chkrootkit" \
-    W_CHKROOTKIT_IGNORE=1 W_BASE="${W_BASE}" MAIL_ALERTS=0 \
+    CHKROOTKIT_IGNORE=1 BASE="${BASE}" MAIL_ALERTS=0 \
     log_alert "chkrootkit: ligne infectée"
 echo_ok=1
 grep -Fq 'debsums' "${echo_alert}" || echo_ok=0
@@ -870,18 +870,18 @@ else
     t_fail "branch.usr.chk.echo" "$(tr '\n' ' ' < "${echo_alert}" 2>/dev/null || true)"
 fi
 
-unset W_AIDE_REFRESH W_CHKROOTKIT_IGNORE W_RKHUNTER_REFRESH NOTE NOTE_CMD ADVICE ADVICE_HOLD || true
+unset AIDE_REFRESH CHKROOTKIT_IGNORE RKHUNTER_REFRESH NOTE NOTE_CMD ADVICE ADVICE_HOLD || true
 unk_log="${advice_work}/aide-unknown.log"
 unk_alert="${advice_work}/aide-unknown.alert"
 printf '%s\n' 'f++++++++++++++++++: /var/opt/not-catalog/evil.bin' > "${unk_log}"
 LOG="${unk_log}" LOG_FILE="${unk_log}" ALERT_FILE="${unk_alert}" MODULE_NAME="Aide" \
-    W_AIDE_REFRESH=1 W_BASE="${W_BASE}" MAIL_ALERTS=0 \
+    AIDE_REFRESH=1 BASE="${BASE}" MAIL_ALERTS=0 \
     log_alert "AIDE: changements détectés (code 1, détail ${unk_log})"
 unk_ok=1
 grep -Fq '/var/opt/not-catalog/evil.bin' "${unk_alert}" || unk_ok=0
 grep -Fq 'Ligne AIDE sans classe' "${unk_alert}" || unk_ok=0
 grep -Fq "${hold_note}" "${unk_alert}" || unk_ok=0
-grep -Fq "sudo bash ${W_BASE}/bin/aide-refresh-db.sh" "${unk_alert}" || unk_ok=0
+grep -Fq "sudo bash ${BASE}/bin/aide-refresh-db.sh" "${unk_alert}" || unk_ok=0
 unk_at="$(grep -n 'Ligne AIDE sans classe' "${unk_alert}" | head -n 1 | cut -d: -f1 || true)"
 unk_cmd="$(grep -n 'aide-refresh-db.sh' "${unk_alert}" | head -n 1 | cut -d: -f1 || true)"
 [[ -n "${unk_at}" && -n "${unk_cmd}" && "${unk_at}" -lt "${unk_cmd}" ]] || unk_ok=0
@@ -892,17 +892,17 @@ else
     t_fail "branch.usr.aide.unknown" "$(tr '\n' ' ' < "${unk_alert}" 2>/dev/null || true)"
 fi
 
-unset W_AIDE_REFRESH W_CHKROOTKIT_IGNORE NOTE NOTE_CMD ADVICE ADVICE_HOLD || true
+unset AIDE_REFRESH CHKROOTKIT_IGNORE NOTE NOTE_CMD ADVICE ADVICE_HOLD || true
 uid_log="${advice_work}/rk-uid.log"
 uid_alert="${advice_work}/rk-uid.alert"
 printf '%s\n' "Warning: User 'toor' has a UID of 0" > "${uid_log}"
 LOG="${uid_log}" LOG_FILE="${uid_log}" ALERT_FILE="${uid_alert}" MODULE_NAME="Rkhunter" \
-    W_RKHUNTER_REFRESH=1 W_BASE="${W_BASE}" MAIL_ALERTS=0 \
+    RKHUNTER_REFRESH=1 BASE="${BASE}" MAIL_ALERTS=0 \
     log_alert "rkhunter warnings"
 uid_ok=1
 grep -Fq 'UID 0' "${uid_alert}" || uid_ok=0
 grep -Fq "${hold_note}" "${uid_alert}" || uid_ok=0
-grep -Fq "sudo bash ${W_BASE}/bin/rkhunter-refresh-db.sh" "${uid_alert}" || uid_ok=0
+grep -Fq "sudo bash ${BASE}/bin/rkhunter-refresh-db.sh" "${uid_alert}" || uid_ok=0
 uid_at="$(grep -n 'UID 0' "${uid_alert}" | head -n 1 | cut -d: -f1 || true)"
 uid_cmd="$(grep -n 'rkhunter-refresh-db.sh' "${uid_alert}" | head -n 1 | cut -d: -f1 || true)"
 [[ -n "${uid_at}" && -n "${uid_cmd}" && "${uid_at}" -lt "${uid_cmd}" ]] || uid_ok=0
@@ -913,7 +913,7 @@ else
     t_fail "branch.usr.rk.uid" "$(tr '\n' ' ' < "${uid_alert}" 2>/dev/null || true)"
 fi
 
-unset W_AIDE_REFRESH W_RKHUNTER_REFRESH W_CHKROOTKIT_IGNORE NOTE NOTE_CMD ADVICE ADVICE_HOLD || true
+unset AIDE_REFRESH RKHUNTER_REFRESH CHKROOTKIT_IGNORE NOTE NOTE_CMD ADVICE ADVICE_HOLD || true
 if python3 - "${parent}/share/core/alert-advice.txt" << 'PY'
 import re
 import sys
@@ -981,7 +981,7 @@ for unit in auditd clamav-daemon clamav-freshclam clamonacc fail2ban crowdsec; d
 done
 
 t_section "langue"
-if grep -q 'LANGUAGE="fr"' "${T_ROOT}/config/global.conf" \
+if grep -q 'LANGUAGE="fr"' "${T_ROOT}/config/user.conf" \
     && awk '
         /^if \[\[ "\$\{1:-\}" == "--check" \]\]; then/ { check = NR }
         /^ask_language$/ { ask = NR }

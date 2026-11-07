@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/configure.sh
-# Updated at : 2026-11-06
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -16,7 +16,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_current_user
-
 
 cpu_quota="$(
     WATCHDOG_CPU_LIMIT="${WATCHDOG_CPU_LIMIT:-50}" \
@@ -61,24 +60,34 @@ copy_runtime_file() {
     install -m "${mode}" "${src_real}" "${dest}"
 }
 
-copy_runtime_dir() {
-    local src="$1" dest="$2" src_real="" dest_real=""
-    [[ -d "${src}" ]] || return 0
-    src_real="$(readlink -f "${src}")"
-    if [[ -d "${dest}" ]]; then
-        dest_real="$(readlink -f "${dest}" 2>/dev/null || true)"
-        [[ "${src_real}" == "${dest_real}" ]] && return 0
-    fi
-    install -d -m 755 "${dest}"
-    cp -a "${src_real}/." "${dest}/"
-}
-
 copy_runtime_file "${INSTALL_DIRECTORY}/core/log.sh" \
     "${CONFIG_BASE_DIRECTORY}/cron/bin/log.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/text.sh" \
+    "${CONFIG_BASE_DIRECTORY}/cron/bin/text.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/display.sh" \
+    "${CONFIG_BASE_DIRECTORY}/cron/bin/display.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/journal.sh" \
+    "${CONFIG_BASE_DIRECTORY}/cron/bin/journal.sh" 644
 copy_runtime_file "${INSTALL_DIRECTORY}/core/log.sh" \
     "${CONFIG_BASE_DIRECTORY}/bin/log.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/text.sh" \
+    "${CONFIG_BASE_DIRECTORY}/bin/text.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/display.sh" \
+    "${CONFIG_BASE_DIRECTORY}/bin/display.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/journal.sh" \
+    "${CONFIG_BASE_DIRECTORY}/bin/journal.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/text-load.sh" \
+    "${CONFIG_BASE_DIRECTORY}/bin/text-load.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/text-load.sh" \
+    "${CONFIG_BASE_DIRECTORY}/cron/bin/text-load.sh" 644
 copy_runtime_file "${INSTALL_DIRECTORY}/core/log.sh" \
     "${CONFIG_BASE_DIRECTORY}/src/core/log.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/text.sh" \
+    "${CONFIG_BASE_DIRECTORY}/src/core/text.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/display.sh" \
+    "${CONFIG_BASE_DIRECTORY}/src/core/display.sh" 644
+copy_runtime_file "${INSTALL_DIRECTORY}/core/journal.sh" \
+    "${CONFIG_BASE_DIRECTORY}/src/core/journal.sh" 644
 copy_runtime_file "${INSTALL_DIRECTORY}/core/watchdog-load.sh" \
     "${CONFIG_BASE_DIRECTORY}/src/core/watchdog-load.sh" 644
 copy_runtime_file "${INSTALL_DIRECTORY}/core/fs.sh" \
@@ -98,9 +107,6 @@ MAIL_ALERTS="${MAIL_ALERTS:-0}"
 WATCHDOG_MAIL="${WATCHDOG_MAIL:-}"
 PROJECT_NAME="${PROJECT_NAME}"
 MAIL_TEMPLATE="${MAIL_TEMPLATE:-mail.html}"
-RCLONE_ALERTS="${RCLONE_ALERTS:-0}"
-RCLONE_REMOTE="${RCLONE_REMOTE:-gdrive}"
-RCLONE_PATH="${RCLONE_PATH:-liltress-alerts}"
 EOF
 umask 022
 chmod 600 "${CONFIG_BASE_DIRECTORY}/cron/mail.conf"
@@ -110,12 +116,12 @@ if [[ -f "${CONFIG_BASE_DIRECTORY}/cron/rclone.conf" ]]; then
     chmod 600 "${CONFIG_BASE_DIRECTORY}/cron/rclone.conf"
 fi
 
-export W_PROJECT_SLUG CONFIG_BASE_DIRECTORY
+export PROJECT_SLUG CONFIG_BASE_DIRECTORY
 
 sed "s|\${CONFIG_BASE_DIRECTORY}|${CONFIG_BASE_DIRECTORY}|g" "$(locate_config_file cron/schedule.cron)" \
-    > "/etc/cron.d/${W_PROJECT_SLUG}"
-chown root:root "/etc/cron.d/${W_PROJECT_SLUG}"
-chmod 600 "/etc/cron.d/${W_PROJECT_SLUG}"
+    > "/etc/cron.d/${PROJECT_SLUG}"
+chown root:root "/etc/cron.d/${PROJECT_SLUG}"
+chmod 600 "/etc/cron.d/${PROJECT_SLUG}"
 
 install -d -m 755 /etc/systemd/system
 systemctl_bin="$(command -v systemctl || true)"
@@ -131,19 +137,19 @@ render_unit() {
         -e "s|\\\${cpu_quota}|${cpu_quota}|g" \
         -e "s|\\\${CONFIG_BASE_DIRECTORY}|${CONFIG_BASE_DIRECTORY}|g" \
         -e "s|\\\${systemctl_bin}|${systemctl_bin}|g" \
-        -e "s|\\\${W_BOOT_ON_BOOT_SEC}|${W_BOOT_ON_BOOT_SEC}|g" \
-        -e "s|\\\${W_BOOT_ACCURACY}|${W_BOOT_ACCURACY}|g" \
-        -e "s|\\\${W_TIMER_PERSISTENT}|${W_TIMER_PERSISTENT}|g" \
-        -e "s|\\\${W_IDLE_EVERY}|${W_IDLE_EVERY}|g" \
-        -e "s|\\\${W_IDLE_ACCURACY}|${W_IDLE_ACCURACY}|g" \
-        -e "s|\\\${W_REBOOT_EVERY}|${W_REBOOT_EVERY}|g" \
-        -e "s|\\\${W_REBOOT_ACCURACY}|${W_REBOOT_ACCURACY}|g" \
-        -e "s|\\\${W_PERIODIC_EVERY}|${W_PERIODIC_EVERY}|g" \
-        -e "s|\\\${W_PERIODIC_ON_BOOT_SEC}|${W_PERIODIC_ON_BOOT_SEC}|g" \
-        -e "s|\\\${W_PERIODIC_ACCURACY}|${W_PERIODIC_ACCURACY}|g" \
-        -e "s|\\\${W_HOURLY_EVERY}|${W_HOURLY_EVERY}|g" \
-        -e "s|\\\${W_HOURLY_ON_BOOT_SEC}|${W_HOURLY_ON_BOOT_SEC}|g" \
-        -e "s|\\\${W_HOURLY_ACCURACY}|${W_HOURLY_ACCURACY}|g" \
+        -e "s|\\\${BOOT_ON_BOOT_SEC}|${BOOT_ON_BOOT_SEC}|g" \
+        -e "s|\\\${BOOT_ACCURACY}|${BOOT_ACCURACY}|g" \
+        -e "s|\\\${TIMER_PERSISTENT}|${TIMER_PERSISTENT}|g" \
+        -e "s|\\\${IDLE_EVERY}|${IDLE_EVERY}|g" \
+        -e "s|\\\${IDLE_ACCURACY}|${IDLE_ACCURACY}|g" \
+        -e "s|\\\${REBOOT_EVERY}|${REBOOT_EVERY}|g" \
+        -e "s|\\\${REBOOT_ACCURACY}|${REBOOT_ACCURACY}|g" \
+        -e "s|\\\${PERIODIC_EVERY}|${PERIODIC_EVERY}|g" \
+        -e "s|\\\${PERIODIC_ON_BOOT_SEC}|${PERIODIC_ON_BOOT_SEC}|g" \
+        -e "s|\\\${PERIODIC_ACCURACY}|${PERIODIC_ACCURACY}|g" \
+        -e "s|\\\${HOURLY_EVERY}|${HOURLY_EVERY}|g" \
+        -e "s|\\\${HOURLY_ON_BOOT_SEC}|${HOURLY_ON_BOOT_SEC}|g" \
+        -e "s|\\\${HOURLY_ACCURACY}|${HOURLY_ACCURACY}|g" \
         "${src}" > "${dest}"
     chmod 644 "${dest}"
 }
@@ -177,8 +183,8 @@ run_silent       "${INSTALL_WATCHER}" "configure.cron.error.12" systemctl enable
 run_silent       "${INSTALL_WATCHER}" "configure.cron.error.13" systemctl enable w-hourly-scan.timer
 log_success      "${INSTALL_WATCHER}" "configure.chain-of-start-hourly-password-and-scan-all-the-2" "${WATCHDOG_CPU_LIMIT}"
 
-export W_BASE="${CONFIG_BASE_DIRECTORY}"
-export W_SCAN_SKIP_HOME="${CURRENT_HOME}"
+export BASE="${CONFIG_BASE_DIRECTORY}"
+export SCAN_SKIP_HOME="${CURRENT_HOME}"
 # shellcheck disable=SC1091
 source "${DIR_SCRIPT_PATH}/watchdogs/scan-skip-lib.sh"
 ensure_scan_skip_file "${CURRENT_HOME}"
@@ -201,7 +207,7 @@ install -m 644 \
 install -m 644 \
     "${INSTALL_DIRECTORY}/config/global.conf" \
     "${CONFIG_BASE_DIRECTORY}/config/global.conf"
-export W_BASE="${CONFIG_BASE_DIRECTORY}"
+export BASE="${CONFIG_BASE_DIRECTORY}"
 run_silent       "${INSTALL_WATCHER}" "configure.cron.error.14" bash "${CONFIG_BASE_DIRECTORY}/cron/bin/integrity.sh"
 
 log_info         "${INSTALL_WATCHER}" "configure.crontab-user-not-touch-no-cron-allow"

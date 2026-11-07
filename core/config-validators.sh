@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/config-validators.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -74,4 +74,23 @@ check_app_password() {
         esac
     done
     return 0
+}
+
+reset_config() {
+    CONFIG_ERRORS=()
+}
+
+log_config_error() {
+    CONFIG_ERRORS+=("$1")
+}
+
+emit_config() {
+    local e
+    if [[ ${#CONFIG_ERRORS[@]} -eq 0 ]]; then
+        return 0
+    fi
+    for e in "${CONFIG_ERRORS[@]}"; do
+        printf "$(get_text configure.error "${e}")" >&2
+    done
+    return 1
 }

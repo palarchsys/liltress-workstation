@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/run.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -84,8 +84,8 @@ run_install_action() {
             ;;
         reboot-notice)
             set_step_hidden "$(get_text run.close.done)"
-            log_info "${INSTALL_WATCHER}" "log.journals" "${INSTALL_LOG_DIR}"
-            log_info "${INSTALL_WATCHER}" "log.lynis-manual-hint"
+            show_closing_note "$(get_text log.journals-title)" "$(show_path "${INSTALL_LOG_DIR}")"
+            show_closing_note "$(get_text log.lynis-launch)" "$(get_text log.lynis-command)"
             reboot_needed=0
             [[ -f /var/run/reboot-required ]] && reboot_needed=1
             if command -v needrestart >/dev/null 2>&1; then

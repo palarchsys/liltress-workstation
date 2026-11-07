@@ -1,19 +1,46 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/scan-skip.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
 set -euo pipefail
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
+_text_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+_text_hops=0
+while [[ "${_text_hops}" -lt 8 && "${_text_dir}" != "/" ]]; do
+    if [[ -f "${_text_dir}/text-load.sh" ]]; then
+        # shellcheck disable=SC1090
+        source "${_text_dir}/text-load.sh"
+        break
+    fi
+    if [[ -f "${_text_dir}/share/core/text-load.sh" ]]; then
+        # shellcheck disable=SC1090
+        source "${_text_dir}/share/core/text-load.sh"
+        break
+    fi
+    if [[ -f "${_text_dir}/core/text-load.sh" ]]; then
+        # shellcheck disable=SC1090
+        source "${_text_dir}/core/text-load.sh"
+        break
+    fi
+    _text_dir="$(dirname -- "${_text_dir}")"
+    _text_hops=$((_text_hops + 1))
+done
+unset _text_dir _text_hops
+if ! declare -F load_installed_text >/dev/null 2>&1; then
+    printf '%s\n' "get_text absent" >&2
+    exit 1
+fi
+load_installed_text
+BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${W_BASE}/cron/bin/scan-skip-lib.sh"
+source "${BASE}/cron/bin/scan-skip-lib.sh"
 
 show_usage() {
-    printf "$(get_text log.usage-sudo-bash-bin-scan-skip-sh-list "${W_BASE}")" >&2
-    printf "$(get_text log.sudo-bash-bin-scan-skip-sh-add-chemin "${W_BASE}")" >&2
-    printf "$(get_text log.sudo-bash-bin-scan-skip-sh-del-chemin "${W_BASE}")" >&2
+    printf "$(get_text log.usage-sudo-bash-bin-scan-skip-sh-list "${BASE}")" >&2
+    printf "$(get_text log.sudo-bash-bin-scan-skip-sh-add-chemin "${BASE}")" >&2
+    printf "$(get_text log.sudo-bash-bin-scan-skip-sh-del-chemin "${BASE}")" >&2
 }
 
 if [[ "${EUID}" -ne 0 ]]; then
@@ -30,18 +57,18 @@ case "${action}" in
         ;;
 esac
 
-if [[ ! -f "${W_SCAN_SKIP_FILE}" ]]; then
-    printf "$(get_text log.file-absent "${W_SCAN_SKIP_FILE}")" >&2
+if [[ ! -f "${SCAN_SKIP_FILE}" ]]; then
+    printf "$(get_text log.file-absent "${SCAN_SKIP_FILE}")" >&2
     exit 1
 fi
 
 if [[ "${action}" == "list" ]]; then
     collect_scan_skip_path
-    if [[ ${#W_SCAN_SKIP_VALID[@]} -gt 0 ]]; then
-        printf '%s\n' "${W_SCAN_SKIP_VALID[@]}"
+    if [[ ${#SCAN_SKIP_VALID[@]} -gt 0 ]]; then
+        printf '%s\n' "${SCAN_SKIP_VALID[@]}"
     fi
-    if [[ ${#W_SCAN_SKIP_BAD[@]} -gt 0 ]]; then
-        for line in "${W_SCAN_SKIP_BAD[@]}"; do
+    if [[ ${#SCAN_SKIP_BAD[@]} -gt 0 ]]; then
+        for line in "${SCAN_SKIP_BAD[@]}"; do
             printf "$(get_text log.path-denied "${line}")" >&2
         done
     fi
@@ -60,8 +87,8 @@ fi
 
 collect_scan_skip_path
 found=0
-if [[ ${#W_SCAN_SKIP_VALID[@]} -gt 0 ]]; then
-    for path in "${W_SCAN_SKIP_VALID[@]}"; do
+if [[ ${#SCAN_SKIP_VALID[@]} -gt 0 ]]; then
+    for path in "${SCAN_SKIP_VALID[@]}"; do
         [[ "${path}" == "${norm}" ]] && found=1
     done
 fi
@@ -71,17 +98,17 @@ if [[ "${action}" == "add" ]]; then
         printf "$(get_text log.this-path-is-already-excluded-s-n)" "${norm}"
         exit 0
     fi
-    if [[ -s "${W_SCAN_SKIP_FILE}" ]] && [[ "$(tail -c1 "${W_SCAN_SKIP_FILE}" | wc -l)" -eq 0 ]]; then
-        printf "$(get_text log.n)" >> "${W_SCAN_SKIP_FILE}"
+    if [[ -s "${SCAN_SKIP_FILE}" ]] && [[ "$(tail -c1 "${SCAN_SKIP_FILE}" | wc -l)" -eq 0 ]]; then
+        printf "$(get_text log.n)" >> "${SCAN_SKIP_FILE}"
     fi
-    printf '%s\n' "${norm}" >> "${W_SCAN_SKIP_FILE}"
+    printf '%s\n' "${norm}" >> "${SCAN_SKIP_FILE}"
     printf "$(get_text log.path-added "${norm}")"
 else
     if [[ "${found}" -eq 0 ]]; then
         printf '%s\n' "$(get_text log.path-absent-of-the-list "${norm}")" >&2
         exit 1
     fi
-    python3 - "${W_SCAN_SKIP_FILE}" "${norm}" << 'PY'
+    python3 - "${SCAN_SKIP_FILE}" "${norm}" << 'PY'
 import sys
 from pathlib import Path
 
@@ -103,5 +130,5 @@ PY
     printf "$(get_text log.path-removed "${norm}")"
 fi
 
-bash "${W_BASE}/cron/bin/apply-scan-skip.sh"
+bash "${BASE}/cron/bin/apply-scan-skip.sh"
 exit 0

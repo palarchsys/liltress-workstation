@@ -1,23 +1,50 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/chkrootkit/ignore-log.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-06
 # Creator    : palarchsys
 # =============================================================================
 
 set -euo pipefail
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
+_text_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+_text_hops=0
+while [[ "${_text_hops}" -lt 8 && "${_text_dir}" != "/" ]]; do
+    if [[ -f "${_text_dir}/text-load.sh" ]]; then
+        # shellcheck disable=SC1090
+        source "${_text_dir}/text-load.sh"
+        break
+    fi
+    if [[ -f "${_text_dir}/share/core/text-load.sh" ]]; then
+        # shellcheck disable=SC1090
+        source "${_text_dir}/share/core/text-load.sh"
+        break
+    fi
+    if [[ -f "${_text_dir}/core/text-load.sh" ]]; then
+        # shellcheck disable=SC1090
+        source "${_text_dir}/core/text-load.sh"
+        break
+    fi
+    _text_dir="$(dirname -- "${_text_dir}")"
+    _text_hops=$((_text_hops + 1))
+done
+unset _text_dir _text_hops
+if ! declare -F load_installed_text >/dev/null 2>&1; then
+    printf '%s\n' "get_text absent" >&2
+    exit 1
+fi
+load_installed_text
+BASE="${BASE:-/opt/liltress-workstation}"
 if [[ "${EUID}" -ne 0 ]]; then
     printf "$(get_text log.run-this-command-with-sudo-n)" >&2
     exit 1
 fi
 if [[ $# -ne 1 || ! -f "$1" ]]; then
     printf "$(get_text log.enter-the-journal-chkrootkit-named-in-l)"\''e-mail.\n' >&2
-    printf "$(get_text log.example-sudo-bash-bin-chkrootkit-ignore-log-sh-c "${W_BASE}" "${W_BASE}")" >&2
+    printf "$(get_text log.example-sudo-bash-bin-chkrootkit-ignore-log-sh-c "${BASE}" "${BASE}")" >&2
     exit 1
 fi
 
-python3 - "${W_BASE}" "$1" << 'PY'
+python3 - "${BASE}" "$1" << 'PY'
 import re
 import sys
 from pathlib import Path

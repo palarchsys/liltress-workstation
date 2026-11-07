@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : workstation/locale/fr/log.txt
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -16,17 +16,17 @@ Un reboot est recommandé (noyau / libc).
 [log.audit-lynis-quick]
 Audit Lynis (quick)
 
-[log.baseline-help-saved-n]
-Base de référence AIDE enregistrée.\n
-
 [log.bash-liltress-configures]
   bash {1}/liltress configure
 
-[log.calculation-of-the-new-base-help-that-can-take-s]
-Calcul de la nouvelle base AIDE. Cela peut prendre plusieurs minutes.\n
+[log.check-fails]
+Check Fails
 
-[log.check-of-the-workstation]
-Contrôle du poste
+[log.check-success]
+Check Success
+
+[log.check-warnings]
+Check Warnings
 
 [log.check-workstation-ok]
 Check workstation OK
@@ -76,9 +76,6 @@ attendu : chaîne après multi-user.target, Nice={1}, IO=idle, CPUQuota={2}%
 [log.fail-2]
 - FAIL : {1}
 
-[log.help-init-a-returned-the-code-the-base-produced]
-aide --init a retourné le code {1}. La base produite est tout de même en service.
-
 [log.host-date-start-nproc]
 hôte={1} date={2} démarrage={3} nproc={4}
 
@@ -102,9 +99,6 @@ Liltress Workstation — relevé chkrootkit (faux positifs)
 
 [log.lynis]
 Lynis
-
-[log.lynis-hardening-index]
-- Lynis hardening_index={1}
 
 [log.masking-of-systemd-coredump]
 Masquage de systemd-coredump
@@ -142,9 +136,6 @@ Chemin refusé : {1}
 [log.profile-removed]
 Profil {1} retiré
 
-[log.profiles-apparmor-userns]
-Profils AppArmor userns
-
 [log.profiles-userns-loaded]
 Profils userns chargés
 
@@ -153,12 +144,6 @@ Purge de CUPS ({1})
 
 [log.purge-of-the-packages-rc-2]
 Purge des paquets rc ({1})
-
-[log.purge-of-the-packages-rc-lynis-pkgs-7346]
-Purge des paquets rc (Lynis PKGS-7346)
-
-[log.purge-workstation-finished]
-Purge workstation terminée
 
 [log.apt-listchanges-timer-stopped-before-the-aide-bas]
 La minuterie apt-listchanges est coupée avant la base AIDE.
@@ -184,12 +169,6 @@ snapd
 [log.snapd-installed]
 snapd installé
 
-[log.sources-apt]
-Sources APT
-
-[log.ssh-ufw-services]
-SSH / UFW / services
-
 [log.start]
 démarrage : {1}
 
@@ -210,9 +189,6 @@ Le détail reste dans le journal, pas dans le terminal.
 
 [log.the-last-upgrade-can-re-enable-systemd-coredump]
 Le dernier upgrade peut réactiver systemd-coredump.
-
-[log.the-new-base-n]
-La nouvelle base n
 
 [log.usage-sudo-bash-bin-scan-skip-sh-list]
 Usage : sudo bash {1}/bin/scan-skip.sh list
@@ -243,18 +219,6 @@ Journal des flux sortants actif
 
 [log.no-line-chkrootkit-q-is-remained-silencieux]
 (aucune ligne : chkrootkit -q est resté silencieux)
-
-[log.software-of-the-workstation]
-Logiciels du poste
-
-[log.snap-firefox-present]
-snap Firefox présent
-
-[log.snap-firefox-absent]
-snap Firefox absent
-
-[log.start-2]
-Démarrage
 
 [log.installation-of-the-fixes-of-security]
 Installation des correctifs de sécurité
@@ -322,11 +286,8 @@ Ceci est un message de test.
 L'installation de {1} s'est terminée correctement.
 Cet e-mail vérifie que Postfix peut joindre {2}.
 
-[log.contracts-passwords-apps]
-Contrats (mots de passe, applis)
+[log.lynis-command]
+sudo bash liltress lynis
 
-[log.lynis-manual-hint]
-Lynis : sudo bash liltress lynis
-
-[log.section-dns-local]
-DNS local (Unbound)
+[log.lynis-launch]
+Commande de lancement pour Lynis

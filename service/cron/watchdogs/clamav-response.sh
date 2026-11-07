@@ -8,24 +8,24 @@
 # Purpose    : Quarantine one detection and record the actions.
 # Note       : Logs stay under the Liltress cron directories or /run.
 # Note       : A detection signals one non-critical holder.
-# Note       : A detection isolates new outbound flows for W_NET_ISOLATE_SEC seconds.
+# Note       : A detection isolates new outbound flows for NET_ISOLATE_SEC seconds.
 # -----------------------------------------------------------------------------
 
 set -euo pipefail
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
+BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${W_BASE}/cron/bin/common.sh"
+source "${BASE}/cron/bin/common.sh"
 if [[ -z "${LOG_FILE:-}" ]]; then
     LOG_FILE="${LOG_DIR}/clamav-response-${STAMP}.log"
 fi
-if [[ -f "${W_BASE}/cron/egress.conf" ]]; then
+if [[ -f "${BASE}/cron/egress.conf" ]]; then
     # shellcheck disable=SC1091
-    source "${W_BASE}/cron/egress.conf"
+    source "${BASE}/cron/egress.conf"
 fi
 
-file="${W_CLAMAV_EVENT_FILE:-${CLAM_VIRUSEVENT_FILENAME:-inconnu}}"
-virus="${W_CLAMAV_EVENT_VIRUS:-${CLAM_VIRUSEVENT_VIRUSNAME:-inconnu}}"
-kind="${W_CLAMAV_EVENT_KIND:-onaccess}"
+file="${CLAMAV_EVENT_FILE:-${CLAM_VIRUSEVENT_FILENAME:-inconnu}}"
+virus="${CLAMAV_EVENT_VIRUS:-${CLAM_VIRUSEVENT_VIRUSNAME:-inconnu}}"
+kind="${CLAMAV_EVENT_KIND:-onaccess}"
 case "${kind}" in
     periodic) kind_label="scan périodique" ;;
     idle) kind_label="passe différée" ;;
@@ -48,7 +48,7 @@ check_clamav_denied() {
 
 apply_clamav_quarantine() {
     local quarantine base stamp dest
-    quarantine="${W_CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
+    quarantine="${CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
     if id clamav >/dev/null 2>&1; then
         install -d -m 750 -o clamav -g clamav "${quarantine}"
     else
@@ -143,7 +143,7 @@ signal_clamav_holder() {
 
 apply_net_isolate() {
     local sec
-    sec="${W_NET_ISOLATE_SEC:-120}"
+    sec="${NET_ISOLATE_SEC:-120}"
     if [[ ! "${sec}" =~ ^[0-9]+$ ]] || [[ "${sec}" -lt 30 ]] || [[ "${sec}" -gt 300 ]]; then
         sec=120
     fi
@@ -183,7 +183,7 @@ fi
 signal_clamav_holder
 apply_net_isolate
 
-response_stamp="${W_CLAMAV_RESPONSE_STAMP:-${STAMP}}"
+response_stamp="${CLAMAV_RESPONSE_STAMP:-${STAMP}}"
 printf '%s\n' "${stored}" > "${LOG_DIR}/clamav-response-${response_stamp}.path"
 printf '%s\n' \
     "Date : $(date -Iseconds)" \

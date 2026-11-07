@@ -36,7 +36,7 @@ Une commande qui manque parce que le paquet n'est pas installé est `ECHEC` si l
 
 ## Méthode
 
-Lis `/opt/liltress-workstation/config/global.conf` pour `LANGUAGE`, `MODE_TEST`, `MAIL_ALERTS`, `RCLONE_ALERTS`, `LYNIS_MIN_SCORE`, `CONFIG_BASE_DIRECTORY`. Ne source pas `secrets.conf` dans le rapport.
+Lis `/opt/liltress-workstation/config/global.conf` pour `LANGUAGE`, `MAIL_ALERTS`, `LYNIS_MIN_SCORE`, `CONFIG_BASE_DIRECTORY`. Ne source pas `secrets.conf` dans le rapport.
 
 Chaque contrôle a un identifiant stable. Une preuve est une commande et une ligne de résultat. Pas de vidage de journal. Vingt lignes au plus par preuve, coupées.
 
@@ -196,7 +196,7 @@ Unités : `w-boot-chain`, `w-hourly-scan`, `w-idle-scan`, `w-periodic-scan`, `w-
 - `mail.postfix` — si `MAIL_ALERTS=1`, Postfix n'écoute qu'en boucle locale.
 - `mail.test` — lancer `bin/mail-test.sh` une seule fois si `MAIL_ALERTS=1` et si aucun essai n'a déjà été envoyé aujourd'hui. Attendu : le script charge `get_text`, le message part par le chemin du produit, le sujet vient du catalogue. Un corps qui dit que `mail-test.sh` ne charge pas `get_text` et que le message est envoyé par `mail` est ECHEC. Ne pas envoyer un second message. Si les alertes sont coupées : OK, aucun envoi.
 - `mail.ipv6` — si le journal du relais montre `Network is unreachable` en IPv6 puis un accusé 250 en IPv4 : A_VOIR. Ne pas couper l'IPv6.
-- `mail.drive` — `RCLONE_ALERTS=0` et rclone absent : OK. `RCLONE_ALERTS=1` sans binaire : ECHEC.
+- `mail.drive` — aucune copie distante n'est configurée. L'absence de rclone est OK.
 
 ### VPN
 

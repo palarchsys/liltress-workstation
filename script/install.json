@@ -140,15 +140,6 @@
             "var": "MAIL_ALERTS",
             "eq": "1"
           }
-        },
-        {
-          "id": "install.rclone",
-          "service": "rclone",
-          "path": "service/rclone/install.sh",
-          "when": {
-            "var": "RCLONE_ALERTS",
-            "eq": "1"
-          }
         }
       ]
     },

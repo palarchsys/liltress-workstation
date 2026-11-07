@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/configure.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -14,8 +14,6 @@ DIR_SCRIPT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${DIR_SCRIPT}/script/config-check.sh"
 # shellcheck disable=SC1091
 source "${DIR_SCRIPT}/core/lib.sh"
-
-read_language_file "${DIR_SCRIPT}/config/global.conf"
 
 show_usage() {
     printf '%s\n' "$(get_text configure.usage)"
@@ -43,39 +41,50 @@ read_secret() {
     printf -v "${__out}" '%s' "${buf}"
 }
 
+print_field() {
+    local label="$1"
+    local width="${#label}"
+    [[ "${width}" -lt 12 ]] && width=12
+    step_flush_branch
+    if [[ "${SECTION_OPEN:-0}" == "1" ]]; then
+        printf '%s' "$(step_bar)" >&2
+    else
+        printf '         ' >&2
+    fi
+    printf '\e[34m%*s\e[0m : ' "${width}" "${label}" >&2
+}
+
 write_secret_line() {
-    local label="$1" dest="$2" width="$3"
-    printf '         \e[34m%*s\e[0m : ' "${width}" "${label}" >&2
+    local label="$1" dest="$2"
+    print_field "${label}"
     read_secret "${dest}"
 }
 
 prompt() {
     local __var="$1" __label="$2" __example="$3" __default="$4" __kind="$5" __hint="$6"
-    local value="" confirm="" attempt current="" width
+    local value="" confirm="" attempt current=""
     current="${!__var:-}"
     [[ -n "${current}" ]] && __default="${current}"
     for attempt in 1 2 3; do
-        echo ""
+        if [[ "${SECTION_OPEN:-0}" != "1" ]]; then
+            echo "" >&2
+        fi
         if [[ "${__kind}" == "pro_token" || "${__kind}" == "secret" ]]; then
-            width="${#__label}"
-            [[ "${width}" -lt 12 ]] && width=12
-            write_secret_line "${__label}" value "${width}"
+            write_secret_line "${__label}" value
             value="${value// /}"
             if [[ -z "${value}" && -n "${__default}" ]]; then
                 value="${__default}"
             else
-                write_secret_line "Confirmation" confirm "${width}"
+                write_secret_line "Confirmation" confirm
                 confirm="${confirm// /}"
                 if [[ "${value}" != "${confirm}" ]]; then
-                    echo ""
+                    echo "" >&2
                     log_warn         "${INSTALL_WATCHER}" "configure.the-two-entries-differ"
                     continue
                 fi
             fi
         else
-            width="${#__label}"
-            [[ "${width}" -lt 12 ]] && width=12
-            printf '         \e[34m%*s\e[0m : ' "${width}" "${__label}" >&2
+            print_field "${__label}"
             IFS= read -r value || log_error        "${INSTALL_WATCHER}" "configure.input-interrupted"
             value="${value#"${value%%[![:space:]]*}"}"
             value="${value%"${value##*[![:space:]]}"}"
@@ -90,8 +99,6 @@ prompt() {
             secret) check_app_password "${value}" && ok=1 ;;
             smtp) check_smtp "${value}" && ok=1 ;;
             bool01) [[ "${value}" =~ ^[01]$ ]] && ok=1 ;;
-            remote) check_drive_remote "${value}" && ok=1 ;;
-            drive_path) check_drive_path "${value}" && ok=1 ;;
         esac
         if [[ "${ok}" == "1" ]]; then
             printf -v "${__var}" '%s' "${value}"
@@ -104,11 +111,13 @@ prompt() {
 }
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    read_language_file "${DIR_SCRIPT}/config/global.conf"
     show_usage
     exit 0
 fi
 
 if [[ "${1:-}" == "--check" ]]; then
+    read_language_file "${DIR_SCRIPT}/config/global.conf"
     log_info         "${INSTALL_WATCHER}" "configure.configuration-check"
     if require_prepared_config "${DIR_SCRIPT}"; then
         log_success      "${INSTALL_WATCHER}" "configure.configuration-conforms"
@@ -118,6 +127,7 @@ if [[ "${1:-}" == "--check" ]]; then
 fi
 
 if [[ -n "${1:-}" || $# -gt 0 ]]; then
+    read_language_file "${DIR_SCRIPT}/config/global.conf"
     show_usage >&2
     exit 2
 fi
@@ -131,6 +141,9 @@ fi
 
 require_root
 clear
+
+ask_language
+asked_language="${LANGUAGE}"
 
 set_config_default
 
@@ -147,10 +160,21 @@ if [[ -f "${DIR_SCRIPT}/config/global.conf" ]]; then
     source "${DIR_SCRIPT}/config/global.conf"
     set -u
 fi
+if [[ -f "${DIR_SCRIPT}/config/user.conf" ]]; then
+    set +u
+    # shellcheck disable=SC1091
+    source "${DIR_SCRIPT}/config/user.conf"
+    set -u
+fi
 if [[ "${_saved_dir_set}" == "1" ]]; then
     INSTALL_DIRECTORY="${_saved_dir}"
 fi
 unset _saved_dir _saved_dir_set
+LANGUAGE="${asked_language}"
+export LANGUAGE
+TEXT_READY=0
+load_text "${LANGUAGE}"
+unset asked_language
 if [[ -f "${DIR_SCRIPT}/config/secrets.conf" ]]; then
     set +u
     # shellcheck disable=SC1091
@@ -158,12 +182,10 @@ if [[ -f "${DIR_SCRIPT}/config/secrets.conf" ]]; then
     set -u
 fi
 
-ask_language
+show_title_box "${PROJECT_NAME}"
 
-set_color_violet "═════════════════════════════════════════════════════════════════════════════════"
-set_color_violet " Liltress Workstation — configuration                                               "
-set_color_violet "═════════════════════════════════════════════════════════════════════════════════"
-
+set_step_visible "$(get_text configure.script.title)"
+open_step_tree "$(get_text configure.script.title)"
 log_info         "${INSTALL_WATCHER}" "configure.ubuntu-pro-token-url"
 log_info         "${INSTALL_WATCHER}" "configure.letters-and-digits-without-spaces"
 prompt UBUNTU_PRO_TOKEN \
@@ -172,6 +194,8 @@ prompt UBUNTU_PRO_TOKEN \
     "" \
     pro_token \
     "Lettres et chiffres seulement, entre 6 et 100, sans espace."
+log_success      "${INSTALL_WATCHER}" "configure.ubuntu-pro-accepted"
+close_step_tree
 
 clear_mail() {
     POSTFIX_SMTP_LOGIN=""
@@ -207,10 +231,11 @@ check_smtp_probe() {
     return 1
 }
 
+set_step_visible "$(get_text configure.enable-the-alerts-by-emails-y-n)"
+open_step_tree "$(get_text configure.enable-the-alerts-by-emails-y-n)"
 log_info         "${INSTALL_WATCHER}" "configure.enable-the-alerts-by-emails-y-n"
 while true; do
-    echo ""
-    printf "$(get_text configure.e-34m-s-e-0m)" 12 "Activer" >&2
+    print_field "Activer"
     IFS= read -r mail_choice || log_error        "${INSTALL_WATCHER}" "configure.input-interrupted"
     case "${mail_choice}" in
         Y|y)
@@ -270,96 +295,13 @@ while true; do
             ;;
     esac
 done
+close_step_tree
 
-clear_drive() {
-    local base
-    RCLONE_ALERTS=0
-    base="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
-    rm -f "${base}/cron/rclone.conf"
-}
-
-ask_drive_alert() {
-    local choice="" base config old_umask
-    base="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
-    log_info         "${INSTALL_WATCHER}" "configure.enable-the-send-of-the-alerts-toward-google-driv"
-    while true; do
-        echo ""
-        printf "$(get_text configure.e-34m-s-e-0m)" 12 "Drive" >&2
-        IFS= read -r choice || log_error        "${INSTALL_WATCHER}" "configure.input-interrupted"
-        case "${choice}" in
-            Y|y)
-                : "${RCLONE_REMOTE:=gdrive}"
-                : "${RCLONE_PATH:=liltress-alerts}"
-                prompt RCLONE_REMOTE \
-                    "Distant" \
-                    "gdrive" \
-                    "${RCLONE_REMOTE}" \
-                    remote \
-                    "Lettres, chiffres ou tiret, de 1 à 32 caractères."
-                prompt RCLONE_PATH \
-                    "Dossier" \
-                    "liltress-alerts" \
-                    "${RCLONE_PATH}" \
-                    drive_path \
-                    "Dossier distant, sans .. et sans chemin local."
-                if ! command -v rclone >/dev/null 2>&1; then
-                    log_info         "${INSTALL_WATCHER}" "configure.installation-of-rclone"
-                    run_silent_apt   "${INSTALL_WATCHER}" "install --no-install-recommends -y rclone" "configure.script.error.8"
-                fi
-                config="${base}/cron/rclone.conf"
-                mkdir -p "${base}/cron"
-                rm -f "${config}"
-                old_umask="$(umask)"
-                umask 077
-                if ! RCLONE_CONFIG="${config}" rclone config create "${RCLONE_REMOTE}" drive; then
-                    umask "${old_umask}"
-                    rm -f "${config}"
-                    log_warn         "${INSTALL_WATCHER}" "configure.the-configuration-rclone-was-rejected"
-                    log_info         "${INSTALL_WATCHER}" "configure.return-to-the-choice-google-drive"
-                    continue
-                fi
-                umask "${old_umask}"
-                if [[ ! -f "${config}" ]]; then
-                    log_warn         "${INSTALL_WATCHER}" "configure.the-configuration-rclone-was-rejected"
-                    log_info         "${INSTALL_WATCHER}" "configure.return-to-the-choice-google-drive"
-                    continue
-                fi
-                chmod 600 "${config}"
-                if check_drive_probe "${RCLONE_REMOTE}" "${RCLONE_PATH}" "${config}"; then
-                    RCLONE_ALERTS=1
-                    log_success      "${INSTALL_WATCHER}" "configure.attempt-google-drive-accepted"
-                    return 0
-                fi
-                rm -f "${config}"
-                log_warn         "${INSTALL_WATCHER}" "configure.the-attempt-google-drive-was-denied"
-                log_info         "${INSTALL_WATCHER}" "configure.return-to-the-choice-google-drive"
-                ;;
-            N|n|non)
-                clear_drive
-                log_success      "${INSTALL_WATCHER}" "configure.send-google-drive-cut"
-                return 0
-                ;;
-            *)
-                log_warn         "${INSTALL_WATCHER}" "log.answer-y-or-n"
-                ;;
-        esac
-    done
-}
-
-ask_drive_alert
-
-log_info         "${INSTALL_WATCHER}" "configure.1-no-removal-0-question-at-the-end-of-installati"
-log_info         "${INSTALL_WATCHER}" "configure.entry-keeps-the-value-in-progress-1-by-default"
-prompt MODE_TEST \
-    "$(get_text configure.mode-test)" \
-    "1" \
-    "${MODE_TEST:-1}" \
-    bool01 \
-    "$(get_text configure.enter-0-or-1)"
-
+set_step_visible "$(get_text configure.record-of-the-configuration)"
+open_step_tree "$(get_text configure.record-of-the-configuration)"
 log_info         "${INSTALL_WATCHER}" "configure.record-of-the-configuration"
 mkdir -p "${DIR_SCRIPT}/config"
-write_global_config "${DIR_SCRIPT}/config/global.conf"
+write_user_config "${DIR_SCRIPT}/config/user.conf"
 write_secret_config "${DIR_SCRIPT}/config/secrets.conf"
 
 if ! require_prepared_config "${DIR_SCRIPT}"; then
@@ -367,5 +309,6 @@ if ! require_prepared_config "${DIR_SCRIPT}"; then
 fi
 
 log_success      "${INSTALL_WATCHER}" "configure.configuration-saved"
+close_step_tree
+show_section_close
 exec bash "${DIR_SCRIPT}/script/run.sh"
-echo ""

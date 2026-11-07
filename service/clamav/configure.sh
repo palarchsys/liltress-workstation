@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/clamav/configure.sh
-# Updated at : 2026-11-06
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -38,7 +38,6 @@ ensure_xdg_directory() {
     printf '%s\n' "${path}"
 }
 
-
 log_info         "${INSTALL_WATCHER}" "configure.update-of-the-signatures-can-take-1-2-min"
 
 run_optional     "${INSTALL_WATCHER}" "configure.clamav.error" systemctl stop clamav-freshclam
@@ -72,9 +71,9 @@ videos_dir="$(ensure_xdg_directory VIDEOS Videos)"
 event="${CONFIG_BASE_DIRECTORY}/cron/bin/clamav-event.sh"
 clam_conf="/etc/clamav/clamd.conf"
 if [[ -f "${clam_conf}" ]]; then
-    if ! grep -q "${W_ONACCESS_MARKER}" "${clam_conf}" \
+    if ! grep -q "${ONACCESS_MARKER}" "${clam_conf}" \
         && ! grep -q "High-Fortress User onaccess" "${clam_conf}"; then
-        printf '\n# %s\n' "${W_ONACCESS_MARKER}" >> "${clam_conf}"
+        printf '\n# %s\n' "${ONACCESS_MARKER}" >> "${clam_conf}"
     fi
     add_onaccess_directory "${download_dir}"
     add_onaccess_directory "${desktop_dir}"
@@ -85,38 +84,38 @@ if [[ -f "${clam_conf}" ]]; then
     add_onaccess_directory /tmp
     add_onaccess_directory /var/tmp
     add_onaccess_directory /opt
-    if [[ "${W_ONACCESS_MOUNTS}" == "1" ]]; then
+    if [[ "${ONACCESS_MOUNTS}" == "1" ]]; then
         add_onaccess_directory /media
         add_onaccess_directory /mnt
     else
         remove_onaccess_directory /media
         remove_onaccess_directory /mnt
     fi
-    grep -qx "OnAccessExcludeUname ${W_ONACCESS_EXCLUDE_UNAME}" "${clam_conf}" \
-        || printf 'OnAccessExcludeUname %s\n' "${W_ONACCESS_EXCLUDE_UNAME}" >> "${clam_conf}"
-    grep -qx "OnAccessExcludeRootUID ${W_ONACCESS_EXCLUDE_ROOTUID}" "${clam_conf}" \
-        || printf 'OnAccessExcludeRootUID %s\n' "${W_ONACCESS_EXCLUDE_ROOTUID}" >> "${clam_conf}"
+    grep -qx "OnAccessExcludeUname ${ONACCESS_EXCLUDE_UNAME}" "${clam_conf}" \
+        || printf 'OnAccessExcludeUname %s\n' "${ONACCESS_EXCLUDE_UNAME}" >> "${clam_conf}"
+    grep -qx "OnAccessExcludeRootUID ${ONACCESS_EXCLUDE_ROOTUID}" "${clam_conf}" \
+        || printf 'OnAccessExcludeRootUID %s\n' "${ONACCESS_EXCLUDE_ROOTUID}" >> "${clam_conf}"
     if grep -q '^OnAccessMaxFileSize ' "${clam_conf}"; then
-        sed -i "s|^OnAccessMaxFileSize .*|OnAccessMaxFileSize ${W_ONACCESS_MAX_FILE_SIZE}|" "${clam_conf}"
+        sed -i "s|^OnAccessMaxFileSize .*|OnAccessMaxFileSize ${ONACCESS_MAX_FILE_SIZE}|" "${clam_conf}"
     else
-        printf 'OnAccessMaxFileSize %s\n' "${W_ONACCESS_MAX_FILE_SIZE}" >> "${clam_conf}"
+        printf 'OnAccessMaxFileSize %s\n' "${ONACCESS_MAX_FILE_SIZE}" >> "${clam_conf}"
     fi
-    grep -qx "OnAccessPrevention ${W_ONACCESS_PREVENTION}" "${clam_conf}" \
-        || printf 'OnAccessPrevention %s\n' "${W_ONACCESS_PREVENTION}" >> "${clam_conf}"
-    grep -qx "OnAccessExtraScanning ${W_ONACCESS_EXTRA_SCANNING}" "${clam_conf}" \
-        || printf 'OnAccessExtraScanning %s\n' "${W_ONACCESS_EXTRA_SCANNING}" >> "${clam_conf}"
-    virus_line="VirusEvent sudo -n --preserve-env=${W_CLAMAV_VIRUS_EVENT_PRESERVE} ${event}"
+    grep -qx "OnAccessPrevention ${ONACCESS_PREVENTION}" "${clam_conf}" \
+        || printf 'OnAccessPrevention %s\n' "${ONACCESS_PREVENTION}" >> "${clam_conf}"
+    grep -qx "OnAccessExtraScanning ${ONACCESS_EXTRA_SCANNING}" "${clam_conf}" \
+        || printf 'OnAccessExtraScanning %s\n' "${ONACCESS_EXTRA_SCANNING}" >> "${clam_conf}"
+    virus_line="VirusEvent sudo -n --preserve-env=${CLAMAV_VIRUS_EVENT_PRESERVE} ${event}"
     if grep -q '^VirusEvent ' "${clam_conf}"; then
         sed -i "s|^VirusEvent .*|${virus_line}|" "${clam_conf}"
     else
         printf '%s\n' "${virus_line}" >> "${clam_conf}"
     fi
     if ! grep -q '^TemporaryDirectory ' "${clam_conf}"; then
-        printf 'TemporaryDirectory %s\n' "${W_CLAMAV_TEMPORARY_DIRECTORY}" >> "${clam_conf}"
+        printf 'TemporaryDirectory %s\n' "${CLAMAV_TEMPORARY_DIRECTORY}" >> "${clam_conf}"
     fi
 fi
 
-install -d -m 755 -o clamav -g clamav "${W_CLAMAV_TEMPORARY_DIRECTORY}"
+install -d -m 755 -o clamav -g clamav "${CLAMAV_TEMPORARY_DIRECTORY}"
 tee /etc/sudoers.d/liltress-workstation-clamav > /dev/null << EOF
 clamav ALL=(root) NOPASSWD: ${event}
 EOF
@@ -127,9 +126,9 @@ if ! visudo -cf /etc/sudoers.d/liltress-workstation-clamav >/dev/null; then
 fi
 
 if id clamav >/dev/null 2>&1; then
-    install -d -m 750 -o clamav -g clamav "${W_CLAMAV_QUARANTINE}"
+    install -d -m 750 -o clamav -g clamav "${CLAMAV_QUARANTINE}"
 else
-    install -d -m 750 "${W_CLAMAV_QUARANTINE}"
+    install -d -m 750 "${CLAMAV_QUARANTINE}"
 fi
 
 run_silent       "${INSTALL_WATCHER}" "configure.clamav.error" systemctl daemon-reload
@@ -145,14 +144,14 @@ install -d -m 755 "/etc/systemd/system/${clam_unit}.d"
 tee "/etc/systemd/system/${clam_unit}.d/hfu.conf" > /dev/null << EOF
 [Service]
 ExecStart=
-ExecStart=${W_CLAMONACC_BIN} -F --log=${W_CLAMONACC_LOG} --move=${W_CLAMAV_QUARANTINE}
-Restart=${W_CLAMONACC_RESTART}
-RestartSec=${W_CLAMONACC_RESTART_SEC}
+ExecStart=${CLAMONACC_BIN} -F --log=${CLAMONACC_LOG} --move=${CLAMAV_QUARANTINE}
+Restart=${CLAMONACC_RESTART}
+RestartSec=${CLAMONACC_RESTART_SEC}
 EOF
 run_silent       "${INSTALL_WATCHER}" "configure.clamav.error" systemctl daemon-reload
 
-export W_BASE="${CONFIG_BASE_DIRECTORY}"
-export W_SCAN_SKIP_HOME="${CURRENT_HOME}"
+export BASE="${CONFIG_BASE_DIRECTORY}"
+export SCAN_SKIP_HOME="${CURRENT_HOME}"
 # shellcheck disable=SC1091
 source "${INSTALL_DIRECTORY}/service/cron/watchdogs/scan-skip-lib.sh"
 ensure_scan_skip_file "${CURRENT_HOME}"
@@ -172,7 +171,7 @@ if grep -q "can't exclude" "${clam_log}"; then
     log_error        "${INSTALL_WATCHER}" "configure.clamonacc-exclude-stopped-the-watches" "${INSTALL_LOG_DIR:-/var/log/liltress-workstation}"
 fi
 zone_label="les dossiers utilisateur, /tmp, /var/tmp et /opt"
-if [[ "${W_ONACCESS_MOUNTS}" == "1" ]]; then
+if [[ "${ONACCESS_MOUNTS}" == "1" ]]; then
     zone_label="${zone_label}, /media et /mnt"
 fi
 log_success      "${INSTALL_WATCHER}" "configure.clamav-launched-in-monitoring-continues-on" "${zone_label}"

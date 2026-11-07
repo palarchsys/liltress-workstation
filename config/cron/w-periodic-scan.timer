@@ -8,10 +8,10 @@
 Description=Relance l'analyse ClamAV toutes les deux heures
 
 [Timer]
-OnBootSec=${W_PERIODIC_ON_BOOT_SEC}
-OnUnitActiveSec=${W_PERIODIC_EVERY}
-AccuracySec=${W_PERIODIC_ACCURACY}
-Persistent=${W_TIMER_PERSISTENT}
+OnBootSec=${PERIODIC_ON_BOOT_SEC}
+OnUnitActiveSec=${PERIODIC_EVERY}
+AccuracySec=${PERIODIC_ACCURACY}
+Persistent=${TIMER_PERSISTENT}
 Unit=w-periodic-scan.service
 
 [Install]

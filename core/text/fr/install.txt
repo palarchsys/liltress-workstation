@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/fr/install.txt
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -22,9 +22,6 @@ HRNGDEVICE=/dev/hwrng
 [install.installation-fail2ban]
 Installation Fail2Ban
 
-[install.installation-help]
-Installation AIDE
-
 [install.installation-of-lynis]
 Installation de Lynis
 
@@ -36,12 +33,6 @@ Installation des outils de base
 
 [install.installation-of-usbguard]
 Installation de USBGuard
-
-[install.installation-ufw]
-Installation UFW
-
-[install.installation-usbguard]
-Installation USBGuard
 
 [install.list-chkrootkit-not-found]
 Liste chkrootkit introuvable
@@ -116,10 +107,10 @@ La clé du dépôt n'est pas une donnée OpenPGP valide : {1}
 Port TCP {1} déjà occupé — bind Docker 127.0.0.1:{2} impossible : {3}
 
 [install.lib.error.7]
-S_SERVER_TYPE invalide : '{1}'
+SERVER_TYPE invalide : '{1}'
 
 [install.lib.error.8]
-S_MATRIX_ADMIN_USER ou S_MATRIX_ADMIN_PASSWORD vide.
+MATRIX_ADMIN_USER ou MATRIX_ADMIN_PASSWORD vide.
 
 [install.lib.info]
 Récupération du jeton Matrix de {1}
@@ -140,7 +131,7 @@ dpkg-statoverride --remove {1} : {2}
 dpkg-statoverride {1} : {2}
 
 [install.lib.error.12]
-npm : S_MAIN_USER ou S_MAIN_GROUP vide
+npm : MAIN_USER ou MAIN_GROUP vide
 
 [install.lib.error.13]
 npm : compte {1} introuvable
@@ -205,62 +196,14 @@ Journaux logiciels copiés
 [install.log.error.2]
 Entrée interrompue.
 
-[install.log.info.3]
-Recalcul de la base AIDE (plusieurs minutes)
-
 [install.log.warn]
 Base AIDE non recalculée.
-
-[install.log.warn.5]
-Détail : {1}
-
-[install.log.warn.6]
-{1}
-
-[install.log.success]
-Base AIDE recalculée
-
-[install.log.warn.7]
-Pas de terminal : l'installeur est conservé.
 
 [install.log.warn.8]
 Suppression annulée : répertoire refusé.
 
-[install.log.title]
-Suppression de l'installeur
-
 [install.log.info.4]
-Supprimer l'installeur et ses journaux ? (Y/N)
-
-[install.log.info.5]
-Répertoire : {1}
-
-[install.log.warn.9]
-Répondez Y ou N.
-
-[install.log.info.6]
-Retrait de l'installeur
-
-[install.log.success.2]
-Installeur retiré.
-
-[install.log.info.7]
-Services, secrets et cron conservés.
-
-[install.log.info.8]
-La commande liltress est absente.
-
-[install.log.warn.10]
-Suppression annulée : répertoire refusé.
-
-[install.log.warn.11]
-Suppression annulée : fichier utile absent.
-
-[install.log.warn.12]
-Suppression incomplète.
-
-[install.log.warn.13]
-Installeur retiré, fichiers utiles non reposés.
+Commande de retrait du dossier d'installation
 
 [install.log.info.9]
 Snapshot : {1}
@@ -324,9 +267,6 @@ La commande a échoué : {1}
 
 [install.postfix.error]
 La commande a échoué : {1}
-
-[install.postfix.title.2]
-Rechargement systemd
 
 [install.rkhunter.error]
 La commande a échoué : {1}
@@ -426,3 +366,237 @@ La commande a échoué : {1}
 
 [install.docker.error]
 La commande a échoué : {1}
+
+[install.acct-installed]
+acct installé
+
+[install.activation-haveged]
+Activation haveged
+
+[install.activation-of-livepatch]
+Activation de Livepatch
+
+[install.activation-of-ubuntu-pro]
+Activation d'Ubuntu Pro ({1})
+
+[install.active-haveged]
+haveged actif
+
+[install.apparmor-installed]
+APPARMOR installé
+
+[install.attachment-of-ubuntu-pro]
+Attachement d'Ubuntu Pro
+
+[install.auditd-installed]
+AUDITD installé
+
+[install.check-of-the-attachment-ubuntu-pro]
+Contrôle de l'attachement Ubuntu Pro
+
+[install.chkrootkit-installed]
+CHKROOTKIT installé
+
+[install.clamav-installed]
+CLAMAV installé
+
+[install.configuration-of-the-hostname]
+Configuration du hostname
+
+[install.configuration-of-the-repository-lynis]
+Configuration du dépôt Lynis
+
+[install.configuration-rng-tools-debian-hwrng-rngd]
+Configuration rng-tools-debian (HWRNG + rngd)
+
+[install.creation-of-etc-apt-keyrings]
+Création de /etc/apt/keyrings
+
+[install.creation-tree-secured-of-the-project]
+Création arborescence sécurisée du projet
+
+[install.crowdsec-comes-of-the-repository-ubuntu-no-packa]
+CrowdSec {1} vient du dépôt Ubuntu, pas de packagecloud.
+
+[install.crowdsec-installed]
+CrowdSec installé ({1})
+
+[install.download-of-the-key-gpg-lynis]
+Téléchargement de la clé GPG Lynis
+
+[install.fail2ban-installed]
+Fail2Ban installé
+
+[install.haveged-installed-but-inactive]
+haveged installé mais inactif : {1}
+
+[install.hostname-configured]
+Hostname configuré
+
+[install.inclusion-of-the-units-possibly-added]
+Prise en compte des unités éventuellement ajoutées
+
+[install.installation-debsums-finished]
+Installation DEBSUMS terminée ({1}).
+
+[install.installation-of-acct]
+Installation d'acct
+
+[install.installation-of-apparmor]
+Installation de APPARMOR
+
+[install.installation-of-auditd]
+Installation de AUDITD
+
+[install.installation-of-chkrootkit]
+Installation de CHKROOTKIT
+
+[install.installation-of-clamav]
+Installation de ClamAV
+
+[install.installation-of-crowdsec]
+Installation de CROWDSEC
+
+[install.installation-of-debsums]
+Installation de debsums
+
+[install.installation-of-fail2ban]
+Installation de Fail2Ban
+
+[install.installation-of-help]
+Installation de AIDE
+
+[install.installation-of-libpam-pwquality]
+Installation de libpam-pwquality
+
+[install.installation-of-libpam-tmpdir]
+Installation de LIBPAM-TMPDIR
+
+[install.installation-of-postfix]
+Installation de Postfix
+
+[install.installation-of-rkhunter]
+Installation de RKHUNTER
+
+[install.installation-of-sysstat]
+Installation de sysstat
+
+[install.installation-of-the-client-ubuntu-pro]
+Installation du client Ubuntu Pro
+
+[install.installation-of-the-packages]
+Installation des paquets
+
+[install.installation-of-ubuntu-pro]
+Installation d'Ubuntu Pro
+
+[install.installation-of-ufw]
+Installation de UFW
+
+[install.installation-of-unbound]
+Installation d'Unbound
+
+[install.intermediate-version-esm-infra-esm-apps-and-live]
+Version intermédiaire : esm-infra, esm-apps et Livepatch ne sont pas activés.
+
+[install.key-gpg-lynis-installed]
+Clé GPG Lynis installée
+
+[install.libpam-pwquality-installed]
+libpam-pwquality installé
+
+[install.libpam-tmpdir-installed]
+LIBPAM-TMPDIR installé
+
+[install.line-cron-check-not-found]
+Ligne CRON_CHECK introuvable
+
+[install.load-virtio-rng-hwrng-kvm]
+Chargement virtio_rng (HWRNG KVM)
+
+[install.no-dev-hwrng-entropy-via-haveged]
+Pas de /dev/hwrng : entropie via haveged.
+
+[install.postfix-installed]
+POSTFIX installé
+
+[install.preconfiguration-of-postfix]
+Préconfiguration de POSTFIX
+
+[install.preconfiguration-of-postfix-finished]
+Préconfiguration de POSTFIX terminée
+
+[install.record-of-the-repository-crowdsec]
+Enregistrement du dépôt CrowdSec
+
+[install.repository-crowdsec-saved]
+Dépôt CrowdSec enregistré
+
+[install.repository-lynis-configured]
+Dépôt Lynis configuré
+
+[install.rkhunter-installed]
+RKHUNTER installé
+
+[install.rng-tools-debian-did-not-started-rc-result]
+rng-tools-debian n'a pas démarré (rc={1} result={2}) : {3}
+{4}
+
+[install.rng-tools-debian-no-hwrng-hardware-active-havege]
+rng-tools-debian : pas de HWRNG matériel — haveged actif
+
+[install.rng-tools-debian-rngd-active-hwrng-feeds-the-poo]
+rng-tools-debian (rngd) actif — HWRNG alimente le pool
+
+[install.rng-tools-debian-skipdevice-despite-hrngdevice-d]
+rng-tools-debian skipdevice malgré HRNGDEVICE=/dev/hwrng (result={1})
+{2}
+
+[install.sysstat-installed]
+sysstat installé
+
+[install.systemd-reloaded]
+systemd rechargé
+
+[install.ubuntu-pro-already-attached]
+Ubuntu Pro : déjà attachée
+
+[install.ubuntu-pro-attach-a-failed-required]
+Ubuntu Pro attach a échoué (obligatoire) : {1}
+
+[install.ubuntu-pro-enabled]
+Ubuntu Pro : {1} activé
+
+[install.ubuntu-pro-installed]
+Ubuntu Pro installé
+
+[install.ubuntu-pro-livepatch-enabled]
+Ubuntu Pro : livepatch activé
+
+[install.ubuntu-pro-livepatch-not-enabled-installation-co]
+Ubuntu Pro : livepatch non activé, installation poursuivie
+
+[install.ubuntu-pro-machine-attached]
+Ubuntu Pro : machine attachée
+
+[install.ubuntu-pro-missing-token-in-secrets-conf-rerun-b]
+Ubuntu Pro : jeton manquant dans secrets.conf. Relancer : bash {1}/liltress configure
+
+[install.ubuntu-pro-not-enabled-installation-continued]
+Ubuntu Pro : {1} non activé, installation poursuivie
+
+[install.ubuntu-pro-the-machine-is-not-attached-after-pro]
+Ubuntu Pro : la machine n'est pas attachée après pro attach.
+
+[install.unbound-installed]
+Unbound installé
+
+[install.update-finished]
+Mise à jour terminée
+
+[install.update-of-the-index-apt]
+Mise à jour des index apt
+
+[install.update-of-the-system]
+Mise à jour du système
+

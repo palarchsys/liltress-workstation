@@ -8,10 +8,10 @@
 Description=Relance AIDE, rkhunter, chkrootkit et debsums toutes les heures
 
 [Timer]
-OnBootSec=${W_HOURLY_ON_BOOT_SEC}
-OnUnitActiveSec=${W_HOURLY_EVERY}
-AccuracySec=${W_HOURLY_ACCURACY}
-Persistent=${W_TIMER_PERSISTENT}
+OnBootSec=${HOURLY_ON_BOOT_SEC}
+OnUnitActiveSec=${HOURLY_EVERY}
+AccuracySec=${HOURLY_ACCURACY}
+Persistent=${TIMER_PERSISTENT}
 Unit=w-hourly-scan.service
 
 [Install]

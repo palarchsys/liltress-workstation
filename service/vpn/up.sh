@@ -117,7 +117,7 @@ apply_vpn_profile() {
         --route-noexec \
         --pull-filter ignore "dhcp-option DNS" \
         --pull-filter ignore redirect-gateway \
-        --connect-timeout "${W_VPN_HANDSHAKE_TIMEOUT}" \
+        --connect-timeout "${VPN_HANDSHAKE_TIMEOUT}" \
         --connect-retry-max 1 \
         --daemon \
         --writepid "${dir}/pid" \
@@ -137,7 +137,7 @@ check_vpn_handshake() {
     if [[ "${proto}" == "wireguard" ]]; then
         age="$(wg show "${iface}" latest-handshakes 2>/dev/null | awk 'NF { print $NF; exit }')"
         [[ "${age}" =~ ^[0-9]+$ ]] || return 1
-        (( age > 0 && now >= age && now - age <= W_VPN_HANDSHAKE_TIMEOUT )) || return 1
+        (( age > 0 && now >= age && now - age <= VPN_HANDSHAKE_TIMEOUT )) || return 1
         printf '%s\n' "${now}" > "${dir}/handshake"
         chmod 600 "${dir}/handshake"
         return 0
@@ -156,7 +156,7 @@ check_vpn_handshake() {
 
 wait_vpn_handshake() {
     local name="$1" deadline state
-    deadline=$((SECONDS + W_VPN_HANDSHAKE_TIMEOUT))
+    deadline=$((SECONDS + VPN_HANDSHAKE_TIMEOUT))
     while (( SECONDS <= deadline )); do
         state=0
         check_vpn_handshake "${name}" || state=$?
@@ -258,7 +258,7 @@ apply_vpn_probe() {
         --route-noexec \
         --pull-filter ignore "dhcp-option DNS" \
         --pull-filter ignore redirect-gateway \
-        --connect-timeout "${W_VPN_HANDSHAKE_TIMEOUT}" \
+        --connect-timeout "${VPN_HANDSHAKE_TIMEOUT}" \
         --connect-retry-max 1 \
         --daemon \
         --writepid "${dir}/probe.pid" \
@@ -278,7 +278,7 @@ check_vpn_probe() {
     if [[ "${proto}" == "wireguard" ]]; then
         age="$(wg show "${iface}" latest-handshakes 2>/dev/null | awk 'NF { print $NF; exit }')"
         [[ "${age}" =~ ^[0-9]+$ ]] || return 1
-        (( age > 0 && now >= age && now - age <= W_VPN_HANDSHAKE_TIMEOUT )) || return 1
+        (( age > 0 && now >= age && now - age <= VPN_HANDSHAKE_TIMEOUT )) || return 1
         return 0
     fi
     if [[ -f "${dir}/probe.log" ]] && grep -q 'AUTH_FAILED' "${dir}/probe.log"; then
@@ -292,7 +292,7 @@ check_vpn_probe() {
 
 wait_vpn_probe() {
     local name="$1" iface="$2" deadline state
-    deadline=$((SECONDS + W_VPN_HANDSHAKE_TIMEOUT))
+    deadline=$((SECONDS + VPN_HANDSHAKE_TIMEOUT))
     while (( SECONDS <= deadline )); do
         state=0
         check_vpn_probe "${name}" "${iface}" || state=$?
@@ -368,7 +368,7 @@ run_vpn_test() {
         first=1
     fi
     raised=0
-    run_vpn_profile "${name}" "${W_VPN_HANDSHAKE_TIMEOUT}" || raised=$?
+    run_vpn_profile "${name}" "${VPN_HANDSHAKE_TIMEOUT}" || raised=$?
     if (( raised == 0 )); then
         if check_vpn_mode; then
             finish_vpn_open "${name}"

@@ -28,16 +28,16 @@ restart_scan_skip_service() {
     done
 }
 
-if [[ -n "${W_SCAN_SKIP_HOME:-}" ]]; then
-    ensure_scan_skip_file "${W_SCAN_SKIP_HOME}"
+if [[ -n "${SCAN_SKIP_HOME:-}" ]]; then
+    ensure_scan_skip_file "${SCAN_SKIP_HOME}"
 fi
 
 load_onaccess_exclude() {
     local candidate found=""
-    W_ONACCESS_FIXED_EXCLUDE="${W_ONACCESS_FIXED_EXCLUDE:-/var/lib/snapd /snap /var/lib/clamav/quarantine /var/lib/clamav/tmp /var/log}"
+    ONACCESS_FIXED_EXCLUDE="${ONACCESS_FIXED_EXCLUDE:-/var/lib/snapd /snap /var/lib/clamav/quarantine /var/lib/clamav/tmp /var/log}"
     for candidate in \
         "${INSTALL_DIRECTORY:-}/config/clamav/onaccess.conf" \
-        "${W_BASE}/src/config/clamav/onaccess.conf" \
+        "${BASE}/src/config/clamav/onaccess.conf" \
         "/opt/liltress-workstation/src/config/clamav/onaccess.conf"
     do
         [[ -f "${candidate}" ]] || continue
@@ -48,27 +48,27 @@ load_onaccess_exclude() {
         # shellcheck disable=SC1090
         source "${found}"
     fi
-    W_ONACCESS_FIXED=()
+    ONACCESS_FIXED=()
     local path
     # shellcheck disable=SC2086
-    for path in ${W_ONACCESS_FIXED_EXCLUDE}; do
+    for path in ${ONACCESS_FIXED_EXCLUDE}; do
         [[ -n "${path}" ]] || continue
-        W_ONACCESS_FIXED+=("${path}")
+        ONACCESS_FIXED+=("${path}")
     done
     local kept=()
-    for path in "${W_ONACCESS_FIXED[@]+"${W_ONACCESS_FIXED[@]}"}"; do
-        [[ "${path}" == "${W_BASE}/src" ]] && continue
+    for path in "${ONACCESS_FIXED[@]+"${ONACCESS_FIXED[@]}"}"; do
+        [[ "${path}" == "${BASE}/src" ]] && continue
         kept+=("${path}")
     done
-    W_ONACCESS_FIXED=("${kept[@]+"${kept[@]}"}")
+    ONACCESS_FIXED=("${kept[@]+"${kept[@]}"}")
 }
 
 load_onaccess_exclude
 collect_scan_skip_path
-if [[ ${#W_SCAN_SKIP_BAD[@]} -gt 0 ]]; then
-    install -d -m 750 "${W_BASE}/cron/security_logs"
-    for line in "${W_SCAN_SKIP_BAD[@]}"; do
-        printf "$(get_text watchdog.s-path-denied-s-n)" "$(date -Iseconds)" "${line}" | tee -a "${W_BASE}/cron/security_logs/scan-skip.log"
+if [[ ${#SCAN_SKIP_BAD[@]} -gt 0 ]]; then
+    install -d -m 750 "${BASE}/cron/security_logs"
+    for line in "${SCAN_SKIP_BAD[@]}"; do
+        printf "$(get_text watchdog.s-path-denied-s-n)" "$(date -Iseconds)" "${line}" | tee -a "${BASE}/cron/security_logs/scan-skip.log"
     done
 fi
 
@@ -77,7 +77,7 @@ if [[ -f "${conf}" ]]; then
     install -d -m 755 /run/liltress-workstation
     tmp="$(mktemp -p /run/liltress-workstation)"
     trap 'rm -f "${tmp}"' EXIT
-    changed="$(python3 - "${conf}" "${tmp}" "${#W_ONACCESS_FIXED[@]}" "${W_ONACCESS_FIXED[@]}" "${W_SCAN_SKIP_VALID[@]}" << 'PY'
+    changed="$(python3 - "${conf}" "${tmp}" "${#ONACCESS_FIXED[@]}" "${ONACCESS_FIXED[@]}" "${SCAN_SKIP_VALID[@]}" << 'PY'
 import re
 import sys
 from pathlib import Path
@@ -134,8 +134,8 @@ PY
 fi
 
 rk="/etc/rkhunter.conf.local"
-if [[ -f "${rk}" && ${#W_SCAN_SKIP_VALID[@]} -gt 0 ]]; then
-    for path in "${W_SCAN_SKIP_VALID[@]}"; do
+if [[ -f "${rk}" && ${#SCAN_SKIP_VALID[@]} -gt 0 ]]; then
+    for path in "${SCAN_SKIP_VALID[@]}"; do
         case "${path}" in
             */.*)
                 grep -qxF "ALLOWHIDDENDIR=${path}" "${rk}" \

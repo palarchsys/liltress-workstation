@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/03_functions.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -20,7 +20,7 @@ t_require_function() {
 
 for name in set_color_blue require_root set_step_visible log_error run_silent run_optional run_silent_apt run_step \
     add_line copy_backup ensure_directory check_user init_install_log \
-    collect_install_log publish_repo_logs check_debug_log install_exit \
+    collect_install_log publish_repo_logs install_exit \
     copy_installed_logs; do
     t_require_function "${name}" "${MONO}/share/core"
 done
@@ -28,13 +28,13 @@ for name in get_current_user get_operating_system check_ubuntu_base check_deskto
     record_account_snapshot strip_virt_groups check_account_drift read_sshd_value get_sshd_value get_ssh_port \
     check_virtual_machine check_app check_password_unchanged check_ubuntu_pro \
     collect_workstation_logs; do
-    t_require_function "${name}" "${T_ROOT}/core/lib.sh"
+    t_require_function "${name}" "${MONO}/share/core"
 done
 for name in check_email check_port check_smtp check_absolute_path check_drive_remote check_drive_path check_drive_probe check_app_password; do
     t_require_function "${name}" "${MONO}/share/core/config-validators.sh"
 done
 t_require_function check_pro_token "${T_ROOT}/script/config-check.sh"
-t_require_function check_localhost_port "${MONO}/server/core/lib.sh"
+t_require_function check_localhost_port "${MONO}/share/core/product.sh"
 
 t_section "base ubuntu"
 if bash -s -- "${T_ROOT}" << 'OSBASE'
@@ -43,12 +43,12 @@ root="$1"
 INSTALL_DIRECTORY="${root}"
 # shellcheck disable=SC1091
 source "${INSTALL_DIRECTORY}/core/lib.sh"
-grep -q 'source /etc/os-release' "${INSTALL_DIRECTORY}/core/lib.sh"
-grep -q 'dpkg --compare-versions' "${INSTALL_DIRECTORY}/core/lib.sh"
-grep -q 'ge "26.04"' "${INSTALL_DIRECTORY}/core/lib.sh"
-grep -q 'check_ubuntu_lts' "${INSTALL_DIRECTORY}/core/lib.sh"
-grep -qF '!= "ubuntu"' "${INSTALL_DIRECTORY}/core/lib.sh"
-if grep -q 'anduinos' "${INSTALL_DIRECTORY}/core/lib.sh"; then
+grep -q 'source /etc/os-release' "${INSTALL_DIRECTORY}/core/host.sh"
+grep -q 'dpkg --compare-versions' "${INSTALL_DIRECTORY}/core/host.sh"
+grep -q 'ge "26.04"' "${INSTALL_DIRECTORY}/core/host.sh"
+grep -q 'check_ubuntu_lts' "${INSTALL_DIRECTORY}/core/host.sh"
+grep -qF '!= "ubuntu"' "${INSTALL_DIRECTORY}/core/host.sh"
+if grep -q 'anduinos' "${INSTALL_DIRECTORY}/core/host.sh"; then
     exit 1
 fi
 
@@ -106,7 +106,7 @@ then
 else
     t_fail "fn.os.base" "la base Ubuntu n'accepte pas 26.04 ou plus récent"
 fi
-if grep -q '!= "26.04"' "${T_ROOT}/core/lib.sh"; then
+if grep -q '!= "26.04"' "${T_ROOT}/core/host.sh"; then
     t_fail "fn.os.strict" "la version est comparée par égalité stricte sur VERSION_ID"
 else
     t_pass "fn.os.strict" "la version est comparée au plancher 26.04"
@@ -142,8 +142,8 @@ fi
 
 t_section "journaux dans logs/"
 if grep -q 'trap install_exit EXIT' "${T_ROOT}/script/run.sh" \
-   && grep -q 'INSTALL_LOG_DIR="${root}/log/${name}"' "${MONO}/share/core/log.sh" \
-   && grep -F -q '[[ "${code}" -ne 0 ]]' "${MONO}/share/core/log.sh"; then
+   && grep -q 'INSTALL_LOG_DIR="${root}/log/${name}"' "${MONO}/share/core/journal.sh" \
+   && grep -F -q '[[ "${code}" -ne 0 ]]' "${MONO}/share/core/journal.sh"; then
     t_pass "logs.wire" "le poste écrit dans logs/ et copie les logiciels seulement en échec"
 else
     t_fail "logs.wire" "journaux du poste encore hors de logs/, ou copie même en succès"
@@ -152,19 +152,18 @@ t_require_function render_mail "${MONO}/share/core/mail.sh"
 t_require_function install_mail_templates "${MONO}/share/core/mail.sh"
 
 t_section "mode test du poste"
-if grep -q '^MODE_TEST=1$' "${T_ROOT}/config/global.conf" \
-   && ! grep -q '^S_SERVER_TYPE=' "${T_ROOT}/config/global.conf" \
-   && grep -q '^MODE_TEST=${MODE_TEST}$' "${T_ROOT}/script/config-check.sh" \
-   && ! grep -q 'S_SERVER_TYPE' "${T_ROOT}/script/config-check.sh" \
-   && grep -q 'prompt MODE_TEST' "${T_ROOT}/script/configure.sh" \
-   && grep -q 'bool01' "${T_ROOT}/script/configure.sh" \
-   && ! grep -q 'S_SERVER_TYPE' "${T_ROOT}/script/run.sh" \
-   && ! grep -RIn --include='*.sh' 'S_SERVER_TYPE' \
+if ! grep -q 'MODE_TEST' "${T_ROOT}/config/global.conf" \
+   && ! grep -q '^SERVER_TYPE=' "${T_ROOT}/config/global.conf" \
+   && ! grep -q 'MODE_TEST' "${T_ROOT}/script/config-check.sh" \
+   && ! grep -q 'SERVER_TYPE' "${T_ROOT}/script/config-check.sh" \
+   && ! grep -q 'MODE_TEST' "${T_ROOT}/script/configure.sh" \
+   && ! grep -q 'SERVER_TYPE' "${T_ROOT}/script/run.sh" \
+   && ! grep -RIn --include='*.sh' 'SERVER_TYPE' \
         "${T_ROOT}/system" "${T_ROOT}/service" "${T_ROOT}/verify" | grep -q . \
-   && grep -q 'MODE_TEST:-0' "${MONO}/share/core/log.sh"; then
-    t_pass "user.mode-test" "MODE_TEST=1, S_SERVER_TYPE absent du poste"
+   && ! grep -q 'MODE_TEST:-0' "${MONO}/share/core/log.sh"; then
+    t_pass "user.mode-test" "MODE_TEST absent du poste, SERVER_TYPE absent"
 else
-    t_fail "user.mode-test" "MODE_TEST ou S_SERVER_TYPE mal placé"
+    t_fail "user.mode-test" "MODE_TEST ou SERVER_TYPE encore présent sur le poste"
 fi
 
 stage="$(mktemp -d)"
@@ -174,12 +173,13 @@ if bash -c '
     source "$1"
     set_config_default
     write_global_config "$2/global.conf"
-    grep -q "^MODE_TEST=1$" "$2/global.conf"
-    ! grep -q "^S_SERVER_TYPE=" "$2/global.conf"
+    ! grep -q "^MODE_TEST=" "$2/global.conf"
+    ! grep -q "^RCLONE_" "$2/global.conf"
+    ! grep -q "^SERVER_TYPE=" "$2/global.conf"
 ' bash "${T_ROOT}/script/config-check.sh" "${stage}"; then
-    t_pass "user.mode-test.write" "le fichier réécrit porte MODE_TEST=1, sans S_SERVER_TYPE"
+    t_pass "user.mode-test.write" "le fichier réécrit omet MODE_TEST et RCLONE, sans SERVER_TYPE"
 else
-    t_fail "user.mode-test.write" "la réécriture omet MODE_TEST ou garde S_SERVER_TYPE"
+    t_fail "user.mode-test.write" "la réécriture garde MODE_TEST, RCLONE ou SERVER_TYPE"
 fi
 rm -rf "${stage}"
 
@@ -194,7 +194,7 @@ printf 'B:%s:%s:%s\n' "$1" "$2" "${3-}"
 EOF
 out="$(PRODUCT_ROOT="${T_ROOT}" bash -c '
     set -euo pipefail
-    unset S_SERVER_TYPE || true
+    unset SERVER_TYPE || true
     # shellcheck disable=SC1090
     source "$1"
     run_step "$2" "one.sh"
@@ -210,12 +210,12 @@ rm -rf "${tree}"
 log_work="$(mktemp -d)"
 if PRODUCT_ROOT="${T_ROOT}" bash -c '
     set -euo pipefail
-    unset S_SERVER_TYPE || true
+    unset SERVER_TYPE || true
     # shellcheck disable=SC1090
     source "$1"
     INSTALL_DIRECTORY="$2"
     export INSTALL_DIRECTORY
-    W_PROJECT_SLUG=liltress-workstation
+    PROJECT_SLUG=liltress-workstation
     PROJECT_NAME=HF
     unset UBUNTU_BASE_VERSION || true
     OS_PRETTY="Ubuntu"
@@ -241,11 +241,6 @@ if timeout 3 bash -c '
     set -euo pipefail
     # shellcheck disable=SC1090
     source "$1"
-    unset INSTALL_DIRECTORY || true
-    # shellcheck disable=SC1090
-    source "$2"
-    [[ "${MODE_TEST}" == "1" ]]
-    [[ -z "${S_SERVER_TYPE:-}" ]]
     work="$(mktemp -d)"
     trap "rm -rf -- \"${work}\"" EXIT
     mkdir -p "${work}/inst/script" "${work}/inst/config" "${work}/base"
@@ -255,10 +250,13 @@ if timeout 3 bash -c '
     inst="$(cd -- "${work}/inst" && pwd -P)"
     base="$(cd -- "${work}/base" && pwd -P)"
     out="$(INSTALL_DIRECTORY="${inst}" CONFIG_BASE_DIRECTORY="${base}" offer_remove_installer 2>&1)"
-    [[ "${out}" != *[Ss]upprimer* ]]
+    [[ "${out}" == *"sudo rm -rf ${inst}"* ]]
     [[ -f "${inst}/liltress" && -f "${inst}/config/global.conf" ]]
-' bash "${MONO}/share/core/log.sh" "${T_ROOT}/config/global.conf"; then
-    t_pass "user.mode-test.skip" "MODE_TEST=1 termine sans question"
+    out="$(MODE_TEST=1 MODE_DEV=1 INSTALL_DIRECTORY="${inst}" CONFIG_BASE_DIRECTORY="${base}" offer_remove_installer 2>&1)"
+    [[ "${out}" == *"sudo rm -rf ${inst}"* ]]
+    [[ -f "${inst}/liltress" && -f "${inst}/config/global.conf" ]]
+' bash "${MONO}/share/core/log.sh"; then
+    t_pass "user.mode-test.skip" "la fin affiche la commande et garde les fichiers"
 else
-    t_fail "user.mode-test.skip" "la question de suppression part encore"
+    t_fail "user.mode-test.skip" "la commande de retrait manque ou les fichiers ont bougé"
 fi

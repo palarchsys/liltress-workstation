@@ -13,11 +13,11 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_current_user
-W_ACCOUNT_USER="${CURRENT_USER}"
-export W_ACCOUNT_USER
+ACCOUNT_USER="${CURRENT_USER}"
+export ACCOUNT_USER
 
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-rkhunter-2"
-envsubst '$W_ACCOUNT_USER' < "$(locate_config_file rkhunter/rkhunter.conf.local)" > /etc/rkhunter.conf.local
+envsubst '$ACCOUNT_USER' < "$(locate_config_file rkhunter/rkhunter.conf.local)" > /etc/rkhunter.conf.local
 chmod 644 /etc/rkhunter.conf.local
 log_success      "${INSTALL_WATCHER}" "configure.rkhunter-conf-local-installed"
 

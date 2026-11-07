@@ -8,9 +8,9 @@
 Description=Vérifie si un redémarrage est utile
 
 [Timer]
-OnUnitActiveSec=${W_REBOOT_EVERY}
-AccuracySec=${W_REBOOT_ACCURACY}
-Persistent=${W_TIMER_PERSISTENT}
+OnUnitActiveSec=${REBOOT_EVERY}
+AccuracySec=${REBOOT_ACCURACY}
+Persistent=${TIMER_PERSISTENT}
 Unit=w-reboot-notice.service
 
 [Install]

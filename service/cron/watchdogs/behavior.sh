@@ -10,9 +10,9 @@
 # -----------------------------------------------------------------------------
 
 set -euo pipefail
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
+BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${W_BASE}/cron/bin/common.sh"
+source "${BASE}/cron/bin/common.sh"
 LOG_FILE="${LOG_DIR}/behavior-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/behavior-${STAMP}.txt"
 MODULE_NAME="Auditd"
@@ -22,12 +22,12 @@ if ! command -v ausearch >/dev/null 2>&1; then
     exit 0
 fi
 
-stamp="${W_BASE}/cron/behavior.stamp"
+stamp="${BASE}/cron/behavior.stamp"
 
 record_behavior_stamp() {
     local moment
     moment="$(date '+%m/%d/%Y %T')"
-    install -d -m 750 "${W_BASE}/cron"
+    install -d -m 750 "${BASE}/cron"
     printf '%s\n' "${moment}" > "${stamp}"
     chmod 600 "${stamp}"
 }

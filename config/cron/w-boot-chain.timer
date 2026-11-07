@@ -8,9 +8,9 @@
 Description=Lance la chaîne de sécurité à chaque démarrage
 
 [Timer]
-OnBootSec=${W_BOOT_ON_BOOT_SEC}
-AccuracySec=${W_BOOT_ACCURACY}
-Persistent=${W_TIMER_PERSISTENT}
+OnBootSec=${BOOT_ON_BOOT_SEC}
+AccuracySec=${BOOT_ACCURACY}
+Persistent=${TIMER_PERSISTENT}
 Unit=w-boot-chain.service
 
 [Install]

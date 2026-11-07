@@ -78,7 +78,7 @@ from pathlib import Path
 conf = Path(sys.argv[1]).read_text(encoding="utf-8")
 egress = Path(sys.argv[2]).read_text(encoding="utf-8")
 lib = Path(sys.argv[3]).read_text(encoding="utf-8")
-found = re.search(r"^W_VPN_FW_PRIORITY=(-?\d+)\s*$", conf, re.M)
+found = re.search(r"^VPN_FW_PRIORITY=(-?\d+)\s*$", conf, re.M)
 if not found or found.group(1) != "-150":
     sys.exit("priorité absente")
 if not re.search(r"priority 0", egress):
@@ -202,18 +202,18 @@ grep -q 'restart_vpn_services' "${vpn_dir}/failover.sh" || mode_ok=0
 grep -q 'restart_vpn_services' "${vpn_dir}/switch.sh" || mode_ok=0
 grep -q 'check_vpn_profile_valid' "${vpn_dir}/switch.sh" || mode_ok=0
 grep -q 'run_vpn_test' "${vpn_dir}/import.sh" || mode_ok=0
-grep -q 'W_VPN_FAILOVER_TRIES' "${vpn_dir}/failover.sh" || mode_ok=0
-grep -q 'W_VPN_FAILOVER_TIMEOUT' "${vpn_dir}/failover.sh" || mode_ok=0
+grep -q 'VPN_FAILOVER_TRIES' "${vpn_dir}/failover.sh" || mode_ok=0
+grep -q 'VPN_FAILOVER_TIMEOUT' "${vpn_dir}/failover.sh" || mode_ok=0
 grep -q 'log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.none"' "${vpn_dir}/failover.sh" || mode_ok=0
 grep -q 'log_error .*vpn.failover.none' "${vpn_dir}/failover.sh" && mode_ok=0
 grep -q 'meta l4proto tcp th dport' "${vpn_dir}/killswitch.sh" || mode_ok=0
 grep -q 'meta l4proto tcp th sport' "${vpn_dir}/killswitch.sh" || mode_ok=0
 grep -q 'meta mark set' "${vpn_dir}/killswitch.sh" || mode_ok=0
 grep -q 'fwmark' "${vpn_dir}/routes.sh" || mode_ok=0
-grep -q 'W_VPN_RULE_PRIO_SSH=45' "${cfg_dir}/vpn.conf" || mode_ok=0
-grep -q 'W_VPN_RULE_PRIO_TUNNEL=100' "${cfg_dir}/vpn.conf" || mode_ok=0
-grep -q 'W_VPN_FAILOVER_TRIES=3' "${cfg_dir}/vpn.conf" || mode_ok=0
-grep -q 'W_VPN_FAILOVER_TIMEOUT=10' "${cfg_dir}/vpn.conf" || mode_ok=0
+grep -q 'VPN_RULE_PRIO_SSH=45' "${cfg_dir}/vpn.conf" || mode_ok=0
+grep -q 'VPN_RULE_PRIO_TUNNEL=100' "${cfg_dir}/vpn.conf" || mode_ok=0
+grep -q 'VPN_FAILOVER_TRIES=3' "${cfg_dir}/vpn.conf" || mode_ok=0
+grep -q 'VPN_FAILOVER_TIMEOUT=10' "${cfg_dir}/vpn.conf" || mode_ok=0
 grep -q 'TimeoutStartSec=300' "${cfg_dir}/w-vpn.service" || mode_ok=0
 grep -q 'w-vpn-watch.timer' "${vpn_dir}/configure.sh" || mode_ok=0
 if grep -E '^[[:space:]]+up\)' "${vpn_dir}/cli.sh" || grep -E '^[[:space:]]+down\)' "${vpn_dir}/cli.sh" || grep -E '^[[:space:]]+boot\)' "${vpn_dir}/cli.sh"; then

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : verify/workstation.sh
-# Updated at : 2026-11-06
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -43,7 +43,6 @@ mkdir -p "$(dirname "${REPORT}")"
     echo
 } > "${REPORT}"
 
-
 root_hash="$(awk -F: '$1=="root"{print $2}' /etc/shadow)"
 user_hash="$(awk -F: -v u="${CURRENT_USER}" '$1==u{print $2}' /etc/shadow)"
 if [[ -z "${root_hash}" ]]; then
@@ -83,7 +82,6 @@ for b in gcc g++ cc make; do
         fi
     fi
 done
-
 
 root_login="$(get_sshd_value permitrootlogin)"
 if [[ "${root_login}" == "no" ]]; then
@@ -276,7 +274,7 @@ else
 fi
 # shellcheck disable=SC1091
 source "${INSTALL_DIRECTORY}/config/clamav/onaccess.conf"
-if [[ "${W_ONACCESS_MOUNTS}" == "1" ]]; then
+if [[ "${ONACCESS_MOUNTS}" == "1" ]]; then
     mount_ok=1
     if [[ -d /media ]] && ! grep -q '^OnAccessIncludePath /media$' "${clam_conf}"; then
         mount_ok=0
@@ -291,7 +289,7 @@ if [[ "${W_ONACCESS_MOUNTS}" == "1" ]]; then
     fi
 elif grep -q '^OnAccessIncludePath /media$' "${clam_conf}" \
     || grep -q '^OnAccessIncludePath /mnt$' "${clam_conf}"; then
-    report_fail "/media ou /mnt surveillés alors que W_ONACCESS_MOUNTS=0"
+    report_fail "/media ou /mnt surveillés alors que ONACCESS_MOUNTS=0"
 else
     report_pass "montages hors surveillance continue"
 fi
@@ -300,10 +298,10 @@ source "${INSTALL_DIRECTORY}/config/ufw/egress.conf"
 response="${CONFIG_BASE_DIRECTORY}/cron/bin/clamav-response.sh"
 if [[ -f "${response}" ]] \
     && grep -q 'kill -TERM' "${response}" \
-    && ! grep -q 'W_CLAMAV_KILL' "${response}" \
+    && ! grep -q 'CLAMAV_KILL' "${response}" \
     && grep -q 'inet w_isolate' "${response}" \
-    && ! grep -q 'W_NET_ISOLATE:-' "${response}"; then
-    report_pass "signal et isolation après une détection (${W_NET_ISOLATE_SEC}s)"
+    && ! grep -q 'NET_ISOLATE:-' "${response}"; then
+    report_pass "signal et isolation après une détection (${NET_ISOLATE_SEC}s)"
 else
     report_fail "signal ou isolation absent de clamav-response.sh"
 fi
@@ -378,7 +376,6 @@ else
     report_fail "systemd-resolved n'est pas pointé vers Unbound"
 fi
 
-
 if ! command -v pro >/dev/null 2>&1; then
     report_fail "ubuntu-pro-client absent"
 elif check_ubuntu_pro; then
@@ -426,7 +423,6 @@ else
     report_fail "Ubuntu Pro non attaché (obligatoire)"
 fi
 
-
 if command -v lynis >/dev/null 2>&1; then
     report_pass "lynis installé"
     if [[ -f /etc/lynis/custom.prf ]]; then
@@ -437,7 +433,6 @@ if command -v lynis >/dev/null 2>&1; then
 else
     report_fail "lynis absent"
 fi
-
 
 if dpkg-query -W -f '${Status}' snapd 2>/dev/null | grep -q 'install ok'; then
     report_pass "snapd installé"
@@ -480,7 +475,7 @@ case "${vpn_kind}" in
         report_fail "$(get_text vpn.verify.down "${vpn_name}")"
         ;;
     stale)
-        report_fail "$(get_text vpn.verify.stale "${vpn_name}" "${W_VPN_HANDSHAKE_TIMEOUT:-25}")"
+        report_fail "$(get_text vpn.verify.stale "${vpn_name}" "${VPN_HANDSHAKE_TIMEOUT:-25}")"
         ;;
 esac
 

@@ -12,8 +12,8 @@ clear_vpn_network() {
     if [[ -n "${name}" ]]; then
         remove_vpn_iface "${name}"
     fi
-    ip link del "${W_VPN_IFACE_WG}" >/dev/null 2>&1 || true
-    ip link del "${W_VPN_IFACE_OVPN}" >/dev/null 2>&1 || true
+    ip link del "${VPN_IFACE_WG}" >/dev/null 2>&1 || true
+    ip link del "${VPN_IFACE_OVPN}" >/dev/null 2>&1 || true
     clear_vpn_routes || true
     clear_vpn_killswitch || true
     clear_vpn_active

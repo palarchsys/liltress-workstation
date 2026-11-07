@@ -34,13 +34,13 @@ log_success      "${INSTALL_WATCHER}" "configure.optional-collections-processed"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-the-duration-of-block"
 # shellcheck disable=SC1091
 source "$(locate_config_file crowdsec/ban.conf)"
-if [[ ! "${W_CROWDSEC_BAN_DURATION}" =~ ^[0-9]+[smhd]$ ]]; then
+if [[ ! "${CROWDSEC_BAN_DURATION}" =~ ^[0-9]+[smhd]$ ]]; then
     log_error        "${INSTALL_WATCHER}" "configure.duration-of-block-invalid"
 fi
 grep -v '^#' "$(locate_config_file crowdsec/profiles.yaml)" \
-    | sed "s/duration: .*/duration: ${W_CROWDSEC_BAN_DURATION}/" \
+    | sed "s/duration: .*/duration: ${CROWDSEC_BAN_DURATION}/" \
     > /etc/crowdsec/profiles.yaml
-log_success      "${INSTALL_WATCHER}" "configure.block-installed" "${W_CROWDSEC_BAN_DURATION}"
+log_success      "${INSTALL_WATCHER}" "configure.block-installed" "${CROWDSEC_BAN_DURATION}"
 
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-the-journals-read-by-crowdsec"
 {

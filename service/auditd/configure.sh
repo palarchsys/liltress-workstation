@@ -17,7 +17,7 @@ get_current_user
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-auditd"
 
 install -d -m 750 /etc/audit/rules.d
-rm -f /etc/audit/rules.d/"${W_PROJECT_SLUG}".rules
+rm -f /etc/audit/rules.d/"${PROJECT_SLUG}".rules
 
 write_audit_watch() {
     local path="$1" key="$2" field="dir"

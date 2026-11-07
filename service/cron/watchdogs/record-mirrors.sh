@@ -7,9 +7,9 @@
 
 set -euo pipefail
 
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
+BASE="${BASE:-/opt/liltress-workstation}"
 file="/var/lib/rkhunter/db/mirrors.dat"
-stamp="${W_BASE}/cron/rkhunter-mirrors.sha256"
+stamp="${BASE}/cron/rkhunter-mirrors.sha256"
 mode="${1:-save}"
 
 if [[ ! -f "${file}" ]]; then

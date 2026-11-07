@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : workstation/locale/en/vpn.txt
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -41,12 +41,6 @@ No active profile.
 [vpn.list.empty]
 No profile.
 
-[vpn.list.boot-yes]
-boot
-
-[vpn.list.boot-no]
-manual
-
 [vpn.import.ok]
 Profile {1} imported. Endpoint {2}.
 
@@ -71,17 +65,11 @@ auth-user-pass needs a file path.
 [vpn.import.peer]
 Profile {1} must contain one peer.
 
-[vpn.up.ok]
-Tunnel {1} is up.
-
 [vpn.up.same]
 Tunnel {1} is already up.
 
 [vpn.up.agent]
 Profile {1} needs a passphrase agent.
-
-[vpn.down.ok]
-Tunnel stopped. Direct network restored.
 
 [vpn.direct.ok]
 No VPN configured. Direct network, killswitch off.
@@ -92,26 +80,11 @@ Switched to {1}.
 [vpn.switch.fail]
 Switch to {1} failed. Direct network stays closed.
 
-[vpn.boot.ok]
-Boot profile is {1}.
-
-[vpn.boot.off]
-Boot tunnel is off.
-
-[vpn.boot.encrypted]
-Profile {1} cannot boot. It needs a passphrase.
-
-[vpn.boot.bad]
-Boot profile {1} is not usable.
-
 [vpn.rm.ok]
 Profile {1} removed.
 
 [vpn.rm.active]
 Profile {1} is active.
-
-[vpn.rm.boot]
-Profile {1} is the boot profile.
 
 [vpn.rm.missing]
 Profile {1} does not exist.
@@ -175,9 +148,6 @@ VPN client prepared.
 
 [vpn.profile.invalid]
 Profile {1} is invalid.
-
-[vpn.handshake.fail]
-Handshake failed for {1}.
 
 [vpn.verify.ok]
 VPN boot tunnel {1} is up.

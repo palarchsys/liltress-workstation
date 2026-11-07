@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/fr/log.txt
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -85,6 +85,9 @@ dir_install_path invalide : '{1}'
 [log.directory]
 - **Dossier** : `{1}`
 
+[log.execution]
+Exécution
+
 [log.execution-of]
 Exécution de {1}
 
@@ -160,9 +163,6 @@ Base de propriétés rkhunter enregistrée.\n
 [log.rc-kept-boot]
 rc conservé (boot) : {1}
 
-[log.reapplication-of-the-deactivations]
-Réapplication des désactivations
-
 [log.repository]
 - **Dépôt** : `{1}`
 
@@ -217,6 +217,9 @@ usage: lynis.sh <racine> [auditeur]\n
 [log.journals]
 Journaux : {1}
 
+[log.journals-title]
+Journaux d'installation
+
 [log.ignored-compressed-octets]
 ignoré (compressé, {1} octets) {2}
 
@@ -229,8 +232,14 @@ aide --init a retourné une erreur. Détail : {1}
 [log.base-help-not-generated-help-db-new-not-found-de]
 Base AIDE non générée (aide.db.new introuvable). Détail : {1}
 
+[log.apt-listchanges-timer-stopped-before-the-aide-bas]
+La minuterie apt-listchanges est coupée avant la base AIDE.
+
 [log.baseline-help-saved]
 Base de référence AIDE enregistrée
+
+[log.configuration-help-absent-etc-aide-aide-conf-n]
+Configuration AIDE absente : /etc/aide/aide.conf.
 
 [log.this-script-must-be-executed-with-sudo-or-as-roo]
 Ce script doit être exécuté avec sudo ou en root.
@@ -304,9 +313,6 @@ L'e-mail de test vers {1} n'a pas été accepté par Postfix.
 [verify.workstation.warn]
 {1}
 
-[verify.workstation.title.4]
-Ubuntu Pro
-
 [verify.workstation.info.5]
 {1}
 
@@ -318,3 +324,9 @@ Condition refusée : {1}
 
 [run.close.done]
 Installation terminée
+
+[log.record-of-the-baseline-help]
+Enregistrement de la base de référence AIDE
+
+[log.the-detail-stays-in-the-journal-not-in-the-termi]
+Le détail reste dans le journal, pas dans le terminal.

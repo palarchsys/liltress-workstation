@@ -1,11 +1,8 @@
 # =============================================================================
 # File       : core/text/de/configure.txt
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
-
-[configure.activation-apparmor]
-Aktivierung AppArmor
 
 [configure.activation-of-fail2ban]
 Aktivierung von Fail2Ban
@@ -66,9 +63,6 @@ Anmeldung
 
 [configure.password]
 Password
-
-[configure.policy-usbguard]
-Policy USBGuard
 
 [configure.quota-cpu-not-found]
 Kontingent CPU nicht gefunden
@@ -139,15 +133,6 @@ Kontingent CPU ungültig ({1})
 [configure.g-mail-alerts-invalid-example-0-or-1]
 {1}: MAIL_ALERTS ungültig (« {2} »). Beispiel: 0 oder 1
 
-[configure.g-rclone-alerts-invalid-example-0-or-1]
-{1}: RCLONE_ALERTS ungültig (« {2} »). Beispiel: 0 oder 1
-
-[configure.g-rclone-remote-invalid-example-gdrive]
-{1}: RCLONE_REMOTE ungültig (« {2} »). Beispiel: gdrive
-
-[configure.g-rclone-path-invalid-example-liltress-alerts]
-{1}: RCLONE_PATH ungültig (« {2} »). Beispiel: liltress-alerts
-
 [configure.g-mail-template-invalid-example-mail-html]
 {1}: MAIL_TEMPLATE ungültig (« {2} »). Beispiel: mail.html
 
@@ -192,6 +177,9 @@ Unit clamonacc nicht gefunden: die Überwachung fährt fort kann nicht démarrer
 
 [configure.clamav.error.12]
 clamonacc bleibt nicht aktiv. Detail: {1}/clamonacc.log
+
+[configure.clamonacc-exclude-stopped-the-watches]
+Ein ClamAV-Ausschluss hat die Überwachungen angehalten. Detail: {1}/clamonacc.log
 
 [configure.auditd.error]
 Der Befehl ist fehlgeschlagen: {1}
@@ -319,9 +307,6 @@ Ubuntu-Pro-Token
 [configure.script.error.5]
 Der Befehl ist fehlgeschlagen: {1}
 
-[configure.script.error.8]
-Der Befehl ist fehlgeschlagen: {1}
-
 [configure.clamav.warn]
 Freshclam ist unvollständig, der Dienst läuft weiter
 
@@ -384,3 +369,26 @@ Der Befehl ist fehlgeschlagen: {1}
 
 [configure.swap.error]
 Der Befehl ist fehlgeschlagen: {1}
+[configure.backtick-forbidden]
+{1}: umgekehrtes Apostroph verboten.
+
+[configure.command-subst-forbidden]
+{1}: $(...) verboten.
+
+[configure.config-prepared-must]
+{1}: CONFIG_PREPARED muss 1 sein. Beispiel: ./liltress configure
+
+[configure.secret-prepared-must]
+{1}: SECRET_PREPARED muss 1 sein. Beispiel: ./liltress configure
+
+[configure.user-conf-absent]
+user.conf fehlt. Beispiel: {1}
+
+[configure.user-conf-no-source]
+user.conf: kein source-Befehl.
+
+[configure.secrets-conf-mode]
+secrets.conf: Rechte {1}, erwartet 600. Beispiel: chmod 600 config/secrets.conf
+
+[configure.main-user-same-as-cron]
+{1}: MAIN_USER und CRON_USER sind gleich (« {2} »). Beispiel: ein SSH-Konto getrennt von cronexecutor

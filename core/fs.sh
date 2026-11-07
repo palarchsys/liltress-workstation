@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/fs.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -19,9 +19,6 @@ locate_config_file() {
     fi
     if [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
         roots+=("${CONFIG_BASE_DIRECTORY}/src" "${CONFIG_BASE_DIRECTORY}")
-    fi
-    if [[ -n "${W_BASE:-}" ]]; then
-        roots+=("${W_BASE}/src" "${W_BASE}")
     fi
     if [[ -n "${BASE:-}" ]]; then
         roots+=("${BASE}/src" "${BASE}")
@@ -136,4 +133,43 @@ load_usb_rule() {
         value="${line#*=}"
         set_usb_rule "${key}" "${value}"
     done < "$(locate_config_file usbguard/daemon.conf)"
+}
+
+copy_runtime_dir() {
+    local src="$1" dest="$2" src_real="" dest_real=""
+    [[ -d "${src}" ]] || return 0
+    src_real="$(readlink -f "${src}")"
+    if [[ -d "${dest}" ]]; then
+        dest_real="$(readlink -f "${dest}" 2>/dev/null || true)"
+        [[ "${src_real}" == "${dest_real}" ]] && return 0
+    fi
+    install -d -m 755 "${dest}"
+    cp -a "${src_real}/." "${dest}/"
+}
+
+encode_url() {
+    local s="$1" byte c out=""
+    while IFS= read -r byte; do
+        [[ -n "${byte}" ]] || continue
+        if [[ "${byte}" -eq 45 || "${byte}" -eq 46 || "${byte}" -eq 95 || "${byte}" -eq 126 \
+            || ( "${byte}" -ge 48 && "${byte}" -le 57 ) \
+            || ( "${byte}" -ge 65 && "${byte}" -le 90 ) \
+            || ( "${byte}" -ge 97 && "${byte}" -le 122 ) ]]; then
+            printf -v c '%b' "$(printf '\\%03o' "${byte}")"
+            out+="${c}"
+        else
+            printf -v c "$(get_text install.02x)" "${byte}"
+            out+="%${c}"
+        fi
+    done < <(printf '%s' "${s}" | od -An -tu1 -v | tr -s '[:space:]' '\n')
+    printf '%s' "${out}"
+}
+
+persist_mode() {
+    local mode="$1" path="$2" group="${3:-root}"
+    [[ -e "${path}" ]] || return 0
+    if dpkg-statoverride --list "${path}" >/dev/null 2>&1; then
+        dpkg-statoverride --remove "${path}" >/dev/null
+    fi
+    dpkg-statoverride --update --add root "${group}" "${mode}" "${path}" >/dev/null
 }

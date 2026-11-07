@@ -8,9 +8,9 @@
 Description=Relance l'analyse différée des bibliothèques
 
 [Timer]
-OnUnitActiveSec=${W_IDLE_EVERY}
-AccuracySec=${W_IDLE_ACCURACY}
-Persistent=${W_TIMER_PERSISTENT}
+OnUnitActiveSec=${IDLE_EVERY}
+AccuracySec=${IDLE_ACCURACY}
+Persistent=${TIMER_PERSISTENT}
 Unit=w-idle-scan.service
 
 [Install]

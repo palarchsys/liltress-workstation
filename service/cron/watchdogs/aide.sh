@@ -6,9 +6,9 @@
 # =============================================================================
 
 set -euo pipefail
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
+BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${W_BASE}/cron/bin/common.sh"
+source "${BASE}/cron/bin/common.sh"
 LOG_FILE="${LOG_DIR}/aide-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/aide-${STAMP}.txt"
 if ! command -v aide >/dev/null; then
@@ -25,7 +25,7 @@ if [[ "${rc}" -eq 0 ]]; then
 elif [[ "${rc}" -ge 128 ]]; then
     log_alert "$(get_crash_sentence "AIDE" "${rc}")"
 elif [[ "${rc}" -ge 1 && "${rc}" -le 7 ]]; then
-    W_AIDE_REFRESH=1 \
+    AIDE_REFRESH=1 \
         log_alert "$(get_text watchdog.help-changes-detected-code-detail "${rc}" "${LOG_FILE}")"
 else
     log_alert "$(get_text watchdog.help-error-rc-detail "${rc}" "${LOG_FILE}")"

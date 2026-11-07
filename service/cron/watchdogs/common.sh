@@ -6,14 +6,14 @@
 # =============================================================================
 
 set -euo pipefail
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
-LOG_DIR="${W_BASE}/cron/security_logs"
-ALERT_DIR="${W_BASE}/cron/alerts"
+BASE="${BASE:-/opt/liltress-workstation}"
+LOG_DIR="${BASE}/cron/security_logs"
+ALERT_DIR="${BASE}/cron/alerts"
 mkdir -p "${LOG_DIR}" "${ALERT_DIR}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-if [[ -f "${W_BASE}/cron/mail.conf" ]]; then
+if [[ -f "${BASE}/cron/mail.conf" ]]; then
     # shellcheck disable=SC1091
-    source "${W_BASE}/cron/mail.conf"
+    source "${BASE}/cron/mail.conf"
 fi
 
 log_pass()  { printf '%s %s\n' "$(date -Iseconds)" "$*" | tee -a "${LOG_FILE}"; }
@@ -24,7 +24,7 @@ for candidate_watchdog in \
     "${here_watchdog}/../../../../share/core/watchdog-load.sh" \
     "${INSTALL_DIRECTORY:-}/core/watchdog-load.sh" \
     "${CONFIG_BASE_DIRECTORY:-}/src/core/watchdog-load.sh" \
-    "${W_BASE:-}/src/core/watchdog-load.sh"
+    "${BASE:-}/src/core/watchdog-load.sh"
 do
     if [[ -n "${candidate_watchdog}" && -f "${candidate_watchdog}" ]]; then
         # shellcheck disable=SC1090
@@ -54,7 +54,7 @@ else
     printf '%s\n' "watchdog-load.sh not found" >&2
     exit 1
 fi
-if declare -F read_language_file >/dev/null 2>&1 && [[ -f "${W_BASE}/config/global.conf" ]]; then
-    read_language_file "${W_BASE}/config/global.conf"
+if declare -F read_language_file >/dev/null 2>&1 && [[ -f "${BASE}/config/global.conf" ]]; then
+    read_language_file "${BASE}/config/global.conf"
 fi
 

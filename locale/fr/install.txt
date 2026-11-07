@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : workstation/locale/fr/install.txt
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -64,9 +64,6 @@ debsums installé
 [install.download-of-the-key-gpg-lynis]
 Téléchargement de la clé GPG Lynis
 
-[install.entropy-haveged-rng-tools-debian]
-Entropie (haveged + rng-tools-debian)
-
 [install.fail2ban-installed]
 Fail2Ban installé
 
@@ -75,21 +72,6 @@ haveged activé
 
 [install.haveged-installed-but-inactive-2]
 haveged installé mais inactif
-
-[install.installation-apparmor-2]
-Installation AppArmor
-
-[install.installation-auditd]
-Installation auditd
-
-[install.installation-chkrootkit]
-Installation chkrootkit
-
-[install.installation-clamav-2]
-Installation ClamAV
-
-[install.installation-debsums-2]
-Installation debsums
 
 [install.installation-of-apparmor-2]
 Installation d'AppArmor
@@ -151,15 +133,6 @@ Installation d'unattended-upgrades
 [install.installation-of-unbound]
 Installation d'Unbound
 
-[install.installation-rkhunter]
-Installation rkhunter
-
-[install.installation-unattended-upgrades]
-Installation unattended-upgrades
-
-[install.installation-unbound]
-Installation Unbound
-
 [install.intermediate-version-esm-infra-esm-apps-and-live]
 Version intermédiaire : esm-infra, esm-apps et Livepatch ne sont pas activés.
 
@@ -168,9 +141,6 @@ Clé GPG Lynis installée
 
 [install.liltress-workstation-lynis-cryp-8004]
 # Liltress Workstation — Lynis CRYP-8004
-
-[install.multiarch-i386]
-Multiarch i386
 
 [install.no-hwrng-exploitable-entropy-via-haveged-ok-desk]
 Pas de HWRNG exploitable — entropie via haveged (OK desktop)
@@ -193,9 +163,6 @@ Dépôt CrowdSec
 [install.repository-crowdsec-saved]
 Dépôt CrowdSec enregistré
 
-[install.repository-lynis-cisofy]
-Dépôt Lynis CISOfy
-
 [install.repository-lynis-configured-sources-ubuntu-not-c]
 Dépôt Lynis configuré (sources Ubuntu non modifiées)
 
@@ -207,9 +174,6 @@ rngd activé
 
 [install.tools-of-base]
 Outils de base
-
-[install.tree-project]
-Arborescence projet
 
 [install.ubuntu-pro]
 Ubuntu Pro
@@ -255,9 +219,6 @@ Mise à jour terminée
 
 [install.update-of-the-system]
 Mise à jour du système
-
-[install.update-system]
-Mise à jour système
 
 [install.postfix-installed-2]
 Postfix installé

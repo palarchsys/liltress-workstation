@@ -30,7 +30,7 @@ done
 if [[ "$(basename -- "${script_dir}")" == "bin" ]]; then
     base="$(dirname -- "${script_dir}")"
 else
-    base="${CONFIG_BASE_DIRECTORY:-${W_BASE:-${BASE:-/opt/liltress}}}"
+    base="${CONFIG_BASE_DIRECTORY:-${BASE:-/opt/liltress}}"
 fi
 if [[ -f "${base}/config/global.conf" ]] && declare -F read_language_file >/dev/null 2>&1; then
     read_language_file "${base}/config/global.conf"

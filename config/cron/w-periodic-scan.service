@@ -13,5 +13,5 @@ Type=oneshot
 Nice=${WATCHDOG_LIMIT_NICE}
 IOSchedulingClass=idle
 CPUQuota=${cpu_quota}%
-Environment=W_CLAMAV_DEFER=1
+Environment=CLAMAV_DEFER=1
 ExecStart=${CONFIG_BASE_DIRECTORY}/cron/bin/clamav.sh

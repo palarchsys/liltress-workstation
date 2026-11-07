@@ -249,7 +249,7 @@ def mail_pre(text):
         '<pre style="margin:0 0 16px;width:100%;max-width:100%;box-sizing:border-box;'
         'display:block;background-color:#020617;border:1px solid #334155;border-radius:8px;'
         'padding:12px;color:#e2e8f0;font-family:Consolas,Courier New,monospace;font-size:13px;'
-        'line-height:1.45;white-space:pre-wrap;word-wrap:break-word;word-break:break-word;overflow-wrap:break-word;overflow-x:auto;">'
+        'line-height:1.45;white-space:pre;overflow-x:auto;">'
         + html.escape(text, quote=False)
         + "</pre>"
     )

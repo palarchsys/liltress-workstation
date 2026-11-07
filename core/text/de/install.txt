@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/de/install.txt
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -22,9 +22,6 @@ HRNGDEVICE=/dev/hwrng
 [install.installation-fail2ban]
 Installation Fail2Ban
 
-[install.installation-help]
-Installation AIDE
-
 [install.installation-of-lynis]
 Installation von Lynis
 
@@ -36,12 +33,6 @@ Installation der Werkzeuge von Basis
 
 [install.installation-of-usbguard]
 Installation von USBGuard
-
-[install.installation-ufw]
-Installation UFW
-
-[install.installation-usbguard]
-Installation USBGuard
 
 [install.list-chkrootkit-not-found]
 Liste chkrootkit nicht gefunden
@@ -116,10 +107,10 @@ Der Schlüssel der Paketquelle ist keine gültige OpenPGP-Datei: {1}
 Port TCP {1} bereits belegt — bind Docker 127.0.0.1:{2} unmöglich: {3}
 
 [install.lib.error.7]
-S_SERVER_TYPE ungültig: '{1}'
+SERVER_TYPE ungültig: '{1}'
 
 [install.lib.error.8]
-S_MATRIX_ADMIN_USER oder S_MATRIX_ADMIN_PASSWORD leer.
+MATRIX_ADMIN_USER oder MATRIX_ADMIN_PASSWORD leer.
 
 [install.lib.info]
 Abruf des Token Matrix von {1}
@@ -140,7 +131,7 @@ dpkg-statoverride --remove {1}: {2}
 dpkg-statoverride {1}: {2}
 
 [install.lib.error.12]
-npm: S_MAIN_USER oder S_MAIN_GROUP ist leer
+npm: MAIN_USER oder MAIN_GROUP ist leer
 
 [install.lib.error.13]
 npm: Konto {1} nicht gefunden
@@ -205,62 +196,14 @@ Journale Software kopiert
 [install.log.error.2]
 Eingabe unterbrochen.
 
-[install.log.info.3]
-Recalcul von die Basis AIDE (mehrere Minuten)
-
 [install.log.warn]
 Basis AIDE nicht recalculée.
-
-[install.log.warn.5]
-Detail: {1}
-
-[install.log.warn.6]
-{1}
-
-[install.log.success]
-Basis AIDE recalculée
-
-[install.log.warn.7]
-Kein Terminal: das Installationsprogramm ist behalten.
 
 [install.log.warn.8]
 Entfernung abgebrochene: Verzeichnis verweigert.
 
-[install.log.title]
-Entfernung des Installationsprogramm
-
 [install.log.info.4]
-Entfernen das Installationsprogramm und seine Journale? (Y/N)
-
-[install.log.info.5]
-Verzeichnis: {1}
-
-[install.log.warn.9]
-Antworten Sie Y oder N.
-
-[install.log.info.6]
-Entfernung des Installationsprogramm
-
-[install.log.success.2]
-Installationsprogramm entfernt.
-
-[install.log.info.7]
-Dienste, Geheimnisse und cron behalten.
-
-[install.log.info.8]
-Die Befehl liltress ist fehlt.
-
-[install.log.warn.10]
-Entfernung abgebrochene: Verzeichnis verweigert.
-
-[install.log.warn.11]
-Entfernung abgebrochene: Datei nützlich fehlt.
-
-[install.log.warn.12]
-Entfernung unvollständig.
-
-[install.log.warn.13]
-Installationsprogramm entfernt, Dateien nützlich nicht zurückgelegt.
+Befehl zum Entfernen des Installationsordners
 
 [install.log.info.9]
 Snapshot: {1}
@@ -324,9 +267,6 @@ Der Befehl ist fehlgeschlagen: {1}
 
 [install.postfix.error]
 Der Befehl ist fehlgeschlagen: {1}
-
-[install.postfix.title.2]
-systemd neu laden
 
 [install.rkhunter.error]
 Der Befehl ist fehlgeschlagen: {1}
@@ -426,3 +366,237 @@ Der Befehl ist fehlgeschlagen: {1}
 
 [install.docker.error]
 Der Befehl ist fehlgeschlagen: {1}
+
+[install.acct-installed]
+acct installiert
+
+[install.activation-haveged]
+Aktivierung haveged
+
+[install.activation-of-livepatch]
+Aktivierung von Livepatch
+
+[install.activation-of-ubuntu-pro]
+Aktivierung von Ubuntu Pro ({1})
+
+[install.active-haveged]
+haveged aktiv
+
+[install.apparmor-installed]
+APPARMOR installiert
+
+[install.attachment-of-ubuntu-pro]
+Anhang von Ubuntu Pro
+
+[install.auditd-installed]
+AUDITD installiert
+
+[install.check-of-the-attachment-ubuntu-pro]
+Prüfung von Anhang Ubuntu Pro
+
+[install.chkrootkit-installed]
+CHKROOTKIT installiert
+
+[install.clamav-installed]
+CLAMAV installiert
+
+[install.configuration-of-the-hostname]
+Konfiguration des hostname
+
+[install.configuration-of-the-repository-lynis]
+Konfiguration des Depot Lynis
+
+[install.configuration-rng-tools-debian-hwrng-rngd]
+Konfiguration rng-tools-debian (HWRNG + rngd)
+
+[install.creation-of-etc-apt-keyrings]
+Erstellung von /etc/apt/keyrings
+
+[install.creation-tree-secured-of-the-project]
+Erstellung Baum gesichert des Projekt
+
+[install.crowdsec-comes-of-the-repository-ubuntu-no-packa]
+CrowdSec {1} kommt des Depot Ubuntu, kein packagecloud.
+
+[install.crowdsec-installed]
+CrowdSec installiert ({1})
+
+[install.download-of-the-key-gpg-lynis]
+Download der Schlüssel GPG Lynis
+
+[install.fail2ban-installed]
+Fail2Ban installiert
+
+[install.haveged-installed-but-inactive]
+haveged installiert aber inaktiv: {1}
+
+[install.hostname-configured]
+Hostname konfiguriert
+
+[install.inclusion-of-the-units-possibly-added]
+Berücksichtigung der Units gegebenenfalls hinzugefügt
+
+[install.installation-debsums-finished]
+Installation DEBSUMS beendet ({1}).
+
+[install.installation-of-acct]
+Installation von acct
+
+[install.installation-of-apparmor]
+Installation von APPARMOR
+
+[install.installation-of-auditd]
+Installation von AUDITD
+
+[install.installation-of-chkrootkit]
+Installation von CHKROOTKIT
+
+[install.installation-of-clamav]
+Installation von ClamAV
+
+[install.installation-of-crowdsec]
+Installation von CROWDSEC
+
+[install.installation-of-debsums]
+Installation von debsums
+
+[install.installation-of-fail2ban]
+Installation von Fail2Ban
+
+[install.installation-of-help]
+Installation von AIDE
+
+[install.installation-of-libpam-pwquality]
+Installation von libpam-pwquality
+
+[install.installation-of-libpam-tmpdir]
+Installation von LIBPAM-TMPDIR
+
+[install.installation-of-postfix]
+Installation von Postfix
+
+[install.installation-of-rkhunter]
+Installation von RKHUNTER
+
+[install.installation-of-sysstat]
+Installation von sysstat
+
+[install.installation-of-the-client-ubuntu-pro]
+Installation des Client Ubuntu Pro
+
+[install.installation-of-the-packages]
+Installation der Pakete
+
+[install.installation-of-ubuntu-pro]
+Installation von Ubuntu Pro
+
+[install.installation-of-ufw]
+Installation von UFW
+
+[install.installation-of-unbound]
+Installation von Unbound
+
+[install.intermediate-version-esm-infra-esm-apps-and-live]
+Version Zwischen-: esm-infra, esm-apps und Livepatch sind nicht aktiviert.
+
+[install.key-gpg-lynis-installed]
+Schlüssel GPG Lynis installiert
+
+[install.libpam-pwquality-installed]
+libpam-pwquality installiert
+
+[install.libpam-tmpdir-installed]
+LIBPAM-TMPDIR installiert
+
+[install.line-cron-check-not-found]
+Zeile CRON_CHECK nicht gefunden
+
+[install.load-virtio-rng-hwrng-kvm]
+Laden virtio_rng (HWRNG KVM)
+
+[install.no-dev-hwrng-entropy-via-haveged]
+Kein /dev/hwrng: Entropie über haveged.
+
+[install.postfix-installed]
+POSTFIX installiert
+
+[install.preconfiguration-of-postfix]
+Vorkonfiguration von POSTFIX
+
+[install.preconfiguration-of-postfix-finished]
+Vorkonfiguration von POSTFIX beendet
+
+[install.record-of-the-repository-crowdsec]
+Aufzeichnung des Depot CrowdSec
+
+[install.repository-crowdsec-saved]
+Depot CrowdSec gespeichert
+
+[install.repository-lynis-configured]
+Depot Lynis konfiguriert
+
+[install.rkhunter-installed]
+RKHUNTER installiert
+
+[install.rng-tools-debian-did-not-started-rc-result]
+rng-tools-debian hat nicht gestartet (rc={1} result={2}): {3}
+{4}
+
+[install.rng-tools-debian-no-hwrng-hardware-active-havege]
+rng-tools-debian: kein HWRNG Hardware — haveged aktiv
+
+[install.rng-tools-debian-rngd-active-hwrng-feeds-the-poo]
+rng-tools-debian (rngd) aktiv — HWRNG speist der pool
+
+[install.rng-tools-debian-skipdevice-despite-hrngdevice-d]
+rng-tools-debian skipdevice trotz HRNGDEVICE=/dev/hwrng (result={1})
+{2}
+
+[install.sysstat-installed]
+sysstat installiert
+
+[install.systemd-reloaded]
+systemd neu geladen
+
+[install.ubuntu-pro-already-attached]
+Ubuntu Pro: bereits angehängt
+
+[install.ubuntu-pro-attach-a-failed-required]
+Ubuntu Pro attach a fehlgeschlagen (erforderlich): {1}
+
+[install.ubuntu-pro-enabled]
+Ubuntu Pro: {1} aktiviert
+
+[install.ubuntu-pro-installed]
+Ubuntu Pro installiert
+
+[install.ubuntu-pro-livepatch-enabled]
+Ubuntu Pro: livepatch aktiviert
+
+[install.ubuntu-pro-livepatch-not-enabled-installation-co]
+Ubuntu Pro: livepatch nicht aktiviert, Installation fortgesetzte
+
+[install.ubuntu-pro-machine-attached]
+Ubuntu Pro: Rechner angehängt
+
+[install.ubuntu-pro-missing-token-in-secrets-conf-rerun-b]
+Ubuntu Pro: Token fehlend in Geheimnisse.conf. Erneut starten: bash {1}/liltress konfiguriert
+
+[install.ubuntu-pro-not-enabled-installation-continued]
+Ubuntu Pro: {1} nicht aktiviert, Installation fortgesetzte
+
+[install.ubuntu-pro-the-machine-is-not-attached-after-pro]
+Ubuntu Pro: die Rechner ist nicht angehängt nach pro attach.
+
+[install.unbound-installed]
+Unbound installiert
+
+[install.update-finished]
+Aktualisierung beendet
+
+[install.update-of-the-index-apt]
+Aktualisierung der Index apt
+
+[install.update-of-the-system]
+Aktualisierung des System
+

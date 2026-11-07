@@ -20,28 +20,28 @@ copy_backup /etc/ufw/before.rules
 # shellcheck disable=SC1091
 source "$(locate_config_file ufw/policy.conf)"
 
-log_info         "${INSTALL_WATCHER}" "configure.policy-incoming-outgoing-routed" "${W_UFW_DEFAULT_INCOMING}" "${W_UFW_DEFAULT_OUTGOING}" "${W_UFW_DEFAULT_ROUTED}"
-run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw default "${W_UFW_DEFAULT_INCOMING}" incoming
-run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw default "${W_UFW_DEFAULT_OUTGOING}" outgoing
+log_info         "${INSTALL_WATCHER}" "configure.policy-incoming-outgoing-routed" "${UFW_DEFAULT_INCOMING}" "${UFW_DEFAULT_OUTGOING}" "${UFW_DEFAULT_ROUTED}"
+run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw default "${UFW_DEFAULT_INCOMING}" incoming
+run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw default "${UFW_DEFAULT_OUTGOING}" outgoing
 
 if grep -q '^DEFAULT_FORWARD_POLICY=' /etc/default/ufw; then
-    sed -i "s/^DEFAULT_FORWARD_POLICY=.*/DEFAULT_FORWARD_POLICY=\"${W_UFW_FORWARD_POLICY}\"/" /etc/default/ufw
+    sed -i "s/^DEFAULT_FORWARD_POLICY=.*/DEFAULT_FORWARD_POLICY=\"${UFW_FORWARD_POLICY}\"/" /etc/default/ufw
 else
-    echo "$(get_text configure.default-forward-policy "${W_UFW_FORWARD_POLICY}")" >> /etc/default/ufw
+    echo "$(get_text configure.default-forward-policy "${UFW_FORWARD_POLICY}")" >> /etc/default/ufw
 fi
-run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw default "${W_UFW_DEFAULT_ROUTED}" routed
+run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw default "${UFW_DEFAULT_ROUTED}" routed
 
 if grep -q '^IPT_MODULES=' /etc/default/ufw; then
-    if ! awk -F= '/^IPT_MODULES=/{print}' /etc/default/ufw | grep -q "${W_UFW_IPT_EXTRA}"; then
+    if ! awk -F= '/^IPT_MODULES=/{print}' /etc/default/ufw | grep -q "${UFW_IPT_EXTRA}"; then
         ipt_val="$(awk -F= '/^IPT_MODULES=/{print substr($0, index($0,"=")+1)}' /etc/default/ufw)"
         ipt_val="${ipt_val#\"}"
         ipt_val="${ipt_val%\"}"
         ipt_val="${ipt_val#\'}"
         ipt_val="${ipt_val%\'}"
-        sed -i "s|^IPT_MODULES=.*|IPT_MODULES=\"${ipt_val} ${W_UFW_IPT_EXTRA}\"|" /etc/default/ufw
+        sed -i "s|^IPT_MODULES=.*|IPT_MODULES=\"${ipt_val} ${UFW_IPT_EXTRA}\"|" /etc/default/ufw
     fi
 else
-    echo "$(get_text configure.ipt-modules "${W_UFW_IPT_EXTRA}")" >> /etc/default/ufw
+    echo "$(get_text configure.ipt-modules "${UFW_IPT_EXTRA}")" >> /etc/default/ufw
 fi
 if [[ -f /etc/ufw/sysctl.conf ]] && ! grep -q 'bridge-nf-call-iptables' /etc/ufw/sysctl.conf; then
     printf "$(get_text log.n)" >> /etc/ufw/sysctl.conf
@@ -49,19 +49,19 @@ if [[ -f /etc/ufw/sysctl.conf ]] && ! grep -q 'bridge-nf-call-iptables' /etc/ufw
 fi
 
 if grep -q '^IPV6=' /etc/default/ufw; then
-    sed -i "s/^IPV6=.*/IPV6=${W_UFW_IPV6}/" /etc/default/ufw
+    sed -i "s/^IPV6=.*/IPV6=${UFW_IPV6}/" /etc/default/ufw
 else
-    echo "$(get_text configure.ipv6 "${W_UFW_IPV6}")" >> /etc/default/ufw
+    echo "$(get_text configure.ipv6 "${UFW_IPV6}")" >> /etc/default/ufw
 fi
 
-run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw logging "${W_UFW_LOGGING}"
+run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw logging "${UFW_LOGGING}"
 
 log_info         "${INSTALL_WATCHER}" "configure.ssh-limit-on-the-port-detected-tcp" "${SSH_PORT}"
 
 remove_ufw_marked() {
     local nums n
     mapfile -t nums < <(LANG=C LC_ALL=C LANGUAGE=C ufw status numbered \
-        | awk -v open="${W_UFW_SSH_COMMENT_OPEN}" -v lan="${W_UFW_SSH_COMMENT_LAN}" '
+        | awk -v open="${UFW_SSH_COMMENT_OPEN}" -v lan="${UFW_SSH_COMMENT_LAN}" '
             index($0, open) || index($0, lan) {
                 if (match($0, /\[[[:space:]]*[0-9]+\]/)) {
                     token = substr($0, RSTART, RLENGTH)
@@ -79,7 +79,7 @@ remove_ufw_marked() {
 
 mapfile -t ssh_prefixes < <(ip -o addr show up scope global 2>/dev/null | awk '{print $4}')
 if ip -o -6 addr show up scope link 2>/dev/null | grep -q 'fe80:'; then
-    ssh_prefixes+=("${W_UFW_LINK_LOCAL}")
+    ssh_prefixes+=("${UFW_LINK_LOCAL}")
 fi
 kept_prefixes=()
 for prefix in "${ssh_prefixes[@]+"${ssh_prefixes[@]}"}"; do
@@ -106,14 +106,14 @@ for prefix in "${deduped_prefixes[@]+"${deduped_prefixes[@]}"}"; do
 done
 
 if [[ ${#kept_prefixes[@]} -eq 0 ]]; then
-    if ! LANG=C LC_ALL=C LANGUAGE=C ufw status | grep -qF "${W_UFW_SSH_COMMENT_OPEN}"; then
-        run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw limit "${SSH_PORT}/tcp" comment "${W_UFW_SSH_COMMENT_OPEN}"
+    if ! LANG=C LC_ALL=C LANGUAGE=C ufw status | grep -qF "${UFW_SSH_COMMENT_OPEN}"; then
+        run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw limit "${SSH_PORT}/tcp" comment "${UFW_SSH_COMMENT_OPEN}"
     fi
     log_warn         "${INSTALL_WATCHER}" "configure.no-pr-fixe-connected-ssh-stays-opened-on-all-the"
 else
     remove_ufw_marked
     for prefix in "${kept_prefixes[@]}"; do
-        run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw limit from "${prefix}" to any port "${SSH_PORT}" proto tcp comment "${W_UFW_SSH_COMMENT_LAN}"
+        run_silent       "${INSTALL_WATCHER}" "configure.ufw.error" ufw limit from "${prefix}" to any port "${SSH_PORT}" proto tcp comment "${UFW_SSH_COMMENT_LAN}"
     done
     log_success      "${INSTALL_WATCHER}" "configure.ssh-limited-to-the-pr-fixes-connect-s" "${kept_prefixes[*]}"
 fi

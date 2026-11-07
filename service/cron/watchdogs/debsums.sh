@@ -6,14 +6,14 @@
 # =============================================================================
 
 set -euo pipefail
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
+BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${W_BASE}/cron/bin/common.sh"
+source "${BASE}/cron/bin/common.sh"
 LOG_FILE="${LOG_DIR}/debsums-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/debsums-${STAMP}.txt"
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 IGNORE="${HERE}/debsums.ignore"
-LOCAL_IGNORE="${W_BASE}/cron/debsums.local.ignore"
+LOCAL_IGNORE="${BASE}/cron/debsums.local.ignore"
 if ! command -v debsums >/dev/null; then
     log_pass "$(get_text watchdog.debsums-absent-skip)"
     exit 0
@@ -27,7 +27,7 @@ if [[ "${rc}" -ge 128 ]]; then
     log_alert "$(get_crash_sentence "debsums" "${rc}")"
     crashed=1
 fi
-python3 - "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}" "${W_BASE}" << 'PY'
+python3 - "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}" "${BASE}" << 'PY'
 import hashlib
 import re
 import sys

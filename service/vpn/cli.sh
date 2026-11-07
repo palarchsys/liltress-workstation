@@ -60,7 +60,7 @@ remove_vpn_profile() {
 show_vpn_status() {
     local armed=0 name proto iface handshake count code=0 mode
     load_vpn_settings
-    mode="${W_VPN_MODE:-off}"
+    mode="${VPN_MODE:-off}"
     printf '%s\n' "$(get_text vpn.status.mode "${mode}")"
     if check_vpn_killswitch; then
         armed=1
@@ -70,7 +70,7 @@ show_vpn_status() {
     fi
     name="$(get_vpn_active 2>/dev/null || true)"
     if [[ -z "${name}" && "${armed}" -eq 1 ]]; then
-        name="${W_VPN_BOOT_PROFILE:-}"
+        name="${VPN_BOOT_PROFILE:-}"
     fi
     proto=""
     iface=""
@@ -155,7 +155,7 @@ run_vpn_bypass_reload() {
         if [[ -n "$(get_vpn_active 2>/dev/null || true)" ]]; then
             apply_vpn_nft "$(get_vpn_active)" 1
         elif check_vpn_boot_on; then
-            apply_vpn_nft "${W_VPN_BOOT_PROFILE}" 0
+            apply_vpn_nft "${VPN_BOOT_PROFILE}" 0
         else
             apply_vpn_nft "" 0
         fi

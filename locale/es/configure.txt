@@ -1,11 +1,8 @@
 # =============================================================================
 # File       : workstation/locale/es/configure.txt
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
-
-[configure.1-no-removal-0-question-at-the-end-of-installati]
-1: sin retirada. 0: pregunta al final de instalación.
 
 [configure.activation-of-apparmor]
 Activación de AppArmor
@@ -19,23 +16,11 @@ Activación de UFW
 [configure.address-email-serving-of-login]
 Dirección email que sirve de inicio de sesión.
 
-[configure.alerts-by-email]
-Alertas por e-mail
-
 [configure.alerts-email-off-the-checks-will-start-without-s-2]
 Alertas e-mail apagadas. Los controles partirán sin envío.
 
-[configure.alerts-toward-google-drive]
-Alertas hacia Google Drive
-
-[configure.algorithm-of-the-passwords-lynis-auth-9229]
-Algoritmo de los contraseñas (Lynis AUTH-9229)
-
 [configure.application-of-the-sysctl-ip-forward-1-rp-filter]
 Aplicación del sysctl (ip_forward=1, rp_filter=2)
-
-[configure.attempt-google-drive-accepted]
-Intento Google Drive aceptado.
 
 [configure.attempt-of-send]
 Intento de envío
@@ -52,9 +37,6 @@ auditd activado
 [configure.banners-installed-etc-issue-and-etc-issue-net]
 Banners instaladas (/etc/issue y /etc/issue.net)
 
-[configure.banners-lynis-bann-7126]
-Banners (Lynis BANN-7126)
-
 [configure.binding-of-the-bouncer-nftables-to-the-api-local]
 Enlace del bouncer nftables a el API local
 
@@ -67,32 +49,14 @@ Blacklist de los sistemas de archivos innecesarios
 [configure.block-installed]
 Bloqueo instalado ({1})
 
-[configure.bouncer-firewall]
-Bouncer pare-feu
-
 [configure.bouncer-nftables-linked-to-the-api-local]
 Bouncer nftables enlazado a el API local
 
 [configure.card-sasl-saved-reading-root-only]
 Tarjeta SASL guardada (lectura root solo)
 
-[configure.collections-crowdsec]
-Colecciones CrowdSec
-
 [configure.collections-linux-sshd-postfix-and-allowlist-ins]
 Colecciones linux, sshd, postfix y lista de permitidos instaladas
-
-[configure.configuration-auditd-2]
-Configuración auditd
-
-[configure.configuration-clamav]
-Configuración ClamAV
-
-[configure.configuration-fail2ban]
-Configuración Fail2Ban
-
-[configure.configuration-help]
-Configuración AIDE
 
 [configure.configuration-of-auditd]
 Configuración de auditd
@@ -142,32 +106,11 @@ Configuración de unattended-upgrades (security only)
 [configure.configuration-of-unbound]
 Configuración de Unbound
 
-[configure.configuration-rkhunter]
-Configuración rkhunter
-
 [configure.configuration-saved]
 Configuración guardada
 
-[configure.configuration-ssh-drop-in]
-Configuración SSH (drop-in)
-
 [configure.configuration-system-workstation-finished]
 Configuración sistema workstation terminada
-
-[configure.configuration-ufw-desktop-safe]
-Configuración UFW (desktop-safe)
-
-[configure.configuration-unattended-upgrades-security-only]
-Configuración unattended-upgrades (security only)
-
-[configure.configuration-unbound-local-dns]
-Configuración Unbound (DNS local)
-
-[configure.core-dumps-disabled]
-Core dumps desactivados
-
-[configure.credentials-smtp]
-Identificadores SMTP
 
 [configure.crowdsec-and-the-bouncer-enabled]
 CrowdSec y el bouncer activados
@@ -193,20 +136,11 @@ Duración de bloqueo
 [configure.duration-of-block-invalid]
 duración de bloqueo no válido
 
-[configure.e-34m-s-e-0m]
- \e[34m%*s\e[0m: 
-
 [configure.effective-permitrootlogin-expected-no]
 PermitRootLogin efectivo: {1}. Esperado: no.
 
 [configure.enable-the-alerts-by-emails-y-n]
 Activar los alertas por e-mails (Y/N).
-
-[configure.enable-the-send-of-the-alerts-toward-google-driv]
-Activar el envío de los alertas hacia Google Drive (Y/N).
-
-[configure.enter-0-or-1]
-Indique 0 o 1.
 
 [configure.enter-the-address-email-of-the-account-smtp]
 Indique el dirección e-mail del cuenta SMTP.
@@ -216,9 +150,6 @@ Indique el dirección e-mail remitente.
 
 [configure.enter-the-server-and-the-port-without-brackets-e]
 Indique el servidor y el puerto, sin corchetes. Ejemplo: smtp-mail.outlook.com:587.
-
-[configure.entry-keeps-the-value-in-progress-1-by-default]
-Entrada conserva la valor en curso (1 de forma predeterminada).
 
 [configure.fail2ban-enabled]
 Fail2Ban activado
@@ -289,9 +220,6 @@ jail.local instalado (sshd puerto {1})
 [configure.journald-made-persistent]
 Journald vuelto persistente
 
-[configure.journals-read-by-crowdsec]
-Diarios leídos por CrowdSec
-
 [configure.journals-ssh-system-and-mail-configured]
 Diarios SSH, sistema y mensaje configurados
 
@@ -307,23 +235,11 @@ Remitente local reescrito, todo parte como {1}
 [configure.login-hardened-defs-no-chage-on-root]
 inicio de sesión.defs endurecido — ningún chage en {1} / root
 
-[configure.login-smtp]
-Inicio de sesión SMTP
-
 [configure.mailname-saved]
 mailname guardado ({1})
 
 [configure.memory-sudo-of-5-minutes]
 Memoria sudo de 5 minutos
-
-[configure.mode-test]
-Modo prueba
-
-[configure.modules-protocols-and-systems-of-unused-files]
-Módulos: protocolos y sistemas de archivos innecesarios
-
-[configure.name-of-mail]
-Nombre de mensaje
 
 [configure.optional-collections-processed]
 Colecciones opcionales tratadas
@@ -342,9 +258,6 @@ Contraseña de aplicación: al menos 8 caracteres, sin espacios.
 
 [configure.permissions-cron-sudoers-and-ssh-tightened]
 Permisos cron, sudoers y SSH ajustadas
-
-[configure.persistent-journald-lynis-log]
-journald persistente (Lynis LOG-*)
 
 [configure.policy-incoming-outgoing-routed]
 Política: {1} incoming, {2} outgoing, routed {3}
@@ -367,17 +280,8 @@ Registro de la tarjeta SASL
 [configure.record-of-the-configuration]
 Registro de la Configuración
 
-[configure.relay-and-rewrite-of-the-sender]
-Retransmisión y reescritura de el remitente
-
-[configure.required-quality-lors-of-a-change-of-password]
-Calidad exigida lors de un cambio de contraseña
-
 [configure.restart-of-postfix]
 Reinicio de Postfix
-
-[configure.return-to-the-choice-google-drive]
-Retorno al elección Google Drive.
 
 [configure.return-to-the-choice-of-the-alerts]
 Retorno al elección de los alertas.
@@ -391,14 +295,8 @@ Búsqueda de los colecciones opcionales
 [configure.secrets-conf-no-command-source-example-only-of-t]
 secretos.conf: ninguna orden fuente. ejemplo: únicamente de los líneas CLE="valor"
 
-[configure.send-google-drive-cut]
-Envío Google Drive cortado.
-
 [configure.sender]
 Remitente
-
-[configure.server-smtp]
-Servidor SMTP
 
 [configure.spaces-removed-the-line-following-confirms]
 Espacios retirados. La línea siguiente confirma.
@@ -415,17 +313,8 @@ sudoers umask no válido — archivo retirado
 [configure.sysctl-applied]
 Sysctl aplicado
 
-[configure.sysctl-workstation]
-Sysctl workstation
-
 [configure.the-alerts-leave-toward-this-same-address]
 Los alertas salen hacia esta mismo dirección.
-
-[configure.the-attempt-google-drive-was-denied]
-El intento Google Drive fue denegado.
-
-[configure.the-configuration-rclone-was-rejected]
-La Configuración rclone fue rechazada.
 
 [configure.the-data-email-are-not-good]
 Los datos e-mail son no buenas.
@@ -465,9 +354,6 @@ Actualización del initramfs (módulos blacklist)
 
 [configure.update-of-the-signatures-can-take-1-2-min]
 Actualización de los firmas (puede tomar 1–2 min)
-
-[configure.watchdogs-cron-root-cron-allow-not-restricted]
-Watchdogs cron (root, cron.allow no restringido)
 
 [configure.watchdogs-installed-in-cron-bin]
 Watchdogs instalados en {1}/cron/bin
@@ -532,9 +418,6 @@ Letras y dígitos, sin espacios.
 [configure.installation-of-swaks-for-the-attempt-of-send]
 Instalación de swaks para el intento de envío.
 
-[configure.installation-of-rclone]
-Instalación de rclone.
-
 [configure.collection-present-1]
 Colección {1} presente
 
@@ -560,19 +443,16 @@ La copia hacia Google Drive es opcional. Desactivada, rclone no se instala.
 Una contraseña se muestra con asteriscos, luego una segunda línea pide la confirmación.
 
 [configure.dollar-outside-r-f-rences-autoris-es-w-project-s]
-{1}: dollar fuera de références autorisées (W_PROJECT_SLUG, CONFIG_BASE_DIRECTORY, INSTALL_DIRECTORY).
+{1}: dollar fuera de références autorisées (PROJECT_SLUG, CONFIG_BASE_DIRECTORY, INSTALL_DIRECTORY).
 
 [configure.g-project-name-invalid-example-liltress-workstat]
 {1}: PROJECT_NAME no válido (« {2} »). ejemplo: Liltress Workstation
 
 [configure.w-project-slug-invalid-example-liltress-workstat]
-{1}: W_PROJECT_SLUG no válido (« {2} »). ejemplo: liltress-workstation
+{1}: PROJECT_SLUG no válido (« {2} »). ejemplo: liltress-workstation
 
 [configure.g-project-version-invalid-example-0-2]
 {1}: PROJECT_VERSION no válido (« {2} »). ejemplo: 0.2
-
-[configure.g-debug-install-log-invalid-example-0]
-{1}: DEBUG_INSTALL_LOG no válido (« {2} »). ejemplo: 0
 
 [configure.g-mode-test-invalid-example-1]
 {1}: MODE_TEST no válido (« {2} »). ejemplo: 1
@@ -581,10 +461,10 @@ Una contraseña se muestra con asteriscos, luego una segunda línea pide la conf
 {1}: LYNIS_MIN_SCORE no válido (« {2} »). ejemplo: 80
 
 [configure.w-os-id-invalid-example-ubuntu]
-{1}: W_OS_ID no válido (« {2} »). ejemplo: ubuntu
+{1}: OS_ID no válido (« {2} »). ejemplo: ubuntu
 
 [configure.w-os-version-invalid-example-26-04]
-{1}: W_OS_VERSION no válido (« {2} »). ejemplo: 26.04
+{1}: OS_VERSION no válido (« {2} »). ejemplo: 26.04
 
 [configure.g-banner-message-empty-yet-no-safe]
 {1}: BANNER_MESSAGE vacío o no seguro.
@@ -596,19 +476,19 @@ Una contraseña se muestra con asteriscos, luego una segunda línea pide la conf
 {1}: SSH_CLIENT_ALIVE_COUNT_MAX no válido (« {2} »). ejemplo: 2
 
 [configure.w-ssh-login-grace-time-invalid-example-30]
-{1}: W_SSH_LOGIN_GRACE_TIME no válido (« {2} »). ejemplo: 30
+{1}: SSH_LOGIN_GRACE_TIME no válido (« {2} »). ejemplo: 30
 
 [configure.w-pam-password-min-length-invalid-example-12]
-{1}: W_PAM_PASSWORD_MIN_LENGTH no válido (« {2} »). ejemplo: 12
+{1}: PAM_PASSWORD_MIN_LENGTH no válido (« {2} »). ejemplo: 12
 
 [configure.w-faillock-deny-invalid-example-8]
-{1}: W_FAILLOCK_DENY no válido (« {2} »). ejemplo: 8
+{1}: FAILLOCK_DENY no válido (« {2} »). ejemplo: 8
 
 [configure.w-faillock-unlock-invalid-example-600]
-{1}: W_FAILLOCK_UNLOCK no válido (« {2} »). ejemplo: 600
+{1}: FAILLOCK_UNLOCK no válido (« {2} »). ejemplo: 600
 
 [configure.w-faillock-fail-interval-invalid-example-900]
-{1}: W_FAILLOCK_FAIL_INTERVAL no válido (« {2} »). ejemplo: 900
+{1}: FAILLOCK_FAIL_INTERVAL no válido (« {2} »). ejemplo: 900
 
 [configure.g-config-base-directory-invalid-example-opt-lilt]
 {1}: CONFIG_BASE_DIRECTORY no válido (« {2} »). ejemplo: /opt/liltress-workstation
@@ -624,6 +504,9 @@ global.conf: sintaxis shell no válido. ejemplo:./liltress configura
 
 [configure.secrets-conf-syntax-shell-invalid-example-liltre]
 secretos.conf: sintaxis shell no válido. ejemplo:./liltress configura
+
+[configure.ubuntu-pro-accepted]
+Token de Ubuntu Pro aceptado
 
 [configure.ubuntu-pro-token-url]
 Jeton : https://ubuntu.com/pro/dashboard

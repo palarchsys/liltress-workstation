@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/usbguard/configure.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,7 +13,6 @@ source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_current_user
-
 
 log_info         "${INSTALL_WATCHER}" "configure.write-of-the-rules-usbguard"
 install -d -m 750 /etc/usbguard /etc/usbguard/IPCAccessControl.d

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/lynis/install.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,6 +12,7 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 source "${INSTALL_DIRECTORY}/core/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
+
 log_info         "${INSTALL_WATCHER}" "install.creation-of-etc-apt-keyrings"
 ensure_directory /etc/apt/keyrings 755
 
@@ -30,7 +31,7 @@ tee "${LYNIS_LIST}" > /dev/null << EOF
 deb [arch=$(dpkg --print-architecture) signed-by=${LYNIS_KEY}] https://packages.cisofy.com/community/lynis/deb/ stable main
 EOF
 chmod 644 "${LYNIS_LIST}"
-log_success      "${INSTALL_WATCHER}" "install.repository-lynis-configured-sources-ubuntu-not-c"
+log_success      "${INSTALL_WATCHER}" "install.repository-lynis-configured"
 
 log_info         "${INSTALL_WATCHER}" "install.installation-of-lynis"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y lynis --no-install-recommends" "install.lynis.error"

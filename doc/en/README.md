@@ -75,10 +75,6 @@ The default is English.<br/>
 | Login            | An e-mail address.                                                                                                                                  |
 | Password         | The provider application password, 8 to 128 characters. Spaces are removed. Quotes, `$`, `\` and backticks are refused. Never the account password. |
 | From             | An e-mail address. `WATCHDOG_MAIL` receives the same address.                                                                                    |
-| Activer l'envoi des alertes vers Google Drive (Y/N). | `Y` or `y` enables the copy. `N`, `n` or `non` disables it. Enabled asks for the remote name and the folder, then runs `rclone config`. The token stays on the machine, mode 600. Disabled does not install rclone. |
-| Distant          | Remote name. Letters, digits or a hyphen, 1 to 32 characters. Asked only when the copy is enabled.                                                  |
-| Dossier          | Remote folder. No `..` and no local absolute path. Asked only when the copy is enabled.                                                             |
-| Mode test        | `0` or `1`.                                                                                                                                         |
 
 ## Installed software and services
 
@@ -102,7 +98,6 @@ The installation places the packages and services below.
 | aide                                            | File integrity database `/var/lib/aide/aide.db`.                                                                         |
 | unattended-upgrades                             | Security origins. `Automatic-Reboot` is `false`.                                                                         |
 | postfix                                         | Sends alert mail. Installed only when `MAIL_ALERTS=1`.                                                                |
-| rclone                                          | Copies an alert file to Google Drive. Installed only when `RCLONE_ALERTS=1`.                                          |
 | lynis                                           | Hardening audit.                                                                                                         |
 | ubuntu-pro-client                               | Attaches the Ubuntu Pro token. A non-LTS release does not enable esm-infra, esm-apps or Livepatch. On an LTS release, a failure to enable them does not stop the installation. |
 | acct, sysstat, libpam-pwquality                 | Process accounting, activity stats, password quality.                                                                    |
@@ -118,7 +113,6 @@ The WireGuard and OpenVPN tunnel is described in [vpn.md](vpn.md).
 Each alert file is stored under `/opt/liltress-workstation/cron/alerts`.<br/>
 The mail follows the `LANGUAGE` language.<br/>
 Mail leaves only when `MAIL_ALERTS=1`.<br/>
-A copy leaves for Google Drive only when `RCLONE_ALERTS=1`, to the chosen remote and folder.<br/>
 <br/>
 Mail is sent only when `MAIL_ALERTS=1`, `WATCHDOG_MAIL` is set, and `/opt/liltress-workstation/cron/bin/send.sh` is executable.<br/>
 A clean check does not send mail.<br/>
@@ -297,7 +291,7 @@ sudo bash verify/workstation.sh "$PWD"
 ```
 
 Runs the workstation check.<br/>
-The closing line has the form `Check : N OK / N WARN / N FAIL`.<br/>
+The closing lines are `Check Success : N`, `Check Warnings : N` and `Check Fails : N`.<br/>
 The same pass checks SSH forwarding, the SSH firewall rule, USBGuard, the sudo timeout and `w-reboot-notice.timer`.
 
 ## ▪️ Check after boot

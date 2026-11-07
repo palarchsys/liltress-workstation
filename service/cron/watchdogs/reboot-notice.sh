@@ -6,10 +6,10 @@
 # =============================================================================
 
 set -euo pipefail
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
+BASE="${BASE:-/opt/liltress-workstation}"
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
-source "${W_BASE}/cron/bin/common.sh"
+source "${BASE}/cron/bin/common.sh"
 LOG_FILE="${LOG_DIR}/reboot-notice-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/reboot-notice-${STAMP}.txt"
 : > "${LOG_FILE}"
@@ -49,7 +49,7 @@ if [[ -z "${body}" ]]; then
     exit 0
 fi
 
-seen="${W_BASE}/cron/reboot-notice.seen"
+seen="${BASE}/cron/reboot-notice.seen"
 digest="$(printf '%s' "${body}" | sha256sum | awk '{print $1}')"
 if [[ -f "${seen}" ]] && [[ "$(cat "${seen}")" == "${digest}" ]]; then
     log_pass "$(get_text watchdog.avis-of-restart-already-sent)"

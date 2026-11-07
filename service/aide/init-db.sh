@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/aide/init-db.sh
-# Updated at : 2026-11-06
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -22,7 +22,7 @@ if systemctl cat apt-listchanges.timer >/dev/null 2>&1; then
 fi
 
 log_info "${INSTALL_WATCHER}" "log.record-of-the-baseline-help"
-aide_log="${INSTALL_LOG_DIR:-/var/log/liltress-workstation}/aide-init.log"
+aide_log="${INSTALL_LOG_DIR:-/var/log/${PROJECT_SLUG}}/aide-init.log"
 mkdir -p "$(dirname "${aide_log}")"
 
 rm -f /var/lib/aide/aide.db.new /var/lib/aide/aide.db.new.gz
@@ -31,11 +31,10 @@ if ! aide --config="/etc/aide/aide.conf" --init >"${aide_log}" 2>&1; then
     log_warn "${INSTALL_WATCHER}" "log.help-init-a-returned-an-error-detail" "${aide_log}"
 fi
 if [[ -f /var/lib/aide/aide.db.new.gz ]]; then
-    mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
-
+    mv -f /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
     ln -sfn /var/lib/aide/aide.db.gz /var/lib/aide/aide.db
 elif [[ -f /var/lib/aide/aide.db.new ]]; then
-    mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db
+    mv -f /var/lib/aide/aide.db.new /var/lib/aide/aide.db
 else
     log_error "${INSTALL_WATCHER}" "log.base-help-not-generated-help-db-new-not-found-de" "${aide_log}"
 fi

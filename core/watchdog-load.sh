@@ -31,7 +31,6 @@ source_text_engine() {
         "${PRODUCT_ROOT:-}/core/log.sh" \
         "${origin}/../../../../share/core/log.sh" \
         "${origin}/../../../core/log.sh" \
-        "${W_BASE:-}/src/core/log.sh" \
         "${BASE:-}/src/core/log.sh" \
         "${CONFIG_BASE_DIRECTORY:-}/src/core/log.sh" \
         "${INSTALL_DIRECTORY:-}/core/log.sh" \
@@ -55,7 +54,7 @@ load_shared_watchdog() {
         "${here}/watchdog.sh" \
         "${here}/../../../core/watchdog.sh" \
         "${here}/../../../../share/core/watchdog.sh" \
-        "${W_BASE:-}/cron/bin/watchdog.sh" \
+        "${BASE:-}/cron/bin/watchdog.sh" \
         "${CONFIG_BASE_DIRECTORY:-}/cron/bin/watchdog.sh"
     do
         if [[ -n "${candidate}" && -f "${candidate}" ]]; then

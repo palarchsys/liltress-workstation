@@ -6,23 +6,23 @@
 # =============================================================================
 
 set -u
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
-if [[ -f "${W_BASE}/bin/log.sh" ]]; then
+BASE="${BASE:-/opt/liltress-workstation}"
+if [[ -f "${BASE}/bin/log.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${W_BASE}/bin/log.sh"
-elif [[ -f "${W_BASE}/cron/bin/log.sh" ]]; then
+    source "${BASE}/bin/log.sh"
+elif [[ -f "${BASE}/cron/bin/log.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${W_BASE}/cron/bin/log.sh"
-elif [[ -f "${W_BASE}/src/core/log.sh" ]]; then
+    source "${BASE}/cron/bin/log.sh"
+elif [[ -f "${BASE}/src/core/log.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${W_BASE}/src/core/log.sh"
+    source "${BASE}/src/core/log.sh"
 fi
 if ! declare -F get_text >/dev/null 2>&1; then
     printf '%s\n' "get_text absent" >&2
     exit 1
 fi
-if [[ -f "${W_BASE}/config/global.conf" ]]; then
-    read_language_file "${W_BASE}/config/global.conf"
+if [[ -f "${BASE}/config/global.conf" ]]; then
+    read_language_file "${BASE}/config/global.conf"
 fi
 
 if [[ "${EUID}" -ne 0 ]]; then
@@ -63,8 +63,8 @@ limit=50
 nice_want=19
 global_conf=""
 for candidate in \
-    "${W_BASE}/src/config/global.conf" \
-    "${W_BASE}/config/global.conf"
+    "${BASE}/src/config/global.conf" \
+    "${BASE}/config/global.conf"
 do
     if [[ -f "${candidate}" ]]; then
         global_conf="${candidate}"
@@ -115,7 +115,7 @@ elif printf '%s' "${ufw_line}" | grep -Eqi 'active|actif'; then
 else
     record_boot_mark ECART "ufw ${ufw_line:-illisible}"
 fi
-if [[ -f "${W_BASE}/cron/mail.conf" ]] && grep -q '^MAIL_ALERTS="1"$' "${W_BASE}/cron/mail.conf"; then
+if [[ -f "${BASE}/cron/mail.conf" ]] && grep -q '^MAIL_ALERTS="1"$' "${BASE}/cron/mail.conf"; then
     if systemctl is-active --quiet postfix; then
         record_boot_mark OK "postfix actif"
     else
@@ -255,7 +255,7 @@ check_boot_unit w-reboot-notice.service
 printf "$(get_text log.n-journals-since-this-start-n)"
 
 get_latest_log() {
-    find "${W_BASE}/cron/security_logs" -maxdepth 1 -type f -name "$1-*.log" -newermt "$(uptime -s)" -printf '%T@ %p\n' 2>/dev/null \
+    find "${BASE}/cron/security_logs" -maxdepth 1 -type f -name "$1-*.log" -newermt "$(uptime -s)" -printf '%T@ %p\n' 2>/dev/null \
         | sort -n | tail -1 | cut -d' ' -f2-
 }
 

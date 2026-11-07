@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : workstation/locale/es/vpn.txt
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -41,12 +41,6 @@ Ningún perfil activo.
 [vpn.list.empty]
 Ningún perfil.
 
-[vpn.list.boot-yes]
-arranque
-
-[vpn.list.boot-no]
-manual
-
 [vpn.import.ok]
 Perfil {1} importado. Extremo {2}.
 
@@ -71,17 +65,11 @@ auth-user-pass exige una ruta de archivo.
 [vpn.import.peer]
 El perfil {1} debe tener un solo par.
 
-[vpn.up.ok]
-El túnel {1} está abierto.
-
 [vpn.up.same]
 El túnel {1} ya está abierto.
 
 [vpn.up.agent]
 El perfil {1} necesita un agente de frase de paso.
-
-[vpn.down.ok]
-Túnel parado. Red directa restablecida.
 
 [vpn.direct.ok]
 Ningún VPN configurado. Red directa, killswitch apagado.
@@ -92,26 +80,11 @@ Cambio a {1}.
 [vpn.switch.fail]
 El cambio a {1} falló. La red directa sigue cerrada.
 
-[vpn.boot.ok]
-El perfil de arranque es {1}.
-
-[vpn.boot.off]
-El túnel de arranque está apagado.
-
-[vpn.boot.encrypted]
-El perfil {1} no puede arrancar. Pide una frase de paso.
-
-[vpn.boot.bad]
-El perfil de arranque {1} no sirve.
-
 [vpn.rm.ok]
 Perfil {1} retirado.
 
 [vpn.rm.active]
 El perfil {1} está activo.
-
-[vpn.rm.boot]
-El perfil {1} es el perfil de arranque.
 
 [vpn.rm.missing]
 El perfil {1} no existe.
@@ -175,9 +148,6 @@ Cliente VPN preparado.
 
 [vpn.profile.invalid]
 El perfil {1} no es válido.
-
-[vpn.handshake.fail]
-El saludo de {1} falló.
 
 [vpn.verify.ok]
 El túnel de arranque {1} está abierto.

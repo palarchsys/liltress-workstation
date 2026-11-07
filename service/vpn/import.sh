@@ -226,7 +226,7 @@ install_vpn_wireguard() {
             v6=1
         fi
     done < <(list_vpn_wg_addresses "${work}/runtime")
-    write_vpn_meta "${work}" wireguard "${ep4}" "${ep6}" "${port}" udp "${W_VPN_IFACE_WG:-wg-liltress}" "${v6}" 0
+    write_vpn_meta "${work}" wireguard "${ep4}" "${ep6}" "${port}" udp "${VPN_IFACE_WG:-wg-liltress}" "${v6}" 0
     finish_vpn_import "${work}" "${name}" "${pinned}" wireguard
 }
 
@@ -526,12 +526,12 @@ install_vpn_openvpn() {
         pinned="${ep6%% *}"
     fi
     sed -i "s|^REMOTE .*|remote ${pinned} ${port} ${proto}|" "${work}/runtime"
-    printf 'dev %s\ndev-type tun\n' "${W_VPN_IFACE_OVPN}" >> "${work}/runtime"
+    printf 'dev %s\ndev-type tun\n' "${VPN_IFACE_OVPN}" >> "${work}/runtime"
     chmod 600 "${work}/runtime"
     if grep -q 'ENCRYPTED' "${work}/source" "${work}/runtime" "${work}"/* 2>/dev/null; then
         enc=1
     fi
-    write_vpn_meta "${work}" openvpn "${ep4}" "${ep6}" "${port}" "${proto}" "${W_VPN_IFACE_OVPN}" 0 "${enc}"
+    write_vpn_meta "${work}" openvpn "${ep4}" "${ep6}" "${port}" "${proto}" "${VPN_IFACE_OVPN}" 0 "${enc}"
     if (( extra == 1 )) && declare -F log_info >/dev/null 2>&1; then
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.import.remote" "${pinned}"
     fi

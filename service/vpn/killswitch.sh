@@ -68,7 +68,7 @@ apply_vpn_nft() {
     local -A seen4=() seen6=()
     local cidr ip priority
     load_vpn_settings
-    priority="${W_VPN_FW_PRIORITY:--150}"
+    priority="${VPN_FW_PRIORITY:--150}"
     [[ "${priority}" =~ ^-[0-9]+$ ]] || priority=-150
     home="$(get_vpn_home)"
     mkdir -p "${home}"
@@ -117,7 +117,7 @@ apply_vpn_nft() {
         [[ "${extra_port}" =~ ^[0-9]+$ ]] || extra_port=""
     fi
     ssh_port="$(get_vpn_ssh_port)"
-    mark="${W_VPN_SSH_MARK:-17820}"
+    mark="${VPN_SSH_MARK:-17820}"
     [[ "${mark}" =~ ^[0-9]+$ ]] || mark=17820
     tmp="$(mktemp "${home}/.nft.XXXXXX")"
     chmod 600 "${tmp}"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/acct/install.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -15,5 +15,7 @@ require_root
 
 log_info         "${INSTALL_WATCHER}" "install.installation-of-acct"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y acct" "install.acct.error"
-run_optional     "${INSTALL_WATCHER}" "install.acct.error" systemctl enable --now acct
+if check_workstation; then
+    run_optional "${INSTALL_WATCHER}" "install.acct.error" systemctl enable --now acct
+fi
 log_success      "${INSTALL_WATCHER}" "install.acct-installed"

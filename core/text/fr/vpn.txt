@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : core/text/fr/vpn.txt
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -41,12 +41,6 @@ Aucun profil actif.
 [vpn.list.empty]
 Aucun profil.
 
-[vpn.list.boot-yes]
-boot
-
-[vpn.list.boot-no]
-manuel
-
 [vpn.import.ok]
 Profil {1} importé. Extrémité {2}.
 
@@ -71,17 +65,11 @@ auth-user-pass exige un chemin de fichier.
 [vpn.import.peer]
 Le profil {1} doit contenir un seul pair.
 
-[vpn.up.ok]
-Le tunnel {1} est ouvert.
-
 [vpn.up.same]
 Le tunnel {1} est déjà ouvert.
 
 [vpn.up.agent]
 Le profil {1} a besoin d'un agent de passphrase.
-
-[vpn.down.ok]
-Tunnel arrêté. Réseau direct rétabli.
 
 [vpn.direct.ok]
 Aucun VPN configuré. Réseau direct, killswitch coupé.
@@ -92,26 +80,11 @@ Bascule vers {1}.
 [vpn.switch.fail]
 La bascule vers {1} a échoué. Le réseau direct reste fermé.
 
-[vpn.boot.ok]
-Le profil de démarrage est {1}.
-
-[vpn.boot.off]
-Le tunnel au démarrage est coupé.
-
-[vpn.boot.encrypted]
-Le profil {1} ne peut pas démarrer. Il demande une passphrase.
-
-[vpn.boot.bad]
-Le profil de démarrage {1} n'est pas utilisable.
-
 [vpn.rm.ok]
 Profil {1} retiré.
 
 [vpn.rm.active]
 Le profil {1} est actif.
-
-[vpn.rm.boot]
-Le profil {1} est le profil de démarrage.
 
 [vpn.rm.missing]
 Le profil {1} n'existe pas.
@@ -175,9 +148,6 @@ Client VPN préparé
 
 [vpn.profile.invalid]
 Le profil {1} est invalide.
-
-[vpn.handshake.fail]
-Poignée de main échouée pour {1}.
 
 [vpn.verify.ok]
 Le tunnel de démarrage {1} est ouvert.

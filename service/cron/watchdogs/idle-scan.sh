@@ -6,10 +6,10 @@
 # =============================================================================
 
 set -euo pipefail
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
+BASE="${BASE:-/opt/liltress-workstation}"
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
-source "${W_BASE}/cron/bin/common.sh"
+source "${BASE}/cron/bin/common.sh"
 # shellcheck disable=SC1091
 source "${HERE}/scan-skip-lib.sh"
 LOG_FILE="${LOG_DIR}/idle-scan-${STAMP}.log"
@@ -39,9 +39,9 @@ install -d -m 755 /run/liltress-workstation
 file_list="$(mktemp -p /run/liltress-workstation)"
 fresh_list=""
 trap 'st=$?; rm -f "${file_list}"; if [[ -n "${fresh_list}" ]]; then rm -f "${fresh_list}"; fi; send_crash_mail "${st}"' EXIT
-stamp="${W_BASE}/cron/scan-skip.stamp"
-if [[ ${#W_SCAN_SKIP_VALID[@]} -gt 0 ]]; then
-    for path in "${W_SCAN_SKIP_VALID[@]}"; do
+stamp="${BASE}/cron/scan-skip.stamp"
+if [[ ${#SCAN_SKIP_VALID[@]} -gt 0 ]]; then
+    for path in "${SCAN_SKIP_VALID[@]}"; do
         base="$(basename "${path}")"
         [[ "${base}" == ".cache" || "${base}" == "snap" ]] && continue
         [[ -e "${path}" ]] || continue
@@ -92,7 +92,7 @@ if [[ -s "${file_list}" ]]; then
     fi
 fi
 
-seen="${W_BASE}/cron/scan-skip.seen"
+seen="${BASE}/cron/scan-skip.seen"
 if [[ "${kind}" == "error" ]]; then
     log_alert "$(get_text watchdog.clamscan-error-rc "${rc}")"
     exit 0
@@ -131,15 +131,15 @@ PY
     new_count=0
     if [[ -s "${fresh_list}" ]]; then
         response="${HERE}/clamav-response.sh"
-        [[ -x "${W_BASE}/cron/bin/clamav-response.sh" ]] && response="${W_BASE}/cron/bin/clamav-response.sh"
+        [[ -x "${BASE}/cron/bin/clamav-response.sh" ]] && response="${BASE}/cron/bin/clamav-response.sh"
         while IFS=$'\t' read -r sig origin; do
             [[ -n "${sig}" && -n "${origin}" ]] || continue
             new_count=$((new_count + 1))
-            W_CLAMAV_EVENT_FILE="${origin}" \
-            W_CLAMAV_EVENT_VIRUS="${sig}" \
-            W_CLAMAV_EVENT_KIND=idle \
-            W_CLAMAV_EVENT_MAIL=0 \
-            W_CLAMAV_RESPONSE_STAMP="${STAMP}-$$-${new_count}" \
+            CLAMAV_EVENT_FILE="${origin}" \
+            CLAMAV_EVENT_VIRUS="${sig}" \
+            CLAMAV_EVENT_KIND=idle \
+            CLAMAV_EVENT_MAIL=0 \
+            CLAMAV_RESPONSE_STAMP="${STAMP}-$$-${new_count}" \
                 bash "${response}" || true
         done < "${fresh_list}"
     fi

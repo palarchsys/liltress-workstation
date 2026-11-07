@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/exec.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -154,7 +154,7 @@ run_step() {
             mkdir -p "${INSTALL_LOG_DIR}/steps"
             set +e
             if [[ "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
-                SECTION_OPEN="${SECTION_OPEN:-0}" SECTION_HAD_STEP="${SECTION_HAD_STEP:-0}" STEP_LABEL="$(get_text log.execution-of "${step}")" bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type" 2>&1 | tee -a "$step_log"
+                SECTION_OPEN="${SECTION_OPEN:-0}" SECTION_HAD_STEP="${SECTION_HAD_STEP:-0}" STEP_LABEL="${step}" bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type" 2>&1 | tee -a "$step_log"
             else
                 bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type" 2>&1 | tee -a "$step_log"
             fi
@@ -166,7 +166,7 @@ run_step() {
         else
             set +e
             if [[ "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
-                SECTION_OPEN="${SECTION_OPEN:-0}" SECTION_HAD_STEP="${SECTION_HAD_STEP:-0}" STEP_LABEL="$(get_text log.execution-of "${step}")" bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type"
+                SECTION_OPEN="${SECTION_OPEN:-0}" SECTION_HAD_STEP="${SECTION_HAD_STEP:-0}" STEP_LABEL="${step}" bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type"
             else
                 bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type"
             fi
@@ -203,7 +203,7 @@ run_install_plan() {
         fi
         if [[ -n "${when_var}" ]]; then
             case "${when_var}" in
-                MAIL_ALERTS|RCLONE_ALERTS|S_SERVER_TYPE|MODE_TEST|S_MODE_DEV) ;;
+                MAIL_ALERTS|SERVER_TYPE|MODE_TEST|MODE_DEV) ;;
                 *) log_error "${INSTALL_WATCHER:-BASH}" "log.condition.rejected" "${when_var}" ;;
             esac
             value="${!when_var:-}"
@@ -238,10 +238,9 @@ import sys
 
 allowed = {
     "MAIL_ALERTS",
-    "RCLONE_ALERTS",
-    "S_SERVER_TYPE",
+    "SERVER_TYPE",
     "MODE_TEST",
-    "S_MODE_DEV",
+    "MODE_DEV",
 }
 env_allowed = set()
 plan = json.load(open(sys.argv[1], encoding="utf-8"))

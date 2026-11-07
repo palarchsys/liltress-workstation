@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "${PROFILE}" ]]; then
-    if [[ -f "${T_ROOT}/config/global.conf" ]] && grep -qE '^(S_SERVER_TYPE="WORKSTATION"|W_PROJECT_SLUG="liltress-workstation")$' "${T_ROOT}/config/global.conf"; then
+    if [[ -f "${T_ROOT}/config/global.conf" ]] && grep -qE '^(SERVER_TYPE="WORKSTATION"|PROJECT_SLUG="liltress-workstation")$' "${T_ROOT}/config/global.conf"; then
         PROFILE="WORKSTATION"
     else
         PROFILE="ALL"
@@ -49,7 +49,7 @@ case "${PROFILE}" in
 esac
 
 product_ws=0
-if [[ -f "${T_ROOT}/config/global.conf" ]] && grep -qE '^(S_SERVER_TYPE="WORKSTATION"|W_PROJECT_SLUG="liltress-workstation")$' "${T_ROOT}/config/global.conf"; then
+if [[ -f "${T_ROOT}/config/global.conf" ]] && grep -qE '^(SERVER_TYPE="WORKSTATION"|PROJECT_SLUG="liltress-workstation")$' "${T_ROOT}/config/global.conf"; then
     product_ws=1
 fi
 if [[ "${product_ws}" -eq 1 && "${PROFILE}" != "WORKSTATION" ]]; then

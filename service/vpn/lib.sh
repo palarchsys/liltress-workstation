@@ -22,22 +22,22 @@ get_vpn_home() {
 
 load_vpn_settings() {
     local home file
-    W_VPN_ON_BOOT=0
-    W_VPN_BOOT_PROFILE=
-    W_VPN_HANDSHAKE_TIMEOUT=25
-    W_VPN_TABLE_ID=17820
-    W_VPN_TABLE_NAME=w_vpn
-    W_VPN_IFACE_WG=wg-liltress
-    W_VPN_IFACE_OVPN=tun-liltress
-    W_VPN_FW_PRIORITY=-150
-    W_VPN_RULE_PRIO_ENDPOINT=40
-    W_VPN_RULE_PRIO_BYPASS_TO=50
-    W_VPN_RULE_PRIO_BYPASS_FROM=51
-    W_VPN_RULE_PRIO_TUNNEL=100
-    W_VPN_RULE_PRIO_SSH=45
-    W_VPN_SSH_MARK=17820
-    W_VPN_FAILOVER_TRIES=3
-    W_VPN_FAILOVER_TIMEOUT=10
+    VPN_ON_BOOT=0
+    VPN_BOOT_PROFILE=
+    VPN_HANDSHAKE_TIMEOUT=25
+    VPN_TABLE_ID=17820
+    VPN_TABLE_NAME=w_vpn
+    VPN_IFACE_WG=wg-liltress
+    VPN_IFACE_OVPN=tun-liltress
+    VPN_FW_PRIORITY=-150
+    VPN_RULE_PRIO_ENDPOINT=40
+    VPN_RULE_PRIO_BYPASS_TO=50
+    VPN_RULE_PRIO_BYPASS_FROM=51
+    VPN_RULE_PRIO_TUNNEL=100
+    VPN_RULE_PRIO_SSH=45
+    VPN_SSH_MARK=17820
+    VPN_FAILOVER_TRIES=3
+    VPN_FAILOVER_TIMEOUT=10
     home="$(get_vpn_home)"
     file="${home}/vpn.conf"
     if [[ -f "${file}" ]]; then
@@ -47,32 +47,32 @@ load_vpn_settings() {
         # shellcheck disable=SC1090
         source "$(get_vpn_root)/config/vpn/vpn.conf"
     fi
-    [[ "${W_VPN_FW_PRIORITY}" =~ ^-[0-9]+$ ]] || W_VPN_FW_PRIORITY=-150
-    [[ "${W_VPN_TABLE_ID}" =~ ^[0-9]+$ ]] || W_VPN_TABLE_ID=17820
-    [[ "${W_VPN_TABLE_NAME}" =~ ^[a-z][a-z0-9_-]{0,14}$ ]] || W_VPN_TABLE_NAME=w_vpn
-    [[ "${W_VPN_IFACE_WG}" =~ ^[a-zA-Z0-9_-]{1,15}$ ]] || W_VPN_IFACE_WG=wg-liltress
-    [[ "${W_VPN_IFACE_OVPN}" =~ ^[a-zA-Z0-9_-]{1,15}$ ]] || W_VPN_IFACE_OVPN=tun-liltress
-    [[ "${W_VPN_HANDSHAKE_TIMEOUT}" =~ ^[0-9]+$ ]] || W_VPN_HANDSHAKE_TIMEOUT=25
-    [[ "${W_VPN_RULE_PRIO_ENDPOINT}" =~ ^[0-9]+$ ]] || W_VPN_RULE_PRIO_ENDPOINT=40
-    [[ "${W_VPN_RULE_PRIO_BYPASS_TO}" =~ ^[0-9]+$ ]] || W_VPN_RULE_PRIO_BYPASS_TO=50
-    [[ "${W_VPN_RULE_PRIO_BYPASS_FROM}" =~ ^[0-9]+$ ]] || W_VPN_RULE_PRIO_BYPASS_FROM=51
-    [[ "${W_VPN_RULE_PRIO_TUNNEL}" =~ ^[0-9]+$ ]] || W_VPN_RULE_PRIO_TUNNEL=100
-    [[ "${W_VPN_RULE_PRIO_SSH}" =~ ^[0-9]+$ ]] || W_VPN_RULE_PRIO_SSH=45
-    [[ "${W_VPN_SSH_MARK}" =~ ^[0-9]+$ ]] || W_VPN_SSH_MARK=17820
-    [[ "${W_VPN_FAILOVER_TRIES}" =~ ^[1-9][0-9]*$ ]] || W_VPN_FAILOVER_TRIES=3
-    [[ "${W_VPN_FAILOVER_TIMEOUT}" =~ ^[0-9]+$ ]] || W_VPN_FAILOVER_TIMEOUT=10
+    [[ "${VPN_FW_PRIORITY}" =~ ^-[0-9]+$ ]] || VPN_FW_PRIORITY=-150
+    [[ "${VPN_TABLE_ID}" =~ ^[0-9]+$ ]] || VPN_TABLE_ID=17820
+    [[ "${VPN_TABLE_NAME}" =~ ^[a-z][a-z0-9_-]{0,14}$ ]] || VPN_TABLE_NAME=w_vpn
+    [[ "${VPN_IFACE_WG}" =~ ^[a-zA-Z0-9_-]{1,15}$ ]] || VPN_IFACE_WG=wg-liltress
+    [[ "${VPN_IFACE_OVPN}" =~ ^[a-zA-Z0-9_-]{1,15}$ ]] || VPN_IFACE_OVPN=tun-liltress
+    [[ "${VPN_HANDSHAKE_TIMEOUT}" =~ ^[0-9]+$ ]] || VPN_HANDSHAKE_TIMEOUT=25
+    [[ "${VPN_RULE_PRIO_ENDPOINT}" =~ ^[0-9]+$ ]] || VPN_RULE_PRIO_ENDPOINT=40
+    [[ "${VPN_RULE_PRIO_BYPASS_TO}" =~ ^[0-9]+$ ]] || VPN_RULE_PRIO_BYPASS_TO=50
+    [[ "${VPN_RULE_PRIO_BYPASS_FROM}" =~ ^[0-9]+$ ]] || VPN_RULE_PRIO_BYPASS_FROM=51
+    [[ "${VPN_RULE_PRIO_TUNNEL}" =~ ^[0-9]+$ ]] || VPN_RULE_PRIO_TUNNEL=100
+    [[ "${VPN_RULE_PRIO_SSH}" =~ ^[0-9]+$ ]] || VPN_RULE_PRIO_SSH=45
+    [[ "${VPN_SSH_MARK}" =~ ^[0-9]+$ ]] || VPN_SSH_MARK=17820
+    [[ "${VPN_FAILOVER_TRIES}" =~ ^[1-9][0-9]*$ ]] || VPN_FAILOVER_TRIES=3
+    [[ "${VPN_FAILOVER_TIMEOUT}" =~ ^[0-9]+$ ]] || VPN_FAILOVER_TIMEOUT=10
     if declare -F read_vpn_state >/dev/null 2>&1; then
         read_vpn_state
     else
-        W_VPN_MODE=off
-        W_VPN_ACTIVE=
+        VPN_MODE=off
+        VPN_ACTIVE=
     fi
-    if [[ "${W_VPN_MODE}" == "on" ]]; then
-        W_VPN_ON_BOOT=1
+    if [[ "${VPN_MODE}" == "on" ]]; then
+        VPN_ON_BOOT=1
     else
-        W_VPN_ON_BOOT=0
+        VPN_ON_BOOT=0
     fi
-    W_VPN_BOOT_PROFILE="${W_VPN_ACTIVE}"
+    VPN_BOOT_PROFILE="${VPN_ACTIVE}"
 }
 
 check_vpn_name() {
@@ -466,7 +466,7 @@ get_vpn_active() {
 }
 
 check_vpn_mode() {
-    [[ "${W_VPN_MODE:-off}" == "on" ]]
+    [[ "${VPN_MODE:-off}" == "on" ]]
 }
 
 check_vpn_boot_on() {
@@ -498,7 +498,7 @@ send_vpn_alert() {
     MODULE_NAME="$(get_vpn_text vpn.mail.module)"
     CONTENT="$(get_vpn_text vpn.mail.body "${profile}" "${proto}" "${endpoint}" "${reason}")"
     export TITLE MODULE_NAME CONTENT
-    export W_BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+    export BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
     export PRODUCT_ROOT="${root}"
     bash "${send}" >/dev/null 2>&1 || true
 }
@@ -506,7 +506,7 @@ send_vpn_alert() {
 apply_vpn_systemd() {
     local drop="/etc/systemd/system/w-boot-chain.service.d/vpn.conf"
     load_vpn_settings
-    if [[ "${W_VPN_ON_BOOT}" == "1" ]]; then
+    if [[ "${VPN_ON_BOOT}" == "1" ]]; then
         systemctl enable w-vpn-killswitch.service >/dev/null 2>&1 || return 1
         systemctl enable w-vpn.service >/dev/null 2>&1 || return 1
         systemctl enable --now w-vpn-watch.timer >/dev/null 2>&1 || return 1
@@ -535,7 +535,7 @@ get_vpn_verify_state() {
         printf 'off\n'
         return 0
     fi
-    name="${W_VPN_ACTIVE}"
+    name="${VPN_ACTIVE}"
     if [[ -z "${name}" ]]; then
         name="$(get_vpn_active 2>/dev/null || true)"
     fi
@@ -556,7 +556,7 @@ get_vpn_verify_state() {
             printf 'stale %s\n' "${name}"
             return 0
         fi
-        if (( now - age > W_VPN_HANDSHAKE_TIMEOUT )); then
+        if (( now - age > VPN_HANDSHAKE_TIMEOUT )); then
             printf 'stale %s\n' "${name}"
             return 0
         fi
@@ -570,7 +570,7 @@ get_vpn_verify_state() {
     fi
     now="$(date +%s)"
     age="$(tr -d '[:space:]' < "${stamp}")"
-    if [[ ! "${age}" =~ ^[0-9]+$ ]] || (( now - age > W_VPN_HANDSHAKE_TIMEOUT )); then
+    if [[ ! "${age}" =~ ^[0-9]+$ ]] || (( now - age > VPN_HANDSHAKE_TIMEOUT )); then
         printf 'stale %s\n' "${name}"
         return 0
     fi

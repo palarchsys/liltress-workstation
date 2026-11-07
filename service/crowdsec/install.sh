@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/crowdsec/install.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-07
 # Creator    : palarchsys
 # =============================================================================
 
@@ -14,12 +14,13 @@ source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
 log_info         "${INSTALL_WATCHER}" "install.record-of-the-repository-crowdsec"
-install -d -m 755 /etc/apt/keyrings
+ensure_directory /etc/apt/keyrings 755
 CROWDSEC_KEY="/etc/apt/keyrings/crowdsec_crowdsec-archive-keyring.gpg"
 CROWDSEC_LIST="/etc/apt/sources.list.d/crowdsec_crowdsec.list"
 rm -f "${CROWDSEC_KEY}"
 curl -fsSL https://packagecloud.io/crowdsec/crowdsec/gpgkey | gpg --batch --yes --dearmor -o "${CROWDSEC_KEY}"
 chmod 644 "${CROWDSEC_KEY}"
+chown root:root "${CROWDSEC_KEY}"
 sed "s|__KEY__|${CROWDSEC_KEY}|g" "$(locate_config_file crowdsec/package.list)" \
     | grep -v '^#' > "${CROWDSEC_LIST}"
 chmod 644 "${CROWDSEC_LIST}"
@@ -29,7 +30,7 @@ chmod 644 /etc/apt/preferences.d/crowdsec
 run_silent_apt   "${INSTALL_WATCHER}" "update" "install.crowdsec.error"
 log_success      "${INSTALL_WATCHER}" "install.repository-crowdsec-saved"
 
-log_info         "${INSTALL_WATCHER}" "install.installation-of-crowdsec-2"
+log_info         "${INSTALL_WATCHER}" "install.installation-of-crowdsec"
 run_silent_apt   "${INSTALL_WATCHER}" "install -y crowdsec crowdsec-firewall-bouncer-nftables" "install.crowdsec.error"
 cs_ver="$(dpkg-query -W -f '${Version}' crowdsec 2>/dev/null || true)"
 if [[ "${cs_ver}" == 1.4.* ]]; then

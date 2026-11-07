@@ -23,7 +23,7 @@ fi
 log_success      "${INSTALL_WATCHER}" "configure.yescrypt-for-the-new-hash-old-intact"
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-pwquality"
 tee /etc/security/pwquality.conf > /dev/null << EOF
-minlen = ${W_PAM_PASSWORD_MIN_LENGTH}
+minlen = ${PAM_PASSWORD_MIN_LENGTH}
 minclass = 3
 dcredit = -1
 ucredit = -1
@@ -31,7 +31,7 @@ lcredit = -1
 ocredit = -1
 retry = 3
 EOF
-log_success      "${INSTALL_WATCHER}" "configure.pwquality-configured-minlen-not-32-desktop-usabl" "${W_PAM_PASSWORD_MIN_LENGTH}"
+log_success      "${INSTALL_WATCHER}" "configure.pwquality-configured-minlen-not-32-desktop-usabl" "${PAM_PASSWORD_MIN_LENGTH}"
 
 if [[ -f /etc/pam.d/common-password ]] && ! grep -q "rounds=65536" /etc/pam.d/common-password; then
     sed -i 's/\(pam_unix\.so.*\)/\1 rounds=65536/' /etc/pam.d/common-password 2>/dev/null || true
@@ -39,11 +39,11 @@ fi
 
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-pam-faillock-pam-auth-update-wi"
 tee /etc/security/faillock.conf > /dev/null << EOF
-deny = ${W_FAILLOCK_DENY}
-unlock_time = ${W_FAILLOCK_UNLOCK}
-fail_interval = ${W_FAILLOCK_FAIL_INTERVAL}
+deny = ${FAILLOCK_DENY}
+unlock_time = ${FAILLOCK_UNLOCK}
+fail_interval = ${FAILLOCK_FAIL_INTERVAL}
 even_deny_root
-root_unlock_time = ${W_FAILLOCK_UNLOCK}
+root_unlock_time = ${FAILLOCK_UNLOCK}
 EOF
 sed -i '/pam_faillock\.so/d' /etc/pam.d/common-auth /etc/pam.d/common-account 2>/dev/null || true
 install -m 644 "$(locate_config_file system/pam-configs/faillock)" /usr/share/pam-configs/faillock

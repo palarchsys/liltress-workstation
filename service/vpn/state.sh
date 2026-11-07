@@ -178,15 +178,15 @@ PY
 
 read_vpn_state() {
     local line
-    W_VPN_MODE=off
-    W_VPN_ACTIVE=
+    VPN_MODE=off
+    VPN_ACTIVE=
     line="$(run_vpn_state read "$(get_vpn_state_path)" 2>/dev/null || true)"
-    W_VPN_MODE="${line%%$'\n'*}"
+    VPN_MODE="${line%%$'\n'*}"
     if [[ "${line}" == *$'\n'* ]]; then
-        W_VPN_ACTIVE="${line#*$'\n'}"
+        VPN_ACTIVE="${line#*$'\n'}"
     fi
-    W_VPN_ACTIVE="${W_VPN_ACTIVE//$'\n'/}"
-    [[ "${W_VPN_MODE}" == "on" ]] || W_VPN_MODE=off
+    VPN_ACTIVE="${VPN_ACTIVE//$'\n'/}"
+    [[ "${VPN_MODE}" == "on" ]] || VPN_MODE=off
 }
 
 write_vpn_state() {

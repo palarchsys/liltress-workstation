@@ -75,10 +75,6 @@ El valor predeterminado es el inglés.<br/>
 | Login            | Una dirección de correo.                                                                                                                                                             |
 | Password         | La contraseña de aplicación del proveedor, de 8 a 128 caracteres. Los espacios se quitan. Las comillas, `$`, `\` y la comilla inversa se rechazan. Nunca la contraseña de la cuenta. |
 | From             | Una dirección de correo. `WATCHDOG_MAIL` recibe la misma dirección.                                                                                                               |
-| Activer l'envoi des alertes vers Google Drive (Y/N). | `Y` o `y` activa la copia. `N`, `n` o `non` la corta. Activada, se le pregunta el nombre remoto y la carpeta, y después se ejecuta `rclone config`. El testigo permanece en la máquina, modo 600. Cortada, rclone no se instala. |
-| Distant          | Nombre remoto. Letras, dígitos o guion, de 1 a 32 caracteres. Solo si la copia está activada.                                                                                        |
-| Dossier          | Carpeta remota. Sin `..` y sin ruta local absoluta. Solo si la copia está activada.                                                                                                  |
-| Mode test        | `0` o `1`.                                                                                                                                                                           |
 
 ## Programas y servicios instalados
 
@@ -102,7 +98,6 @@ La instalación coloca los paquetes y servicios de abajo.
 | aide                                            | Base de integridad `/var/lib/aide/aide.db`.                                                                                                                                    |
 | unattended-upgrades                             | Orígenes de seguridad. `Automatic-Reboot` vale `false`.                                                                                                                        |
 | postfix                                         | Envía el correo de alerta. Instalado solo cuando `MAIL_ALERTS=1`.                                                                                                           |
-| rclone                                          | Copia un archivo de alerta a Google Drive. Instalado solo cuando `RCLONE_ALERTS=1`.                                                                                         |
 | lynis                                           | Auditoría de endurecimiento.                                                                                                                                                   |
 | ubuntu-pro-client                               | Adjunta el token de Ubuntu Pro. Fuera de una LTS no se activan esm-infra, esm-apps ni Livepatch. En una LTS, un fallo al activarlos no detiene la instalación. |
 | acct, sysstat, libpam-pwquality                 | Contabilidad de procesos, estadísticas de actividad, calidad de las contraseñas.                                                                                               |
@@ -118,7 +113,6 @@ El túnel WireGuard y OpenVPN está descrito en [vpn.md](vpn.md).
 Cada archivo de alerta queda en `/opt/liltress-workstation/cron/alerts`.<br/>
 El mensaje sigue el idioma `LANGUAGE`.<br/>
 El correo sale solo si `MAIL_ALERTS=1`.<br/>
-Una copia sale hacia Google Drive solo si `RCLONE_ALERTS=1`, hacia el remoto y la carpeta elegidos.<br/>
 <br/>
 El correo sale solo si `MAIL_ALERTS=1`, si `WATCHDOG_MAIL` está definido, y si `/opt/liltress-workstation/cron/bin/send.sh` es ejecutable.<br/>
 Un control limpio no envía correo.<br/>
@@ -297,7 +291,7 @@ sudo bash verify/workstation.sh "$PWD"
 ```
 
 Lanza la comprobación del puesto.<br/>
-La línea de cierre tiene la forma `Check : N OK / N WARN / N FAIL`.<br/>
+Las líneas de cierre son `Check Success : N`, `Check Warnings : N` y `Check Fails : N`.<br/>
 La misma pasada comprueba el reenvío SSH, la regla de cortafuegos SSH, USBGuard, el plazo sudo y `w-reboot-notice.timer`.
 
 ## ▪️ Comprobación después del arranque

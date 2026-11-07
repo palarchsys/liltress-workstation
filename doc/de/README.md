@@ -75,10 +75,6 @@ Die Vorgabe ist Englisch.<br/>
 | Login            | Eine E-Mail-Adresse.                                                                                                                                                     |
 | Password         | Das Anwendungskennwort des Anbieters, 8 bis 128 Zeichen. Leerzeichen werden entfernt. Anführungszeichen, `$`, `\` und Backticks werden abgelehnt. Nie das Kontokennwort. |
 | From             | Eine E-Mail-Adresse. `WATCHDOG_MAIL` erhält dieselbe Adresse.                                                                                                         |
-| Activer l'envoi des alertes vers Google Drive (Y/N). | `Y` oder `y` schaltet die Kopie ein. `N`, `n` oder `non` schaltet sie aus. Bei Aktivierung fragt das Programm nach dem Remote-Namen und dem Ordner und startet dann `rclone config`. Das Token bleibt auf der Maschine, Modus 600. Bei Deaktivierung wird rclone nicht installiert. |
-| Distant          | Name des Remote. Buchstaben, Ziffern oder Bindestrich, 1 bis 32 Zeichen. Nur wenn die Kopie eingeschaltet ist.                                                            |
-| Dossier          | Ordner auf dem Remote. Kein `..` und kein lokaler absoluter Pfad. Nur wenn die Kopie eingeschaltet ist.                                                                  |
-| Mode test        | `0` oder `1`.                                                                                                                                                            |
 
 ## Installierte Software und Dienste
 
@@ -102,7 +98,6 @@ Die Installation setzt die folgenden Pakete und Dienste.
 | aide                                            | Integritätsbasis `/var/lib/aide/aide.db`.                                                                                                          |
 | unattended-upgrades                             | Sicherheitsherkünfte. `Automatic-Reboot` ist `false`.                                                                                              |
 | postfix                                         | Sendet die Alarmpost. Installiert nur wenn `MAIL_ALERTS=1`.                                                                                     |
-| rclone                                          | Kopiert eine Alarmdatei nach Google Drive. Installiert nur wenn `RCLONE_ALERTS=1`.                                                               |
 | lynis                                           | Härtungsaudit.                                                                                                                                     |
 | ubuntu-pro-client                               | Hängt das Ubuntu-Pro-Token an. Außerhalb einer LTS werden esm-infra, esm-apps und Livepatch nicht aktiviert. Auf einer LTS stoppt ein Fehlschlag die Installation nicht. |
 | acct, sysstat, libpam-pwquality                 | Prozessabrechnung, Aktivitätsstatistik, Kennwortqualität.                                                                                          |
@@ -118,7 +113,6 @@ Der WireGuard- und OpenVPN-Tunnel steht in [vpn.md](vpn.md).
 Jede Alarmdatei liegt unter `/opt/liltress-workstation/cron/alerts`.<br/>
 Die Nachricht folgt der Sprache `LANGUAGE`.<br/>
 Post geht nur ab, wenn `MAIL_ALERTS=1`.<br/>
-Eine Kopie geht nur nach Google Drive, wenn `RCLONE_ALERTS=1`, zum gewählten Remote und Ordner.<br/>
 <br/>
 Die Post geht nur ab, wenn `MAIL_ALERTS=1`, wenn `WATCHDOG_MAIL` gesetzt ist, und wenn `/opt/liltress-workstation/cron/bin/send.sh` ausführbar ist.<br/>
 Eine saubere Kontrolle sendet keine Post.<br/>
@@ -297,7 +291,7 @@ sudo bash verify/workstation.sh "$PWD"
 ```
 
 Startet die Prüfung des Arbeitsplatzes.<br/>
-Die Abschlusszeile hat die Form `Check : N OK / N WARN / N FAIL`.<br/>
+Die Abschlusszeilen sind `Check Success : N`, `Check Warnings : N` und `Check Fails : N`.<br/>
 Derselbe Lauf prüft die SSH-Weiterleitung, die SSH-Firewall-Regel, USBGuard, die sudo-Frist und `w-reboot-notice.timer`.
 
 ## ▪️ Prüfung nach dem Start

@@ -9,13 +9,13 @@
 # Note       : CLAM_MODE=daemon selects the running daemon in the shared scanner.
 # Note       : The file list is created under /run/liltress-workstation.
 # Note       : An anchored OnAccessExcludePath is pruned as its path.
-# Note       : W_CLAMAV_DEFER=1 skips the pass while a game is running.
+# Note       : CLAMAV_DEFER=1 skips the pass while a game is running.
 # -----------------------------------------------------------------------------
 
 set -euo pipefail
-W_BASE="${W_BASE:-/opt/liltress-workstation}"
+BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${W_BASE}/cron/bin/common.sh"
+source "${BASE}/cron/bin/common.sh"
 LOG_FILE="${LOG_DIR}/clamav-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/clamav-${STAMP}.txt"
 if ! command -v clamscan >/dev/null; then
@@ -30,7 +30,7 @@ if ! flock -n 9; then
     exit 0
 fi
 
-if [[ "${W_CLAMAV_DEFER:-0}" == "1" ]]; then
+if [[ "${CLAMAV_DEFER:-0}" == "1" ]]; then
     busy=""
     for name in lutris heroic gamescope; do
         if pgrep -x "${name}" >/dev/null 2>&1; then
@@ -78,8 +78,8 @@ find_args=()
 for path in "${excludes[@]}"; do
     find_args+=( -path "${path}" -o -path "${path}/*" -o )
 done
-if [[ ${#W_SCAN_SKIP_VALID[@]} -gt 0 ]]; then
-    for path in "${W_SCAN_SKIP_VALID[@]}"; do
+if [[ ${#SCAN_SKIP_VALID[@]} -gt 0 ]]; then
+    for path in "${SCAN_SKIP_VALID[@]}"; do
         find_args+=( -path "${path}" -o -path "${path}/*" -o )
     done
 fi
@@ -109,17 +109,17 @@ report_clamav || true
 if [[ "${kind}" == "infected" ]]; then
     mapfile -t found_lines < <(grep ' FOUND$' "${LOG_FILE}" || true)
     response="${HERE}/clamav-response.sh"
-    [[ -x "${W_BASE}/cron/bin/clamav-response.sh" ]] && response="${W_BASE}/cron/bin/clamav-response.sh"
+    [[ -x "${BASE}/cron/bin/clamav-response.sh" ]] && response="${BASE}/cron/bin/clamav-response.sh"
     for line in "${found_lines[@]+"${found_lines[@]}"}"; do
         body="${line% FOUND}"
         virus="${body##*: }"
         origin="${body%:*}"
         [[ -n "${origin}" && -n "${virus}" ]] || continue
-        W_CLAMAV_EVENT_FILE="${origin}" \
-        W_CLAMAV_EVENT_VIRUS="${virus}" \
-        W_CLAMAV_EVENT_KIND=periodic \
-        W_CLAMAV_EVENT_MAIL=0 \
-        W_CLAMAV_RESPONSE_STAMP="${STAMP}-$$" \
+        CLAMAV_EVENT_FILE="${origin}" \
+        CLAMAV_EVENT_VIRUS="${virus}" \
+        CLAMAV_EVENT_KIND=periodic \
+        CLAMAV_EVENT_MAIL=0 \
+        CLAMAV_RESPONSE_STAMP="${STAMP}-$$" \
             bash "${response}" || true
     done
     log_alert "$(get_text watchdog.clamscan-infection-s-see "${LOG_FILE}")"
