@@ -1,8 +1,135 @@
 # =============================================================================
-# File       : workstation/locale/en/watchdog.txt
-# Updated at : 2026-10-31
+# File       : locale/en/watchdog.txt
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
+
+
+[watchdog.mail-not-sent-core-mail-sh-not-found]
+Mail not sent ({1}): core/mail/mail.sh not found.
+
+[watchdog.mail-not-sent-empty-body]
+Mail not sent ({1}): empty body.
+
+[watchdog.mail-not-sent-template-html-invalid]
+Mail not sent ({1}): template HTML invalid.
+
+[watchdog.mail-not-sent-template-html-not-found]
+Mail not sent ({1}): template HTML not found.
+
+[watchdog.mirrors-dat-changed-outside-rkhunter-update]
+mirrors.dat changed outside rkhunter --update
+
+[watchdog.signal]
+signal {1}
+
+[watchdog.t-t-t-t-t]
+{1}\t{2}\t{3}\t{4}\t{5}\t{6}
+
+[watchdog.the-check-crashed-signal-it-did-not-finish]
+The check {1} crashed (signal {2}, {3}). It did not finish.
+
+[watchdog.the-check-stopped-code-it-did-not-finish]
+The check {1} stopped (code {2}). It did not finish.
+
+[watchdog.the-journal-is]
+ The journal is {1}.
+
+[watchdog.mail-not-sent-alerts-e-mail-off]
+Mail not sent ({1}): alerts e-mail off.
+
+[watchdog.mail-not-sent-destinataire-or-empty-body]
+Mail not sent ({1}): destinataire or empty body.
+
+[watchdog.mail-not-sent-command-mail-absent]
+Mail not sent ({1}): command mail absent.
+
+[watchdog.execution-since-a-directory-temporary]
+execution since a directory temporary
+
+[watchdog.list-of-integrity-absent]
+integrity list absent
+
+[watchdog.ausearch-absent]
+ausearch absent
+
+[watchdog.initial-rep-re-written]
+initial marker written
+
+[watchdog.no-execution-temporary]
+no temporary execution
+
+[watchdog.invalid-memory-access]
+invalid memory access
+
+[watchdog.forced-stop]
+forced stop
+
+[watchdog.internal-program-error]
+internal program error
+
+[watchdog.interrupted-write]
+interrupted write
+
+[watchdog.stop-request]
+stop request
+
+[watchdog.name-absent]
+name absent
+
+[watchdog.process-not-stopped]
+process not stopped: {1}
+
+[watchdog.process-stopped]
+process {1} ({2}) stopped
+
+[watchdog.process-not-stopped-signal-rejected]
+process {1} not stopped: signal rejected
+
+[watchdog.process-not-stopped-no-d-tenteur]
+process not stopped: no détenteur
+
+[watchdog.not-updated-in-quarantine]
+not updated in quarantine: {1}
+
+[watchdog.moved-in-quarantine-quarantine]
+moved in quarantine: {1}; {2}; quarantine {3}
+
+[watchdog.clamav-crashed-twice-in-a-row-signal-the-check-s]
+ClamAV crashed twice in a row (signal {1}, {2}). The check stopped. The remaining files were not scanned.
+
+[watchdog.clamav-crashed-signal-on-one-file-that-file-was]
+ClamAV crashed (signal {1}, {2}) on one file. That file was not scanned. The other files were continued.
+
+[watchdog.clamav-crashed-signal-on-files-those-files-were]
+ClamAV crashed (signal {1}, {2}) on {3} files. Those files were not scanned. The other files were continued.
+
+[watchdog.a-restart-is-useful-the-machine-was-not-restarte]
+A restart is useful. The machine was not restarted.
+
+[watchdog.initial-fingerprint-written]
+initial fingerprint written
+
+[watchdog.integrity-unchanged]
+integrity unchanged
+
+[watchdog.integrity-fingerprint-changed]
+integrity: fingerprint changed
+
+[watchdog.signal.abort]
+program abort
+
+[watchdog.module.unknown]
+unknown
+
+[watchdog.about.chkrootkit]
+Rootkit search (chkrootkit -x -q).
+
+[watchdog.about.module]
+Message from module {1}.
+
+[log.watchdog-not-found]
+watchdog.sh not found
 
 [watchdog.chkrootkit-a-produced-a-output-see]
 chkrootkit a produced a output (see {1})
@@ -27,15 +154,6 @@ rkhunter warnings (see {1})
 
 [watchdog.help-absent-skip]
 aide absent — skip
-
-[watchdog.ausearch-absent]
-ausearch absent
-
-[watchdog.initial-rep-re-written]
-initial repère written
-
-[watchdog.no-execution-temporary]
-no execution temporary
 
 [watchdog.chkrootkit-absent-skip]
 chkrootkit absent — skip
@@ -66,9 +184,6 @@ flow outbound suspicious blocked
 
 [watchdog.infections-already-signal-es]
 infections already signalées
-
-[watchdog.list-of-integrity-absent]
-list of integrity absent
 
 [watchdog.no-restart-useful]
 no restart useful
@@ -105,3 +220,84 @@ no flow suspicious outbound
 
 [watchdog.avis-of-restart-already-sent]
 avis of restart already sent
+
+[watchdog.blocks-done-24h]
+# Blocks Done (24H)
+
+[watchdog.count-of-files-in-quarantine]
+Count of files in quarantine: {1}
+
+[watchdog.count-of-packages-blocked]
+Count of packages blocked: {1}
+
+[watchdog.date-signature-file-location-d]
+Date: {1}
+Signature: {2}
+File: {3}
+Location d
+
+[watchdog.detections-to-the-ouverture-origin-and-quarantin]
+# Detections to the ouverture (origin and quarantine)
+
+[watchdog.error-fail2ban-client-status-a-failed]
+Error: fail2ban-client status a failed
+
+[watchdog.error-ufw-status-a-failed]
+Error: ufw status a failed
+
+[watchdog.ips-blocked]
+IPs blocked:
+
+[watchdog.no-ip-extracted]
+(no IP extracted)
+
+[watchdog.quarantine]
+# Quarantine
+
+[watchdog.status-ufw]
+# Status UFW
+
+[watchdog.usr-bin-cscli]
+/usr/bin/cscli
+
+[watchdog.clamd-injoignable-parcours-compl-mentaire-not-la]
+clamd injoignable — parcours complémentaire not launched (no second load of signatures).
+
+[watchdog.flow-outbound-refus-s-by-the-policy-of-output]
+flow outbound refusés by the policy of output
+
+[watchdog.parcours-compl-mentaire-clamdscan-fdpass]
+# Parcours complémentaire (clamdscan --fdpass)
+
+[watchdog.decisions-ips-bannies]
+# Decisions (IPs bannies)
+
+[watchdog.total-count-of-decisions-bans]
+total Count of decisions/bans: {1}
+
+[watchdog.alerts-attempts-of-intrusion]
+# Alerts (Attempts of intrusion)
+
+[watchdog.total-count-of-alerts]
+total Count of alerts: {1}
+
+[watchdog.jails-actives]
+Jails actives: {1}
+
+[watchdog.bans-done-24h]
+# BANS Done (24H)
+
+[watchdog.rkhunter-update-a-failed-rc]
+rkhunter --update a failed (rc={1})
+
+[watchdog.initial-mark-written]
+initial mark written
+
+[watchdog.no-outbound-flow-refused]
+no outbound flow refused
+
+[watchdog.aide-changes-detected]
+AIDE: changes detected
+
+[watchdog.aide-detected-changes]
+# AIDE detected changes

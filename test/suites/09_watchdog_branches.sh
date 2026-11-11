@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/09_watchdog_branches.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -993,12 +993,12 @@ then
 else
     t_fail "text.language" "langue absente du test ou question trop tard"
 fi
-if python3 - "${T_ROOT}/../share/core/text" "${T_ROOT}/locale" << 'PY'
+if python3 - "${T_ROOT}/../share/locale" << 'PY'
 import re
 import sys
 from pathlib import Path
 
-key_re = re.compile(r"^\[([a-z][a-z0-9-]*(?:\.[a-z0-9-]+)+)\]$")
+key_re = re.compile(r"^\[([a-z][a-z0-9-]*(?:\.[a-z0-9-]+)+|LABEL_[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*)\]$")
 
 def keys_of(root):
     found = {}
@@ -1028,7 +1028,6 @@ def check(root):
             sys.exit(root + " " + lang + " missing=" + str(missing) + " extra=" + str(extra))
 
 check(sys.argv[1])
-check(sys.argv[2])
 PY
 then
     t_pass "text.parity" "mêmes clés en en, fr, de, es"

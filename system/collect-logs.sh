@@ -12,7 +12,7 @@ fi
 export INSTALL_DIRECTORY
 
 # shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 # shellcheck disable=SC1091
 source "${INSTALL_DIRECTORY}/config/global.conf"
 

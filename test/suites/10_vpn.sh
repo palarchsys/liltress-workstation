@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/10_vpn.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -35,7 +35,7 @@ else
     t_fail "vpn.launch" "branche absente"
 fi
 
-if python3 - "${T_ROOT}/script/install.json" > "${ARTIFACTS}/vpn-order.txt" 2>&1 << 'PY'
+if python3 - "${T_ROOT}/config/schema/installation.json" > "${ARTIFACTS}/vpn-order.txt" 2>&1 << 'PY'
 import json
 import sys
 from pathlib import Path
@@ -58,7 +58,7 @@ if configure != ufw + 1:
     sys.exit("configure hors place")
 PY
 then
-    t_pass "vpn.order" "install.json"
+    t_pass "vpn.order" "installation.json"
 else
     t_fail "vpn.order" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-order.txt")"
 fi
@@ -158,7 +158,7 @@ else
     t_pass "vpn.profiles" "aucun profil versionné"
 fi
 
-if python3 - "${T_ROOT}/../share/core/text" "${T_ROOT}/locale" > "${ARTIFACTS}/vpn-keys.txt" 2>&1 << 'PY'
+if python3 - "${T_ROOT}/../share/locale" > "${ARTIFACTS}/vpn-keys.txt" 2>&1 << 'PY'
 import re
 import sys
 from pathlib import Path
@@ -175,19 +175,17 @@ def bag(root, lang):
                 found.add(match.group(1))
     return found
 
-core = Path(sys.argv[1])
-locale = Path(sys.argv[2])
-base = bag(core, "en")
+locale = Path(sys.argv[1])
+base = bag(locale, "en")
 if not base:
     sys.exit("aucune clé")
-for tree in (core, locale):
-    for lang in ("en", "fr", "de", "es"):
-        found = bag(tree, lang)
-        if found != base:
-            sys.exit(f"{tree} {lang} missing={sorted(base-found)[:6]} extra={sorted(found-base)[:6]}")
+for lang in ("en", "fr", "de", "es"):
+    found = bag(locale, lang)
+    if found != base:
+        sys.exit(f"{lang} missing={sorted(base-found)[:6]} extra={sorted(found-base)[:6]}")
 PY
 then
-    t_pass "vpn.keys" "quatre langues, deux arbres"
+    t_pass "vpn.keys" "quatre langues"
 else
     t_fail "vpn.keys" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-keys.txt")"
 fi

@@ -1,10 +1,28 @@
 # =============================================================================
-# File       : workstation/locale/en/launch.txt
-# Updated at : 2026-11-04
+# File       : locale/en/launch.txt
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
-[launch.usage.extra]
+
+[launch.unknown-command]
+unknown command: {1}
+
+[launch.usage-liltress-help]
+Usage: {1}/liltress help
+
+[launch.usage]
+Usage: {1}/liltress <command>
+
+  configure   prepares global.conf and secrets.conf
+  check       checks those two files
+  run         installs (root)
+  lynis       Lynis audit (root)
+  logs        copies the journals
+  vpn         WireGuard or OpenVPN tunnel (root)
+  help        this help
+
+[launch.usage.extra.workstation]
 Verification:
 
   sudo bash verify/alerts.sh [--no-send]
@@ -13,3 +31,14 @@ Verification:
   sudo bash verify/chkrootkit-fp.sh
   sudo bash /opt/liltress-workstation/bin/scan-skip.sh list|add|del
   sudo ./liltress vpn
+
+[launch.usage.extra.server]
+  sudo ./liltress configure --basic   project name + domain; the rest is calculated
+  sudo ./liltress configure --avance  every question except the server profile
+
+Verification:
+
+  sudo bash verify/alerts.sh [--no-send]
+  sudo bash verify/matrix.sh "$PWD" MATRIX
+  sudo bash verify/livekit.sh "$PWD" LIVEKIT
+  sudo bash verify/wireguard.sh "$PWD" WIREGUARD

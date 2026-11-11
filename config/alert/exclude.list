@@ -1,0 +1,17 @@
+# =============================================================================
+# File       : config/alert/exclude.list
+# Updated at : 2026-11-11
+# Creator    : palarchsys
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Purpose    : Paths both products ignore when a watchdog classifies a change.
+# Note       : One path or one prefix per line. A directory prefix ends with a slash.
+# Note       : ip:address and scenario:name apply to CrowdSec and Fail2Ban.
+# Note       : The product file config/alert/exclude.list is added to this one.
+# -----------------------------------------------------------------------------
+
+/var/log/
+/var/cache/apt/
+/var/lib/apt/lists/
+/var/lib/snapd/sequence

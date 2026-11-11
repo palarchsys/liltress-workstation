@@ -1,0 +1,269 @@
+[LABEL_LANGUAGE]
+Sprache
+
+[LABEL_UBUNTU_PRO_TOKEN]
+Ubuntu-Pro-Token
+
+[LABEL_MAIL_ALERTS]
+E-Mail-Alarme
+
+[LABEL_POSTFIX_SMTP_LOGIN]
+SMTP-Anmeldung
+
+[LABEL_POSTFIX_MAIL_ADDRESS]
+Absender-E-Mail-Adresse
+
+[LABEL_POSTFIX_MAIL_PASSWORD]
+SMTP-Passwort
+
+[LABEL_POSTFIX_MAIL_SMTP]
+SMTP-Server
+
+[LABEL_WATCHDOG_MAIL]
+Empfänger der Alarme
+
+[LABEL_PROJECT_NAME]
+Projektname
+
+[LABEL_PROJECT_SLUG]
+Projektkennung
+
+[LABEL_PROJECT_VERSION]
+Projektversion
+
+[LABEL_CONFIG_BASE_DIRECTORY]
+Installationsverzeichnis
+
+[LABEL_LYNIS_MIN_SCORE]
+Minimaler Lynis-Wert
+
+[LABEL_BANNER_MESSAGE]
+Anmeldebanner
+
+[LABEL_SSH_BANNER_PATH]
+SSH-Bannerdatei
+
+[LABEL_SSH_SERVICE_NAME]
+Name des SSH-Dienstes
+
+[LABEL_SSH_MAX_AUTH_TRIES]
+Maximale SSH-Anmeldeversuche
+
+[LABEL_SSH_CLIENT_ALIVE_INTERVAL]
+SSH-Keepalive-Intervall
+
+[LABEL_SSH_CLIENT_ALIVE_COUNT_MAX]
+SSH-Keepalive-Anzahl
+
+[LABEL_SSH_LOGIN_GRACE_TIME]
+SSH-Anmeldefrist
+
+[LABEL_WATCHDOG_CPU_LIMIT]
+CPU-Limit der Überwachung
+
+[LABEL_WATCHDOG_LIMIT_NICE]
+CPU-Priorität der Überwachung
+
+[LABEL_WATCHDOG_LIMIT_IO_NICE]
+Festplattenpriorität der Überwachung
+
+[LABEL_MAIL_TEMPLATE]
+E-Mail-Vorlage
+
+[LABEL_PAM_PASSWORD_MIN_LENGTH]
+Minimale Passwortlänge
+
+[LABEL_FAILLOCK_DENY]
+Versuche vor der Sperre
+
+[LABEL_FAILLOCK_UNLOCK]
+Sperrdauer
+
+[LABEL_FAILLOCK_FAIL_INTERVAL]
+Zeitfenster der Fehlversuche
+
+[LABEL_DOMAIN]
+Domainname
+
+[LABEL_MAIN_USER]
+Hauptkonto
+
+[LABEL_MAIN_GROUP]
+Hauptgruppe
+
+[LABEL_SSH_PORT]
+SSH-Port
+
+[LABEL_MODE_TEST]
+Testmodus
+
+[LABEL_MODE_DEV]
+Entwicklungsmodus
+
+[LABEL_NGINX_CERTBOT_MAIL_ADDRESS]
+E-Mail-Adresse des Zertifikats
+
+[LABEL_ANTIBOT_HMAC_SECRET]
+Antibot-Geheimnis
+
+[LABEL_POSTGRES_WEB_PASSWORD]
+Passwort der Web-Datenbank
+
+[LABEL_TURNSTILE_SITE_KEY]
+Turnstile-Site-Schlüssel
+
+[LABEL_TURNSTILE_SECRET_KEY]
+Turnstile-Geheimschlüssel
+
+[LABEL_UNBOUND_FORWARDERS]
+DNS-Weiterleitungen
+
+[LABEL_USBGUARD_ENABLE]
+USBGuard aktivieren
+
+[LABEL_DDOS_HARDENING_LEVEL]
+DDoS-Härtungsstufe
+
+[LABEL_HOSTNAME_MATRIX]
+Matrix-Hostname
+
+[LABEL_HOSTNAME_LIVEKIT]
+LiveKit-Hostname
+
+[LABEL_HOSTNAME_WIREGUARD]
+WireGuard-Hostname
+
+[LABEL_SWAP_SIZE]
+Swap-Größe
+
+[LABEL_SWAP_FILE]
+Swap-Datei
+
+[LABEL_SWAP_MAPPER_NAME]
+Name des Swap-Mappers
+
+[LABEL_CRON_USER]
+Cron-Konto
+
+[LABEL_NGINX_ADMIN_USER]
+Nginx-Adminkonto
+
+[LABEL_NGINX_HTPASSWD_PATH]
+Nginx-Passwortdatei
+
+[LABEL_NGINX_HTPASSWD_REALM]
+Nginx-Authentifizierungsbereich
+
+[LABEL_DOCKER_NETWORK_PRODUCTION]
+Docker-Netz der Produktion
+
+[LABEL_DOCKER_NETWORK_SECURITY]
+Docker-Netz der Sicherheit
+
+[LABEL_DOCKER_LOG_DRIVER]
+Docker-Protokolltreiber
+
+[LABEL_DOCKER_LOG_MAX_SIZE]
+Größe einer Docker-Protokolldatei
+
+[LABEL_DOCKER_LOG_MAX_FILE]
+Anzahl der Docker-Protokolldateien
+
+[LABEL_DOCKER_LOG_COMPRESS]
+Docker-Protokolle komprimieren
+
+[LABEL_POSTGRES_SYNAPSE_USER]
+Konto der Synapse-Datenbank
+
+[LABEL_POSTGRES_SYNAPSE_DB]
+Name der Synapse-Datenbank
+
+[LABEL_POSTGRES_KEYCLOAK_USER]
+Konto der Keycloak-Datenbank
+
+[LABEL_POSTGRES_KEYCLOAK_DB]
+Name der Keycloak-Datenbank
+
+[LABEL_POSTGRES_WEB_USER]
+Konto der Web-Datenbank
+
+[LABEL_POSTGRES_WEB_DB]
+Name der Web-Datenbank
+
+[LABEL_PORT_CROWDSEC_LAPI]
+CrowdSec-LAPI-Port
+
+[LABEL_PORT_SYNAPSE_POSTGRESQL]
+Synapse-PostgreSQL-Port
+
+[LABEL_PORT_SYNAPSE]
+Synapse-Port
+
+[LABEL_PORT_ELEMENT]
+Element-Port
+
+[LABEL_PORT_WEB_UI]
+Port der Weboberfläche
+
+[LABEL_PORT_WEB_API]
+Port der Web-API
+
+[LABEL_PORT_SYNAPSE_ADMIN]
+Synapse-Admin-Port
+
+[LABEL_PORT_PROMETHEUS]
+Prometheus-Port
+
+[LABEL_PORT_KEYCLOAK]
+Keycloak-Port
+
+[LABEL_PORT_LIVEKIT_SFU]
+LiveKit-SFU-Port
+
+[LABEL_PORT_LIVEKIT_JWT]
+LiveKit-JWT-Port
+
+[LABEL_PORT_LIVEKIT_REDIS]
+LiveKit-Redis-Port
+
+[LABEL_PORT_WIREGUARD_UI]
+WireGuard-Oberflächenport
+
+[LABEL_PORT_WIREGUARD_UDP]
+WireGuard-UDP-Port
+
+[LABEL_WEB_REGISTRY]
+Container-Registry
+
+[LABEL_WEB_IMAGE_FRONTEND]
+Frontend-Image
+
+[LABEL_WEB_IMAGE_BACKEND]
+Backend-Image
+
+[LABEL_WEB_IMAGE_TAG]
+Image-Tag
+
+[LABEL_WEB_UPDATE_SCRIPT]
+Aktualisierungsskript
+
+[LABEL_MATRIX_ADMIN_USER]
+Matrix-Adminkonto
+
+[LABEL_KEYCLOAK_REALM]
+Keycloak-Realm
+
+[LABEL_KEYCLOAK_CLIENT]
+Keycloak-Client
+
+[LABEL_KC_BOOTSTRAP_ADMIN_USERNAME]
+Keycloak-Startadmin
+
+[LABEL_WIREGUARD_DEFAULT_DNS]
+WireGuard-DNS
+
+[LABEL_WIREGUARD_DEFAULT_ADDRESS]
+WireGuard-Adresse
+
+[LABEL_WIREGUARD_ALLOWED_IP]
+Erlaubte WireGuard-Adressen

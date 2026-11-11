@@ -1,0 +1,47 @@
+[title]
+Contrôles
+
+[form]
+Courrier
+
+[ok]
+la configuration est bonne
+
+[up]
+Champ précédent
+
+[down]
+Champ suivant
+
+[left]
+Curseur à gauche
+
+[right]
+Curseur à droite
+
+[language]
+Choisir la langue
+
+[paste]
+Coller
+
+[quit]
+Quitter
+
+[check]
+Contrôler les paramètres
+
+[run]
+Contrôler et lancer
+
+[pending]
+En attente...
+
+[invalid]
+ est : Incorrect
+
+[invalid_f]
+ est : Incorrecte
+
+[ready]
+Variables vérifiées, lancement de l'installation avec CTRL+I

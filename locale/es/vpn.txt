@@ -1,8 +1,9 @@
 # =============================================================================
-# File       : workstation/locale/es/vpn.txt
-# Updated at : 2026-11-07
+# File       : locale/es/vpn.txt
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
+
 
 [vpn.usage]
 Uso: liltress vpn <orden>

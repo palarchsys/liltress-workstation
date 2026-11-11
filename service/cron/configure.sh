@@ -94,7 +94,7 @@ copy_runtime_file "${INSTALL_DIRECTORY}/core/fs.sh" \
     "${CONFIG_BASE_DIRECTORY}/src/core/fs.sh" 644
 copy_runtime_dir "${INSTALL_DIRECTORY}/core/text" \
     "${CONFIG_BASE_DIRECTORY}/core/text"
-copy_runtime_dir "${INSTALL_DIRECTORY}/locale" \
+copy_runtime_dir "${INSTALL_DIRECTORY}/../share/locale" \
     "${CONFIG_BASE_DIRECTORY}/locale"
 ignore_src="$(locate_config_file chkrootkit/patterns.ignore || true)"
 if [[ -n "${ignore_src}" && -f "${ignore_src}" ]]; then

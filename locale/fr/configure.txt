@@ -1,8 +1,399 @@
 # =============================================================================
-# File       : workstation/locale/fr/configure.txt
-# Updated at : 2026-11-07
+# File       : locale/fr/configure.txt
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
+
+
+[configure.activation-of-fail2ban]
+Activation de Fail2Ban
+
+[configure.activation-ufw]
+Activation UFW
+
+[configure.alerts-email-off-postfix-is-not-configured]
+Alertes e-mail coupées : Postfix n'est pas configuré.
+
+[configure.apparmor-enabled]
+AppArmor activé
+
+[configure.base-help-after-the-purge-of-the-packages-and-rk]
+Base AIDE après la purge des paquets et rkhunter.
+
+[configure.base-rkhunter-propupd-after-the-purge-of-the-pac]
+Base rkhunter (--propupd) après la purge des paquets.
+
+[configure.card-sasl-absent-after-postmap]
+Carte SASL absente après postmap.
+
+[configure.configuration-of-journald]
+Configuration de journald
+
+[configure.core-alert-advice-txt-not-found]
+core/alert-advice.txt introuvable ({1})
+
+[configure.core-mail-sh-not-found-core-mail-sh]
+core/mail/mail.sh introuvable ({1}/core/mail/mail.sh)
+
+[configure.custom-prf-lynis-installed]
+custom.prf Lynis posé
+
+[configure.deactivation-of-the-core-dumps]
+Désactivation des core dumps
+
+[configure.encrypt-method-yescrypt]
+ENCRYPT_METHOD YESCRYPT
+
+[configure.error]
+ERREUR: {1}
+
+[configure.faillog-enab-yes]
+FAILLOG_ENAB yes
+
+[configure.from]
+From
+
+[configure.ipv6]
+IPV6={1}
+
+[configure.language.hint]
+Langue (en, fr, de, es). Entrée conserve la valeur actuelle.
+
+[configure.login]
+Login
+
+[configure.password]
+Password
+
+[configure.quota-cpu-not-found]
+quota CPU introuvable
+
+[configure.server]
+Serveur
+
+[configure.sha-crypt-max-rounds-65536]
+SHA_CRYPT_MAX_ROUNDS 65536
+
+[configure.sha-crypt-min-rounds-65536]
+SHA_CRYPT_MIN_ROUNDS 65536
+
+[configure.sudo-asks-again-the-password-after-5-minutes]
+sudo redemande le mot de passe après 5 minutes
+
+[configure.sudoers-timeout-invalid-file-removed]
+sudoers timeout invalide — fichier retiré
+
+[configure.systemctl-not-found]
+systemctl introuvable
+
+[configure.toi-exemple-com]
+toi@exemple.com
+
+[configure.ufw-is-not-active-after-enable]
+UFW n'est pas actif après enable : {1}
+
+[configure.umask-027-applied]
+UMASK 027 appliqué
+
+[configure.unit-absent]
+unité absente : {1}
+
+[configure.unused-fs-blacklisted]
+FS inutiles blacklistés
+
+[configure.usbguard-did-not-started-service-left-stopped]
+USBGuard n'a pas démarré — service laissé arrêté
+
+[configure.use-liltress-configures-check-n]
+Utilisez : ./liltress configure [--check]
+
+[configure.write-of-the-rules-usbguard]
+Écriture des règles USBGuard
+
+[configure.quota-cpu-invalid]
+quota CPU invalide ({1})
+
+[configure.g-ssh-banner-path-invalid-example-etc-ssh-sshd-b]
+{1} : SSH_BANNER_PATH invalide (« {2} »). exemple : /etc/ssh/sshd_banner
+
+[configure.g-ssh-service-name-invalid-example-ssh]
+{1} : SSH_SERVICE_NAME invalide (« {2} »). exemple : ssh
+
+[configure.g-ssh-client-alive-interval-invalid-example-300]
+{1} : SSH_CLIENT_ALIVE_INTERVAL invalide (« {2} »). exemple : 300
+
+[configure.g-watchdog-cpu-limit-invalid-example-50]
+{1} : WATCHDOG_CPU_LIMIT invalide (« {2} »). exemple : 50
+
+[configure.g-watchdog-limit-nice-invalid-example-19]
+{1} : WATCHDOG_LIMIT_NICE invalide (« {2} »). exemple : 19
+
+[configure.g-watchdog-limit-io-nice-invalid-example-3]
+{1} : WATCHDOG_LIMIT_IO_NICE invalide (« {2} »). exemple : 3
+
+[configure.g-mail-alerts-invalid-example-0-or-1]
+{1} : MAIL_ALERTS invalide (« {2} »). exemple : 0 ou 1
+
+[configure.g-mail-template-invalid-example-mail-html]
+{1} : MAIL_TEMPLATE invalide (« {2} »). exemple : mail.html
+
+[configure.g-mail-template-not-found-example-a-file-html-of]
+{1} : MAIL_TEMPLATE introuvable ({2}). exemple : un fichier .html du dossier template/
+
+[configure.g-postfix-mail-address-must-be-an-address-email]
+{1} : POSTFIX_MAIL_ADDRESS invalide (« {2} »). exemple : relay@example.com
+
+[configure.g-watchdog-mail-must-be-an-address-email-example]
+{1} : WATCHDOG_MAIL invalide (« {2} »). exemple : relay@example.com
+
+[configure.g-postfix-mail-smtp-invalid-example-smtp-mail-ou]
+{1} : POSTFIX_MAIL_SMTP invalide (« {2} »). exemple : smtp.gmail.com:587
+
+[configure.g-watchdog-mail-must-be-the-same-address-that-g]
+{1} : WATCHDOG_MAIL doit être la même adresse que POSTFIX_MAIL_ADDRESS.
+
+[configure.the-fields-e-mail-must-be-vides-when-the-alerts]
+{1} : les champs e-mail doivent être vides quand les alertes sont coupées.
+
+[configure.global-conf-absent-example-liltress-configures]
+global.conf absent ({1}). exemple : ./liltress configure
+
+[configure.secrets-conf-absent-example-liltress-configures]
+secrets.conf absent ({1}). exemple : ./liltress configure
+
+[configure.g-language-invalid-values-in-fr-of-es]
+{1} : LANGUAGE invalide (« {2} »). Valeurs : en, fr, de, es.
+
+[configure.core-watchdog-sh-not-found]
+core/watchdog/watchdog.sh introuvable ({1})
+
+[configure.clamav.error]
+La commande a échoué : {1}
+
+[configure.clamav.error.4]
+sudoers ClamAV invalide
+
+[configure.clamav.error.7]
+Unité clamonacc introuvable : la surveillance continue ne peut pas démarrer.
+
+[configure.clamav.error.12]
+clamonacc ne reste pas actif. Détail : {1}/clamonacc.log
+
+[configure.clamonacc-exclude-stopped-the-watches]
+Une exclusion ClamAV a arrêté les veilles. Détail : {1}/clamonacc.log
+
+[configure.auditd.error]
+La commande a échoué : {1}
+
+[configure.postfix.error]
+La commande a échoué : {1}
+
+[configure.postfix.error.4]
+Postfix n'est pas actif après la configuration.
+
+[configure.ufw.error]
+La commande a échoué : {1}
+
+[configure.ufw.error.11]
+UFW n'est pas actif après enable : {1}
+
+[configure.cron.error]
+quota CPU introuvable
+
+[configure.cron.error.2]
+quota CPU invalide ({1})
+
+[configure.cron.error.6]
+systemctl introuvable
+
+[configure.cron.error.7]
+unité absente : {1}
+
+[configure.cron.error.8]
+La commande a échoué : {1}
+
+[configure.cron.error.9]
+La commande a échoué : {1}
+
+[configure.cron.error.10]
+La commande a échoué : {1}
+
+[configure.cron.error.11]
+La commande a échoué : {1}
+
+[configure.cron.error.12]
+La commande a échoué : {1}
+
+[configure.cron.error.13]
+La commande a échoué : {1}
+
+[configure.cron.error.14]
+La commande a échoué : {1}
+
+[configure.cron.error.15]
+La commande a échoué : {1}
+
+[configure.cron.error.16]
+La commande a échoué : {1}
+
+[configure.cron.error.17]
+La commande a échoué : {1}
+
+[configure.cron.error.18]
+La commande a échoué : {1}
+
+[configure.cron.error.19]
+La commande a échoué : {1}
+
+[configure.redis.error]
+La commande a échoué : {1}
+
+[configure.apparmor.error]
+La commande a échoué : {1}
+
+[configure.fail2ban.error]
+La commande a échoué : {1}
+
+[configure.usbguard.error]
+La commande a échoué : {1}
+
+[configure.ssh.error]
+sshd -t a échoué — drop-in retiré
+
+[configure.ssh.error.2]
+PermitRootLogin effectif : {1}. Attendu : no.
+
+[configure.ssh.info.3]
+Test de syntaxe sshd
+
+[configure.ssh.error.3]
+La commande a échoué : {1}
+
+[configure.ssh.error.4]
+La commande a échoué : {1}
+
+[configure.ssh.error.5]
+La commande a échoué : {1}
+
+[configure.ssh.error.6]
+La commande a échoué : {1}
+
+[configure.ssh.error.7]
+La commande a échoué : {1}
+
+[configure.ssh.error.8]
+La commande a échoué : {1}
+
+[configure.ssh.error.9]
+La commande a échoué : {1}
+
+[configure.ssh.error.11]
+La commande a échoué : {1}
+
+[configure.crowdsec.error]
+La commande a échoué : {1}
+
+[configure.crowdsec.error.3]
+durée de blocage invalide
+
+[configure.crowdsec.info.10]
+Attente de l'API locale CrowdSec
+
+[configure.script.warn.2]
+{1}
+
+[configure.script.title]
+Jeton Ubuntu Pro
+
+[configure.script.error.5]
+La commande a échoué : {1}
+
+[configure.clamav.warn]
+Freshclam incomplet, le service reprend
+
+[configure.unbound.error.3]
+La commande a échoué : {1}
+
+[configure.unbound.error.4]
+La commande a échoué : {1}
+
+[configure.unbound.error.5]
+La commande a échoué : {1}
+
+[configure.unbound.error.6]
+La commande a échoué : {1}
+
+[configure.unbound.error.7]
+La commande a échoué : {1}
+
+[configure.unbound.error.8]
+La commande a échoué : {1}
+
+[configure.unbound.error.9]
+La commande a échoué : {1}
+
+[configure.unbound.error.10]
+La commande a échoué : {1}
+
+[configure.unbound.error.11]
+La commande a échoué : {1}
+
+[configure.unbound.error.12]
+La commande a échoué : {1}
+
+[configure.unattended-upgrades.error]
+La commande a échoué : {1}
+
+[configure.pam.error]
+La commande a échoué : {1}
+
+[configure.banners.error]
+La commande a échoué : {1}
+
+[configure.journald.error]
+La commande a échoué : {1}
+
+[configure.sysctl.error]
+La commande a échoué : {1}
+
+[configure.kernel.error]
+La commande a échoué : {1}
+
+[configure.lynis.error]
+La commande a échoué : {1}
+
+[configure.users.error]
+La commande a échoué : {1}
+
+[configure.dns.error]
+La commande a échoué : {1}
+
+[configure.swap.error]
+La commande a échoué : {1}
+
+[configure.backtick-forbidden]
+{1} : apostrophe inverse interdite.
+
+[configure.command-subst-forbidden]
+{1} : $(...) interdit.
+
+[configure.config-prepared-must]
+{1} : CONFIG_PREPARED doit valoir 1. exemple : ./liltress configure
+
+[configure.secret-prepared-must]
+{1} : SECRET_PREPARED doit valoir 1. exemple : ./liltress configure
+
+[configure.user-conf-absent]
+user.conf absent. exemple : {1}
+
+[configure.user-conf-no-source]
+user.conf : aucune commande source.
+
+[configure.secrets-conf-mode]
+secrets.conf : permissions {1}, attendu 600. exemple : chmod 600 config/secrets.conf
+
+[configure.main-user-same-as-cron]
+{1} : MAIN_USER et CRON_USER identiques (« {2} »). exemple : un compte SSH distinct de cronexecutor
 
 [configure.activation-of-apparmor]
 Activation d'AppArmor
@@ -160,20 +551,11 @@ Fichier bouncer absent : {1}
 [configure.form-host-port-for-example-smtp-mail-outlook-com]
 Forme hôte:port, par exemple smtp-mail.outlook.com:587.
 
-[configure.g-postfix-mail-address-must-be-an-address-email]
-{1} : POSTFIX_MAIL_ADDRESS doit être une adresse e-mail (« {2} »). exemple : toi@exemple.com
-
 [configure.g-postfix-mail-password-invalid-example-the-pass]
 {1} : POSTFIX_MAIL_PASSWORD invalide. exemple : le mot de passe d'application du fournisseur, sans espace
 
-[configure.g-postfix-mail-smtp-invalid-example-smtp-mail-ou]
-{1} : POSTFIX_MAIL_SMTP invalide (« {2} »). exemple : smtp-mail.outlook.com:587
-
 [configure.g-postfix-smtp-login-must-be-an-address-email-ex]
 {1} : POSTFIX_SMTP_LOGIN doit être une adresse e-mail (« {2} »). exemple : toi@exemple.com
-
-[configure.g-watchdog-mail-must-be-an-address-email-example]
-{1} : WATCHDOG_MAIL doit être une adresse e-mail (« {2} »). exemple : toi@exemple.com
 
 [configure.global-conf-the-only-command-source-allowed-load]
 global.conf : la seule commande source autorisée charge secrets.conf. exemple : ./liltress configure
@@ -376,9 +758,6 @@ Unité clamonacc introuvable : la surveillance continue ne peut pas démarrer.
 [configure.clamonacc-stays-not-active-detail-clamonacc-log]
 clamonacc ne reste pas actif. Détail : {1}/clamonacc.log
 
-[configure.clamonacc-exclude-stopped-the-watches]
-Une exclusion ClamAV a arrêté les veilles. Détail : {1}/clamonacc.log
-
 [configure.clamav-launched-in-monitoring-continues-on]
 ClamAV lancé en surveillance continue sur {1}
 
@@ -433,7 +812,7 @@ SSH limité aux préfixes connectés ({1})
 [configure.usbguard-left-stopped-the-rule-clavier-is-missin]
 USBGuard laissé arrêté : la règle clavier manque
 
-[configure.usage]
+[configure.usage.workstation]
 Usage :
   sudo ./liltress configure          questions, puis l'installation
   ./liltress check                   contrôle les fichiers, code 0 si conformes
@@ -441,6 +820,33 @@ Usage :
 Le jeton Ubuntu Pro est obligatoire. Les alertes e-mail sont au choix.
 L'envoi vers Google Drive est au choix. Coupé, rclone n'est pas installé.
 Un mot de passe s'affiche en astérisques, puis une seconde ligne demande la confirmation.
+
+[configure.usage.server]
+Usage :
+  sudo ./liltress configure           questions, puis le profil, puis l'installation
+  sudo ./liltress configure --basic   nom du projet + domaine ; le reste est calculé
+  sudo ./liltress configure --avance  toutes les questions, sauf le profil serveur
+  ./liltress check                    vérifie les deux fichiers, code 0 si conformes
+
+Le profil serveur (MATRIX, LIVEKIT, WIREGUARD) est demandé au début de l'installation.
+
+Exemples de valeurs :
+  PROJECT_NAME             Liltress
+  DOMAIN                   example.com
+  MAIN_USER                drawbridge
+  SSH_PORT                 2501
+  MODE_TEST                0 (production) ou 1 (debug sans Certbot)
+  MODE_DEV                 1 (portail local) ou 0 (images GHCR)
+  POSTFIX_MAIL_ADDRESS     toi@exemple.com          (From, si alertes)
+  POSTFIX_MAIL_SMTP        smtp-mail.outlook.com:587
+  WATCHDOG_MAIL            la même adresse que From
+  TURNSTILE_SITE_KEY       0x4AAAAAAAxxxxxxxxxx    (profil MATRIX)
+  POSTGRES_WEB_PASSWORD          openssl rand -hex 32    (profil MATRIX, ou GEN)
+
+Les mots de passe machine (root, SSH, Postgres synapse, Keycloak, htpasswd)
+ne sont pas saisis ici. L'installateur les génère. Avec les alertes, il les
+envoie à From. Sans les alertes, il les ajoute à /root/liltress-credentials.txt.
+L'envoi vers Google Drive est au choix. Coupé, rclone n'est pas installé.
 
 [configure.dollar-outside-r-f-rences-autoris-es-w-project-s]
 {1} : dollar hors références autorisées (PROJECT_SLUG, CONFIG_BASE_DIRECTORY, INSTALL_DIRECTORY).
@@ -459,12 +865,6 @@ Un mot de passe s'affiche en astérisques, puis une seconde ligne demande la con
 
 [configure.g-lynis-min-score-invalid-example-80]
 {1} : LYNIS_MIN_SCORE invalide (« {2} »). exemple : 80
-
-[configure.w-os-id-invalid-example-ubuntu]
-{1} : OS_ID invalide (« {2} »). exemple : ubuntu
-
-[configure.w-os-version-invalid-example-26-04]
-{1} : OS_VERSION invalide (« {2} »). exemple : 26.04
 
 [configure.g-banner-message-empty-yet-no-safe]
 {1} : BANNER_MESSAGE vide ou non sûr.
@@ -510,3 +910,906 @@ Jeton Ubuntu Pro accepté
 
 [configure.ubuntu-pro-token-url]
 Jeton : https://ubuntu.com/pro/dashboard
+
+[configure.activation-and-start-apparmor]
+Activation et démarrage AppArmor
+
+[configure.activation-auditd-and-load-unique-of-the-rules]
+Activation auditd et chargement unique des règles
+
+[configure.activation-of-the-forwarding-for-the-clients-vpn]
+Activation du forwarding pour les clients VPN
+
+[configure.activation-of-the-modules]
+Activation des modules
+
+[configure.activation-of-the-swap]
+Activation du SWAP
+
+[configure.activation-redis-server]
+Activation redis-server
+
+[configure.addition-of-scriptwhitelist-usr-bin-lwp-request]
+Ajout de SCRIPTWHITELIST /usr/bin/lwp-request
+
+[configure.addition-of-the-jail-wireguard]
+Ajout du jail WireGuard
+
+[configure.addition-of-the-rule-established-related-via-bef]
+Ajout de la règle Established/Related via before.rules
+
+[configure.addition-of-the-rules-sudoers]
+Ajout des règles sudoers
+
+[configure.alerts-email-off-the-checks-will-start-without-s]
+Alertes e-mail coupées. Les contrôles partiront sans envoi.\n
+
+[configure.api-crowdsec-on-portal-on]
+API CrowdSec sur {1}, portail sur {2}
+
+[configure.api-url]
+api_url: {1}/
+
+[configure.apparmor-local-snippets-applied-not-of-global-aa]
+AppArmor : snippets locaux appliqués (pas d'aa-enforce global)
+
+[configure.application-of-umask-027]
+Application de UMASK 027
+
+[configure.attempt-d-send-accepted-n]
+Essai d’envoi accepté.\n
+
+[configure.auditd-enabled]
+Auditd activé
+
+[configure.backup-of-sshd-config]
+Sauvegarde de sshd_config
+
+[configure.banners-changed]
+Bannières modifiées
+
+[configure.blacklist-fs-unused-lynis-file-6430]
+Blacklist FS inutiles (Lynis FILE-6430)
+
+[configure.captures-yaml-configured]
+acquisitions.yaml configuré
+
+[configure.change-of-the-banners]
+Modification des bannières
+
+[configure.change-of-the-password]
+Modification du mot de passe {1}
+
+[configure.change-of-the-password-root]
+Modification du mot de passe ROOT
+
+[configure.check-of-the-rule-established-related]
+Contrôle de la règle Established/Related
+
+[configure.clamav-configured-and-signatures-up-to-date]
+CLAMAV configuré et signatures à jour
+
+[configure.collection-nginx-strengthened-for-wireguard]
+Collection Nginx renforcée pour WireGuard
+
+[configure.complete-reset-of-the-firewall]
+Reset complet du firewall
+
+[configure.configuration-initialized]
+Configuration initialisée
+
+[configure.configuration-lib-sh]
+Configuration lib.sh
+
+[configure.configuration-of-base-fail2ban-written]
+Configuration de base Fail2Ban écrite
+
+[configure.configuration-of-captures-yaml]
+Configuration de acquisitions.yaml
+
+[configure.configuration-of-help]
+Configuration de AIDE
+
+[configure.configuration-of-pam-faillock]
+Configuration de pam_faillock
+
+[configure.configuration-of-rkhunter]
+Configuration de RKHUNTER
+
+[configure.configuration-of-rkhunter-finished]
+Configuration de RKHUNTER terminée.
+
+[configure.configuration-of-the-commands]
+Configuration des commandes
+
+[configure.configuration-of-the-commands-finished]
+Configuration des commandes terminée
+
+[configure.configuration-of-the-local-resolution]
+Configuration de la résolution local
+
+[configure.configuration-of-the-login-defs]
+Configuration du login.defs
+
+[configure.configuration-of-the-permissions]
+Configuration des droits
+
+[configure.configuration-of-the-permissions-finished]
+Configuration des droits terminée.
+
+[configure.configuration-of-the-permissions-finished-2]
+Configuration des droits terminée
+
+[configure.configuration-of-the-profile-of-ban-to-72-hours]
+Configuration du profil de ban à 72 heures (3 jours)
+
+[configure.configuration-of-the-rounds-of-hashing-passwords]
+Configuration des rounds de hashing mots de passe
+
+[configure.configuration-of-the-rules]
+Configuration des règles
+
+[configure.configuration-of-the-rules-of-quality-of-the-pas]
+Configuration des règles de qualité des mots de passe
+
+[configure.configuration-of-the-timers]
+Configuration des timers
+
+[configure.configuration-of-the-timers-finished]
+Configuration des timers terminée
+
+[configure.configuration-of-the-users-allow]
+Configuration des USERS ALLOW
+
+[configure.configuration-of-the-users-allow-finished]
+Configuration des USERS ALLOW terminée.
+
+[configure.configuration-rewrite-sender]
+Configuration réécriture expéditeur
+
+[configure.confirmation]
+   ➤ confirmation : 
+
+[configure.creation-check-of-the-file-swap]
+Création / Vérification du fichier SWAP ({1})
+
+[configure.creation-of-clamd]
+Création de Clamd
+
+[configure.creation-of-clamd-finished]
+Création de Clamd terminée
+
+[configure.creation-of-clamonacc]
+Création de Clamonacc
+
+[configure.creation-of-clamonacc-finished]
+Création de Clamonacc terminée
+
+[configure.creation-of-freshclam]
+Création de Freshclam
+
+[configure.creation-of-freshclam-finished]
+Création de Freshclam terminée
+
+[configure.creation-of-help-conf]
+Création de aide.conf
+
+[configure.creation-of-help-conf-finished]
+Création de aide.conf terminée
+
+[configure.creation-of-the-90-disable-core-conf]
+Création du 90-disable-core.conf
+
+[configure.creation-of-the-bouncer-firewall-bouncer]
+Création du bouncer firewall-bouncer
+
+[configure.creation-of-the-cloudflare-conf]
+Création du cloudflare.conf
+
+[configure.creation-of-the-directories-cron]
+Création des répertoires CRON
+
+[configure.creation-of-the-directories-cron-finished]
+Création des répertoires CRON terminée.
+
+[configure.creation-of-the-disable-usb-storage-conf]
+Création du disable-usb-storage.conf
+
+[configure.creation-of-the-file-mailname]
+Création du fichier mailname
+
+[configure.creation-of-the-file-sasl]
+Création du fichier SASL
+
+[configure.creation-of-the-rules-auditd]
+Création des règles auditd
+
+[configure.creation-of-the-watchdogs]
+Création des watchdogs
+
+[configure.creation-of-the-watchdogs-finished]
+Création des watchdogs terminée
+
+[configure.creation-update-of-the-file-banner]
+Création / mise à jour du fichier bannière
+
+[configure.creation-update-of-the-profiles-fail2ban]
+Création / mise à jour des profils Fail2Ban
+
+[configure.deactivation-of-the-current-swap]
+Désactivation du SWAP actuel
+
+[configure.deactivation-of-the-unused-protocols]
+Désactivation des protocoles inutiles
+
+[configure.error-attempt-d-send-denied-n]
+ERREUR: essai d’envoi refusé.\n
+
+[configure.error-too-much-of-attempts-example]
+ERREUR: {1} — trop de tentatives. exemple : {2}
+
+[configure.etc-cron-d-mode-700-tmpfiles-and-statoverride]
+/etc/cron.d mode 700 (tmpfiles et statoverride)
+
+[configure.example]
+   exemple : {1}
+
+[configure.expiry-of-the-passwords-auth-9282-except-console]
+Expiration des mots de passe (AUTH-9282), sauf console VPS.
+
+[configure.explicit-deny-port-22-defense-in-depth]
+Deny explicite port 22 (défense en profondeur)
+
+[configure.export-of-the-variable-and-generation-of-the-fil]
+Export des variables et génération du fichier sshd_config
+
+[configure.fail2ban-enabled-and-reloaded]
+Fail2Ban activé et rechargé
+
+[configure.failure-of-the-test-of-syntax-sshd-t-after-match]
+Échec du test de syntaxe sshd -t après Match all.
+
+[configure.failure-of-the-test-of-syntax-sshd-t-invalid-con]
+Échec du test de syntaxe sshd -t → configuration invalide !
+
+[configure.file-missing-1-runs-d-abord-update-sh]
+Fichier {1} manquant ! Exécute d’abord update.sh 
+
+[configure.file-sasl-created]
+Fichier SASL créé
+
+[configure.format-rejected-n]
+   format refusé.\n
+
+[configure.formatting-and-addition-in-fstab]
+Formatage et ajout dans FSTAB
+
+[configure.forwarding-wireguard-configured]
+Forwarding WireGuard configuré
+
+[configure.generation-of-the-key-ssh]
+Génération de la clé SSH {1}
+
+[configure.hardening-sysctl-applied-99-zzz-unit-after-docke]
+Hardening sysctl appliqué (99-zzz + unité after docker)
+
+[configure.has-no-field-url]
+{1} n'a pas de champ url
+
+[configure.hash-passwords-yescrypt-lynis-auth-9229]
+Hash mots de passe : YESCRYPT (Lynis AUTH-9229)
+
+[configure.impossible-of-retrieve-the-key-of-the-bouncer]
+Impossible de récupérer la clé du bouncer
+
+[configure.inactive-redis-server]
+redis-server inactif : {1}
+
+[configure.initial-update]
+Mise à jour initiale
+
+[configure.initramfs-reloaded]
+Initramfs rechargé
+
+[configure.input-interrupted-n]
+entrée interrompue\n
+
+[configure.installation-of-the-collections]
+Installation des collections
+
+[configure.journald-configured]
+Journald configuré
+
+[configure.key-api-injected-with-success]
+Clé API injectée avec succès
+
+[configure.key-of-the-bouncer-firewall-bouncer-generated]
+Clé du bouncer firewall-bouncer générée
+
+[configure.key-ssh-installed-for]
+Clé SSH installée pour {1}
+
+[configure.link-sysctl-removed-absent]
+Lien sysctl retiré : {1} absent
+
+[configure.local-resolution-configured]
+Résolution local configuré
+
+[configure.local-snippets-included-by-the-profiles-ubuntu]
+Snippets locaux, inclus par les profils Ubuntu
+
+[configure.logging-and-rules-of-base-strengthened]
+Logging et règles de base renforcées
+
+[configure.mapping-dev-mapper-active-1]
+Mapping /dev/mapper/{1} actif
+
+[configure.minimal-configuration]
+Configuration minimale
+
+[configure.minimal-configuration-finished]
+Configuration minimale terminée
+
+[configure.modules-enabled]
+Modules activés.
+
+[configure.modules-started]
+Modules démarrés.
+
+[configure.monitoring-logs-wireguard-added]
+Surveillance logs WireGuard ajoutée
+
+[configure.nalertes-by-email-o-n]
+\nAlertes par e-mail ? [o/N] 
+
+[configure.nmatch-all-npermitrootlogin-no-n]
+\nMatch all\nPermitRootLogin no\n
+
+[configure.noexec-on-tmp-and-dev-shm]
+noexec sur /tmp et /dev/shm
+
+[configure.pam-faillock-configured-pam-auth-update]
+pam_faillock configuré (pam-auth-update)
+
+[configure.password-changed]
+Mot de passe {1} modifié
+
+[configure.password-d-application-of-the-provider-never-the]
+   Mot de passe d’application du fournisseur. Jamais le mot de passe du compte.\n
+
+[configure.password-redis-reused]
+Mot de passe Redis réutilisé ({1})
+
+[configure.password-root-changed]
+Mot de passe ROOT modifié
+
+[configure.permissions-etc-cron-d-lynis-file-7524]
+Permissions /etc/cron.d (Lynis FILE-7524)
+
+[configure.permitrootlogin-addition-of-match-all]
+permitrootlogin={1}, ajout de Match all
+
+[configure.postconf]
+postconf : {1}
+
+[configure.postconf-no-alert]
+postconf : aucune alerte
+
+[configure.postfix-restarted]
+Postfix redémarré
+
+[configure.profile-72h-applied]
+Profil 72h appliqué
+
+[configure.profile-lynis-exceptions-vpn-docker-documented]
+Profil Lynis (exceptions VPN / Docker documentées)
+
+[configure.protocols-disabled]
+Protocoles désactivé
+
+[configure.reactivation-of-clamav]
+Réactivation de Clamav
+
+[configure.reactivation-of-clamav-finished]
+Réactivation de Clamav terminée
+
+[configure.reactivation-of-clamonacc-finished]
+Réactivation de Clamonacc terminée
+
+[configure.reactivation-of-freshclam]
+Réactivation de Freshclam
+
+[configure.reactivation-of-freshclam-finished]
+Réactivation de Freshclam terminée
+
+[configure.record-of-the-secret-redis]
+Enregistrement du secret Redis
+
+[configure.redis-cli-ping-a-failed-on-127-0-0-1]
+redis-cli ping a échoué sur 127.0.0.1:{1}
+
+[configure.redis-conf-installed-bind-127-0-0-1-port]
+redis.conf installé (bind 127.0.0.1 port {1})
+
+[configure.redis-listens-127-0-0-1]
+Redis écoute 127.0.0.1:{1}
+
+[configure.reload-apparmor]
+Rechargement AppArmor
+
+[configure.reload-of-initramfs]
+Rechargement de Initramfs
+
+[configure.reload-of-systemd]
+Rechargement de systemd
+
+[configure.removal-of-the-bouncer-firewall-bouncer]
+Suppression du bouncer firewall-bouncer
+
+[configure.removal-of-the-warnings]
+Suppression des warnings
+
+[configure.removal-of-the-warnings-finished]
+Suppression des warnings terminée.
+
+[configure.replacement-of-the-key-api-key-in-the-file]
+Remplacement de la clé api_key dans le fichier
+
+[configure.restart-and-activation-auto]
+Redémarrage et activation auto
+
+[configure.restart-of-the-service-ssh]
+Redémarrage du service SSH ({1})
+
+[configure.restart-postfix]
+Redémarrage Postfix
+
+[configure.rkhunter-web-cmd-emptied]
+rkhunter : WEB_CMD vidé
+
+[configure.rounds-of-hashing-configured]
+Rounds de hashing configurés
+
+[configure.rule-audit-absent-after-load]
+Règle audit absente après chargement : {1}
+
+[configure.rule-established-related-added]
+Règle Established/Related ajoutée
+
+[configure.rule-established-related-already-present]
+Règle Established/Related déjà présente
+
+[configure.rule-sudoers-added-for-required-password]
+Règle sudoers ajoutée pour {1} (mot de passe requis)
+
+[configure.rules-auditd-specific-matrix-added]
+Règles Auditd spécifiques Matrix ajoutées
+
+[configure.rules-auditd-specific-wireguard-added]
+Règles Auditd spécifiques WireGuard ajoutées
+
+[configure.rules-configured]
+Règles configurées
+
+[configure.rules-incoming]
+Règles INCOMING
+
+[configure.rules-outgoing]
+Règles OUTGOING
+
+[configure.rules-pwquality-configured]
+Règles pwquality configurées
+
+[configure.rules-return-traffic-client-stable-nat]
+Règles retour trafic client + NAT stable
+
+[configure.rules-ufw-absent]
+règles UFW absentes
+
+[configure.s-port-crowdsec-lapi-is-the-same-that-s-port-web]
+PORT_CROWDSEC_LAPI ({1}) est le même que PORT_WEB_UI. Choisis un autre port.
+
+[configure.scriptwhitelist-usr-bin-lwp-request]
+SCRIPTWHITELIST=/usr/bin/lwp-request
+
+[configure.scriptwhitelist-usr-bin-lwp-request-2]
+SCRIPTWHITELIST : /usr/bin/lwp-request
+
+[configure.secret-redis]
+Secret Redis
+
+[configure.sender-rewritten-toward]
+Expéditeur réécrit vers {1}
+
+[configure.snippet-clamav-local-kept]
+Snippet ClamAV local conservé
+
+[configure.specific-jail-wireguard-added]
+Jail spécifique WireGuard ajouté
+
+[configure.ssh-applied-service-restarted-permitrootlogin-no]
+SSH appliqué, service redémarré (permitrootlogin no)
+
+[configure.sshd-t-permitrootlogin-is-expected-no]
+sshd -T : permitrootlogin est « {1} », attendu no.
+
+[configure.start-of-the-modules]
+Démarrage des modules
+
+[configure.stop-of-the-services-clamav]
+Arrêt des services Clamav
+
+[configure.stop-of-the-services-clamav-finished]
+Arrêt des services Clamav terminée
+
+[configure.swap-encrypted-active-dev-mapper]
+SWAP chiffré actif (/dev/mapper/{1} → {2})
+
+[configure.swapon-did-not-enabled]
+swapon n'a pas activé {1} ({2}) : {3}
+
+[configure.temporary-directory-of-clamd-outside-of-the-path]
+Répertoire temporaire de clamd, hors des chemins surveillés
+
+[configure.temporary-stop-for-update-signatures]
+Arrêt temporaire pour mise à jour signatures
+
+[configure.test-of-syntax-sshd]
+Test de syntaxe sshd
+
+[configure.the-90-disable-core-conf-is-created]
+Le 90-disable-core.conf est créé
+
+[configure.the-credentials-generated-will-go-in-root-liltre]
+Les identifiants générés iront dans /root/liltress-credentials.txt.\n
+
+[configure.the-disable-usb-storage-conf-is-created]
+Le disable-usb-storage.conf est créé
+
+[configure.the-file-mailname-created]
+Le fichier mailname créé
+
+[configure.the-login-defs-is-configured]
+Le login.defs est configuré
+
+[configure.the-resolved-90-cloudflare-conf-is-created]
+Le resolved 90-cloudflare.conf est créé
+
+[configure.tmpfs-dev-shm-tmpfs-nosuid-nodev-noexec-0-0]
+tmpfs /dev/shm tmpfs nosuid,nodev,noexec 0 0
+
+[configure.tmpfs-noexec-tmp-and-dev-shm-lynis-file-6374]
+tmpfs noexec /tmp et /dev/shm (Lynis FILE-6374)
+
+[configure.ufw-configured-for-full-tunnel-wireguard]
+UFW configuré pour full tunnel WireGuard
+
+[configure.ufw-enabled]
+UFW activé
+
+[configure.update-of-the-hub-crowdsec]
+Mise à jour du hub CrowdSec
+
+[configure.user-already-present]
+Utilisateur {1} déjà présent
+
+[configure.validation-postconf-lynis-mail-8817]
+Validation postconf (Lynis MAIL-8817)
+
+[configure.value-generated-not-displayed-n]
+   valeur générée (non affichée)\n
+
+[configure.values-differ-n]
+   valeurs différentes.\n
+
+[configure.apostrophe-inverse-forbidden-no-substitution-of]
+{1} : apostrophe inverse interdite (pas de substitution de commande).
+
+[configure.invalid-1-example]
+{1} invalide (« {2} »). exemple : {3}
+
+[configure.g-project-name-invalid-example-liltress]
+{1} : PROJECT_NAME invalide (« {2} »). exemple : Liltress
+
+[configure.g-project-version-invalid-example-0-1]
+{1} : PROJECT_VERSION invalide (« {2} »). exemple : 0.1
+
+[configure.g-config-prepared-must-valoir-1-file-produced-by]
+{1} : CONFIG_PREPARED doit valoir 1 (fichier produit par configure.sh). exemple : ./liltress configure
+
+[configure.chain-of-start-hourly-password-and-scan-all-the]
+Chaîne de démarrage, passe horaire et analyse toutes les 2 h installées
+
+[configure.restart-of-crowdsec-on]
+Redémarrage de CrowdSec sur {1}
+
+[configure.the-api-crowdsec-does-not-respond-on-the-bouncer]
+L'API CrowdSec ne répond pas sur {1}. Le bouncer n'est pas démarré.
+
+[configure.start-of-the-bouncer]
+Démarrage du bouncer
+
+[configure.crowdsec-base-installed-and-started]
+CrowdSec base installé et démarré
+
+[configure.check-of-the-collections-installed]
+Vérification des collections installées
+
+[configure.check-of-the-bouncer-nftables]
+Vérification du bouncer nftables
+
+[configure.crowdsec-configured]
+CrowdSec configuré
+
+[configure.secret-redis-in]
+Secret Redis dans {1}
+
+[configure.write-of-etc-redis-redis-conf]
+Écriture de /etc/redis/redis.conf
+
+[configure.sysctl-kept]
+sysctl {1} conservé
+
+[configure.sysctl-absent-of-this-kernel-removed-of]
+sysctl {1} absent de ce noyau, retiré de {2}
+
+[configure.already-defined-entry-for-keep]
+   ➤ (déjà défini — Entrée pour conserver) : 
+
+[configure.installation-of-swaks-for-l-attempt-d-send-n]
+Installation de swaks pour l’essai d’envoi.\n
+
+[configure.error-installation-of-swaks-impossible-n]
+ERREUR: installation de swaks impossible.\n
+
+[configure.error-swaks-is-absent-installez-le-sudo-apt-get]
+ERREUR: swaks est absent. Installez-le : sudo apt-get install -y swaks\n
+
+[configure.configuration-conforms-global-conf-secrets-conf]
+Configuration conforme (global.conf + secrets.conf).\n
+
+[configure.error-no-terminal-for-the-questions-run-sudo-bas]
+ERREUR: pas de terminal pour les questions. Lancez : sudo bash %s/liltress configure\n
+
+[configure.error-this-script-must-be-executed-with-sudo-or]
+ERREUR: ce script doit être exécuté avec sudo ou en root.\n
+
+[configure.npr-paration-of-global-conf-and-secrets-conf-n]
+\nPréparation de global.conf et secrets.conf\n
+
+[configure.the-three-profiles-matrix-livekit-wireguard-are]
+Les trois profils (MATRIX, LIVEKIT, WIREGUARD) sont préparés ensemble.\n
+
+[configure.the-profile-installed-is-chosen-then-by-run-sh-n]
+Le profil installé est choisi ensuite par run.sh.\n
+
+[configure.nles-examples-are-shown-under-each-question-entr]
+\nLes exemples sont indiqués sous chaque question. Entrée = conserver la valeur entre crochets.\n
+
+[configure.for-a-secret-already-defined-entry-keeps-the-val]
+Pour un secret déjà défini : Entrée conserve la valeur sans la réafficher.\n
+
+[configure.gen-g-n-rer-a-secret-hexadecimal-of-64-character]
+GEN = générer un secret hexadécimal de 64 caractères (là où c’est proposé).\n
+
+[configure.n-secrets-matrix-portal-api-always-written-n]
+\n--- secrets MATRIX (portail + API), toujours écrits ---\n
+
+[configure.nmode-basic-account-ports-modes-and-secrets-pren]
+\nMode basic : compte, ports, modes et secrets prennent les valeurs par défaut.\n
+
+[configure.the-secrets-missing-are-generated-run-again-with]
+Les secrets manquants sont générés. Relancez avec --avance pour les saisir.\n
+
+[configure.global-n-crire-conf-and-secrets-conf-in-s-o-n]
+\nÉcrire global.conf et secrets.conf dans %s ? [o/N] 
+
+[configure.error-write-cancelled-the-files-n-have-not-been]
+ERREUR: écriture annulée. Les fichiers n’ont pas été modifiés.\n
+
+[configure.error-the-files-written-pass-not-the-check-n]
+ERREUR: les fichiers écrits ne passent pas le contrôle.\n
+
+[configure.nfichiers-ready-n]
+\nFichiers prêts.\n
+
+[configure.activation-of-the-logging-ufw]
+Activation du logging UFW ({1})
+
+[configure.active-usbguard-appareils-already-pr-sents-autor]
+USBGuard actif (appareils déjà présents autorisés, le reste bloqué)
+
+[configure.chage-maxdays-90-applied-intact-pal]
+chage MAXDAYS=90 appliqué (pal intact)
+
+[configure.configuration-crypttab]
+Configuration crypttab
+
+[configure.activation-of-the-mapping-cryptsetup]
+Activation du mapping cryptsetup
+
+[configure.dollar-outside-r-f-rences-autoris-es-s-domain-g]
+{1} : dollar hors références autorisées (${DOMAIN}, ${CONFIG_BASE_DIRECTORY}, ...).
+
+[configure.s-hostname-matrix-invalid-example-srv-matrix]
+{1} : HOSTNAME_MATRIX invalide (« {2} »). exemple : srv-matrix
+
+[configure.s-hostname-livekit-invalid-example-srv-livekit]
+{1} : HOSTNAME_LIVEKIT invalide (« {2} »). exemple : srv-livekit
+
+[configure.s-hostname-wireguard-invalid-example-srv-wiregua]
+{1} : HOSTNAME_WIREGUARD invalide (« {2} »). exemple : srv-wireguard
+
+[configure.g-mode-test-invalid-example-1-format-0-productio]
+{1} : MODE_TEST invalide (« {2} »). exemple : 1 — format : 0 (production) ou 1 (debug)
+
+[configure.s-mode-dev-invalid-example-1-format-0-images-or]
+{1} : MODE_DEV invalide (« {2} »). exemple : 1 — format : 0 (images) ou 1 (portail local)
+
+[configure.g-lynis-min-score-invalid-example-90-format-whol]
+{1} : LYNIS_MIN_SCORE invalide (« {2} »). exemple : 90 — format : entier 0-100
+
+[configure.s-domain-invalid-example-example-com]
+{1} : DOMAIN invalide (« {2} »). exemple : example.com
+
+[configure.s-swap-size-invalid-example-4g]
+{1} : SWAP_SIZE invalide (« {2} »). exemple : 4G
+
+[configure.s-swap-file-invalid-example-cryptswap]
+{1} : SWAP_FILE invalide (« {2} »). exemple : /cryptswap
+
+[configure.s-swap-mapper-name-invalid-example-cryptswap]
+{1} : SWAP_MAPPER_NAME invalide (« {2} »). exemple : cryptswap
+
+[configure.s-cron-user-invalid-example-cronexecutor]
+{1} : CRON_USER invalide (« {2} »). exemple : cronexecutor
+
+[configure.s-main-user-invalid-example-drawbridge]
+{1} : MAIN_USER invalide (« {2} »). exemple : drawbridge
+
+[configure.s-main-group-invalid-example-drawbridge]
+{1} : MAIN_GROUP invalide (« {2} »). exemple : drawbridge
+
+[configure.s-ssh-port-invalid-example-2501-format-whole-102]
+{1} : SSH_PORT invalide (« {2} »). exemple : 2501 — format : entier 1024-65535
+
+[configure.g-ssh-max-auth-tries-invalid-example-3]
+{1} : SSH_MAX_AUTH_TRIES invalide (« {2} »). exemple : 3
+
+[configure.g-ssh-client-alive-count-max-invalid-example-0]
+{1} : SSH_CLIENT_ALIVE_COUNT_MAX invalide (« {2} »). exemple : 0
+
+[configure.s-nginx-admin-user-invalid-example-admin]
+{1} : NGINX_ADMIN_USER invalide (« {2} »). exemple : admin
+
+[configure.s-nginx-htpasswd-path-invalid-example-etc-nginx]
+{1} : NGINX_HTPASSWD_PATH invalide (« {2} »). exemple : /etc/nginx/nginx.htpasswd
+
+[configure.s-nginx-htpasswd-realm-invalid-example-liltress]
+{1} : NGINX_HTPASSWD_REALM invalide. exemple : Liltress Admin Area
+
+[configure.s-docker-network-production-invalid-example-172]
+{1} : DOCKER_NETWORK_PRODUCTION invalide (« {2} »). exemple : 172.20.0.0/16
+
+[configure.s-docker-network-security-invalid-example-172-22]
+{1} : DOCKER_NETWORK_SECURITY invalide (« {2} »). exemple : 172.22.0.0/16
+
+[configure.the-two-networks-docker-are-identical-example-17]
+{1} : les deux réseaux Docker sont identiques. exemple : 172.20.0.0/16 et 172.22.0.0/16
+
+[configure.s-docker-log-driver-invalid-example-local]
+{1} : DOCKER_LOG_DRIVER invalide (« {2} »). exemple : local
+
+[configure.s-docker-log-max-size-invalid-example-10m]
+{1} : DOCKER_LOG_MAX_SIZE invalide (« {2} »). exemple : 10m
+
+[configure.s-docker-log-max-file-invalid-example-3]
+{1} : DOCKER_LOG_MAX_FILE invalide (« {2} »). exemple : 3
+
+[configure.s-docker-log-compress-invalid-example-true]
+{1} : DOCKER_LOG_COMPRESS invalide (« {2} »). exemple : true
+
+[configure.invalid-2-example-web]
+{1} : {2} invalide (« {3} »). exemple : web
+
+[configure.s-web-registry-invalid-example-ghcr-io-palarchsy]
+{1} : WEB_REGISTRY invalide (« {2} »). exemple : ghcr.io/palarchsys
+
+[configure.s-web-image-frontend-invalid-example-liltress-fr]
+{1} : WEB_IMAGE_FRONTEND invalide (« {2} »). exemple : liltress-frontend
+
+[configure.s-web-image-backend-invalid-example-liltress-bac]
+{1} : WEB_IMAGE_BACKEND invalide (« {2} »). exemple : liltress-backend
+
+[configure.s-web-image-tag-invalid-example-latest]
+{1} : WEB_IMAGE_TAG invalide (« {2} »). exemple : latest
+
+[configure.s-web-update-script-invalid-example-usr-local-bi]
+{1} : WEB_UPDATE_SCRIPT invalide (« {2} »). exemple : /usr/local/bin/hf-web-update
+
+[configure.s-matrix-admin-user-invalid-example-fortressadmi]
+{1} : MATRIX_ADMIN_USER invalide (« {2} »). exemple : fortressadmin
+
+[configure.kc-bootstrap-admin-username-invalid-example-fort]
+{1} : KC_BOOTSTRAP_ADMIN_USERNAME invalide (« {2} »). exemple : fortressadmin
+
+[configure.s-wireguard-default-dns-invalid-example-1-1-1-1]
+{1} : WIREGUARD_DEFAULT_DNS invalide (« {2} »). exemple : 1.1.1.1,1.0.0.1
+
+[configure.s-wireguard-default-address-invalid-example-10-8]
+{1} : WIREGUARD_DEFAULT_ADDRESS invalide (« {2} »). exemple : 10.8.0.x
+
+[configure.s-wireguard-allowed-ip-invalid-example-0-0-0-0-0]
+{1} : WIREGUARD_ALLOWED_IP invalide (« {2} »). exemple : 0.0.0.0/0,::/0
+
+[configure.g-banner-message-empty-yet-no-safe-example-the-b]
+{1} : BANNER_MESSAGE vide ou non sûr. exemple : le bandeau par défaut de configure.sh
+
+[configure.s-keycloak-realm-invalid-example-liltress]
+{1} : KEYCLOAK_REALM invalide (« {2} »). exemple : liltress
+
+[configure.s-keycloak-client-invalid-example-liltress-front]
+{1} : KEYCLOAK_CLIENT invalide (« {2} »). exemple : liltress-frontend
+
+[configure.invalid-2-example-8080-format-whole-1-65535]
+{1} : {2} invalide (« {3} »). exemple : 8080 — format : entier 1-65535
+
+[configure.between-in-collision-with-profile-example-a-port]
+{1} : {2} ({3}) entre en collision avec {4} (profil {5}). exemple : un port libre distinct
+
+[configure.g-secret-prepared-must-valoir-1-file-produced-by]
+{1} : SECRET_PREPARED doit valoir 1 (fichier produit par configure.sh). exemple : ./liltress configure
+
+[configure.g-ubuntu-pro-token-invalid-example-empty-for-ign]
+{1} : UBUNTU_PRO_TOKEN invalide. exemple : (vide pour ignorer) ou un jeton alphanumérique Ubuntu Pro
+
+[configure.s-nginx-certbot-mail-address-invalid-example-cer]
+{1} : NGINX_CERTBOT_MAIL_ADDRESS invalide (« {2} »). exemple : certbot@example.com
+
+[configure.ghcr-user-ghcr-token-are-not-used-images-ghcr-io]
+{1} : GHCR_USER / GHCR_TOKEN ne sont pas utilisés (images ghcr.io/palarchsys publiques). exemple : laisser ces champs absents
+
+[configure.s-turnstile-site-key-invalid-example-0x4aaaaaaax]
+{1} : TURNSTILE_SITE_KEY invalide (« {2} »). exemple : 0x4AAAAAAAxxxxxxxxxxxxxxxx
+
+[configure.s-turnstile-secret-key-invalid-example-0x4aaaaaa]
+{1} : TURNSTILE_SECRET_KEY invalide. exemple : 0x4AAAAAAAxxxxxxxxxxxxxxxx
+
+[configure.s-antibot-hmac-secret-invalid-or-too-much-short]
+{1} : ANTIBOT_HMAC_SECRET invalide ou trop court. exemple : openssl rand -hex 32
+
+[configure.s-postgres-web-password-invalid-or-too-much-shor]
+{1} : POSTGRES_WEB_PASSWORD invalide ou trop court. exemple : openssl rand -hex 32
+
+[configure.global-conf-syntax-shell-invalid-example-r-g-n-r]
+global.conf : syntaxe shell invalide. exemple : régénérer avec ./liltress configure
+
+[configure.secrets-conf-syntax-shell-invalid-example-r-g-n]
+secrets.conf : syntaxe shell invalide. exemple : régénérer avec ./liltress configure
+
+[configure.global-conf-only-source-allowed-secrets-conf-of]
+global.conf : seul source autorisé = secrets.conf du répertoire d'install. exemple : relancer ./liltress configure
+
+[configure.secrets-conf-source-forbidden-example-only-of-th]
+secrets.conf : source interdit. exemple : uniquement des affectations KEY="valeur"
+
+[configure.global-conf-is-not-prepared-g-config-prepared-ex]
+global.conf n'est pas préparé (CONFIG_PREPARED={1}). exemple : ./liltress configure
+
+[configure.secrets-conf-is-not-prepared-g-secret-prepared-e]
+secrets.conf n'est pas préparé (SECRET_PREPARED={1}). exemple : ./liltress configure
+
+[configure.hardening-sysctl]
+Hardening SYSCTL
+
+[configure.sysctl-apply]
+Application sysctl hardening
+
+[configure.sysctl-forward-wireguard]
+Application sysctl forwarding WireGuard
+
+[configure.sysctl-forward-docker]
+Application sysctl forwarding Docker
+
+[configure.swap-mapping-failed]
+{1}

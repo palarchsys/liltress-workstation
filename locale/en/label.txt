@@ -1,0 +1,269 @@
+[LABEL_LANGUAGE]
+Language
+
+[LABEL_UBUNTU_PRO_TOKEN]
+Ubuntu Pro token
+
+[LABEL_MAIL_ALERTS]
+Email alerts
+
+[LABEL_POSTFIX_SMTP_LOGIN]
+SMTP login
+
+[LABEL_POSTFIX_MAIL_ADDRESS]
+Sender email address
+
+[LABEL_POSTFIX_MAIL_PASSWORD]
+SMTP password
+
+[LABEL_POSTFIX_MAIL_SMTP]
+SMTP server
+
+[LABEL_WATCHDOG_MAIL]
+Alert recipient
+
+[LABEL_PROJECT_NAME]
+Project name
+
+[LABEL_PROJECT_SLUG]
+Project identifier
+
+[LABEL_PROJECT_VERSION]
+Project version
+
+[LABEL_CONFIG_BASE_DIRECTORY]
+Install directory
+
+[LABEL_LYNIS_MIN_SCORE]
+Minimum Lynis score
+
+[LABEL_BANNER_MESSAGE]
+Login banner
+
+[LABEL_SSH_BANNER_PATH]
+SSH banner file
+
+[LABEL_SSH_SERVICE_NAME]
+SSH service name
+
+[LABEL_SSH_MAX_AUTH_TRIES]
+Maximum SSH authentication tries
+
+[LABEL_SSH_CLIENT_ALIVE_INTERVAL]
+SSH keepalive interval
+
+[LABEL_SSH_CLIENT_ALIVE_COUNT_MAX]
+SSH keepalive count
+
+[LABEL_SSH_LOGIN_GRACE_TIME]
+SSH login grace time
+
+[LABEL_WATCHDOG_CPU_LIMIT]
+Watchdog CPU limit
+
+[LABEL_WATCHDOG_LIMIT_NICE]
+Watchdog CPU priority
+
+[LABEL_WATCHDOG_LIMIT_IO_NICE]
+Watchdog disk priority
+
+[LABEL_MAIL_TEMPLATE]
+Mail template
+
+[LABEL_PAM_PASSWORD_MIN_LENGTH]
+Minimum password length
+
+[LABEL_FAILLOCK_DENY]
+Failed attempts before lock
+
+[LABEL_FAILLOCK_UNLOCK]
+Lock duration
+
+[LABEL_FAILLOCK_FAIL_INTERVAL]
+Failed-attempt window
+
+[LABEL_DOMAIN]
+Domain name
+
+[LABEL_MAIN_USER]
+Main account
+
+[LABEL_MAIN_GROUP]
+Main group
+
+[LABEL_SSH_PORT]
+SSH port
+
+[LABEL_MODE_TEST]
+Test mode
+
+[LABEL_MODE_DEV]
+Development mode
+
+[LABEL_NGINX_CERTBOT_MAIL_ADDRESS]
+Certificate email address
+
+[LABEL_ANTIBOT_HMAC_SECRET]
+Antibot secret
+
+[LABEL_POSTGRES_WEB_PASSWORD]
+Web database password
+
+[LABEL_TURNSTILE_SITE_KEY]
+Turnstile site key
+
+[LABEL_TURNSTILE_SECRET_KEY]
+Turnstile secret key
+
+[LABEL_UNBOUND_FORWARDERS]
+DNS forwarders
+
+[LABEL_USBGUARD_ENABLE]
+Enable USBGuard
+
+[LABEL_DDOS_HARDENING_LEVEL]
+DDoS hardening level
+
+[LABEL_HOSTNAME_MATRIX]
+Matrix hostname
+
+[LABEL_HOSTNAME_LIVEKIT]
+LiveKit hostname
+
+[LABEL_HOSTNAME_WIREGUARD]
+WireGuard hostname
+
+[LABEL_SWAP_SIZE]
+Swap size
+
+[LABEL_SWAP_FILE]
+Swap file
+
+[LABEL_SWAP_MAPPER_NAME]
+Swap mapper name
+
+[LABEL_CRON_USER]
+Cron account
+
+[LABEL_NGINX_ADMIN_USER]
+Nginx admin account
+
+[LABEL_NGINX_HTPASSWD_PATH]
+Nginx password file
+
+[LABEL_NGINX_HTPASSWD_REALM]
+Nginx authentication realm
+
+[LABEL_DOCKER_NETWORK_PRODUCTION]
+Production Docker network
+
+[LABEL_DOCKER_NETWORK_SECURITY]
+Security Docker network
+
+[LABEL_DOCKER_LOG_DRIVER]
+Docker log driver
+
+[LABEL_DOCKER_LOG_MAX_SIZE]
+Docker log file size
+
+[LABEL_DOCKER_LOG_MAX_FILE]
+Docker log file count
+
+[LABEL_DOCKER_LOG_COMPRESS]
+Compress Docker logs
+
+[LABEL_POSTGRES_SYNAPSE_USER]
+Synapse database account
+
+[LABEL_POSTGRES_SYNAPSE_DB]
+Synapse database name
+
+[LABEL_POSTGRES_KEYCLOAK_USER]
+Keycloak database account
+
+[LABEL_POSTGRES_KEYCLOAK_DB]
+Keycloak database name
+
+[LABEL_POSTGRES_WEB_USER]
+Web database account
+
+[LABEL_POSTGRES_WEB_DB]
+Web database name
+
+[LABEL_PORT_CROWDSEC_LAPI]
+CrowdSec LAPI port
+
+[LABEL_PORT_SYNAPSE_POSTGRESQL]
+Synapse PostgreSQL port
+
+[LABEL_PORT_SYNAPSE]
+Synapse port
+
+[LABEL_PORT_ELEMENT]
+Element port
+
+[LABEL_PORT_WEB_UI]
+Web interface port
+
+[LABEL_PORT_WEB_API]
+Web API port
+
+[LABEL_PORT_SYNAPSE_ADMIN]
+Synapse admin port
+
+[LABEL_PORT_PROMETHEUS]
+Prometheus port
+
+[LABEL_PORT_KEYCLOAK]
+Keycloak port
+
+[LABEL_PORT_LIVEKIT_SFU]
+LiveKit SFU port
+
+[LABEL_PORT_LIVEKIT_JWT]
+LiveKit JWT port
+
+[LABEL_PORT_LIVEKIT_REDIS]
+LiveKit Redis port
+
+[LABEL_PORT_WIREGUARD_UI]
+WireGuard interface port
+
+[LABEL_PORT_WIREGUARD_UDP]
+WireGuard UDP port
+
+[LABEL_WEB_REGISTRY]
+Container registry
+
+[LABEL_WEB_IMAGE_FRONTEND]
+Frontend image
+
+[LABEL_WEB_IMAGE_BACKEND]
+Backend image
+
+[LABEL_WEB_IMAGE_TAG]
+Image tag
+
+[LABEL_WEB_UPDATE_SCRIPT]
+Update script
+
+[LABEL_MATRIX_ADMIN_USER]
+Matrix admin account
+
+[LABEL_KEYCLOAK_REALM]
+Keycloak realm
+
+[LABEL_KEYCLOAK_CLIENT]
+Keycloak client
+
+[LABEL_KC_BOOTSTRAP_ADMIN_USERNAME]
+Keycloak bootstrap admin
+
+[LABEL_WIREGUARD_DEFAULT_DNS]
+WireGuard DNS
+
+[LABEL_WIREGUARD_DEFAULT_ADDRESS]
+WireGuard address
+
+[LABEL_WIREGUARD_ALLOWED_IP]
+WireGuard allowed addresses

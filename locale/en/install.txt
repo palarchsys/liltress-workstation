@@ -1,56 +1,420 @@
 # =============================================================================
-# File       : workstation/locale/en/install.txt
-# Updated at : 2026-11-07
+# File       : locale/en/install.txt
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
+
+
+[install.archive-github-invalid-config-global-conf-absent]
+Archive GitHub invalid (config/global.conf absent).
+
+[install.directories-project-ready]
+Directories project ready
+
+[install.download-branch]
+Download {1} (branch {2})...
+
+[install.help-installed]
+AIDE installed
+
+[install.hrngdevice-dev-hwrng]
+HRNGDEVICE=/dev/hwrng
+
+[install.installation-fail2ban]
+Installation Fail2Ban
+
+[install.installation-of-lynis]
+Installation of Lynis
+
+[install.installation-of-rclone]
+Installation of rclone
+
+[install.installation-of-the-tools-of-base]
+Installation of the tools of base
+
+[install.installation-of-usbguard]
+Installation of USBGuard
+
+[install.list-chkrootkit-not-found]
+List chkrootkit not found
+
+[install.lynis-installed]
+Lynis installed
+
+[install.send-google-drive-cut-rclone-is-not-installed]
+Send Google Drive cut: rclone is not installed.
+
+[install.this-script-must-be-executed-as-root-sudo]
+This script must be executed as root (sudo).
+
+[install.tools-of-base-installed]
+Tools of base installed
+
+[install.ufw-installed]
+UFW installed
+
+[install.usbguard-installed-service-stopped-until-the-pol]
+USBGuard installed, service stopped until the policy
+
+[install.g-config-base-directory-invalid-in-global-conf]
+CONFIG_BASE_DIRECTORY invalid in global.conf ({1}).
+
+[install.root-of-install-rejected]
+Root of install rejected: {1}
+
+[install.liltress-absent-after-extraction-n]
+liltress absent after extraction.\n
+
+[install.nt-l-chargement-finished-the-sources-are-in-s-n]
+\nTéléchargement finished. The sources are in %s.\n
+
+[install.launch-of-the-configuration-n-n]
+Launch of the Configuration.\n\n
+
+[install.nla-configuration-saved-password-more-the-check]
+\nLa Configuration saved password more the check.\n
+
+[install.launch-of-the-questions-n-n]
+Launch of the questions.\n\n
+
+[install.token-google-drive-absent-or-mode-different-of-6]
+Token Google Drive absent ({1}) or mode different of 600.
+
+[install.rclone-installed]
+rclone installed
+
+[install.mail.error]
+{1}
+
+[install.fs.info]
+Creation of the copy of backup of {1}
+
+[install.fs.success]
+Copy of backup created: {1}
+
+[install.lib.error]
+Download of the repository key failed: {1}
+
+[install.lib.error.2]
+The certificate for {1} is not valid yet, or the system clock is wrong.
+
+[install.lib.error.4]
+The repository key is not valid OpenPGP data: {1}
+
+[install.lib.error.5]
+The repository key is not valid OpenPGP data: {1}
+
+[install.lib.error.6]
+Port TCP {1} already busy — bind Docker 127.0.0.1:{2} impossible: {3}
+
+[install.lib.error.7]
+SERVER_TYPE invalid: '{1}'
+
+[install.lib.error.8]
+MATRIX_ADMIN_USER or MATRIX_ADMIN_PASSWORD empty.
+
+[install.lib.info]
+Retrieval of the token Matrix of {1}
+
+[install.lib.info.2]
+{1}
+
+[install.lib.error.9]
+Failure of retrieval of the token!
+
+[install.lib.success]
+Token Matrix retrieved
+
+[install.lib.error.10]
+dpkg-statoverride --remove {1}: {2}
+
+[install.lib.error.11]
+dpkg-statoverride {1}: {2}
+
+[install.lib.error.12]
+npm: MAIN_USER or MAIN_GROUP is empty
+
+[install.lib.error.13]
+npm: account {1} not found
+
+[install.lib.error.14]
+npm: group {1} not found
+
+[install.lib.info.3]
+Réservation of npm for {1}
+
+[install.lib.error.15]
+npm is installed, no file to réserver to {1}
+
+[install.lib.success.2]
+npm reserved to {1}
+
+[install.lib.info.4]
+Removal of the names of domain of /etc/hosts
+
+[install.lib.success.3]
+Names of domain removed of /etc/hosts
+
+[install.lib.info.5]
+Preparation of the local access MODE_TEST
+
+[install.lib.info.6]
+Removal of the certificate of test of the magasin system
+
+[install.lib.success.4]
+Certificate of test removed of the magasin system
+
+[install.lib.success.5]
+local Access MODE_TEST ready, browser on http://127.0.0.1
+
+[install.lib.error.16]
+Impossible of déterminer the current user (SUDO_USER empty, no uid≥1000).
+
+[install.lib.error.17]
+Ubuntu 26.04 or more recent required. System detected: {1}.
+
+[install.lib.error.18]
+Ubuntu 26.04 or more recent required. Version detected: {1}.
+
+[install.lib.error.19]
+Ubuntu {1} ({2}) rejected: it is not greater or equal to 26.04.
+
+[install.lib.error.20]
+Type of card Postfix denied: {1}.
+
+[install.lib.error.21]
+No account of desktop under /home: the installer Ubuntu must have created the users.
+
+[install.lib.error.22]
+Garde-fou: attempt of mutation of password forbidden: {1}
+
+[install.log.info]
+Copy: {1}
+
+[install.log.info.2]
+Journals software copied
+
+[install.log.error.2]
+Input interrupted.
+
+[install.log.warn]
+Base AIDE not recalculée.
+
+[install.log.warn.8]
+Removal cancelled: directory denied.
+
+[install.log.info.4]
+Command to remove the installation directory
+
+[install.log.info.9]
+Snapshot: {1}
+
+[install.exec.debug]
+{1}
+
+[install.install.error]
+The command failed: {1}
+
+[install.install.error.3]
+Ubuntu Pro: missing token in secrets.conf. Rerun: bash {1}/liltress configures
+
+[install.install.error.4]
+Ubuntu Pro attach a failed (required): {1}
+
+[install.install.error.5]
+Ubuntu Pro: the machine is not attached after pro attach.
+
+[install.install.debug]
+{1}
+
+[install.purge.error]
+The command failed: {1}
+
+[install.matrix.error]
+The command failed: {1}
+
+[install.wireguard.error]
+The command failed: {1}
+
+[install.keycloak.error]
+The command failed: {1}
+
+[install.keycloak.success.7]
+{1}
+
+[install.keycloak.success.8]
+Test accounts: ada (administrator), camille (moderator), noa (member)
+
+[install.livekit.error]
+The command failed: {1}
+
+[install.clamav.error]
+The command failed: {1}
+
+[install.aide.error]
+The command failed: {1}
+
+[install.aide.error.2]
+Base AIDE not generated (aide.db.new not found). Detail: {1}
+
+[install.nginx.error]
+The command failed: {1}
+
+[install.debsums.error]
+The command failed: {1}
+
+[install.auditd.error]
+The command failed: {1}
+
+[install.postfix.error]
+The command failed: {1}
+
+[install.rkhunter.error]
+The command failed: {1}
+
+[install.chkrootkit.error]
+The command failed: {1}
+
+[install.ufw.error]
+The command failed: {1}
+
+[install.redis.error]
+The command failed: {1}
+
+[install.apparmor.error]
+The command failed: {1}
+
+[install.fail2ban.error]
+The command failed: {1}
+
+[install.usbguard.error]
+The command failed: {1}
+
+[install.rclone.error]
+The command failed: {1}
+
+[install.crowdsec.error]
+The command failed: {1}
+
+[install.crowdsec.error.3]
+CrowdSec {1} comes of the repository Ubuntu, no packagecloud.
+
+[install.install.debug.2]
+{1}
+
+[install.snapd.error]
+The command failed: {1}
+
+[install.unbound.error]
+The command failed: {1}
+
+[install.unattended-upgrades.error]
+The command failed: {1}
+
+[install.system.title]
+System
+
+[install.alert.title]
+Alerts
+
+[install.security.title]
+Security
+
+[install.package.title]
+Packages
+
+[install.close.title]
+Finish
+
+[install.edge.title]
+Network services
+
+[install.base.error]
+The command failed: {1}
+
+[install.ssh.error]
+The command failed: {1}
+
+[install.lynis.error]
+The command failed: {1}
+
+[install.ubuntu-pro.error]
+The command failed: {1}
+
+[install.multiarch.error]
+The command failed: {1}
+
+[install.apt.error]
+The command failed: {1}
+
+[install.acct.error]
+The command failed: {1}
+
+[install.sysstat.error]
+The command failed: {1}
+
+[install.pam.error]
+The command failed: {1}
+
+[install.haveged.error]
+The command failed: {1}
+
+[install.rngd.error]
+The command failed: {1}
+
+[install.devtools.error]
+The command failed: {1}
+
+[install.docker.error]
+The command failed: {1}
+
+[install.acct-installed]
+acct installed
+
+[install.activation-haveged]
+Activation haveged
 
 [install.activation-of-livepatch]
 Activation of Livepatch
 
-[install.activation-of-the-architecture-i386]
-Activation of the architecture i386
-
 [install.activation-of-ubuntu-pro]
 Activation of Ubuntu Pro ({1})
 
-[install.apparmor-installed-profiles-of-the-distribution]
-AppArmor installed (profiles of the distribution only)
+[install.active-haveged]
+active haveged
 
-[install.architecture-i386-already-enabled]
-Architecture i386 already enabled
-
-[install.architecture-i386-enabled]
-Architecture i386 enabled
-
-[install.architecture-i386-not-required-outside-amd64]
-Architecture {1} — i386 not required outside amd64
+[install.apparmor-installed]
+APPARMOR installed
 
 [install.attachment-of-ubuntu-pro]
 Attachment of Ubuntu Pro
 
-[install.auditd-installed-2]
-auditd installed
-
-[install.check-of-the-architecture-i386]
-Check of the architecture i386
+[install.auditd-installed]
+AUDITD installed
 
 [install.check-of-the-attachment-ubuntu-pro]
 Check of the attachment Ubuntu Pro
 
-[install.chkrootkit-installed-2]
-chkrootkit installed
+[install.chkrootkit-installed]
+CHKROOTKIT installed
 
-[install.clamav-installed-2]
-ClamAV installed
+[install.clamav-installed]
+CLAMAV installed
 
-[install.configuration-of-rng-tools-debian-hwrng-if-prese]
-Configuration of rng-tools-debian (HWRNG if present, otherwise haveged)
+[install.configuration-of-the-hostname]
+Configuration of the hostname
 
 [install.configuration-of-the-repository-lynis]
 Configuration of the repository Lynis
 
+[install.configuration-rng-tools-debian-hwrng-rngd]
+Configuration rng-tools-debian (HWRNG + rngd)
+
 [install.creation-of-etc-apt-keyrings]
 Creation of /etc/apt/keyrings
+
+[install.creation-tree-secured-of-the-project]
+Creation tree secured of the project
 
 [install.crowdsec-comes-of-the-repository-ubuntu-no-packa]
 CrowdSec {1} comes of the repository Ubuntu, no packagecloud.
@@ -58,35 +422,41 @@ CrowdSec {1} comes of the repository Ubuntu, no packagecloud.
 [install.crowdsec-installed]
 CrowdSec installed ({1})
 
-[install.debsums-installed]
-debsums installed
-
 [install.download-of-the-key-gpg-lynis]
 Download of the key GPG Lynis
 
 [install.fail2ban-installed]
 Fail2Ban installed
 
-[install.haveged-enabled]
-haveged enabled
+[install.haveged-installed-but-inactive]
+haveged installed but inactive: {1}
 
-[install.haveged-installed-but-inactive-2]
-haveged installed but inactive
+[install.hostname-configured]
+Hostname configured
 
-[install.installation-of-apparmor-2]
-Installation of AppArmor
+[install.inclusion-of-the-units-possibly-added]
+Inclusion of the units possibly added
 
-[install.installation-of-auditd-2]
-Installation of auditd
+[install.installation-debsums-finished]
+Installation DEBSUMS finished ({1}).
 
-[install.installation-of-chkrootkit-2]
-Installation of chkrootkit
+[install.installation-of-acct]
+Installation of acct
+
+[install.installation-of-apparmor]
+Installation of APPARMOR
+
+[install.installation-of-auditd]
+Installation of AUDITD
+
+[install.installation-of-chkrootkit]
+Installation of CHKROOTKIT
 
 [install.installation-of-clamav]
 Installation of ClamAV
 
-[install.installation-of-crowdsec-2]
-Installation of CrowdSec
+[install.installation-of-crowdsec]
+Installation of CROWDSEC
 
 [install.installation-of-debsums]
 Installation of debsums
@@ -94,41 +464,35 @@ Installation of debsums
 [install.installation-of-fail2ban]
 Installation of Fail2Ban
 
-[install.installation-of-haveged-and-of-rng-tools-debian]
-Installation of haveged and of rng-tools-debian
-
-[install.installation-of-help-2]
+[install.installation-of-help]
 Installation of AIDE
-
-[install.installation-of-postfix]
-Installation of Postfix
-
-[install.installation-of-postfix-send-only-internet-site]
-Installation of Postfix (send only, Internet Site)
-
-[install.installation-of-rkhunter-2]
-Installation of rkhunter
-
-[install.installation-of-acct]
-Installation of acct
-
-[install.installation-of-sysstat]
-Installation of sysstat
 
 [install.installation-of-libpam-pwquality]
 Installation of libpam-pwquality
 
+[install.installation-of-libpam-tmpdir]
+Installation of LIBPAM-TMPDIR
+
+[install.installation-of-postfix]
+Installation of Postfix
+
+[install.installation-of-rkhunter]
+Installation of RKHUNTER
+
+[install.installation-of-sysstat]
+Installation of sysstat
+
 [install.installation-of-the-client-ubuntu-pro]
 Installation of the client Ubuntu Pro
+
+[install.installation-of-the-packages]
+Installation of the packages
 
 [install.installation-of-ubuntu-pro]
 Installation of Ubuntu Pro
 
-[install.installation-of-ufw-2]
+[install.installation-of-ufw]
 Installation of UFW
-
-[install.installation-of-unattended-upgrades]
-Installation of unattended-upgrades
 
 [install.installation-of-unbound]
 Installation of Unbound
@@ -139,44 +503,61 @@ intermediate Version: esm-infra, esm-apps and Livepatch are not enabled.
 [install.key-gpg-lynis-installed]
 Key GPG Lynis installed
 
-[install.liltress-workstation-lynis-cryp-8004]
-# Liltress Workstation — Lynis CRYP-8004
-
-[install.no-hwrng-exploitable-entropy-via-haveged-ok-desk]
-No HWRNG exploitable — entropy via haveged (OK desktop)
-
-[install.acct-installed]
-acct installed
-
-[install.sysstat-installed]
-sysstat installed
-
 [install.libpam-pwquality-installed]
 libpam-pwquality installed
+
+[install.libpam-tmpdir-installed]
+LIBPAM-TMPDIR installed
+
+[install.line-cron-check-not-found]
+Line CRON_CHECK not found
+
+[install.load-virtio-rng-hwrng-kvm]
+Load virtio_rng (HWRNG KVM)
+
+[install.no-dev-hwrng-entropy-via-haveged]
+No /dev/hwrng: entropy via haveged.
+
+[install.postfix-installed]
+POSTFIX installed
+
+[install.preconfiguration-of-postfix]
+Preconfiguration of POSTFIX
+
+[install.preconfiguration-of-postfix-finished]
+Preconfiguration of POSTFIX finished
 
 [install.record-of-the-repository-crowdsec]
 Record of the repository CrowdSec
 
-[install.repository-crowdsec]
-Repository CrowdSec
-
 [install.repository-crowdsec-saved]
 Repository CrowdSec saved
 
-[install.repository-lynis-configured-sources-ubuntu-not-c]
-Repository Lynis configured (sources Ubuntu not changed)
+[install.repository-lynis-configured]
+Repository Lynis configured
 
-[install.rkhunter-installed-2]
-rkhunter installed
+[install.rkhunter-installed]
+RKHUNTER installed
 
-[install.rngd-enabled]
-rngd enabled
+[install.rng-tools-debian-did-not-started-rc-result]
+rng-tools-debian did not started (rc={1} result={2}): {3}
+{4}
 
-[install.tools-of-base]
-Tools of base
+[install.rng-tools-debian-no-hwrng-hardware-active-havege]
+rng-tools-debian: no HWRNG hardware — active haveged
 
-[install.ubuntu-pro]
-Ubuntu Pro
+[install.rng-tools-debian-rngd-active-hwrng-feeds-the-poo]
+rng-tools-debian (rngd) active — HWRNG feeds the pool
+
+[install.rng-tools-debian-skipdevice-despite-hrngdevice-d]
+rng-tools-debian skipdevice despite HRNGDEVICE=/dev/hwrng (result={1})
+{2}
+
+[install.sysstat-installed]
+sysstat installed
+
+[install.systemd-reloaded]
+systemd reloaded
 
 [install.ubuntu-pro-already-attached]
 Ubuntu Pro: already attached
@@ -208,17 +589,685 @@ Ubuntu Pro: {1} not enabled, installation continued
 [install.ubuntu-pro-the-machine-is-not-attached-after-pro]
 Ubuntu Pro: the machine is not attached after pro attach.
 
-[install.unattended-upgrades-installed]
-unattended-upgrades installed
-
 [install.unbound-installed]
 Unbound installed
 
 [install.update-finished]
 Update finished
 
+[install.update-of-the-index-apt]
+Update of the index apt
+
 [install.update-of-the-system]
 Update of the system
 
+[install.activation-of-the-architecture-i386]
+Activation of the architecture i386
+
+[install.apparmor-installed-profiles-of-the-distribution]
+AppArmor installed (profiles of the distribution only)
+
+[install.architecture-i386-already-enabled]
+Architecture i386 already enabled
+
+[install.architecture-i386-enabled]
+Architecture i386 enabled
+
+[install.architecture-i386-not-required-outside-amd64]
+Architecture {1} — i386 not required outside amd64
+
+[install.auditd-installed-2]
+auditd installed
+
+[install.check-of-the-architecture-i386]
+Check of the architecture i386
+
+[install.chkrootkit-installed-2]
+chkrootkit installed
+
+[install.clamav-installed-2]
+ClamAV installed
+
+[install.configuration-of-rng-tools-debian-hwrng-if-prese]
+Configuration of rng-tools-debian (HWRNG if present, otherwise haveged)
+
+[install.debsums-installed]
+debsums installed
+
+[install.haveged-enabled]
+haveged enabled
+
+[install.haveged-installed-but-inactive-2]
+haveged installed but inactive
+
+[install.installation-of-apparmor-2]
+Installation of AppArmor
+
+[install.installation-of-auditd-2]
+Installation of auditd
+
+[install.installation-of-chkrootkit-2]
+Installation of chkrootkit
+
+[install.installation-of-crowdsec-2]
+Installation of CrowdSec
+
+[install.installation-of-haveged-and-of-rng-tools-debian]
+Installation of haveged and of rng-tools-debian
+
+[install.installation-of-help-2]
+Installation of AIDE
+
+[install.installation-of-postfix-send-only-internet-site]
+Installation of Postfix (send only, Internet Site)
+
+[install.installation-of-rkhunter-2]
+Installation of rkhunter
+
+[install.installation-of-ufw-2]
+Installation of UFW
+
+[install.installation-of-unattended-upgrades]
+Installation of unattended-upgrades
+
+[install.liltress-workstation-lynis-cryp-8004]
+# Liltress Workstation — Lynis CRYP-8004
+
+[install.no-hwrng-exploitable-entropy-via-haveged-ok-desk]
+No HWRNG exploitable — entropy via haveged (OK desktop)
+
+[install.repository-crowdsec]
+Repository CrowdSec
+
+[install.repository-lynis-configured-sources-ubuntu-not-c]
+Repository Lynis configured (sources Ubuntu not changed)
+
+[install.rkhunter-installed-2]
+rkhunter installed
+
+[install.rngd-enabled]
+rngd enabled
+
+[install.tools-of-base]
+Tools of base
+
+[install.ubuntu-pro]
+Ubuntu Pro
+
+[install.unattended-upgrades-installed]
+unattended-upgrades installed
+
 [install.postfix-installed-2]
 Postfix installed
+
+[install.02x]
+%02X
+
+[install.activation-of-nginx]
+Activation of Nginx
+
+[install.activation-start-auto]
+Activation start auto
+
+[install.addition-of-to-the-group-docker]
+Addition of {1} to the group docker
+
+[install.addition-of-uv-to-the-path-of-the-shells-of]
+Addition of uv to the PATH of the shells of {1}
+
+[install.already-in-service-no-purge-images-kept]
+Already in service: no purge, images kept
+
+[install.application-of-the-permissions-on-the-directory]
+Application of the permissions on the directory WEB
+
+[install.base-empty-1-and-reachable-the-portal-creates-it]
+Base {empty 1} and reachable. The portal creates its tables to the start.
+
+[install.base-not-yet-ready-wait-30]
+Base {1} not yet ready, wait ({2}/30)
+
+[install.base-portal]
+Base portal {1}
+
+[install.base-reachable]
+Base {1} reachable
+
+[install.certbot-installed]
+Certbot installed
+
+[install.cleanup-finished]
+Cleanup finished
+
+[install.compose-matrix-absent]
+compose Matrix absent
+
+[install.configuration-of-the-directory-element]
+Configuration of the directory element
+
+[install.configuration-of-the-directory-postgres]
+Configuration of the directory postgres
+
+[install.configuration-of-the-directory-synapse]
+Configuration of the directory synapse
+
+[install.configuration-of-the-general-directory]
+Configuration of the general directory
+
+[install.creation-log-config]
+Creation log.config
+
+[install.creation-of-the-admin-synapse]
+Creation of the admin synapse
+
+[install.creation-of-the-config-json]
+Creation of the config.json
+
+[install.creation-of-the-directories]
+Creation of the directories
+
+[install.creation-of-the-directories-for-livekit-and-jwt]
+Creation of the directories for Livekit and JWT
+
+[install.creation-of-the-directories-for-postgresql-matri]
+Creation of the directories for PostGreSQL, Matrix and Element
+
+[install.creation-of-the-directories-for-wireguard]
+Creation of the directories for WireGuard
+
+[install.creation-of-the-directories-nginx]
+Creation of the directories NGINX
+
+[install.creation-of-the-directory-keycloak]
+Creation of the directory Keycloak
+
+[install.creation-of-the-docker-compose-yml]
+Creation of the docker-compose.yml
+
+[install.creation-of-the-livekit-yml]
+Creation of the livekit.yml
+
+[install.creation-of-the-network-production-livekit-netwo]
+Creation of the network 'production_livekit_network'
+
+[install.creation-of-the-network-production-matrix-networ]
+Creation of the network 'production_matrix_network'
+
+[install.creation-of-the-network-security-network]
+Creation of the network 'security_network'
+
+[install.crowdsec-ubuntu-esm-to-the-place-of-the-reposito]
+CrowdSec {1} (Ubuntu/ESM) to the place of the repository packagecloud — the hub does not offer http-dos/appsec. Check /etc/apt/preferences.d/crowdsec
+
+[install.directories-nginx-created-for-livekit]
+Directories NGINX created for LiveKit
+
+[install.directories-nginx-created-for-matrix]
+Directories NGINX created for Matrix
+
+[install.directories-nginx-created-for-wireguard]
+Directories NGINX created for WireGuard
+
+[install.directories-ready-and-secured]
+Directories ready and secured
+
+[install.directories-web-secured-and-accessible-by-nginx]
+Directories WEB secured and accessible by Nginx
+
+[install.docker-compose-yml-created]
+docker-compose.yml created
+
+[install.docker-inactive-service]
+docker.inactive service: {1}
+
+[install.docker-installed]
+Docker installed
+
+[install.docker-restarted-and-operational]
+Docker restarted and operational
+
+[install.docker-this-installed-but-docker-service-absent]
+docker-ce installed but docker.service absent
+
+[install.exists-already-password-unchanged]
+{1} exists already, password unchanged
+
+[install.explicit-export-of-all-the-variable-before-envsu]
+explicit Export of all the variable before envsubst
+
+[install.generation-of-the-hash-bcrypt]
+Generation of the hash bcrypt
+
+[install.generation-of-the-secrets]
+Generation of the secrets
+
+[install.generation-of-the-secrets-keycloak]
+Generation of the secrets Keycloak
+
+[install.generation-of-the-secrets-livekit]
+Generation of the secrets LiveKit
+
+[install.generation-of-the-secrets-matrix]
+Generation of the secrets Matrix
+
+[install.git-and-node-js-installed]
+git and Node.js installed
+
+[install.group-docker-absent-docker-install-sh-must-pass]
+group docker absent (docker/install.sh must pass before)
+
+[install.homeserver-yaml-and-key-of-signature-synapse]
+homeserver.yaml and key of signature Synapse
+
+[install.homeserver-yaml-configured]
+homeserver.yaml configured
+
+[install.hrngdevice-set-skipdevice-debian-applies-more]
+# HRNGDEVICE set: skipdevice() Debian applies more.
+
+[install.hrngselect]
+HRNGSELECT="{1}"
+
+[install.installation-clamav]
+Installation CLAMAV
+
+[install.installation-debsums]
+Installation DEBSUMS
+
+[install.installation-docker-engine-compose-plugin]
+Installation Docker Engine & Compose plugin
+
+[install.installation-fail2ban-finished]
+Installation Fail2Ban finished.
+
+[install.installation-of-certbot]
+Installation of Certbot
+
+[install.installation-of-crowdsec-finished]
+Installation of CROWDSEC finished ({1}).
+
+[install.installation-of-git-and-node-js]
+Installation of git and Node.js
+
+[install.installation-of-nginx]
+Installation of Nginx
+
+[install.installation-of-npm-for]
+Installation of npm for {1}
+
+[install.installation-of-redis-server]
+Installation of redis-server
+
+[install.installation-of-the-prerequisites]
+Installation of the prerequisites
+
+[install.installation-of-the-script-of-update]
+Installation of the script of update
+
+[install.installation-of-uv-for]
+Installation of uv for {1}
+
+[install.interface-of-management]
+Interface of management: {1}
+
+[install.is-in-the-group-docker-session-ssh-following]
+{1} is in the group docker (session SSH following)
+
+[install.jwt-not-yet-operational-wait-15]
+JWT not yet operational... wait ({1}/15)
+
+[install.jwt-responds-http]
+JWT responds (HTTP {1})
+
+[install.keycloak]
+Keycloak: {1}
+
+[install.keycloak-not-yet-ready-wait-60]
+Keycloak not yet ready... wait ({1}/60)
+
+[install.keycloak-on-postgres-5432]
+Keycloak on postgres:5432/{1}
+
+[install.launch-of-keycloak]
+Launch of Keycloak
+
+[install.launch-of-synapse-and-element]
+Launch of Synapse and element
+
+[install.launch-of-the-services-docker]
+Launch of the services Docker
+
+[install.launch-of-the-services-livekit-and-jwt]
+Launch of the services Livekit and JWT
+
+[install.launch-of-wg-easy]
+Launch of wg-easy
+
+[install.liltress-lynis-cryp-8004-hw-rng-rngd]
+# Liltress — Lynis CRYP-8004 (HW RNG & rngd)
+
+[install.livekit-does-not-start-curl-127-0-0-1-after-30s]
+LiveKit does not start (curl 127.0.0.1:{1} after 30s). docker logs livekit:
+{2}
+
+[install.livekit-not-yet-operational-wait-15]
+LiveKit not yet operational... wait ({1}/15)
+
+[install.livekit-redis-password-empty-in]
+LIVEKIT_REDIS_PASSWORD empty in {1}
+
+[install.livekit-responds-http]
+LiveKit responds (HTTP {1})
+
+[install.log-config-created]
+log.config created
+
+[install.mounts-still-busy-under]
+Mounts still busy under {1}: {2}
+
+[install.network-production-livekit-network-created]
+Network 'production_livekit_network' created
+
+[install.network-production-matrix-network-created]
+Network 'production_matrix_network' created
+
+[install.network-security-network-created]
+Network 'security_network' created
+
+[install.new-application-configuration-daemon-json]
+new Application Configuration daemon.json
+
+[install.nginx-enabled]
+Nginx enabled
+
+[install.nginx-installed]
+Nginx installed
+
+[install.password]
+Password: {1}
+
+[install.password-of-test-test-liltress]
+Password of test: test-liltress
+
+[install.port-udp-public]
+Port UDP public: {1}
+
+[install.postfix-in-internet-site-relay-of-send-only]
+Postfix in Internet Site (relay of send only)
+
+[install.postgres-not-yet-ready-for-keycloak-wait-30]
+Postgres not yet ready for Keycloak... wait ({1}/30)
+
+[install.postgresql-does-not-start-correctly-after-60s]
+PostgreSQL does not start correctly after 60s.
+{1}
+
+[install.postgresql-is-operational]
+PostgreSQL is operational
+
+[install.postgresql-not-yet-operational-wait-30]
+PostgreSQL not yet operational... wait ({1}/30)
+
+[install.prerequisites-installed]
+Prerequisites installed
+
+[install.profile-portal-web-ignored]
+Profile {1}: portal web ignored
+
+[install.readable-secrets-by-the-group]
+readable Secrets by the group {1}: {2}
+
+[install.reconfiguration-docker-finished]
+Reconfiguration Docker finished
+
+[install.record-of-the-secret-web]
+Record of the secret web
+
+[install.redis-not-configured-absent-service-redis-config]
+Redis not configured ({1} absent) — service/redis/configure.sh must come before LiveKit
+
+[install.redis-of-the-portal-absent-docker-matrix-install]
+Redis of the portal absent ({1}). docker/matrix/install.sh must pass before.
+
+[install.redis-password-empty-in]
+REDIS_PASSWORD empty in {1}
+
+[install.redis-server-installed]
+redis-server installed
+
+[install.removal-finished]
+Removal finished
+
+[install.removal-finished-2]
+Removal finished
+
+[install.removal-in-progress]
+Removal in progress
+
+[install.removal-in-progress-2]
+Removal in progress
+
+[install.removal-of-the-directories-of-data-and-configura]
+Removal of the directories of data and configurations
+
+[install.restart-docker]
+Restart Docker
+
+[install.restart-docker-for-apply-the-configuration]
+Restart Docker for apply the Configuration
+
+[install.s-mode-dev-images-web-not-started]
+MODE_DEV: images web not started
+
+[install.s-postgres-keycloak-password-absent-start-docker]
+POSTGRES_KEYCLOAK_PASSWORD absent. Start docker/matrix/install.sh first (role created in the unique Postgres).
+
+[install.s-postgres-web-password-empty-secrets-conf-must]
+POSTGRES_WEB_PASSWORD empty: secrets.conf must be produced by configures.sh (profile MATRIX).
+
+[install.script-installed]
+Script installed: {1}
+
+[install.secret-redis-reread]
+Secret Redis reread ({1})
+
+[install.secrets-generated-in]
+Secrets generated in {1}
+
+[install.services-docker-launched]
+Services Docker launched
+
+[install.services-keycloak-launched]
+Services Keycloak launched
+
+[install.services-matrix-and-element-started]
+Services Matrix and Element started
+
+[install.since-liltress-web-bash-scripts-dev-sh]
+Since liltress-web: bash scripts/dev.sh
+
+[install.skipped-start-of-the-images-web]
+Non-démarrage of the images web
+
+[install.start-auto-enabled]
+Start auto enabled
+
+[install.start-of-web-ui-and-web-api]
+Start of web-ui and web-api
+
+[install.stop-of]
+Stop of {1}
+
+[install.stop-of-the-containers-daemon-still-alive]
+Stop of the containers (daemon still alive)
+
+[install.stop-of-the-services-systemd]
+Stop of the services Systemd
+
+[install.stop-of-the-stack-keycloak]
+Stop of the stack Keycloak
+
+[install.stop-of-the-stack-livekit]
+Stop of the stack LiveKit
+
+[install.stop-of-the-stack-matrix]
+Stop of the stack Matrix
+
+[install.stop-of-the-stack-wireguard]
+Stop of the stack WireGuard
+
+[install.synapse-does-not-start-correctly-after-60s-check]
+Synapse does not start correctly after 60s. Checks docker logs synapse
+
+[install.synapse-not-yet-operational-wait-30]
+Synapse not yet operational... wait ({1}/30)
+
+[install.synapse-responds-correctly]
+Synapse responds correctly!
+
+[install.the-admin-could-not-be-created]
+The admin could not be created
+
+[install.the-admin-synapse-is-created]
+The admin synapse is created
+
+[install.the-base-does-not-respond-checks-docker-logs-pos]
+The base {1} does not respond. Checks docker logs postgres
+
+[install.the-config-json-configured]
+The config.json configured
+
+[install.the-docker-compose-yml-is-created]
+The docker-compose.yml is created
+
+[install.the-homeserver-yaml-is-created]
+The homeserver.yaml is created
+
+[install.the-livekit-yml-is-created]
+The livekit.yml is created
+
+[install.the-service-jwt-does-not-start-curl-127-0-0-1-af]
+The service JWT does not start (curl 127.0.0.1:{1} after 30s). docker logs lk-jwt-service:
+{2}
+
+[install.unmount-of-the-overlays-docker-containerd]
+Unmount of the overlays Docker / containerd
+
+[install.user-not-found]
+user {1} not found
+
+[install.uv-already-present-for]
+uv already present for {1}
+
+[install.uv-installed-for]
+uv installed for {1}
+
+[install.uv-liltress-mode-dev-of-the-portal]
+
+# uv — liltress, mode dev of the portal
+{1}
+
+[install.wait-30-s-start-keycloak]
+Wait 30 s (start Keycloak)
+
+[install.wait-of-the-shared-postgres-container-postgres]
+Wait of the shared Postgres (container postgres)
+
+[install.wait-postgresql-operational]
+Wait PostgreSQL operational
+
+[install.wait-that-livekit-be-operational]
+Wait that LiveKit be operational
+
+[install.wait-that-synapse-be-operational]
+Wait that Synapse be operational
+
+[install.wait-that-the-daemon-be-again-ready]
+Wait that the daemon be again ready
+
+[install.wait-that-the-service-jwt-be-operational]
+Wait that the service JWT be operational
+
+[install.wait-that-wg-easy-be-operational]
+Wait that wg-easy be operational
+
+[install.web-ui-and-web-api-started]
+web-ui and web-api started
+
+[install.wg-easy-does-not-start-correctly-after-60s-check]
+wg-easy does not start correctly after 60s. Checks: docker logs wg-easy
+
+[install.wg-easy-not-yet-ready-wait-30]
+wg-easy not yet ready... wait ({1}/30)
+
+[install.wg-easy-responds-correctly-on-the-port]
+wg-easy responds correctly on the port {1}!
+
+[install.secrets-matrix-recorded]
+Secrets Matrix recorded
+
+[install.secret-web-saved-not-displayed]
+Secret web saved (not displayed)
+
+[install.installation-of-postfix-2]
+Installation of POSTFIX
+
+[install.npm-installed-for]
+npm installed for {1}
+
+[install.check-of-uv-for]
+Check of uv for {1}
+
+[install.uv-is-in-the-path-of-the-shells-of]
+uv is in the PATH of the shells of {1}
+
+[install.creation-of-the-directory-etc-apt-keyrings]
+Creation of the directory /etc/apt/keyrings
+
+[install.key-gpg-lynis-downloaded]
+Key GPG Lynis downloaded
+
+[install.download-of-the-key-gpg-docker]
+Download of the key GPG Docker
+
+[install.repository-crowdsec-configured]
+Repository Crowdsec configured
+
+[install.configuration-repository-lynis]
+Configuration repository Lynis
+
+[install.repository-docker-configured]
+Repository Docker configured
+
+[install.installation-of-ubuntu-pro-2]
+Installation of Ubuntu Pro
+
+[install.activation-of]
+Activation of {1}
+
+[install.ubuntu-pro-already-enabled]
+Ubuntu Pro: {1} already enabled
+
+[install.activation-of-livepatch-2]
+Activation of livepatch
+
+[install.inactive-livepatch-vm-installation-continued]
+inactive Livepatch (VM), installation continued
+
+[install.update-of-the-system-finished]
+Update of the system finished
+
+[install.keycloak-does-not-respond-on-realms-master]
+Keycloak does not respond on /realms/master
+
+[install.creation-of-the-realms]
+Creation of the Realms
+
+[install.rtc-private-1-no-stun]
+RTC {private 1}, no STUN
+
+[install.name-of-role-or-of-base-invalid-postgres-expecte]
+Name of role or of base invalid Postgres (expected: identifier SQL simple).
+
+[install.livekit-rtc-external-ip]
+RTC : use_external_ip: true (STUN, reco cloud LiveKit)

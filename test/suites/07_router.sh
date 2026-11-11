@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/07_router.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -142,7 +142,8 @@ from pathlib import Path
 root = Path(sys.argv[1])
 
 def plan_paths(product):
-    data = json.loads((root / product / "script" / "install.json").read_text(encoding="utf-8"))
+    relative = "config/schema/installation.json"
+    data = json.loads((root / product / relative).read_text(encoding="utf-8"))
     order = []
     for category in data["categories"]:
         for step in category["steps"]:
@@ -188,7 +189,7 @@ for product in ("workstation", "server"):
 print("ok")
 PY
     then
-        t_pass "order.maps" "tableaux alignés sur install.json"
+        t_pass "order.maps" "tableaux alignés sur le plan d'installation"
     else
         t_fail "order.maps" "$(tr '\n' ' ' < "${ARTIFACTS}/order.txt" 2>/dev/null || true)"
     fi

@@ -1,0 +1,47 @@
+[title]
+Controles
+
+[form]
+Correo
+
+[ok]
+la configuración es válida
+
+[up]
+Campo anterior
+
+[down]
+Campo siguiente
+
+[left]
+Cursor a la izquierda
+
+[right]
+Cursor a la derecha
+
+[language]
+Elegir idioma
+
+[paste]
+Pegar
+
+[quit]
+Salir
+
+[check]
+Comprobar los parámetros
+
+[run]
+Comprobar y lanzar
+
+[pending]
+Pendiente...
+
+[invalid]
+ es : Incorrecto
+
+[invalid_f]
+ es : Incorrecta
+
+[ready]
+Variables verificadas, inicio de la instalación con CTRL+I

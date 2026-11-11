@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/config-check.sh
-# Updated at : 2026-11-07
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -35,8 +35,6 @@ set_config_default() {
     : "${PROJECT_SLUG:=liltress-workstation}"
     : "${PROJECT_VERSION:=0.2}"
     : "${LYNIS_MIN_SCORE:=80}"
-    : "${OS_ID:=ubuntu}"
-    : "${OS_VERSION:=26.04}"
     : "${SSH_BANNER_PATH:=/etc/ssh/sshd_banner}"
     : "${SSH_SERVICE_NAME:=ssh}"
     : "${SSH_MAX_AUTH_TRIES:=4}"
@@ -109,11 +107,9 @@ WATCHDOG_LIMIT_NICE=${WATCHDOG_LIMIT_NICE}
 WATCHDOG_LIMIT_IO_NICE=${WATCHDOG_LIMIT_IO_NICE}
 
 MAIL_TEMPLATE="${MAIL_TEMPLATE}"
+MAIL_ALERTS=${MAIL_ALERTS:-0}
 
 PROJECT_SLUG="${PROJECT_SLUG}"
-
-OS_ID="${OS_ID}"
-OS_VERSION="${OS_VERSION}"
 
 SSH_LOGIN_GRACE_TIME=${SSH_LOGIN_GRACE_TIME}
 
@@ -144,7 +140,6 @@ write_user_config() {
 # =============================================================================
 
 LANGUAGE="${LANGUAGE:-en}"
-MAIL_ALERTS=${MAIL_ALERTS:-0}
 
 EOF
     chmod 644 "${dest}"
@@ -205,8 +200,6 @@ validate_values() {
         log_config_error "$(get_text configure.g-language-invalid-values-in-fr-of-es "${label_g}" "${LANGUAGE}")"
     fi
     check_port "${LYNIS_MIN_SCORE:-x}" 0 100 || log_config_error "$(get_text configure.g-lynis-min-score-invalid-example-80 "${label_g}" "${LYNIS_MIN_SCORE:-}")"
-    [[ "${OS_ID:-}" == "ubuntu" ]] || log_config_error "$(get_text configure.w-os-id-invalid-example-ubuntu "${label_g}" "${OS_ID:-}")"
-    [[ "${OS_VERSION:-}" == "26.04" ]] || log_config_error "$(get_text configure.w-os-version-invalid-example-26-04 "${label_g}" "${OS_VERSION:-}")"
     [[ -n "${BANNER_MESSAGE:-}" && "${BANNER_MESSAGE}" != *'$('* && "${BANNER_MESSAGE}" != *'`'* ]] || log_config_error "$(get_text configure.g-banner-message-empty-yet-no-safe "${label_g}")"
     check_absolute_path "${SSH_BANNER_PATH:-}" || log_config_error "$(get_text configure.g-ssh-banner-path-invalid-example-etc-ssh-sshd-b "${label_g}" "${SSH_BANNER_PATH:-}")"
     [[ "${SSH_SERVICE_NAME:-}" == "ssh" ]] || log_config_error "$(get_text configure.g-ssh-service-name-invalid-example-ssh "${label_g}" "${SSH_SERVICE_NAME:-}")"

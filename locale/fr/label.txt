@@ -1,0 +1,269 @@
+[LABEL_LANGUAGE]
+Langue
+
+[LABEL_UBUNTU_PRO_TOKEN]
+Jeton Ubuntu Pro
+
+[LABEL_MAIL_ALERTS]
+Alertes e-mail
+
+[LABEL_POSTFIX_SMTP_LOGIN]
+Identifiant SMTP
+
+[LABEL_POSTFIX_MAIL_ADDRESS]
+Adresse e-mail de l'expéditeur
+
+[LABEL_POSTFIX_MAIL_PASSWORD]
+Mot de passe SMTP
+
+[LABEL_POSTFIX_MAIL_SMTP]
+Serveur SMTP
+
+[LABEL_WATCHDOG_MAIL]
+Destinataire des alertes
+
+[LABEL_PROJECT_NAME]
+Nom du projet
+
+[LABEL_PROJECT_SLUG]
+Identifiant du projet
+
+[LABEL_PROJECT_VERSION]
+Version du projet
+
+[LABEL_CONFIG_BASE_DIRECTORY]
+Répertoire d'installation
+
+[LABEL_LYNIS_MIN_SCORE]
+Score Lynis minimal
+
+[LABEL_BANNER_MESSAGE]
+Bannière de connexion
+
+[LABEL_SSH_BANNER_PATH]
+Fichier de la bannière SSH
+
+[LABEL_SSH_SERVICE_NAME]
+Nom du service SSH
+
+[LABEL_SSH_MAX_AUTH_TRIES]
+Essais d'authentification SSH
+
+[LABEL_SSH_CLIENT_ALIVE_INTERVAL]
+Intervalle de maintien SSH
+
+[LABEL_SSH_CLIENT_ALIVE_COUNT_MAX]
+Nombre de maintiens SSH
+
+[LABEL_SSH_LOGIN_GRACE_TIME]
+Délai de connexion SSH
+
+[LABEL_WATCHDOG_CPU_LIMIT]
+Limite CPU du contrôle
+
+[LABEL_WATCHDOG_LIMIT_NICE]
+Priorité CPU du contrôle
+
+[LABEL_WATCHDOG_LIMIT_IO_NICE]
+Priorité disque du contrôle
+
+[LABEL_MAIL_TEMPLATE]
+Modèle de courrier
+
+[LABEL_PAM_PASSWORD_MIN_LENGTH]
+Longueur minimale du mot de passe
+
+[LABEL_FAILLOCK_DENY]
+Essais avant verrouillage
+
+[LABEL_FAILLOCK_UNLOCK]
+Durée du verrouillage
+
+[LABEL_FAILLOCK_FAIL_INTERVAL]
+Fenêtre des essais échoués
+
+[LABEL_DOMAIN]
+Nom de domaine
+
+[LABEL_MAIN_USER]
+Compte principal
+
+[LABEL_MAIN_GROUP]
+Groupe principal
+
+[LABEL_SSH_PORT]
+Port SSH
+
+[LABEL_MODE_TEST]
+Mode test
+
+[LABEL_MODE_DEV]
+Mode développement
+
+[LABEL_NGINX_CERTBOT_MAIL_ADDRESS]
+Adresse e-mail du certificat
+
+[LABEL_ANTIBOT_HMAC_SECRET]
+Secret antibot
+
+[LABEL_POSTGRES_WEB_PASSWORD]
+Mot de passe de la base web
+
+[LABEL_TURNSTILE_SITE_KEY]
+Clé de site Turnstile
+
+[LABEL_TURNSTILE_SECRET_KEY]
+Clé secrète Turnstile
+
+[LABEL_UNBOUND_FORWARDERS]
+Relais DNS
+
+[LABEL_USBGUARD_ENABLE]
+Activer USBGuard
+
+[LABEL_DDOS_HARDENING_LEVEL]
+Niveau de durcissement DDoS
+
+[LABEL_HOSTNAME_MATRIX]
+Nom d'hôte Matrix
+
+[LABEL_HOSTNAME_LIVEKIT]
+Nom d'hôte LiveKit
+
+[LABEL_HOSTNAME_WIREGUARD]
+Nom d'hôte WireGuard
+
+[LABEL_SWAP_SIZE]
+Taille du swap
+
+[LABEL_SWAP_FILE]
+Fichier de swap
+
+[LABEL_SWAP_MAPPER_NAME]
+Nom du mappeur de swap
+
+[LABEL_CRON_USER]
+Compte cron
+
+[LABEL_NGINX_ADMIN_USER]
+Compte admin Nginx
+
+[LABEL_NGINX_HTPASSWD_PATH]
+Fichier de mots de passe Nginx
+
+[LABEL_NGINX_HTPASSWD_REALM]
+Domaine d'authentification Nginx
+
+[LABEL_DOCKER_NETWORK_PRODUCTION]
+Réseau Docker de production
+
+[LABEL_DOCKER_NETWORK_SECURITY]
+Réseau Docker de sécurité
+
+[LABEL_DOCKER_LOG_DRIVER]
+Pilote de journaux Docker
+
+[LABEL_DOCKER_LOG_MAX_SIZE]
+Taille d'un journal Docker
+
+[LABEL_DOCKER_LOG_MAX_FILE]
+Nombre de journaux Docker
+
+[LABEL_DOCKER_LOG_COMPRESS]
+Compresser les journaux Docker
+
+[LABEL_POSTGRES_SYNAPSE_USER]
+Compte de la base Synapse
+
+[LABEL_POSTGRES_SYNAPSE_DB]
+Nom de la base Synapse
+
+[LABEL_POSTGRES_KEYCLOAK_USER]
+Compte de la base Keycloak
+
+[LABEL_POSTGRES_KEYCLOAK_DB]
+Nom de la base Keycloak
+
+[LABEL_POSTGRES_WEB_USER]
+Compte de la base web
+
+[LABEL_POSTGRES_WEB_DB]
+Nom de la base web
+
+[LABEL_PORT_CROWDSEC_LAPI]
+Port LAPI CrowdSec
+
+[LABEL_PORT_SYNAPSE_POSTGRESQL]
+Port PostgreSQL de Synapse
+
+[LABEL_PORT_SYNAPSE]
+Port Synapse
+
+[LABEL_PORT_ELEMENT]
+Port Element
+
+[LABEL_PORT_WEB_UI]
+Port de l'interface web
+
+[LABEL_PORT_WEB_API]
+Port de l'API web
+
+[LABEL_PORT_SYNAPSE_ADMIN]
+Port d'admin Synapse
+
+[LABEL_PORT_PROMETHEUS]
+Port Prometheus
+
+[LABEL_PORT_KEYCLOAK]
+Port Keycloak
+
+[LABEL_PORT_LIVEKIT_SFU]
+Port SFU LiveKit
+
+[LABEL_PORT_LIVEKIT_JWT]
+Port JWT LiveKit
+
+[LABEL_PORT_LIVEKIT_REDIS]
+Port Redis LiveKit
+
+[LABEL_PORT_WIREGUARD_UI]
+Port de l'interface WireGuard
+
+[LABEL_PORT_WIREGUARD_UDP]
+Port UDP WireGuard
+
+[LABEL_WEB_REGISTRY]
+Registre d'images
+
+[LABEL_WEB_IMAGE_FRONTEND]
+Image du frontend
+
+[LABEL_WEB_IMAGE_BACKEND]
+Image du backend
+
+[LABEL_WEB_IMAGE_TAG]
+Étiquette d'image
+
+[LABEL_WEB_UPDATE_SCRIPT]
+Script de mise à jour
+
+[LABEL_MATRIX_ADMIN_USER]
+Compte admin Matrix
+
+[LABEL_KEYCLOAK_REALM]
+Royaume Keycloak
+
+[LABEL_KEYCLOAK_CLIENT]
+Client Keycloak
+
+[LABEL_KC_BOOTSTRAP_ADMIN_USERNAME]
+Admin initial Keycloak
+
+[LABEL_WIREGUARD_DEFAULT_DNS]
+DNS WireGuard
+
+[LABEL_WIREGUARD_DEFAULT_ADDRESS]
+Adresse WireGuard
+
+[LABEL_WIREGUARD_ALLOWED_IP]
+Adresses autorisées WireGuard

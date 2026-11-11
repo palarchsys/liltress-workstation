@@ -1,0 +1,42 @@
+# =============================================================================
+# File       : locale/fr/hardening.txt
+# Updated at : 2026-11-11
+# Creator    : palarchsys
+# =============================================================================
+
+
+[hardening.unbound.install]
+Installation d'Unbound.
+
+[hardening.unbound.ok]
+Unbound répond sur 127.0.0.1.
+
+[hardening.unbound.fail]
+Unbound a échoué : {1}
+
+[hardening.usbguard.skip]
+USBGuard est coupé.
+
+[hardening.usbguard.title]
+Appareil USB bloqué
+
+[hardening.usbguard.body]
+USBGuard a refusé un appareil.
+
+[hardening.ddos.skip]
+Niveau DDoS 1. Les limites actuelles restent.
+
+[hardening.ddos.ok]
+Niveau DDoS appliqué.
+
+[hardening.ddos.fail]
+L'étape DDoS a échoué : {1}
+
+[hardening.config.flag]
+{1} vaut 0 ou 1. Valeur : {2}
+
+[hardening.config.level]
+DDOS_HARDENING_LEVEL vaut 1, 2 ou 3. Valeur : {1}
+
+[hardening.config.forwarders]
+Relais refusé : {1}

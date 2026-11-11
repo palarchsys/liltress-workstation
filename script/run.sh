@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/run.sh
-# Updated at : 2026-11-07
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -107,5 +107,5 @@ run_install_action() {
     esac
 }
 
-run_install_plan "${INSTALL_DIRECTORY}" "${INSTALL_DIRECTORY}/script/install.json"
+run_install_plan "${INSTALL_DIRECTORY}" "${INSTALL_DIRECTORY}/config/schema/installation.json"
 printf '\n' >&2

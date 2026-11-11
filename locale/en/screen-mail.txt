@@ -1,0 +1,44 @@
+[title]
+Controls
+
+[form]
+Mail
+
+[ok]
+the configuration is valid
+
+[up]
+Previous field
+
+[down]
+Next field
+
+[left]
+Cursor left
+
+[right]
+Cursor right
+
+[language]
+Choose language
+
+[paste]
+Paste
+
+[quit]
+Quit
+
+[check]
+Check the parameters
+
+[run]
+Check and run
+
+[pending]
+Pending...
+
+[invalid]
+ is : Incorrect
+
+[ready]
+Variables verified, launch the installation with CTRL+I

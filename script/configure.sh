@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/configure.sh
-# Updated at : 2026-11-07
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -16,7 +16,7 @@ source "${DIR_SCRIPT}/script/config-check.sh"
 source "${DIR_SCRIPT}/core/lib.sh"
 
 show_usage() {
-    printf '%s\n' "$(get_text configure.usage)"
+    printf '%s\n' "$(get_text configure.usage.workstation)"
 }
 
 read_secret() {
@@ -303,6 +303,7 @@ log_info         "${INSTALL_WATCHER}" "configure.record-of-the-configuration"
 mkdir -p "${DIR_SCRIPT}/config"
 write_user_config "${DIR_SCRIPT}/config/user.conf"
 write_secret_config "${DIR_SCRIPT}/config/secrets.conf"
+write_mail_alerts "${DIR_SCRIPT}/config/global.conf"
 
 if ! require_prepared_config "${DIR_SCRIPT}"; then
     log_error        "${INSTALL_WATCHER}" "configure.the-files-written-pass-not-the-check"

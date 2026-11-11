@@ -1,8 +1,336 @@
 # =============================================================================
-# File       : workstation/locale/fr/log.txt
-# Updated at : 2026-11-07
+# File       : locale/fr/log.txt
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
+
+
+[log.installation-could-not-finish]
+Installation n'a pas pu se terminer
+
+[log.16s-12s-12s]
+%-16s %-12s %-12s %s\n
+
+[log.36s]
+%-36s {1}
+
+[log.absent]
+ABSENT
+
+[log.application-of-sysctl]
+Application de sysctl
+
+[log.sysctl-applied]
+Sysctl appliqué
+
+[log.alerts-enabled-n]
+alertes : activées\n
+
+[log.alerts-off-n]
+alertes : coupées\n
+
+[log.answer-y-or-n]
+Répondez Y ou N.
+
+[log.aucun]
+_Aucun._
+
+[log.base]
+base : {1}
+
+[log.baseline-help]
+Base de référence AIDE
+
+[log.baseline-rkhunter]
+Base de référence rkhunter
+
+[log.bash-liltress-check]
+  bash {1}/liltress check
+
+[log.calculation-of-the-properties-baseline-rkhunter]
+Calcul de la base de propriétés rkhunter.\n
+
+[log.check-of-cups]
+Contrôle de CUPS
+
+[log.check-of-the-packages-rc]
+Contrôle des paquets rc
+
+[log.combined-journal-run-log]
+- Journal combiné : `run.log`
+
+[log.configs-sandbox-artifacts]
+- Configs sandbox : `artifacts/`
+
+[log.creation-of]
+Création de {1}
+
+[log.cups]
+CUPS
+
+[log.cups-absent]
+CUPS absent
+
+[log.cups-purged]
+CUPS purgé
+
+[log.date]
+- **Date** : {1}
+
+[log.date-2]
+date : {1}
+
+[log.dir-install-path-invalid]
+dir_install_path invalide : '{1}'
+
+[log.directory]
+- **Dossier** : `{1}`
+
+[log.execution]
+Exécution
+
+[log.execution-of]
+Exécution de {1}
+
+[log.fail]
+## FAIL
+
+[log.file-absent]
+Fichier absent : {1}
+
+[log.file-not-found]
+Fichier introuvable : {1}
+
+[log.files]
+## Fichiers
+
+[log.host]
+hôte : {1}
+
+[log.hostname]
+=== hostname ===
+
+[log.id-detail]
+| ID | Détail |
+
+[log.ignored]
+ignoré: {1}
+
+[log.ignored-absent]
+ignoré: {1} absent
+
+[log.inactive]
+INACTIF
+
+[log.lynis-audit-system-requires-root-sudo-n]
+Lynis audit system nécessite root (sudo).\n
+
+[log.n]
+\n
+
+[log.ninstallation-rejected-prepare-the-two-files-n]
+\nInstallation refusée. Préparez les deux fichiers :\n
+
+[log.no-package-rc-to-purge]
+Aucun paquet rc à purger
+
+[log.no-step-provided]
+Aucun step fourni
+
+[log.ok]
+OK      {1}
+
+[log.ok-2]
+OK
+
+[log.packages-rc-purged]
+Paquets rc purgés ({1})
+
+[log.pass-fail-warn-skip]
+| PASS | FAIL | WARN | SKIP |
+
+[log.pass-preview]
+## PASS (aperçu)
+
+[log.profile]
+- **Profil** : `{1}`
+
+[log.properties-baseline-rkhunter-saved-n]
+Base de propriétés rkhunter enregistrée.\n
+
+[log.raw-results-results-tsv]
+- Résultats bruts : `results.tsv`
+
+[log.rc-kept-boot]
+rc conservé (boot) : {1}
+
+[log.repository]
+- **Dépôt** : `{1}`
+
+[log.result-ko-fail-to-fix-before-a-deployment]
+**Résultat : KO** — {1} FAIL à corriger avant un déploiement.
+
+[log.result-ok-no-fail]
+**Résultat : OK** (aucun FAIL).
+
+[log.rkhunter-is-absent-n]
+rkhunter est absent.\n
+
+[log.rkhunter-propupd-a-returned-the-code]
+rkhunter --propupd a retourné le code {1}.
+
+[log.run-this-command-with-sudo-n]
+Lancez cette commande avec sudo.\n
+
+[log.score]
+=== score ===
+
+[log.see-results-tsv-and-suites-log-for-the-complete]
+Voir `results.tsv` et `suites/*.log` pour le détail complet ({1} PASS).
+
+[log.snapshot-of-the-accounts-absent]
+snapshot des comptes absent ({1})
+
+[log.suggestions]
+=== suggestions ===
+
+[log.t-t-t-t-t-t-t-t]
+{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}
+
+[log.the-calculation-of-the-fingerprints-can-take-sev]
+Le calcul des empreintes peut prendre plusieurs minutes.
+
+[log.timeout-verrou-apt-busy-always-after-attempts]
+Timeout : verrou apt toujours occupé après {1} tentatives !
+
+[log.total]
+## Totaux
+
+[log.usage-lynis-sh-root-listener-n]
+usage: lynis.sh <racine> [auditeur]\n
+
+[log.warn]
+## WARN
+
+[log.warnings]
+=== warnings ===
+
+[log.journals]
+Journaux : {1}
+
+[log.journals-title]
+Journaux d'installation
+
+[log.ignored-compressed-octets]
+ignoré (compressé, {1} octets) {2}
+
+[log.end-of-file-only-octets-kept]
+fin de fichier seulement ({1} octets, {2} gardés) {3}
+
+[log.help-init-a-returned-an-error-detail]
+aide --init a retourné une erreur. Détail : {1}
+
+[log.base-help-not-generated-help-db-new-not-found-de]
+Base AIDE non générée (aide.db.new introuvable). Détail : {1}
+
+[log.apt-listchanges-timer-stopped-before-the-aide-bas]
+La minuterie apt-listchanges est coupée avant la base AIDE.
+
+[log.baseline-help-saved]
+Base de référence AIDE enregistrée
+
+[log.configuration-help-absent-etc-aide-aide-conf-n]
+Configuration AIDE absente : /etc/aide/aide.conf.
+
+[log.this-script-must-be-executed-with-sudo-or-as-roo]
+Ce script doit être exécuté avec sudo ou en root.
+
+[log.install-log]
+{1} install log
+
+[log.g-collect-install-log]
+collect_install_log: {1}
+
+[log.see-install-log-errors-log-and-steps-index-tsv]
+voir install.log, errors.log et steps/INDEX.tsv
+
+[log.software-snapshot-software-and-snapshot-journal]
+logiciels : snapshot/software/ et snapshot/journal/
+
+[log.integrity-of-the-files-watched-by-help-help-chec]
+Intégrité des fichiers surveillés par AIDE (aide --check).
+
+[log.search-of-rootkits-and-files-changed-rkhunter-ch]
+Recherche de rootkits et fichiers modifiés (rkhunter --check).
+
+[log.files-reported-by-clamav-quarantine-and-journals]
+Fichiers signalés par ClamAV (quarantaine et journaux).
+
+[log.events-of-audit-abnormal-ausearch]
+Événements d'audit anormaux (ausearch).
+
+[log.files-of-packages-whose-the-checksum-a-changed-d]
+Fichiers de paquets dont la somme a changé (debsums -c).
+
+[log.bans-fail2ban-of-the-derni-res-24-h]
+Bannissements Fail2Ban des dernières 24 h.
+
+[log.decisions-and-alerts-crowdsec-of-the-derni-res-2]
+Décisions et alertes CrowdSec des dernières 24 h.
+
+[log.packages-blocked-by-ufw]
+Paquets bloqués par UFW.
+
+[log.run-this-script-with-sudo-sudo-bash-verify-alert]
+Lancez ce script avec sudo : sudo bash verify/alerts.sh\n
+
+[log.result-ok-n]
+Résultat : OK\n
+
+[log.result-ok-s-dot-s-to-confirmer-n]
+Résultat : OK, %s point(s) à confirmer\n
+
+[log.result-s-failure-s-s-dot-s-to-confirmer-n]
+Résultat : %s échec(s), %s point(s) à confirmer\n
+
+[log.root-required]
+root requis
+
+[run.script.error]
+La commande a échoué : {1}
+
+[run.script.warn.2]
+{1}
+
+[run.script.error.4]
+WATCHDOG_MAIL est vide : l'e-mail de fin d'installation ne peut pas partir.
+
+[run.script.info.8]
+{1}
+
+[run.script.error.5]
+L'e-mail de test vers {1} n'a pas été accepté par Postfix.
+
+[verify.workstation.warn]
+{1}
+
+[verify.workstation.info.5]
+{1}
+
+[run.script.error.6]
+Fichier introuvable : {1}
+
+[log.condition.rejected]
+Condition refusée : {1}
+
+[run.close.done]
+Installation terminée
+
+[log.record-of-the-baseline-help]
+Enregistrement de la base de référence AIDE
+
+[log.the-detail-stays-in-the-journal-not-in-the-termi]
+Le détail reste dans le journal, pas dans le terminal.
 
 [log.10s]
 %-10s {1}
@@ -39,9 +367,6 @@ code de retour : {1}
 
 [log.command-chkrootkit-q]
 commande : chkrootkit -q
-
-[log.configuration-help-absent-etc-aide-aide-conf-n]
-Configuration AIDE absente : /etc/aide/aide.conf\n
 
 [log.copy-all-this-output-for-make-up-the-list-of-exc]
 Copiez toute cette sortie pour constituer la liste d'exclusion.
@@ -145,12 +470,6 @@ Purge de CUPS ({1})
 [log.purge-of-the-packages-rc-2]
 Purge des paquets rc ({1})
 
-[log.apt-listchanges-timer-stopped-before-the-aide-bas]
-La minuterie apt-listchanges est coupée avant la base AIDE.
-
-[log.record-of-the-baseline-help]
-Enregistrement de la base de référence AIDE
-
 [log.record-of-the-baseline-rkhunter]
 Enregistrement de la base de référence rkhunter
 
@@ -183,9 +502,6 @@ systemd-coredump masqué
 
 [log.the-check-can-take-several-minutes]
 Le contrôle peut prendre plusieurs minutes.
-
-[log.the-detail-stays-in-the-journal-not-in-the-termi]
-Le détail reste dans le journal, pas dans le terminal.
 
 [log.the-last-upgrade-can-re-enable-systemd-coredump]
 Le dernier upgrade peut réactiver systemd-coredump.
@@ -291,3 +607,849 @@ sudo bash liltress lynis
 
 [log.lynis-launch]
 Commande de lancement pour Lynis
+
+[log.1-matrix-synapse-element-keycloak-portal]
+1  MATRIX      Synapse, Element, Keycloak, portail
+
+[log.2-livekit-sfu-and-tokens-matrixrtc]
+2  LIVEKIT     SFU et jetons MatrixRTC
+
+[log.3-wireguard-vpn-wg-easy]
+3  WIREGUARD   VPN wg-easy
+
+[log.active-nginx-browser-on-http-127-0-0-1]
+Nginx actif, navigateur sur http://127.0.0.1
+
+[log.active-nginx-certificate-of-test]
+Nginx actif (certificat de test)
+
+[log.allow]
+allow {1};
+
+[log.available-vhost-removed]
+VHOST available supprimé
+
+[log.base-rkhunter-saved]
+Base rkhunter enregistrée
+
+[log.baseline-files-propupd]
+Baseline fichiers (--propupd)
+
+[log.cerbot-not-used-mode-test]
+Cerbot non utilisé : Mode test
+
+[log.certificate-created]
+Certificat créé
+
+[log.check-of]
+Contrôle de {1}
+
+[log.check-of-nginx-of-the-distribution]
+Contrôle de Nginx de la distribution
+
+[log.check-of-the-user]
+Contrôle de l'utilisateur {1}
+
+[log.chmod-700-root-root-gcc-g-cc-make-as]
+chmod 700 root:root (gcc/g++/cc/make/as)
+
+[log.choice-denied-enter-1-2-or-3]
+Choix refusé. Indiquez 1, 2 ou 3.
+
+[log.compilers-restricted-to-root]
+Compilateurs restreints à root
+
+[log.configuration-api]
+Configuration api
+
+[log.configuration-element]
+Configuration element
+
+[log.configuration-jwt]
+Configuration jwt
+
+[log.configuration-keycloak]
+Configuration keycloak
+
+[log.configuration-livekit]
+Configuration livekit
+
+[log.configuration-root]
+Configuration root
+
+[log.configuration-synapse]
+Configuration synapse
+
+[log.configuration-wireguard]
+Configuration wireguard
+
+[log.contribution-and-systemd-coredump-masked]
+apport et systemd-coredump masqués
+
+[log.creation-of-the-certificate]
+Création du certificat
+
+[log.creation-of-the-certificate-wireguard]
+Création du certificat WireGuard
+
+[log.date-3]
+- Date : {1}
+
+[log.detail]
+## Détail
+
+[log.disable-now]
+disable --now {1}
+
+[log.dot]
+| Point |
+
+[log.export-of-the-variable]
+Export des variables
+
+[log.export-of-the-variable-for-livekit]
+Export des variables pour LiveKit
+
+[log.export-of-the-variable-for-wireguard]
+Export des variables pour WireGuard
+
+[log.fail-t]
+FAIL\t{1}
+
+[log.first-scan-rkhunter]
+Premier scan rkhunter
+
+[log.g-mode-test]
+MODE_TEST={1}
+
+[log.g-mode-test-2]
+- MODE_TEST : {1}
+
+[log.generation-of-the-password-for]
+Génération du mot de passe pour {1}
+
+[log.global-conf-not-found-g-install-directory-or-opt]
+global.conf introuvable (INSTALL_DIRECTORY ou /opt/liltress/src/config/global.conf)\n
+
+[log.global-configuration-nginx]
+Configuration global Nginx
+
+[log.global-several-conf-under-opt-src-export-g-insta]
+plusieurs global.conf sous /opt/*/src — exportez INSTALL_DIRECTORY\n
+
+[log.hardening-index]
+hardening_index={1}
+
+[log.host-2]
+- Hôte : {1}
+
+[log.htpasswd-exists-already-password-kept]
+.htpasswd existe déjà → mot de passe conservé
+
+[log.initialization-of-rkhunter-finished]
+Initialisation de RKHUNTER terminée.
+
+[log.liltress-choice-of-the-profile]
+ Liltress — choix du profil                                                 
+
+[log.liltress-server-checks-that-send-an-alert-n]
+Liltress Server — contrôles qui envoient une alerte\n
+
+[log.lynis-min-score-greater-or-required-equal]
+lynis_min_score={1} (supérieur ou égal requis)
+
+[log.masking-of-contribution-and-systemd-coredump]
+Masquage de apport et systemd-coredump
+
+[log.nginx-certbot-ready]
+Nginx + Certbot prêts
+
+[log.nginx-configured]
+Nginx configuré
+
+[log.nginx-of-the-distribution]
+Nginx de la distribution
+
+[log.nginx-of-the-distribution-absent]
+Nginx de la distribution absent
+
+[log.nginx-of-the-distribution-purged]
+Nginx de la distribution purgé
+
+[log.nginx-reloaded-with-success]
+Nginx rechargé avec succès.
+
+[log.not-use-of-certbot-in-mode-test]
+Non-utilisation de Certbot en mode test
+
+[log.ok-t]
+OK\t{1}
+
+[log.pam-repaired-checks-grep-faillock-etc-pam-d-comm]
+PAM réparé. Vérifie : grep faillock /etc/pam.d/common-auth
+
+[log.profile-to-installer]
+Profil à installer
+
+[log.purge]
+Purge : {1}
+
+[log.purge-cups]
+Purge CUPS ({1})
+
+[log.purge-nginx]
+Purge Nginx ({1})
+
+[log.purge-of-the-packages-rc]
+Purge des paquets rc
+
+[log.rc]
+rc={1}
+
+[log.reload-of-nginx]
+Rechargement de Nginx
+
+[log.removal-of-the-available-vhost-by-default]
+Suppression du VHOST available/ par defaut
+
+[log.removal-of-the-vhost-enabled-by-default]
+Suppression du VHOST enabled par defaut
+
+[log.report-of-check-liltress]
+# Rapport de vérification Liltress — {1}
+
+[log.result-ok-fail-warn-skip]
+- Résultat : **{1}** — {2} OK / {3} FAIL / {4} WARN / {5} SKIP
+
+[log.retrieval-list-ipv4-cloudflare]
+Récupération liste IPv4 Cloudflare
+
+[log.rkhunter-check-a-failed-rc]
+rkhunter --check a échoué (rc={1}) : {2}
+
+[log.rkhunter-no-warning]
+rkhunter : aucun avertissement
+
+[log.rkhunter-update-a-failed-rc]
+rkhunter --update a échoué (rc={1}) : {2}
+
+[log.rkhunter-warnings-in-first-password-baseline-ok]
+rkhunter : avertissements en première passe (baseline OK) :
+
+[log.s-server-type]
+SERVER_TYPE={1}
+
+[log.services-outside-perimeter-stopped]
+Services hors périmètre arrêtés
+
+[log.stamp]
+stamp={1}
+
+[log.stop-of-cups-before-the-purge]
+Arrêt de CUPS avant la purge
+
+[log.stop-of-nginx-before-the-purge]
+Arrêt de Nginx avant la purge
+
+[log.sudo-bash-liltress-configures]
+  sudo bash {1}/liltress configure
+
+[log.the-upgrade-can-re-enable-a-service-or-a-compile]
+L'upgrade peut réactiver un service ou un compilateur.
+
+[log.then-mount-o-remount-rw-if-need-exec-sbin-init-o]
+Puis : mount -o remount,rw /  (si besoin) ; exec /sbin/init  ou reboot -f
+
+[log.ubuntu-lts-26-04-or-more-recent-required-version]
+Ubuntu LTS 26.04 ou plus récent requis. Version détectée : {1} ({2}).
+
+[log.update-of-the-signatures]
+Mise à jour des signatures
+
+[log.user-created]
+Utilisateur {1} créé
+
+[log.vhost-api-without-server-name]
+vhost API sans server_name {1}
+
+[log.vhost-enabled-removed]
+VHOST enabled supprimé
+
+[log.warn-hf-web-update-runs-as-root-the-account-plan]
+WARN: hf-web-update tourne en root ; le compte prévu est {1}.
+
+[log.warn-t]
+WARN\t{1}
+
+[log.warn-execution-root-account-planned]
+WARN exécution root (compte prévu: {1})
+
+[log.start-tag-frontend-backend]
+début tag={1} frontend={2} backend={3}
+
+[log.pull-failed-containers-inchang-s]
+pull {1} échoué — conteneurs inchangés
+
+[log.check-post-install-livekit]
+Vérification post-install — LIVEKIT
+
+[log.check-post-install-matrix]
+Vérification post-install — MATRIX
+
+[log.check-post-install-wireguard]
+Vérification post-install — WIREGUARD
+
+[log.option-tag-missing-value]
+option --tag : valeur manquante
+
+[log.nothing-to-put-up-to-date]
+rien à mettre à jour
+
+[log.tag-image-rejected]
+tag image refusé
+
+[log.compose-matrix-absent]
+compose Matrix absent: {1}
+
+[log.docker-compose-up-failed]
+docker compose up {1} échoué
+
+[log.healthz-api-in-failure]
+healthz API en échec
+
+[log.health-portal-in-failure]
+health portail en échec
+
+[log.finished-tag]
+terminé tag={1}
+
+[log.alerts-e-mail-off-postfix-is-not-installed]
+Alertes e-mail coupées : Postfix n'est pas installé.
+
+[log.update-of-the-packages-of-security]
+Mise à jour des paquets de sécurité
+
+[log.packages-up-to-date]
+Paquets à jour
+
+[log.checks-http-local]
+Contrôles HTTP locaux
+
+[log.portal-and-api-not-started-s-mode-dev-1]
+Portail et API non lancés (MODE_DEV=1)
+
+[log.checks-http-ok]
+Contrôles HTTP : {1} OK
+
+[log.checks-http-ok-in-failure]
+Contrôles HTTP : {1} OK, {2} en échec
+
+[log.a-reboot-is-necessary]
+Un reboot est nécessaire.
+
+[log.list-cloudflare-ipv4-update]
+Liste Cloudflare IPv4 mise à jour
+
+[log.credentials-matrix-element-and-postgres-created]
+Identifiants Matrix, Element et Postgres créés à l'installation.
+
+[log.account-ssh-and-key-created-to-the-installation]
+Compte SSH et clé créés à l'installation.
+
+[log.password-of-the-zone-of-administration-nginx]
+Mot de passe de la zone d'administration Nginx.
+
+[log.credentials-saved-in-s-n]
+Identifiants enregistrés dans %s\n
+
+[log.journals-of-pass]
+JOURNAUX DE PASSAGE
+
+[log.path-of-the-mail]
+CHEMIN DU COURRIER
+
+[log.system]
+Système
+
+[log.user-2]
+Utilisateur {1}
+
+[log.user-absent]
+Utilisateur {1} absent
+
+[log.no-authorized-keys-for]
+Pas de authorized_keys pour {1}
+
+[log.sudoers-without-nopasswd-all]
+sudoers {1} sans NOPASSWD: ALL
+
+[log.delay-sudo-absent-or-invalid]
+délai sudo absent ou invalide
+
+[log.usbguard-blocks-the-appareils-not-authorized]
+USBGuard bloque les appareils non autorisés
+
+[log.usbguard-is-not-active-or-allows-a-class-whole]
+USBGuard n'est pas actif ou autorise une classe entière
+
+[log.ip-forward-is-not-to-1-docker-userland-proxy-fal]
+ip_forward n'est pas à 1 (Docker userland-proxy=false, ou WireGuard)
+
+[log.active-swap]
+Swap actif
+
+[log.no-swap-active]
+Aucun swap actif
+
+[log.package-haveged]
+Paquet haveged
+
+[log.package-haveged-absent]
+Paquet haveged absent
+
+[log.package-rng-tools-debian]
+Paquet rng-tools-debian
+
+[log.package-rng-tools-debian-absent]
+Paquet rng-tools-debian absent
+
+[log.active-haveged-sw-prng-lynis]
+haveged actif (SW prng Lynis)
+
+[log.dev-present-hwrng]
+/dev/hwrng présent
+
+[log.dev-hwrng-absent-vps-without-virtio-rng-entropy]
+/dev/hwrng absent (VPS sans virtio-rng) — entropie via haveged
+
+[log.active-rngd-lynis-hw-rng-rngd]
+rngd actif (Lynis HW RNG & rngd)
+
+[log.packages]
+Paquets
+
+[log.package-postfix-not-required-alerts-e-mail-off]
+Paquet postfix non requis (alertes e-mail coupées)
+
+[log.package]
+Paquet {1}
+
+[log.present-docker]
+Docker présent ({1})
+
+[log.package-not-installed]
+Paquet {1} non installé
+
+[log.service-active-1]
+Service {1} actif
+
+[log.sshd-t-fails]
+sshd -t échoue
+
+[log.banner]
+Bannière {1}
+
+[log.banner-ssh-absent]
+Bannière SSH absente
+
+[log.service-postfix-active]
+Service postfix actif
+
+[log.sasl-passwd-absent]
+sasl_passwd absent
+
+[log.daemon-json-without-no-new-privileges]
+daemon.json sans no-new-privileges
+
+[log.network-docker-of-the-present-profile]
+Réseau Docker du profil présent
+
+[log.no-network-docker-m-tier-inspectable]
+Aucun réseau Docker métier inspectable
+
+[log.nginx-not-installed]
+nginx non installé
+
+[log.nginx-conf-without-mime-types]
+nginx.conf sans mime.types
+
+[log.etc-nginx-nginx-conf-absent]
+/etc/nginx/nginx.conf absent
+
+[log.var-www-html-is-a-file-expected-directory-acme]
+/var/www/html est un fichier (attendu : répertoire ACME)
+
+[log.var-www-html-absent-challenges-acme]
+/var/www/html absent (challenges ACME)
+
+[log.nginx-t-fails-g-mode-test-missing-certificates-e]
+nginx -t échoue (MODE_TEST : certificats absents, attendu)
+
+[log.active-nginx]
+nginx actif
+
+[log.nginx-t-fails]
+nginx -t échoue
+
+[log.certificate]
+Certificat {1}
+
+[log.certificate-let-s-encrypt-absent]
+Certificat Let's Encrypt absent ({1})
+
+[log.prometheus-present-conf-prometheus-not-installed]
+prometheus.conf présent, Prometheus non installé
+
+[log.active-ufw]
+UFW actif
+
+[log.rule-ssh-tcp-absent]
+Règle SSH {1}/tcp absente
+
+[log.rules-cloudflare-80-443]
+Règles Cloudflare 80/443
+
+[log.no-rules-cloudflare-in-ufw]
+Pas de règles Cloudflare dans UFW
+
+[log.8448-tcp-outbound-f-d-ration]
+8448/tcp sortant (fédération)
+
+[log.no-8448-tcp-outbound]
+Pas de 8448/tcp sortant
+
+[log.udp-webrtc-absent]
+UDP WebRTC absent
+
+[log.7881-tcp-absent]
+7881/tcp absent
+
+[log.port-udp-absent-of-ufw]
+Port UDP {1} absent d'UFW
+
+[log.stack-security]
+Pile sécurité
+
+[log.jail-local-without-sshd]
+jail.local sans [sshd]
+
+[log.etc-fail2ban-jail-local-absent]
+/etc/fail2ban/jail.local absent
+
+[log.rkhunter-absent]
+rkhunter absent
+
+[log.chkrootkit-absent]
+chkrootkit absent
+
+[log.help-absent]
+aide absent
+
+[log.user-absent-2]
+User {1} absent
+
+[log.apparmor-global-aa-enforce-still-in-the-script]
+AppArmor : aa-enforce global encore dans le script
+
+[log.apparmor-not-d-global-aa-enforce-in-the-script]
+AppArmor : pas d'aa-enforce global dans le script
+
+[log.services-after-hardening]
+Services après hardening ({1})
+
+[log.ssh-active]
+ssh ({1}) actif
+
+[log.inactive-ssh-hardening-a-broken-the-access-vps]
+ssh inactif — hardening a cassé l'accès VPS
+
+[log.account-pal-locked-console-vps-inutilisable]
+compte pal verrouillé (console VPS inutilisable)
+
+[log.account-pal-not-locked-console-vps]
+compte pal non verrouillé (console VPS)
+
+[log.no-account-pal-image-without-user-console]
+pas de compte pal (image sans user console)
+
+[log.docker-active-service]
+docker.service actif
+
+[log.docker-info-noexec-tmp-did-not-broken-the-daemon]
+docker info (noexec /tmp n'a pas cassé le daemon)
+
+[log.docker-info-fails-noexec-tmp-or-sysctl]
+docker info échoue (noexec /tmp ou sysctl ?)
+
+[log.postfix-not-required-alerts-e-mail-off]
+postfix non requis (alertes e-mail coupées)
+
+[log.active-postfix]
+postfix actif
+
+[log.s-mode-dev-web-ui-and-web-api-not-exig-s]
+MODE_DEV : web-ui et web-api non exigés
+
+[log.container-stopped-hardening-docker]
+conteneur {1} arrêté — hardening / Docker
+
+[log.container-livekit-stopped]
+conteneur livekit arrêté
+
+[log.container-lk-jwt-service-stopped]
+conteneur lk-jwt-service arrêté
+
+[log.container-wg-easy-stopped]
+conteneur wg-easy arrêté
+
+[log.wg0-absent]
+wg0 absente
+
+[log.liltress-sysctl-enabled-sysctl-after-docker]
+liltress-sysctl enabled (sysctl après Docker)
+
+[log.liltress-sysctl-not-enabled-d-rive-possible]
+liltress-sysctl non enabled (dérive possible)
+
+[log.lynis-absent-password-of-audit-skipped]
+lynis absent — passe d'audit sautée
+
+[log.redis-host]
+Redis hôte
+
+[log.active-redis-server]
+redis-server actif
+
+[log.redis-not-listens-not-127-0-0-1]
+Redis n'écoute pas 127.0.0.1:{1}
+
+[log.redis-listens-outside-loopback]
+Redis écoute {1} hors loopback
+
+[log.redis-not-published-outside-127-0-0-1]
+Redis non publié hors 127.0.0.1
+
+[log.container-livekit-stopped-or-absent]
+Conteneur livekit arrêté ou absent
+
+[log.container-lk-jwt-service-stopped-or-absent]
+Conteneur lk-jwt-service arrêté ou absent
+
+[log.docker-compose-livekit-absent]
+docker-compose LiveKit absent
+
+[log.sfu-tcp-in-listens]
+SFU {1}/tcp en écoute
+
+[log.sfu-not-listens-not]
+SFU {1} n'écoute pas
+
+[log.jwt-not-listens-not-in-127-0-0-1]
+JWT {1} n'écoute pas en 127.0.0.1
+
+[log.7881-tcp-not-in-listens-binder-to-the-1re-sessio]
+7881/tcp pas en écoute (binder à la 1re session)
+
+[log.plage-udp-rtc-absent]
+plage UDP RTC absente
+
+[log.auto-create-missing-false-volont-createroom-thir]
+auto_create: false manquant (volonté : CreateRoom tierce)
+
+[log.block-redis-missing-in-livekit-yaml]
+bloc redis: manquant dans livekit.yaml
+
+[log.livekit-yaml-absent]
+livekit.yaml absent
+
+[log.livekit-jwt-bind-must-be-127-0-0-1-jwt-in-host-n]
+LIVEKIT_JWT_BIND doit être 127.0.0.1:{1} (JWT en host network)
+
+[log.jwt-bind-still-present-official-name-livekit-jwt]
+JWT_BIND encore présent (nom officiel : LIVEKIT_JWT_BIND)
+
+[log.livekit-full-access-homeservers-defined]
+LIVEKIT_FULL_ACCESS_HOMESERVERS défini
+
+[log.livekit-full-access-homeservers-missing-required]
+LIVEKIT_FULL_ACCESS_HOMESERVERS manquant (requis v0.5+)
+
+[log.livekit-redis-url-must-be-redis-127-0-0-1-jwt-ho]
+LIVEKIT_REDIS_URL doit être redis://127.0.0.1 (JWT host network, Redis loopback)
+
+[log.livekit-env-absent]
+livekit.env absent
+
+[log.container-stopped-or-absent]
+Conteneur {1} arrêté ou absent
+
+[log.container-postgres-synapse-or-postgres-keycloak]
+Conteneur postgres-synapse ou postgres-keycloak présent
+
+[log.network-production-matrix-network]
+Réseau production_matrix_network
+
+[log.127-0-0-1-in-listens]
+127.0.0.1:{1} en écoute
+
+[log.127-0-0-1-not-listens-not]
+127.0.0.1:{1} n'écoute pas
+
+[log.redis-portal-not-listens-not-127-0-0-1-6379]
+Redis portail n'écoute pas 127.0.0.1:6379
+
+[log.s-mode-dev-portal-and-api-not-exig-s-ports-and]
+MODE_DEV : portail et API non exigés (ports {1} et {2})
+
+[log.files-of-config-matrix]
+Fichiers de config Matrix
+
+[log.element-is-not-mounted-on-app-config-json]
+Element n'est pas monté sur /app/config.json
+
+[log.pgdata-layout-17-still-forced]
+PGDATA layout 17 encore forcé
+
+[log.postgres-without-pgdata-layout-17]
+Postgres sans PGDATA layout 17
+
+[log.docker-compose-matrix-absent]
+docker-compose Matrix absent
+
+[log.inscription-synapse-closed]
+Inscription Synapse fermée
+
+[log.blacklist-without-172-16-0-0-12]
+blacklist sans 172.16.0.0/12
+
+[log.double-https-in-homeserver-yaml]
+double https dans homeserver.yaml
+
+[log.public-baseurl-without-double-https]
+public_baseurl sans double https
+
+[log.homeserver-yaml-absent]
+homeserver.yaml absent
+
+[log.keycloak-without-proxy-headers]
+Keycloak sans proxy-headers
+
+[log.keycloak-pointe-not-toward-the-host-postgres]
+Keycloak ne pointe pas vers l'hôte postgres
+
+[log.postgres-keycloak-is-in-the-compose]
+postgres-keycloak est dans le compose
+
+[log.docker-compose-keycloak-absent]
+docker-compose Keycloak absent
+
+[log.s-matrix-registration-shared-secret-empty-in-mat]
+MATRIX_REGISTRATION_SHARED_SECRET vide dans matrix.env
+
+[log.matrix-env-absent]
+matrix.env absent
+
+[log.security-env-absent]
+security.env absent
+
+[log.well-known-double-https-in-synapse-conf]
+well-known double https dans synapse.conf
+
+[log.well-known-without-double-https]
+well-known sans double https
+
+[log.synapse-conf-without-listen-80]
+synapse.conf sans listen 80
+
+[log.sites-enabled-synapse-conf-absent]
+sites-enabled/synapse.conf absent
+
+[log.portal-nginx-and-update-ssh]
+Portail Nginx et mise à jour SSH
+
+[log.nginx-without-server-name-file]
+nginx sans server_name {1} (fichier: {2})
+
+[log.var-www-base-still-present]
+/var/www/base encore présent
+
+[log.executable-1]
+{1} exécutable
+
+[log.absent-yet-no-executable]
+{1} absent ou non exécutable
+
+[log.in-the-group-docker]
+{1} dans le groupe docker
+
+[log.not-in-the-group-docker]
+{1} pas dans le groupe docker
+
+[log.synapse-parle-to-the-host-postgres]
+Synapse parle à l'hôte postgres
+
+[log.container-wg-easy-stopped-or-absent]
+Conteneur wg-easy arrêté ou absent
+
+[log.image-wg-easy-is-not-14-v15-ignores-the-env]
+Image wg-easy n'est pas :14 (v15 ignore les env)
+
+[log.sys-module-absent]
+SYS_MODULE absent
+
+[log.net-admin-absent]
+NET_ADMIN absent
+
+[log.docker-compose-wireguard-absent]
+docker-compose WireGuard absent
+
+[log.ui-tcp-in-listens]
+UI {1}/tcp en écoute
+
+[log.ui-not-listens-not]
+UI {1} n'écoute pas
+
+[log.udp-absent-wg0-after-the-1er-client]
+UDP {1} absent (wg0 après le 1er client)
+
+[log.password-hash-present]
+PASSWORD_HASH présent
+
+[log.wireguard-env-absent]
+wireguard.env absent
+
+[log.available-wireguard-module-loaded]
+WireGuard disponible (module chargé)
+
+[log.available-wireguard-int-gr-to-the-kernel]
+WireGuard disponible (intégré au noyau)
+
+[log.wireguard-absent-of-the-kernel-nor-module-nor-bu]
+WireGuard absent du noyau (ni module, ni built-in)
+
+[log.no-modules-load-wireguard-risque-after-reboot-if]
+Pas de modules-load wireguard (risque après reboot si module)
+
+[log.plan-of-data-wg0]
+Plan de données wg0
+
+[log.interface-present-wg0]
+Interface wg0 présente
+
+[log.interface-wg0-absent-tunnel-not-mounted]
+Interface wg0 absente (tunnel non monté)
+
+[log.wg0-a-an-address-ipv4]
+wg0 a une adresse IPv4
+
+[log.wg0-without-address-ipv4]
+wg0 sans adresse IPv4
+
+[log.wg-show-wg0-host]
+wg show wg0 (hôte)
+
+[log.wg-show-wg0-a-failed]
+wg show wg0 a échoué
+
+[log.http-check-line]
+{1}

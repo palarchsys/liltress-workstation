@@ -1,0 +1,44 @@
+[title]
+Steuerung
+
+[form]
+Post
+
+[ok]
+die Konfiguration ist gültig
+
+[up]
+Vorheriges Feld
+
+[down]
+Nächstes Feld
+
+[left]
+Cursor nach links
+
+[right]
+Cursor nach rechts
+
+[language]
+Sprache wählen
+
+[paste]
+Einfügen
+
+[quit]
+Beenden
+
+[check]
+Parameter prüfen
+
+[run]
+Prüfen und starten
+
+[pending]
+Ausstehend...
+
+[invalid]
+ ist : Ungültig
+
+[ready]
+Variablen geprüft, Start der Installation mit CTRL+I

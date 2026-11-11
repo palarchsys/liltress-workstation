@@ -1,0 +1,405 @@
+{
+  "product": "workstation",
+  "pattern_engine": "bash",
+  "allowed_references": [
+    "INSTALL_DIRECTORY",
+    "PROJECT_SLUG",
+    "CONFIG_BASE_DIRECTORY"
+  ],
+  "empty_default_references": [
+    "INSTALL_DIRECTORY"
+  ],
+  "forbidden": [
+    "`",
+    "$("
+  ],
+  "files": [
+    {
+      "name": "global.conf",
+      "syntax": "shell",
+      "sources": [
+        "${INSTALL_DIRECTORY}/config/user.conf",
+        "${INSTALL_DIRECTORY}/config/secrets.conf"
+      ],
+      "mode": "644"
+    },
+    {
+      "name": "user.conf",
+      "syntax": "shell",
+      "sources": [],
+      "mode": "644"
+    },
+    {
+      "name": "secrets.conf",
+      "syntax": "shell",
+      "sources": [],
+      "mode": "600"
+    }
+  ],
+  "variables": [
+    {
+      "name": "CONFIG_PREPARED",
+      "file": "global.conf",
+      "lot": "prepared",
+      "kind": "choice",
+      "required": true,
+      "choices": [
+        "1"
+      ],
+      "default": "1"
+    },
+    {
+      "name": "PROJECT_NAME",
+      "file": "global.conf",
+      "lot": "identity",
+      "kind": "pattern",
+      "required": true,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9 ._-]{0,62}$",
+      "default": "Liltress Workstation"
+    },
+    {
+      "name": "PROJECT_VERSION",
+      "file": "global.conf",
+      "lot": "identity",
+      "kind": "pattern",
+      "required": true,
+      "pattern": "^[0-9]+(\\.[0-9]+){0,2}$",
+      "default": "0.2"
+    },
+    {
+      "name": "CONFIG_BASE_DIRECTORY",
+      "file": "global.conf",
+      "lot": "paths",
+      "kind": "choice",
+      "required": true,
+      "choices": [
+        "/opt/liltress-workstation"
+      ],
+      "default": "/opt/liltress-workstation"
+    },
+    {
+      "name": "SECRET_DIRECTORY",
+      "file": "global.conf",
+      "lot": "paths",
+      "kind": "template",
+      "required": false,
+      "computed": true,
+      "resolves_to": "/opt/liltress-workstation/secrets",
+      "default": "${CONFIG_BASE_DIRECTORY}/secrets"
+    },
+    {
+      "name": "LYNIS_MIN_SCORE",
+      "file": "global.conf",
+      "lot": "audit",
+      "kind": "integer",
+      "required": true,
+      "minimum": 0,
+      "maximum": 100,
+      "default": 80
+    },
+    {
+      "name": "BANNER_MESSAGE",
+      "file": "global.conf",
+      "lot": "banner",
+      "kind": "text",
+      "required": true,
+      "forbidden": [
+        "$(",
+        "`"
+      ],
+      "default": "***********************************************************************\n*                                                                     *\n* This system is the property of its owner.                           *\n* Unauthorized access is strictly prohibited and will be prosecuted.  *\n*                                                                     *\n* All access, activities, and communications on this system are       *\n* monitored, recorded, and may be disclosed to authorized parties.    *\n* By proceeding, you consent to this monitoring.                      *\n*                                                                     *\n* Any unauthorized use may result in civil and/or criminal penalties  *\n* under applicable laws.                                              *\n*                                                                     *\n* Unauthorized users: Disconnect immediately.                         *\n*                                                                     *\n***********************************************************************\n\n"
+    },
+    {
+      "name": "SSH_BANNER_PATH",
+      "file": "global.conf",
+      "lot": "banner",
+      "kind": "path",
+      "required": true,
+      "pattern": "^/[A-Za-z0-9._/-]+$",
+      "reject": [
+        ".."
+      ],
+      "default": "/etc/ssh/sshd_banner"
+    },
+    {
+      "name": "SSH_SERVICE_NAME",
+      "file": "global.conf",
+      "lot": "ssh",
+      "kind": "choice",
+      "required": true,
+      "choices": [
+        "ssh"
+      ],
+      "default": "ssh"
+    },
+    {
+      "name": "SSH_MAX_AUTH_TRIES",
+      "file": "global.conf",
+      "lot": "ssh",
+      "kind": "integer",
+      "required": true,
+      "minimum": 1,
+      "maximum": 10,
+      "default": 4
+    },
+    {
+      "name": "SSH_CLIENT_ALIVE_INTERVAL",
+      "file": "global.conf",
+      "lot": "ssh",
+      "kind": "integer",
+      "required": true,
+      "minimum": 30,
+      "maximum": 3600,
+      "default": 300
+    },
+    {
+      "name": "SSH_CLIENT_ALIVE_COUNT_MAX",
+      "file": "global.conf",
+      "lot": "ssh",
+      "kind": "integer",
+      "required": true,
+      "minimum": 1,
+      "maximum": 10,
+      "default": 2
+    },
+    {
+      "name": "WATCHDOG_CPU_LIMIT",
+      "file": "global.conf",
+      "lot": "watchdog",
+      "kind": "integer",
+      "required": true,
+      "minimum": 1,
+      "maximum": 100,
+      "default": 50
+    },
+    {
+      "name": "WATCHDOG_LIMIT_NICE",
+      "file": "global.conf",
+      "lot": "watchdog",
+      "kind": "integer",
+      "required": true,
+      "minimum": 0,
+      "maximum": 19,
+      "default": 19
+    },
+    {
+      "name": "WATCHDOG_LIMIT_IO_NICE",
+      "file": "global.conf",
+      "lot": "watchdog",
+      "kind": "integer",
+      "required": true,
+      "minimum": 0,
+      "maximum": 7,
+      "default": 3
+    },
+    {
+      "name": "MAIL_TEMPLATE",
+      "file": "global.conf",
+      "lot": "template",
+      "kind": "pattern",
+      "required": true,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*\\.html$",
+      "default": "mail.html"
+    },
+    {
+      "name": "MAIL_ALERTS",
+      "file": "global.conf",
+      "lot": "alerts",
+      "kind": "choice",
+      "required": true,
+      "choices": [
+        "0",
+        "1"
+      ],
+      "default": "1"
+    },
+    {
+      "name": "PROJECT_SLUG",
+      "file": "global.conf",
+      "lot": "identity",
+      "kind": "choice",
+      "required": true,
+      "choices": [
+        "liltress-workstation"
+      ],
+      "default": "liltress-workstation"
+    },
+    {
+      "name": "SSH_LOGIN_GRACE_TIME",
+      "file": "global.conf",
+      "lot": "ssh",
+      "kind": "integer",
+      "required": true,
+      "minimum": 10,
+      "maximum": 120,
+      "default": 30
+    },
+    {
+      "name": "PAM_PASSWORD_MIN_LENGTH",
+      "file": "global.conf",
+      "lot": "pam",
+      "kind": "integer",
+      "required": true,
+      "minimum": 8,
+      "maximum": 32,
+      "default": 12
+    },
+    {
+      "name": "FAILLOCK_DENY",
+      "file": "global.conf",
+      "lot": "pam",
+      "kind": "integer",
+      "required": true,
+      "minimum": 3,
+      "maximum": 20,
+      "default": 8
+    },
+    {
+      "name": "FAILLOCK_UNLOCK",
+      "file": "global.conf",
+      "lot": "pam",
+      "kind": "integer",
+      "required": true,
+      "minimum": 60,
+      "maximum": 86400,
+      "default": 600
+    },
+    {
+      "name": "FAILLOCK_FAIL_INTERVAL",
+      "file": "global.conf",
+      "lot": "pam",
+      "kind": "integer",
+      "required": true,
+      "minimum": 60,
+      "maximum": 86400,
+      "default": 900
+    },
+    {
+      "name": "LANGUAGE",
+      "file": "user.conf",
+      "lot": "language",
+      "kind": "choice",
+      "required": false,
+      "choices": [
+        "en",
+        "fr",
+        "de",
+        "es"
+      ],
+      "default": "fr"
+    },
+    {
+      "name": "SECRET_PREPARED",
+      "file": "secrets.conf",
+      "lot": "prepared",
+      "kind": "choice",
+      "required": true,
+      "choices": [
+        "1"
+      ]
+    },
+    {
+      "name": "UBUNTU_PRO_TOKEN",
+      "file": "secrets.conf",
+      "lot": "token",
+      "kind": "secret",
+      "required": true,
+      "pattern": "^[A-Za-z0-9]{6,100}$"
+    },
+    {
+      "name": "POSTFIX_SMTP_LOGIN",
+      "file": "secrets.conf",
+      "lot": "mail",
+      "kind": "email",
+      "required": false,
+      "pattern": "^[^@[:space:]]+@[^@[:space:]]+\\.[^@[:space:]]+$",
+      "when": {
+        "name": "MAIL_ALERTS",
+        "value": "1"
+      },
+      "empty_when": {
+        "name": "MAIL_ALERTS",
+        "value": "0"
+      }
+    },
+    {
+      "name": "POSTFIX_MAIL_ADDRESS",
+      "file": "secrets.conf",
+      "lot": "mail",
+      "kind": "email",
+      "required": false,
+      "pattern": "^[^@[:space:]]+@[^@[:space:]]+\\.[^@[:space:]]+$",
+      "when": {
+        "name": "MAIL_ALERTS",
+        "value": "1"
+      },
+      "empty_when": {
+        "name": "MAIL_ALERTS",
+        "value": "0"
+      }
+    },
+    {
+      "name": "POSTFIX_MAIL_PASSWORD",
+      "file": "secrets.conf",
+      "lot": "mail",
+      "kind": "secret",
+      "required": false,
+      "minimum_length": 8,
+      "maximum_length": 128,
+      "forbidden": [
+        " ",
+        "\"",
+        "'",
+        "$",
+        "\\",
+        "`"
+      ],
+      "when": {
+        "name": "MAIL_ALERTS",
+        "value": "1"
+      },
+      "empty_when": {
+        "name": "MAIL_ALERTS",
+        "value": "0"
+      }
+    },
+    {
+      "name": "POSTFIX_MAIL_SMTP",
+      "file": "secrets.conf",
+      "lot": "mail",
+      "kind": "smtp",
+      "required": false,
+      "pattern": "^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?:[0-9]+$",
+      "reject": [
+        ".."
+      ],
+      "port_minimum": 1,
+      "port_maximum": 65535,
+      "when": {
+        "name": "MAIL_ALERTS",
+        "value": "1"
+      },
+      "empty_when": {
+        "name": "MAIL_ALERTS",
+        "value": "0"
+      }
+    },
+    {
+      "name": "WATCHDOG_MAIL",
+      "file": "secrets.conf",
+      "lot": "mail",
+      "kind": "email",
+      "required": false,
+      "pattern": "^[^@[:space:]]+@[^@[:space:]]+\\.[^@[:space:]]+$",
+      "equals": "POSTFIX_MAIL_ADDRESS",
+      "when": {
+        "name": "MAIL_ALERTS",
+        "value": "1"
+      },
+      "empty_when": {
+        "name": "MAIL_ALERTS",
+        "value": "0"
+      }
+    }
+  ]
+}

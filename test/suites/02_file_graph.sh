@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/02_file_graph.sh
-# Updated at : 2026-11-07
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
 t_get_plan_pos() {
-    python3 - "${T_ROOT}/script/install.json" "$1" << 'PY'
+    python3 - "${T_ROOT}/config/schema/installation.json" "$1" << 'PY'
 import json
 import sys
 data = json.load(open(sys.argv[1], encoding="utf-8"))
@@ -31,7 +31,7 @@ while IFS= read -r step; do
     else
         t_fail "graph:${step}" "introuvable"
     fi
-done < <(python3 - "${T_ROOT}/script/install.json" << 'PY'
+done < <(python3 - "${T_ROOT}/config/schema/installation.json" << 'PY'
 import json, sys
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 seen = []
@@ -202,11 +202,11 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -q 'clamscan --infected --no-summary' "${T_ROOT}/../share/core/watchdog.sh" \
    && grep -q 'planté signal' "${T_ROOT}/../share/core/watchdog.sh" \
    && grep -q 'tool="clamscan"' "${T_ROOT}/../share/core/watchdog.sh" \
-   && grep -q 'scan-skip.sh list' "${T_ROOT}/locale/fr/log.txt" \
+   && grep -q 'scan-skip.sh list' "${T_ROOT}/../share/locale/fr/log.txt" \
    && grep -q 'log.usage-sudo-bash-bin-scan-skip-sh-list' "${skip_cmd}" \
-   && grep -q 'scan-skip.sh add' "${T_ROOT}/locale/fr/log.txt" \
+   && grep -q 'scan-skip.sh add' "${T_ROOT}/../share/locale/fr/log.txt" \
    && grep -q 'log.sudo-bash-bin-scan-skip-sh-add-chemin' "${skip_cmd}" \
-   && grep -q 'scan-skip.sh del' "${T_ROOT}/locale/fr/log.txt" \
+   && grep -q 'scan-skip.sh del' "${T_ROOT}/../share/locale/fr/log.txt" \
    && grep -q 'log.sudo-bash-bin-scan-skip-sh-del-chemin' "${skip_cmd}" \
    && grep -q 'pgrep -x' "${skip_idle}" \
    && grep -q 'list_clamav_scan' "${skip_idle}" \
@@ -218,10 +218,10 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
    && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/chkrootkit.sh" \
    && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
-   && grep -q 'clamscan : infection(s)' "${T_ROOT}/locale/fr/watchdog.txt" \
-   && grep -q 'AIDE: changements détectés' "${T_ROOT}/locale/fr/watchdog.txt" \
-   && grep -q 'rkhunter warnings' "${T_ROOT}/locale/fr/watchdog.txt" \
-   && grep -q 'chkrootkit a produit une sortie' "${T_ROOT}/locale/fr/watchdog.txt" \
+   && grep -q 'clamscan : infection(s)' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
+   && grep -q 'AIDE: changements détectés' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
+   && grep -q 'rkhunter warnings' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
+   && grep -q 'chkrootkit a produit une sortie' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'reset_debsums_log' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
    && grep -q '"apt-get", "clean"' "${T_ROOT}/../share/core/watchdog.sh" \
    && grep -q 'Dir::Cache::archives' "${T_ROOT}/../share/core/watchdog.sh" \
@@ -231,7 +231,7 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/../share/core/watchdog.sh" \
    && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/service/rkhunter/configure.sh" \
    && grep -q 'get_text watchdog.clamav-in' "${T_ROOT}/service/cron/watchdogs/clamav-event.sh" \
-   && grep -q 'ClamAV :' "${T_ROOT}/locale/fr/watchdog.txt" \
+   && grep -q 'ClamAV :' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'get_clamav_kind' "${skip_clam}" \
    && grep -q 'get_clamav_kind' "${skip_idle}" \
    && grep -q 'ALLOWDEVFILE=/dev/log' "${T_ROOT}/config/rkhunter/rkhunter.conf.local" \
@@ -622,7 +622,7 @@ done
 if grep -qF 'rclone.conf' "${T_ROOT}/README.md"; then
     alerts_ok=0
 fi
-if python3 - "${T_ROOT}/script/install.json" << 'PY'
+if python3 - "${T_ROOT}/config/schema/installation.json" << 'PY'
 import json, sys
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 hits = [step for category in data["categories"] for step in category["steps"] if step.get("path") == "service/rclone/install.sh"]
@@ -714,7 +714,7 @@ grep -q 'CLAMAV_EVENT_KIND=idle' "${root}/service/cron/watchdogs/idle-scan.sh"
 grep -q 'CLAMAV_EVENT_MAIL=0' "${root}/service/cron/watchdogs/idle-scan.sh"
 grep -q 'clamav-response.sh' "${root}/service/cron/watchdogs/idle-scan.sh"
 grep -q 'idle) kind_label="passe différée"' "${root}/service/cron/watchdogs/clamav-response.sh"
-grep -q 'infections déjà signalées' "${root}/locale/fr/watchdog.txt"
+grep -q 'infections déjà signalées' "${root}/../share/locale/fr/watchdog.txt"
 awk '
     /== "infected"/ { inf = NR }
     /CLAMAV_EVENT_KIND=idle/ { if (!call) call = NR; last = NR }
@@ -771,7 +771,7 @@ grep -q 'strip_egress_routine' "${root}/service/cron/watchdogs/egress-watch.sh"
 grep -q 'list_egress_suspects' "${root}/service/cron/watchdogs/egress-watch.sh"
 grep -q 'flow_hold' "${root}/service/cron/watchdogs/egress-watch.sh"
 grep -q '@v4 reject' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'flux sortant suspect bloqué' "${root}/locale/fr/watchdog.txt"
+grep -q 'flux sortant suspect bloqué' "${root}/../share/locale/fr/watchdog.txt"
 grep -q 'quarantine.registry' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'w_isolate' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'flux sortants hors des ports 53, 80 et 443' "${root}/service/cron/watchdogs/egress-watch.sh"
