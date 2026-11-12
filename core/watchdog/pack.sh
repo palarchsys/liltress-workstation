@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/pack.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -19,7 +19,7 @@ write_watchdog_pack() {
     stamp="$(date '+%Y%m%d-%H%M%S')"
     mkdir -p -- "${base}/log"
     dest="${base}/log/alert-${phase}-${stamp}.zip"
-    excludes="$(read_watchdog_exclude | paste -sd: -)"
+    excludes="$(read_watchdog_exclude | awk 'NR > 1 { printf ":" } { printf "%s", $0 }')"
     WATCHDOG_EXCLUDES="${excludes}" \
     python3 - "${phase}" "${state_dir}" "${log_dir}" "${dest}" << 'PY'
 import os

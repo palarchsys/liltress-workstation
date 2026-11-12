@@ -6,37 +6,31 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Purpose    : Enable the timers, then start them after the reference databases exist.
+# Purpose    : Arm the workstation timers through the shared launcher.
 # Note       : enable.sh calls this script with enable. The install plan calls it to start.
-# Note       : The boot timer has a zero delay and starts the first pass.
 # -----------------------------------------------------------------------------
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 arm_mode="${4:-start}"
-export INSTALL_WATCHER INSTALL_DIRECTORY
-
-# shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
-require_root
-
-case "${arm_mode}" in
-    enable)
-        log_info "${INSTALL_WATCHER}" "configure.watchdog-enable-timers"
-        run_silent "${INSTALL_WATCHER}" "configure.cron.error.8" systemctl daemon-reload
-        run_silent "${INSTALL_WATCHER}" "configure.cron.error.9" systemctl enable w-boot-chain.timer
-        run_silent "${INSTALL_WATCHER}" "configure.cron.error.10" systemctl enable w-idle-scan.timer
-        run_silent "${INSTALL_WATCHER}" "configure.cron.error.11" systemctl enable w-reboot-notice.timer
-        run_silent "${INSTALL_WATCHER}" "configure.cron.error.12" systemctl enable w-periodic-scan.timer
-        run_silent "${INSTALL_WATCHER}" "configure.cron.error.13" systemctl enable w-hourly-scan.timer
-        log_success "${INSTALL_WATCHER}" "configure.watchdog-timers-armed"
-        ;;
-    start)
-        run_silent "${INSTALL_WATCHER}" "configure.cron.error.9" systemctl start w-boot-chain.timer
-        run_silent "${INSTALL_WATCHER}" "configure.cron.error.10" systemctl start w-idle-scan.timer
-        run_silent "${INSTALL_WATCHER}" "configure.cron.error.11" systemctl start w-reboot-notice.timer
-        run_silent "${INSTALL_WATCHER}" "configure.cron.error.12" systemctl start w-periodic-scan.timer
-        run_silent "${INSTALL_WATCHER}" "configure.cron.error.13" systemctl start w-hourly-scan.timer
-        log_info "${INSTALL_WATCHER}" "configure.watchdog-first-pass"
-        ;;
-esac
+here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+arm_lib=""
+for candidate in \
+    "${here}/arm-units.sh" \
+    "${here}/../../../share/service/cron/arm-units.sh"
+do
+    if [[ -f "${candidate}" ]]; then
+        arm_lib="${candidate}"
+        break
+    fi
+done
+if [[ -z "${arm_lib}" ]]; then
+    printf 'arm-units.sh introuvable depuis %s\n' "${here}" >&2
+    exit 1
+fi
+exec bash "${arm_lib}" "${INSTALL_WATCHER}" "${INSTALL_DIRECTORY}" "${arm_mode}" configure.cron.error.8 \
+    w-boot-chain.timer:configure.cron.error.9 \
+    w-idle-scan.timer:configure.cron.error.10 \
+    w-reboot-notice.timer:configure.cron.error.11 \
+    w-periodic-scan.timer:configure.cron.error.12 \
+    w-hourly-scan.timer:configure.cron.error.13

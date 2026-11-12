@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/03_functions.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -34,7 +34,7 @@ for name in check_email check_port check_smtp check_absolute_path check_drive_re
     t_require_function "${name}" "${MONO}/share/core/config/config-validators.sh"
 done
 t_require_function check_pro_token "${T_ROOT}/script/config-check.sh"
-t_require_function check_localhost_port "${MONO}/share/core/host/product.sh"
+t_require_function check_localhost_port "${MONO}/share/core/host/matrix.sh"
 
 t_section "base ubuntu"
 if bash -s -- "${T_ROOT}" << 'OSBASE'
@@ -43,12 +43,12 @@ root="$1"
 INSTALL_DIRECTORY="${root}"
 # shellcheck disable=SC1091
 source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
-grep -q 'source /etc/os-release' "${INSTALL_DIRECTORY}/core/host/host.sh"
-grep -q 'dpkg --compare-versions' "${INSTALL_DIRECTORY}/core/host/host.sh"
-grep -q 'ge "26.04"' "${INSTALL_DIRECTORY}/core/host/host.sh"
-grep -q 'check_ubuntu_lts' "${INSTALL_DIRECTORY}/core/host/host.sh"
-grep -qF '!= "ubuntu"' "${INSTALL_DIRECTORY}/core/host/host.sh"
-if grep -q 'anduinos' "${INSTALL_DIRECTORY}/core/host/host.sh"; then
+grep -q 'source /etc/os-release' "${INSTALL_DIRECTORY}/core/host/ubuntu.sh"
+grep -q 'dpkg --compare-versions' "${INSTALL_DIRECTORY}/core/host/ubuntu.sh"
+grep -q 'ge "26.04"' "${INSTALL_DIRECTORY}/core/host/ubuntu.sh"
+grep -q 'check_ubuntu_lts' "${INSTALL_DIRECTORY}/core/host/ubuntu.sh"
+grep -qF '!= "ubuntu"' "${INSTALL_DIRECTORY}/core/host/ubuntu.sh"
+if grep -q 'anduinos' "${INSTALL_DIRECTORY}/core/host/ubuntu.sh"; then
     exit 1
 fi
 
@@ -106,7 +106,7 @@ then
 else
     t_fail "fn.os.base" "la base Ubuntu n'accepte pas 26.04 ou plus récent"
 fi
-if grep -q '!= "26.04"' "${T_ROOT}/core/host/host.sh"; then
+if grep -q '!= "26.04"' "${T_ROOT}/core/host/ubuntu.sh"; then
     t_fail "fn.os.strict" "la version est comparée par égalité stricte sur VERSION_ID"
 else
     t_pass "fn.os.strict" "la version est comparée au plancher 26.04"
@@ -142,8 +142,8 @@ fi
 
 t_section "journaux dans logs/"
 if grep -q 'trap install_exit EXIT' "${T_ROOT}/script/run.sh" \
-   && grep -q 'INSTALL_LOG_DIR="${root}/log/${name}"' "${MONO}/share/core/log/journal.sh" \
-   && grep -F -q '[[ "${code}" -ne 0 ]]' "${MONO}/share/core/log/journal.sh"; then
+   && grep -q 'INSTALL_LOG_DIR="${root}/log/${name}"' "${MONO}/share/core/log/install-log.sh" \
+   && grep -F -q '[[ "${code}" -ne 0 ]]' "${MONO}/share/core/log/install-log.sh"; then
     t_pass "logs.wire" "le poste écrit dans logs/ et copie les logiciels seulement en échec"
 else
     t_fail "logs.wire" "journaux du poste encore hors de logs/, ou copie même en succès"

@@ -13,6 +13,11 @@ source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
+if [[ "${REBUILD_BASE:-0}" != "1" && -f /var/lib/rkhunter/db/rkhunter.dat ]]; then
+    log_info "${INSTALL_WATCHER}" "log.base-already-present"
+    exit 0
+fi
+
 log_info "${INSTALL_WATCHER}" "log.record-of-the-baseline-rkhunter"
 rk_out=""
 rk_rc=0

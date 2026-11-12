@@ -22,7 +22,11 @@ if ! command -v ausearch >/dev/null 2>&1; then
     exit 0
 fi
 
-stamp="${BASE}/cron/behavior.stamp"
+if declare -F watchdog_runtime_file >/dev/null 2>&1; then
+    stamp="$(watchdog_runtime_file "${BASE}" behavior.stamp)"
+else
+    stamp="${BASE}/cron/behavior.stamp"
+fi
 
 record_behavior_stamp() {
     local moment

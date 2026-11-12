@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/chain.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -110,16 +110,37 @@ finish_watchdog_phase() {
     esac
 }
 
+load_chain_base() {
+    local dir="${chain_dir}" hops=0
+    if [[ -n "${CONFIG_BASE_DIRECTORY:-}" || -n "${BASE:-}" ]]; then
+        return 0
+    fi
+    while [[ -n "${dir}" && "${dir}" != "/" && "${hops}" -lt 16 ]]; do
+        if [[ -f "${dir}/config/global.conf" ]]; then
+            # shellcheck disable=SC1091
+            source "${dir}/config/global.conf"
+            break
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+    if [[ -z "${CONFIG_BASE_DIRECTORY:-}" && -z "${BASE:-}" ]]; then
+        printf '%s\n' "base du produit introuvable depuis ${chain_dir}" >&2
+        exit 1
+    fi
+}
+
 run_watchdog_chain() {
     local base lock_path since previous state_root malware_dir integrity_dir repair_file
+    load_chain_base
     base="$(get_product_base)"
     mkdir -p -- "${base}/cron" "${base}/log"
-    lock_path="${base}/cron/watchdog-chain.lock"
+    lock_path="$(watchdog_runtime_file "${base}" watchdog-chain.lock)"
     exec 9>"${lock_path}"
     if ! flock -n 9; then
         return 0
     fi
-    previous="${base}/cron/watchdog-chain.stamp"
+    previous="$(watchdog_runtime_file "${base}" watchdog-chain.stamp)"
     if [[ -f "${previous}" ]]; then
         since="$(tr -d '[:space:]' < "${previous}")"
     else

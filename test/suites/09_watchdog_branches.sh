@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/09_watchdog_branches.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -151,7 +151,24 @@ t_check_stdout() {
 }
 
 t_check_alert() {
-    grep -F -q -- "$1" "${base}/alert.log" 2>/dev/null
+    if [[ -f "${base}/alert.log" ]] && grep -F -q -- "$1" "${base}/alert.log"; then
+        return 0
+    fi
+    if [[ -d "${base}/cron/alerts" ]]; then
+        grep -R -F -q -- "$1" "${base}/cron/alerts"
+        return $?
+    fi
+    return 1
+}
+
+t_no_alert() {
+    if [[ -s "${base}/alert.log" ]]; then
+        return 1
+    fi
+    if [[ -d "${base}/cron/alerts" ]] && find "${base}/cron/alerts" -type f -size +0c -print -quit | grep -q .; then
+        return 1
+    fi
+    return 0
 }
 
 t_log_has() {
@@ -203,7 +220,7 @@ fi
 
 t_set_user integrity.sh
 t_run_user "${bin}/integrity.sh"
-if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "liste d'intégrité absente" && [[ ! -e "${base}/alert.log" ]]; then
+if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "liste d'intégrité absente" && t_no_alert; then
     t_pass "branch.usr.integrity.missing" "liste absente, pas de courrier"
 else
     t_fail "branch.usr.integrity.missing" "statut $(t_check_got_status) $(tr '\n' ' ' < "${work}/stderr.txt" 2>/dev/null || true)"
@@ -222,7 +239,7 @@ stamp="${base}/cron/integrity.sha256"
 mode="$(stat -c '%a' "${stamp}" 2>/dev/null || echo missing)"
 lines="$(grep -c . "${stamp}" 2>/dev/null || echo 0)"
 if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "empreinte initiale écrite" \
-    && [[ "${mode}" == "600" ]] && [[ "${lines}" == "1" ]] && [[ ! -e "${base}/alert.log" ]]; then
+    && [[ "${mode}" == "600" ]] && [[ "${lines}" == "1" ]] && t_no_alert; then
     t_pass "branch.usr.integrity.first" "empreinte initiale, mode 600"
     t_pass "branch.usr.integrity.skip" "un seul fichier retenu"
 else
@@ -232,7 +249,7 @@ fi
 saved="$(mktemp)"
 cp "${stamp}" "${saved}"
 t_run_user "${bin}/integrity.sh"
-if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "intégrité inchangée" && cmp -s "${saved}" "${stamp}" && [[ ! -e "${base}/alert.log" ]]; then
+if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "intégrité inchangée" && cmp -s "${saved}" "${stamp}" && t_no_alert; then
     t_pass "branch.usr.integrity.same" "empreinte inchangée"
 else
     t_fail "branch.usr.integrity.same" "statut $(t_check_got_status)"
@@ -249,7 +266,7 @@ rm -f "${saved}"
 t_set_user behavior.sh
 rm -f "${work}/path/ausearch"
 t_run_user "${bin}/behavior.sh"
-if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "ausearch absent" && [[ ! -e "${base}/cron/behavior.stamp" ]] && [[ ! -e "${base}/alert.log" ]]; then
+if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "ausearch absent" && [[ ! -e "${base}/cron/behavior.stamp" ]] && t_no_alert; then
     t_pass "branch.usr.behavior.absent" "ausearch absent"
 else
     t_fail "branch.usr.behavior.absent" "statut $(t_check_got_status) $(tr '\n' ' ' < "${work}/stderr.txt" 2>/dev/null || true)"
@@ -273,7 +290,7 @@ cp "${base}/cron/behavior.stamp" "${work}/saved.stamp"
 t_set_ausearch_stub 1 "no match"
 t_run_user "${bin}/behavior.sh"
 if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "aucune exécution temporaire" \
-    && ! cmp -s "${work}/saved.stamp" "${base}/cron/behavior.stamp" && [[ ! -e "${base}/alert.log" ]]; then
+    && ! cmp -s "${work}/saved.stamp" "${base}/cron/behavior.stamp" && t_no_alert; then
     t_pass "branch.usr.behavior.clean" "silence et repère avancé"
 else
     t_fail "branch.usr.behavior.clean" "statut $(t_check_got_status) $(tr '\n' ' ' < "${work}/stderr.txt" 2>/dev/null || true)"
@@ -285,7 +302,7 @@ cp "${base}/cron/behavior.stamp" "${work}/saved.stamp"
 t_set_ausearch_stub 130 "boom"
 t_run_user "${bin}/behavior.sh"
 if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "aucune exécution temporaire" \
-    && ! cmp -s "${work}/saved.stamp" "${base}/cron/behavior.stamp" && [[ ! -e "${base}/alert.log" ]]; then
+    && ! cmp -s "${work}/saved.stamp" "${base}/cron/behavior.stamp" && t_no_alert; then
     t_pass "branch.usr.behavior.nonzero" "échec ausearch, pas de courrier"
 else
     t_fail "branch.usr.behavior.nonzero" "statut $(t_check_got_status)"
@@ -327,7 +344,7 @@ cp "${base}/cron/egress.stamp" "${work}/saved.stamp"
 t_set_journal_stub "kernel: nothing"
 t_run_user "${bin}/egress-watch.sh"
 if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "aucun flux sortant inattendu" \
-    && ! cmp -s "${work}/saved.stamp" "${base}/cron/egress.stamp" && [[ ! -e "${base}/alert.log" ]]; then
+    && ! cmp -s "${work}/saved.stamp" "${base}/cron/egress.stamp" && t_no_alert; then
     t_pass "branch.usr.egress.clean" "silence et repère avancé"
 else
     t_fail "branch.usr.egress.clean" "statut $(t_check_got_status) $(tr '\n' ' ' < "${work}/stderr.txt" 2>/dev/null || true)"
@@ -337,7 +354,7 @@ t_set_user egress-watch.sh
 printf '%s\n' '2026-01-02 03:04:05' > "${base}/cron/egress.stamp"
 t_set_journal_stub "w-egress OUT=eth0"
 t_run_user "${bin}/egress-watch.sh"
-if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "aucun flux sortant suspect" && [[ ! -e "${base}/alert.log" ]]; then
+if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "aucun flux sortant suspect" && t_no_alert; then
     t_pass "branch.usr.egress.plain" "ligne sans exécutable, pas de courrier"
 else
     t_fail "branch.usr.egress.plain" "statut $(t_check_got_status) $(tr '\n' ' ' < "${work}/stderr.txt" 2>/dev/null || true)"
@@ -355,7 +372,7 @@ t_set_journal_stub "$(printf '%s\n' \
     'oct. 25 06:12:00 host kernel: w-egress IN= OUT=enp1s0 SRC=192.168.122.110 DST=192.168.122.1 PROTO=UDP SPT=68 DPT=67' \
     'oct. 25 06:12:01 host kernel: w-egress IN= OUT=enp1s0 SRC=fe80::1 DST=ff02::1:2 PROTO=UDP SPT=546 DPT=547')"
 t_run_user "${bin}/egress-watch.sh"
-if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "aucun flux sortant inattendu" && [[ ! -e "${base}/alert.log" ]]; then
+if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "aucun flux sortant inattendu" && t_no_alert; then
     t_pass "branch.usr.egress.routine" "mDNS NTP DHCP SNMP sans courrier"
 else
     t_fail "branch.usr.egress.routine" "statut $(t_check_got_status) $(tr '\n' ' ' < "${work}/stderr.txt" 2>/dev/null || true)"
@@ -373,7 +390,7 @@ t_set_ausearch_stub 0 "$(printf '%s\n' \
     'type=SOCKADDR msg=audit(1.1:1): saddr=0200024B01020304')"
 t_run_user "${bin}/egress-watch.sh"
 if [[ "$(t_check_got_status)" == "0" ]] && t_check_stdout "aucun flux sortant suspect" \
-    && [[ ! -e "${base}/alert.log" ]] && ! t_log_has "DPT=587"; then
+    && t_no_alert && ! t_log_has "DPT=587"; then
     t_pass "branch.usr.egress.mixed" "port inhabituel sans signal, pas de courrier"
 else
     t_fail "branch.usr.egress.mixed" "statut $(t_check_got_status) $(tr '\n' ' ' < "${work}/stderr.txt" 2>/dev/null || true)"
@@ -415,9 +432,9 @@ else
 fi
 
 t_set_user boot-scan.sh
-order_names=(apply-scan-skip.sh aide.sh integrity.sh rkhunter.sh behavior.sh chkrootkit.sh clamav.sh debsums.sh egress-watch.sh)
+order_names=(chain.sh apply-scan-skip.sh integrity.sh behavior.sh egress-watch.sh)
 for name in "${order_names[@]}"; do
-    if [[ "${name}" == "rkhunter.sh" ]]; then
+    if [[ "${name}" == "chain.sh" ]]; then
         code=1
     else
         code=0
@@ -432,14 +449,29 @@ done
 t_run_user "${bin}/boot-scan.sh"
 expected="$(printf '%s\n' "${order_names[@]}")"
 if [[ "$(t_check_got_status)" == "0" ]] && [[ "$(cat "${work}/trace" 2>/dev/null || true)" == "${expected}" ]]; then
-    t_pass "branch.usr.boot.order" "neuf contrôles"
+    t_pass "branch.usr.boot.order" "chaîne puis les contrôles hors chaîne"
 else
     t_fail "branch.usr.boot.order" "$(tr '\n' ' ' < "${work}/trace" 2>/dev/null || true) $(tr '\n' ' ' < "${work}/stderr.txt" 2>/dev/null || true)"
 fi
-if t_check_alert "crash rkhunter 1"; then
+if grep -F -q 'chaîne' "${work}/stdout.txt" && grep -F -q 'code 1' "${work}/stdout.txt"; then
     t_pass "branch.usr.boot.continue" "échec puis suite"
 else
     t_fail "branch.usr.boot.continue" "courrier absent"
+fi
+
+t_set_user boot-scan.sh
+cat > "${bin}/chain.sh" << EOF
+#!/bin/bash
+printf '%s\n' "\${BASE:-EMPTY}" > "${work}/trace"
+exit 0
+EOF
+chmod 755 "${bin}/chain.sh"
+bash -c "BASE='${base}'; source '${bin}/boot-scan.sh'" > "${work}/stdout.txt" 2> "${work}/stderr.txt" || true
+trace="$(tr -d '[:space:]' < "${work}/trace" 2>/dev/null || true)"
+if [[ "${trace}" == "${base}" ]]; then
+    t_pass "branch.usr.boot.base" "BASE exporté vers la chaîne"
+else
+    t_fail "branch.usr.boot.base" "trace=${trace:-absent} $(tr '\n' ' ' < "${work}/stderr.txt" 2>/dev/null || true)"
 fi
 
 t_set_user clamav-event.sh
@@ -447,7 +479,7 @@ sample="${work}/samples/.clamav-quarantine-lock.1"
 printf 'lock\n' > "${sample}"
 t_run_user "${bin}/clamav-event.sh" "" "export CLAM_VIRUSEVENT_FILENAME=${sample}
 export CLAM_VIRUSEVENT_VIRUSNAME=Eicar"
-if [[ "$(t_check_got_status)" == "0" ]] && [[ ! -e "${base}/alert.log" ]] && ! t_log_has "quarantaine"; then
+if [[ "$(t_check_got_status)" == "0" ]] && t_no_alert && ! t_log_has "quarantaine"; then
     t_pass "branch.usr.clamav.lock" "verrou avant la réponse"
 else
     t_fail "branch.usr.clamav.lock" "statut $(t_check_got_status) $(tr '\n' ' ' < "${work}/stderr.txt" 2>/dev/null || true)"
@@ -914,7 +946,7 @@ else
 fi
 
 unset AIDE_REFRESH RKHUNTER_REFRESH CHKROOTKIT_IGNORE NOTE NOTE_CMD ADVICE ADVICE_HOLD || true
-if python3 - "${parent}/share/core/alert-advice.txt" << 'PY'
+if python3 - "${parent}/share/core/watchdog/alert-advice.txt" << 'PY'
 import re
 import sys
 from pathlib import Path

@@ -54,9 +54,11 @@ curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/mai
 ## ▪️ Clon
 
 ```bash
-git clone https://github.com/palarchsys/liltress-workstation
-cd liltress-workstation
+sudo git clone https://github.com/palarchsys/liltress-workstation /opt/liltress-workstation
+cd /opt/liltress-workstation
 sudo ./liltress configure
+sudo bash /opt/liltress-workstation/system/update.sh
+sudo bash /opt/liltress-workstation/bin/boot-check.sh
 ```
 
 ## Acción de configure.sh
@@ -182,7 +184,7 @@ El ejemplo muestra la forma.<br/>
 El correo contiene el identificador real.<br/>
 La orden devuelve ese archivo a su lugar de origen.<br/>
 La línea de éxito es `fichier remis en place`.<br/>
-El registro es `/opt/liltress-workstation/cron/quarantine.registry`.
+El registro es `/var/lib/liltress-workstation/watchdog/quarantine.registry`.
 
 ## ▪️ Análisis ClamAV al arranque
 
@@ -249,7 +251,7 @@ La forma del diario es `/opt/liltress-workstation/cron/security_logs/reboot-noti
 
 ## 📋 Comandos después de la instalación
 
-Lance estas órdenes desde el directorio de las fuentes (`/opt/liltress-workstation/src` después del instalador curl, o el directorio del clon).
+Lance estas órdenes desde `/opt/liltress-workstation`.
 
 ## ▪️ liltress check
 
@@ -341,7 +343,7 @@ sudo bash /opt/liltress-workstation/bin/scan-skip.sh add $HOME/.cache/exemple
 sudo bash /opt/liltress-workstation/bin/scan-skip.sh del $HOME/.cache/exemple
 ```
 
-El archivo de lista es `/opt/liltress-workstation/src/config/clamav/scan-skip.paths`.<br/>
+El archivo de lista es `/opt/liltress-workstation/config/clamav/scan-skip.paths`.<br/>
 Una lista ya presente permanece cuando el instalador vuelve a ejecutarse.<br/>
 Una lista que todavía está en `/opt/liltress-workstation/cron/scan-skip.paths` se copia una vez, cuando el archivo nuevo todavía es la plantilla.
 

@@ -602,6 +602,9 @@ Installation
 [mail.install.test.body]
 The mail was sent successfully.
 
+[log.base-already-present]
+The reference database already exists. It is not rebuilt.
+
 [log.lynis-command]
 sudo bash liltress lynis
 

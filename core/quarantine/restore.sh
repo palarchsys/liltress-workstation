@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/quarantine/restore.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -62,7 +62,25 @@ case "${id}" in
         ;;
 esac
 
-registry="${base}/cron/quarantine.registry"
+if ! declare -F watchdog_runtime_file >/dev/null 2>&1; then
+    for candidate in \
+        "${script_dir}/../core/watchdog/base.sh" \
+        "${script_dir}/../src/core/watchdog/base.sh" \
+        "${base}/core/watchdog/base.sh" \
+        "${base}/src/core/watchdog/base.sh"
+    do
+        if [[ -f "${candidate}" ]]; then
+            # shellcheck disable=SC1090
+            source "${candidate}"
+            break
+        fi
+    done
+fi
+if declare -F watchdog_runtime_file >/dev/null 2>&1; then
+    registry="$(watchdog_runtime_file "${base}" quarantine.registry)"
+else
+    registry="${base}/cron/quarantine.registry"
+fi
 if [[ ! -f "${registry}" ]]; then
     printf '%s\n' "$(get_text quarantine.identifier-absent-of-the-registre)" >&2
     exit 1

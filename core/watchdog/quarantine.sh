@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/quarantine.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -17,8 +17,8 @@ record_quarantine_origin() {
     id="$(basename -- "${stored}")"
     [[ "${id}" =~ ^[0-9]{8}-[0-9]{6}-[0-9]+- ]] || return 0
     base="$(get_product_base)"
-    dir="${base}/cron"
-    registry="${dir}/quarantine.registry"
+    registry="$(watchdog_runtime_file "${base}" quarantine.registry)"
+    dir="$(dirname -- "${registry}")"
     if [[ ! -d "${dir}" ]]; then
         mkdir -p "${dir}" 2>/dev/null || return 0
     fi
@@ -43,20 +43,20 @@ add_existing_restore() {
     local base registry id quoted
     [[ -n "${stored}" && "${stored}" == /* ]] || return 0
     base="$(get_product_base)"
-    registry="${base}/cron/quarantine.registry"
+    registry="$(watchdog_runtime_file "${base}" quarantine.registry)"
     [[ -f "${registry}" && -r "${registry}" ]] || return 0
     id="$(awk -F '\t' -v want="${stored}" '$5 == want { print $1; exit }' "${registry}" 2>/dev/null || true)"
     [[ -n "${id}" ]] || return 0
-    [[ -w "${base}/cron" ]] || return 0
+    [[ -w "$(dirname -- "${registry}")" ]] || return 0
     quoted="$(printf '%q' "${id}")"
-    printf '%s\n' "sudo bash ${base}/bin/quarantine-restore.sh ${quoted}" >> "${base}/cron/quarantine.pending" || return 0
-    chmod 600 "${base}/cron/quarantine.pending" 2>/dev/null || true
+    printf '%s\n' "sudo bash ${base}/bin/quarantine-restore.sh ${quoted}" >> "$(watchdog_runtime_file "${base}" quarantine.pending)" || return 0
+    chmod 600 "$(watchdog_runtime_file "${base}" quarantine.pending)" 2>/dev/null || true
     return 0
 }
 
 take_quarantine_note() {
     local pending body
-    pending="$(get_product_base)/cron/quarantine.pending"
+    pending="$(watchdog_runtime_file "$(get_product_base)" quarantine.pending)"
     [[ -s "${pending}" ]] || return 1
     body="$(cat "${pending}" 2>/dev/null || true)"
     [[ -n "${body}" ]] || return 1

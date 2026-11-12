@@ -83,8 +83,6 @@ copy_runtime_file "${INSTALL_DIRECTORY}/core/text/text-load.sh" \
     "${CONFIG_BASE_DIRECTORY}/bin/text-load.sh" 644
 copy_runtime_file "${INSTALL_DIRECTORY}/core/text/text-load.sh" \
     "${CONFIG_BASE_DIRECTORY}/cron/bin/text-load.sh" 644
-copy_runtime_dir "${INSTALL_DIRECTORY}/core" \
-    "${CONFIG_BASE_DIRECTORY}/src/core"
 copy_runtime_dir "${INSTALL_DIRECTORY}/../share/locale" \
     "${CONFIG_BASE_DIRECTORY}/locale"
 exclude_src="$(locate_config_file alert/exclude.list || true)"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : install.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -17,16 +17,22 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y -qq curl ca-certificates tar >/dev/null
+apt-get install -y -qq curl ca-certificates tar git >/dev/null
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 echo "$(get_text install.download-branch "${REPO_URL}" "${BRANCH}")"
-curl -fsSL "${REPO_URL}/archive/refs/heads/${BRANCH}.tar.gz" -o "${tmp}/src.tar.gz"
 mkdir -p "${tmp}/extract"
-tar -xzf "${tmp}/src.tar.gz" -C "${tmp}/extract"
-extracted="$(find "${tmp}/extract" -mindepth 1 -maxdepth 1 -type d | head -1)"
+extracted=""
+if git clone --depth 1 --branch "${BRANCH}" "${REPO_URL}" "${tmp}/extract/src"; then
+    extracted="${tmp}/extract/src"
+fi
+if [[ -z "${extracted}" || ! -f "${extracted}/config/global.conf" ]]; then
+    curl -fsSL "${REPO_URL}/archive/refs/heads/${BRANCH}.tar.gz" -o "${tmp}/src.tar.gz"
+    tar -xzf "${tmp}/src.tar.gz" -C "${tmp}/extract"
+    extracted="$(find "${tmp}/extract" -mindepth 1 -maxdepth 1 -type d | head -1)"
+fi
 if [[ -z "${extracted}" || ! -f "${extracted}/config/global.conf" ]]; then
     echo "$(get_text install.archive-github-invalid-config-global-conf-absent)" >&2
     exit 1
@@ -43,7 +49,7 @@ if [[ -z "${config_base}" || "${config_base}" != /opt/* || "${config_base}" == *
     echo "$(get_text install.g-config-base-directory-invalid-in-global-conf "${config_base:-vide}")" >&2
     exit 1
 fi
-INSTALL_ROOT="${INSTALL_ROOT:-${config_base}/src}"
+INSTALL_ROOT="${INSTALL_ROOT:-${config_base}}"
 if [[ "${INSTALL_ROOT}" != /* || "${INSTALL_ROOT}" == "/" || "${INSTALL_ROOT}" == *..* || "${INSTALL_ROOT}" == *[[:space:]]* ]]; then
     echo "$(get_text install.root-of-install-rejected "${INSTALL_ROOT}")" >&2
     exit 1
@@ -61,6 +67,27 @@ if [[ -f "${INSTALL_ROOT}/config/clamav/scan-skip.paths" ]] && ! grep -q '__HOME
     cp -a "${INSTALL_ROOT}/config/clamav/scan-skip.paths" "${tmp}/keep/scan-skip.paths"
     skip_keep=1
 fi
+if [[ "${skip_keep}" != "1" && -f "${INSTALL_ROOT}/src/config/clamav/scan-skip.paths" ]] && ! grep -q '__HOME__' "${INSTALL_ROOT}/src/config/clamav/scan-skip.paths"; then
+    cp -a "${INSTALL_ROOT}/src/config/clamav/scan-skip.paths" "${tmp}/keep/scan-skip.paths"
+    skip_keep=1
+fi
+for kept_name in docker secrets cron; do
+    if [[ -d "${INSTALL_ROOT}/${kept_name}" ]]; then
+        mv "${INSTALL_ROOT}/${kept_name}" "${tmp}/keep/${kept_name}"
+    fi
+done
+legacy="${INSTALL_ROOT}/src"
+if [[ -f "${legacy}/liltress" ]]; then
+    if [[ "${keep}" != "1" && -f "${legacy}/config/global.conf" ]] && grep -q '^CONFIG_PREPARED=1$' "${legacy}/config/global.conf" && [[ -f "${legacy}/config/secrets.conf" ]]; then
+        cp -a "${legacy}/config/global.conf" "${legacy}/config/secrets.conf" "${tmp}/keep/"
+        keep=1
+    fi
+    for kept_name in docker secrets cron; do
+        if [[ ! -d "${tmp}/keep/${kept_name}" && -d "${legacy}/${kept_name}" ]]; then
+            mv "${legacy}/${kept_name}" "${tmp}/keep/${kept_name}"
+        fi
+    done
+fi
 rm -rf "${INSTALL_ROOT:?}"/*
 cp -a "${extracted}/." "${INSTALL_ROOT}/"
 if [[ "${keep}" == "1" ]]; then
@@ -68,6 +95,12 @@ if [[ "${keep}" == "1" ]]; then
     cp -a "${tmp}/keep/global.conf" "${tmp}/keep/secrets.conf" "${INSTALL_ROOT}/config/"
     chmod 600 "${INSTALL_ROOT}/config/secrets.conf" || true
 fi
+for kept_name in docker secrets cron; do
+    if [[ -d "${tmp}/keep/${kept_name}" ]]; then
+        rm -rf "${INSTALL_ROOT:?}/${kept_name:?}"
+        mv "${tmp}/keep/${kept_name}" "${INSTALL_ROOT}/${kept_name}"
+    fi
+done
 if [[ "${skip_keep}" == "1" ]]; then
     mkdir -p "${INSTALL_ROOT}/config/clamav"
     cp -a "${tmp}/keep/scan-skip.paths" "${INSTALL_ROOT}/config/clamav/scan-skip.paths"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/07_router.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -119,6 +119,35 @@ if [[ -n "${root}" ]]; then
     t_check_route compat.postfix "compatibilité postfix" $'agents/laws/compat.md\nagents/maps/versions.md'
     t_check_route compat.sasl "sasl 26.10" $'agents/laws/compat.md\nagents/maps/versions.md'
     t_check_route compat.esm "esm-infra" $'agents/laws/compat.md\nagents/maps/versions.md'
+    t_check_route watchdog "watchdog" $'agents/laws/watchdog.md\nagents/maps/watchdog.md'
+    t_check_route mail "mail" $'agents/laws/mail.md\nagents/maps/core.md'
+    t_check_route parallel "parallèle" $'agents/laws/parallel.md\nagents/maps/owners.md'
+
+    core_gap=""
+    while IFS= read -r core_file; do
+        core_name="$(basename -- "${core_file}")"
+        if ! grep -q "/${core_name}" "${root}/agents/maps/core.md"; then
+            core_gap="${core_gap} ${core_name}"
+        fi
+    done < <(find "${root}/share/core" -name '*.sh' -type f | sort)
+    if [[ -z "${core_gap}" ]]; then
+        t_pass "route.core.files" "chaque script de share/core est dans l'index"
+    else
+        t_fail "route.core.files" "absents de core.md :${core_gap}"
+    fi
+
+    suite_gap=""
+    while IFS= read -r suite_file; do
+        suite_rel="${suite_file#"${root}/"}"
+        if ! grep -q "${suite_rel}" "${root}/agents/maps/tests.md"; then
+            suite_gap="${suite_gap} ${suite_rel}"
+        fi
+    done < <(find "${root}/workstation/test/suites" "${root}/server/test/suites" -name '[0-9][0-9]_*.sh' -type f | sort)
+    if [[ -z "${suite_gap}" ]]; then
+        t_pass "route.tests.files" "chaque suite est dans l'index"
+    else
+        t_fail "route.tests.files" "absentes de tests.md :${suite_gap}"
+    fi
 
     help_user="$(bash "${root}/workstation/liltress" help)"
     help_server="$(bash "${root}/server/liltress" help)"

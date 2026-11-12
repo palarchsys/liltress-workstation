@@ -27,7 +27,11 @@ if ! command -v journalctl >/dev/null 2>&1; then
     exit 0
 fi
 
-stamp="${BASE}/cron/egress.stamp"
+if declare -F watchdog_runtime_file >/dev/null 2>&1; then
+    stamp="$(watchdog_runtime_file "${BASE}" egress.stamp)"
+else
+    stamp="${BASE}/cron/egress.stamp"
+fi
 
 record_egress_stamp() {
     local moment
@@ -296,7 +300,12 @@ if command -v ausearch >/dev/null 2>&1; then
         ausearch -k w-egress --start ${formatted} > "${audit_tmp}" 2>/dev/null || true
     fi
 fi
-list_egress_suspects "${found}" "${audit_tmp}" "${BASE}/cron/quarantine.registry" > "${suspects}" || true
+if declare -F watchdog_runtime_file >/dev/null 2>&1; then
+    registry="$(watchdog_runtime_file "${BASE}" quarantine.registry)"
+else
+    registry="${BASE}/cron/quarantine.registry"
+fi
+list_egress_suspects "${found}" "${audit_tmp}" "${registry}" > "${suspects}" || true
 if [[ ! -s "${suspects}" ]]; then
     log_pass "$(get_text watchdog.no-flow-suspicious-outbound)"
     exit 0

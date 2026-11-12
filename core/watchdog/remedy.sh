@@ -10,6 +10,41 @@
 # Note       : A baseline is refreshed only after the repair of that tool succeeded.
 # -----------------------------------------------------------------------------
 
+watchdog_case_actions() {
+    local tool="$1"
+    local class_id="$2"
+    local branch="$3"
+    local catalog=""
+    catalog="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../config/alert/action.json"
+    [[ -f "${catalog}" ]] || return 0
+    python3 - "${catalog}" "${tool}" "${class_id}" "${branch}" << 'PY'
+import json, sys
+path, tool, class_id, branch = sys.argv[1:]
+data = json.loads(open(path, encoding="utf-8").read())
+for dog in data.get("watchdogs", []):
+    if dog.get("name") != tool:
+        continue
+    for case in dog.get("cases", []):
+        if case.get("id") != class_id:
+            continue
+        for action in case.get(branch, []):
+            print(action)
+        sys.exit(0)
+sys.exit(0)
+PY
+}
+
+watchdog_case_has() {
+    local tool="$1"
+    local class_id="$2"
+    local branch="$3"
+    local action="$4"
+    local found=""
+    found="$(watchdog_case_actions "${tool}" "${class_id}" "${branch}")"
+    [[ -z "${found}" ]] && return 0
+    grep -qx "${action}" <<< "${found}"
+}
+
 reinstall_watchdog_package() {
     local package="$1"
     local status=0
@@ -87,7 +122,8 @@ apply_watchdog_remedy() {
             printf '%s - %s\n' "${moment}" "${action}" >> "${state_dir}/actions.txt"
             continue
         fi
-        if [[ "${phase}" != "integrity" && "${path}" != "-" && "${deny}" != *"|${path}|"* ]]; then
+        if [[ "${phase}" != "integrity" && "${path}" != "-" && "${deny}" != *"|${path}|"* ]] \
+            && watchdog_case_has "${tool}" "${class_id}" real quarantine; then
             if declare -F take_quarantine_file >/dev/null 2>&1; then
                 take_quarantine_file "${path}" || true
                 stored="${MOVE_STORED:-${path}}"

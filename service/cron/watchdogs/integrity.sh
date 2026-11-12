@@ -35,7 +35,11 @@ fi
 install -d -m 755 /run/liltress-workstation
 current="$(mktemp -p /run/liltress-workstation)"
 trap 'rm -f "${current}"' EXIT
-stamp="${BASE}/cron/integrity.sha256"
+if declare -F watchdog_runtime_file >/dev/null 2>&1; then
+    stamp="$(watchdog_runtime_file "${BASE}" integrity.sha256)"
+else
+    stamp="${BASE}/cron/integrity.sha256"
+fi
 while read -r path; do
     [[ -n "${path}" && "${path}" != \#* && -f "${path}" ]] || continue
     sha256sum -- "${path}"

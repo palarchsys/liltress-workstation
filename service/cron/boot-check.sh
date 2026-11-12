@@ -255,8 +255,14 @@ check_boot_unit w-reboot-notice.service
 printf "$(get_text log.n-journals-since-this-start-n)"
 
 get_latest_log() {
-    find "${BASE}/cron/security_logs" -maxdepth 1 -type f -name "$1-*.log" -newermt "$(uptime -s)" -printf '%T@ %p\n' 2>/dev/null \
-        | sort -n | tail -1 | cut -d' ' -f2-
+    local name="$1" dir found=""
+    for dir in "/var/lib/liltress-workstation/watchdog/security_logs" "${BASE}/cron/security_logs"; do
+        [[ -d "${dir}" ]] || continue
+        found="$(find "${dir}" -maxdepth 1 -type f -name "${name}-*.log" -newermt "$(uptime -s)" -printf '%T@ %p\n' 2>/dev/null \
+            | sort -n | tail -1 | cut -d' ' -f2-)"
+        [[ -n "${found}" ]] && break
+    done
+    printf '%s\n' "${found}"
 }
 
 for name in aide integrity rkhunter behavior chkrootkit clamav debsums egress idle-scan reboot-notice; do

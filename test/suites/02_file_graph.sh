@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/02_file_graph.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -192,16 +192,16 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -q 'SCAN_SKIP_HOME' "${T_ROOT}/service/clamav/configure.sh" \
    && grep -q 'SCAN_SKIP_HOME' "${T_ROOT}/service/cron/configure.sh" \
    && awk '
-        /apply-scan-skip\.sh/ { apply = NR }
-        /aide\.sh/ { if (apply && !aide) aide = NR }
-        END { exit !(apply && aide && aide > apply) }
+        /chain\.sh/ { if (!chain) chain = NR }
+        /apply-scan-skip\.sh/ { if (chain && !apply) apply = NR }
+        END { exit !(chain && apply && apply > chain) }
       ' "${skip_boot}" \
    && ! grep -q 'clamdscan' "${skip_clam}" \
    && grep -q 'list_clamav_scan' "${skip_clam}" \
    && grep -q 'report_clamav' "${skip_clam}" \
-   && grep -q 'clamscan --infected --no-summary' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
-   && grep -q 'planté signal' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
-   && grep -q 'tool="clamscan"' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
+   && grep -q 'clamscan --infected --no-summary' "${T_ROOT}/../share/core/watchdog/clamav.sh" \
+   && grep -q 'planté signal' "${T_ROOT}/../share/core/watchdog/clamav.sh" \
+   && grep -q 'tool="clamscan"' "${T_ROOT}/../share/core/watchdog/clamav.sh" \
    && grep -q 'scan-skip.sh list' "${T_ROOT}/../share/locale/fr/log.txt" \
    && grep -q 'log.usage-sudo-bash-bin-scan-skip-sh-list' "${skip_cmd}" \
    && grep -q 'scan-skip.sh add' "${T_ROOT}/../share/locale/fr/log.txt" \
@@ -223,12 +223,12 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -q 'rkhunter warnings' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'chkrootkit a produit une sortie' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'reset_debsums_log' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
-   && grep -q '"apt-get", "clean"' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
-   && grep -q 'Dir::Cache::archives' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
-   && grep -q '"install", "--reinstall", "-y", "--", pkg' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
-   && grep -q '/var/cache/apt/archives' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
+   && grep -q '"apt-get", "clean"' "${T_ROOT}/../share/core/watchdog/debsums.sh" \
+   && grep -q 'Dir::Cache::archives' "${T_ROOT}/../share/core/watchdog/debsums.sh" \
+   && grep -q '"install", "--reinstall", "-y", "--", pkg' "${T_ROOT}/../share/core/watchdog/debsums.sh" \
+   && grep -q '/var/cache/apt/archives' "${T_ROOT}/../share/core/watchdog/debsums.sh" \
    && grep -q 'RKHUNTER_REFRESH=1' "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
-   && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
+   && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/../share/core/watchdog/remedy.sh" \
    && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/service/rkhunter/configure.sh" \
    && grep -q 'get_text watchdog.clamav-in' "${T_ROOT}/service/cron/watchdogs/clamav-event.sh" \
    && grep -q 'ClamAV :' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
@@ -362,6 +362,27 @@ if [[ "${chain_rc}" -eq 0 ]]; then
     t_pass "graph.boot.chain" "chaîne sans délai fixe, contrôle manuel installé"
 else
     t_fail "graph.boot.chain" "la chaîne doit enchaîner les trois passes, et le contrôle doit lire le journal si l'heure de début a disparu"
+fi
+
+logs_ok=1
+common="${T_ROOT}/service/cron/watchdogs/common.sh"
+server_boot="${T_ROOT}/../server/service/cron/watchdogs/boot-scan.sh"
+shared_chain="${T_ROOT}/../share/service/cron/watchdogs/chain.sh"
+grep -q 'LOG_DIR="${BASE}/cron/security_logs"' "${common}" || logs_ok=0
+grep -q 'ALERT_DIR="${BASE}/cron/alerts"' "${common}" || logs_ok=0
+grep -q 'LOG_DIR="${CONFIG_BASE_DIRECTORY}/cron/security_logs"' "${server_boot}" || logs_ok=0
+grep -q 'ALERT_DIR="${CONFIG_BASE_DIRECTORY}/cron/alerts"' "${server_boot}" || logs_ok=0
+grep -q 'cron/security_logs' "${shared_chain}" || logs_ok=0
+if grep -q '/var/lib/liltress-workstation/watchdog' "${common}"; then
+    logs_ok=0
+fi
+if grep -q '/var/lib/liltress-server/watchdog' "${server_boot}"; then
+    logs_ok=0
+fi
+if [[ "${logs_ok}" -eq 1 ]]; then
+    t_pass "graph.logs.same-dir" "journaux et alertes sous cron"
+else
+    t_fail "graph.logs.same-dir" "le lecteur et les deux produits ne désignent pas cron"
 fi
 
 t_section "alerte de plantage et incident"
@@ -745,7 +766,8 @@ grep -q 'th sport 546 th dport 547 accept' "${root}/service/ufw/egress.sh"
 grep -q 'th dport 161 meta pkttype' "${root}/service/ufw/egress.sh"
 grep -q 'w-egress-table.service' "${root}/service/ufw/egress.sh"
 grep -q 'config/integrity/paths.list' "${root}/service/cron/configure.sh"
-grep -Fq 'cron/bin/integrity.sh' "${root}/service/cron/configure.sh"
+grep -Fq 'watchdogs/." "${CONFIG_BASE_DIRECTORY}/cron/bin/"' "${root}/service/cron/configure.sh"
+test -f "${root}/service/cron/watchdogs/integrity.sh"
 grep -Fq '${CONFIG_BASE_DIRECTORY}/config/global.conf' "${root}/service/cron/configure.sh"
 ! grep -q 'NET_ISOLATE=' "${root}/config/ufw/egress.conf"
 ! grep -q 'NET_ISOLATE:-' "${root}/service/cron/watchdogs/clamav-response.sh"
@@ -775,11 +797,11 @@ grep -q 'flux sortant suspect bloqué' "${root}/../share/locale/fr/watchdog.txt"
 grep -q 'quarantine.registry' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'w_isolate' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'flux sortants hors des ports 53, 80 et 443' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'record_quarantine_origin' "${root}/../share/core/watchdog/watchdog.sh"
-grep -q 'quarantine-restore.sh' "${root}/../share/core/watchdog/watchdog.sh"
+grep -q 'record_quarantine_origin' "${root}/../share/core/watchdog/quarantine.sh"
+grep -q 'quarantine-restore.sh' "${root}/../share/core/watchdog/quarantine.sh"
 grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/rkhunter.sh"
 grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/chkrootkit.sh"
-grep -q 'non mis en quarantaine' "${root}/../share/core/text/fr/watchdog.txt"
+grep -q 'non mis en quarantaine' "${root}/../share/locale/fr/watchdog.txt"
 ! grep -q 'display:flex' "${root}/template/mail.html"
 ! grep -q 'width:840px' "${root}/template/mail.html"
 ! grep -q 'min-width:100%' "${root}/template/mail.html"
@@ -844,7 +866,8 @@ while IFS= read -r rel; do
     if ! t_check_config_name "${rel}"; then
         config_bad="${config_bad} ${rel}"
     fi
-done < <(cd -- "${T_ROOT}" && find config \( -type f -o -type l \) -printf '%P\n' | sort)
+done < <(cd -- "${T_ROOT}" && find config \( -type f -o -type l \) \
+    ! -name '*.save' ! -name '*.save.conf' ! -name '*.conf.save' -printf '%P\n' | sort)
 if [[ -z "${config_bad}" ]]; then
     t_pass "graph.config.names" "fichiers de configuration au gabarit"
 else

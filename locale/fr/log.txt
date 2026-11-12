@@ -602,6 +602,9 @@ Installation
 [mail.install.test.body]
 L'envoi du courrier s'est bien déroulé.
 
+[log.base-already-present]
+La base existe déjà. Elle n'est pas reconstruite.
+
 [log.lynis-command]
 sudo bash liltress lynis
 

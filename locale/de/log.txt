@@ -602,6 +602,9 @@ Installation
 [mail.install.test.body]
 Der Versand der E-Mail ist gelungen.
 
+[log.base-already-present]
+Die Referenzdatenbank ist schon da. Sie wird nicht neu erzeugt.
+
 [log.lynis-command]
 sudo bash liltress lynis
 

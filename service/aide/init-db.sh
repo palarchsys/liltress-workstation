@@ -13,6 +13,11 @@ source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
+if [[ "${REBUILD_BASE:-0}" != "1" && ( -f /var/lib/aide/aide.db || -f /var/lib/aide/aide.db.gz ) ]]; then
+    log_info "${INSTALL_WATCHER}" "log.base-already-present"
+    exit 0
+fi
+
 log_info "${INSTALL_WATCHER}" "log.the-calculation-of-the-fingerprints-can-take-sev"
 log_info "${INSTALL_WATCHER}" "log.the-detail-stays-in-the-journal-not-in-the-termi"
 
