@@ -6,7 +6,7 @@
         {
           "id": "install.snapd",
           "service": "snapd",
-          "path": "system/snapd.sh"
+          "path": "system/purge/snapd.sh"
         },
         {
           "id": "install.purge.cups",
@@ -26,7 +26,7 @@
         {
           "id": "install.tree",
           "service": "tree",
-          "path": "system/tree/install.sh"
+          "path": "script/project-tree.sh"
         },
         {
           "id": "install.base",
@@ -344,17 +344,17 @@
         {
           "id": "install.verify",
           "service": "verify",
-          "path": "verify/workstation.sh"
+          "path": "script/verify/workstation.sh"
         },
         {
           "id": "install.lynis.audit",
           "service": "lynis",
-          "path": "verify/lynis-audit.sh"
+          "path": "script/verify/lynis-audit.sh"
         },
         {
           "id": "install.summary",
           "service": "verify",
-          "path": "verify/summary.sh"
+          "path": "script/verify/summary.sh"
         },
         {
           "id": "install.reboot-notice",

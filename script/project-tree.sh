@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : system/tree/install.sh
-# Updated at : 2026-11-07
+# File       : script/project-tree.sh
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 

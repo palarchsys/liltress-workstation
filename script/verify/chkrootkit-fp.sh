@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : verify/chkrootkit-fp.sh
+# File       : script/verify/chkrootkit-fp.sh
 # Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================

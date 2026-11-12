@@ -48,7 +48,7 @@ Der Arbeitsplatz wird durch den Curl-Installer vorbereitet, oder durch einen Klo
 ```bash
 sudo apt-get update
 sudo apt-get install -y ca-certificates curl git swaks tar
-curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh | sudo bash
 ```
 
 ## ▪️ Klon
@@ -57,8 +57,8 @@ curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/mai
 sudo git clone https://github.com/palarchsys/liltress-workstation /opt/liltress-workstation
 cd /opt/liltress-workstation
 sudo ./liltress configure
-sudo bash /opt/liltress-workstation/system/update.sh
-sudo bash /opt/liltress-workstation/bin/boot-check.sh
+sudo bash /opt/liltress-workstation/script/version-update.sh
+sudo bash /opt/liltress-workstation/script/boot-check.sh
 ```
 
 ## Aktion von configure.sh
@@ -271,10 +271,10 @@ sudo ./liltress run
 Startet die Installation aus den vorbereiteten Dateien.<br/>
 Das Installationsprogramm verweigert den Start, wenn die Prüfung nicht besteht.
 
-## ▪️ verify/alerts.sh
+## ▪️ script/verify/alerts.sh
 
 ```bash
-sudo bash verify/alerts.sh
+sudo bash script/verify/alerts.sh
 ```
 
 Prüft den Ketten-Timer, den verzögerten Timer, ClamAV beim Zugriff und den Postpfad.<br/>
@@ -283,13 +283,13 @@ Der Betreff endet mit `Contrôle`.<br/>
 Die Erfolgszeile ist `Résultat : OK`.
 
 ```bash
-sudo bash verify/alerts.sh --no-send
+sudo bash script/verify/alerts.sh --no-send
 ```
 
-## ▪️ verify/workstation.sh
+## ▪️ script/verify/workstation.sh
 
 ```bash
-sudo bash verify/workstation.sh "$PWD"
+sudo bash script/verify/workstation.sh "$PWD"
 ```
 
 Startet die Prüfung des Arbeitsplatzes.<br/>
@@ -299,7 +299,7 @@ Derselbe Lauf prüft die SSH-Weiterleitung, die SSH-Firewall-Regel, USBGuard, di
 ## ▪️ Prüfung nach dem Start
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/boot-check.sh
+sudo bash /opt/liltress-workstation/script/boot-check.sh
 ```
 
 Prüft die Sicherheitsdienste des Starts und die drei Läufe dieser Sitzung.<br/>
@@ -315,7 +315,7 @@ sudo ./liltress lynis
 
 Startet `lynis audit system --quick --no-colors` und schreibt den Bericht unter `<source>/log/lynis-<stamp>/`.<br/>
 `LYNIS_MIN_SCORE` ist 80.<br/>
-`verify/workstation.sh` akzeptiert einen `hardening_index` größer oder gleich diesem Schwellenwert.
+`script/verify/workstation.sh` akzeptiert einen `hardening_index` größer oder gleich diesem Schwellenwert.
 
 ## ▪️ AIDE-Basis
 
@@ -338,9 +338,9 @@ Schreibt den SHA-256 von `/var/lib/rkhunter/db/mirrors.dat` nach `/opt/liltress-
 ## ▪️ Vom Scan ausgeschlossene Pfade
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/scan-skip.sh list
-sudo bash /opt/liltress-workstation/bin/scan-skip.sh add $HOME/.cache/exemple
-sudo bash /opt/liltress-workstation/bin/scan-skip.sh del $HOME/.cache/exemple
+sudo bash /opt/liltress-workstation/script/scan-skip.sh list
+sudo bash /opt/liltress-workstation/script/scan-skip.sh add $HOME/.cache/exemple
+sudo bash /opt/liltress-workstation/script/scan-skip.sh del $HOME/.cache/exemple
 ```
 
 Die Listendatei ist `/opt/liltress-workstation/config/clamav/scan-skip.paths`.<br/>

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : test/suites/02_file_graph.sh
+# File       : script/test/suites/02_file_graph.sh
 # Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
@@ -45,9 +45,9 @@ PY
 )
 
 t_section "désinstallations avant system/install"
-snap_line=$(t_get_plan_pos 'system/snapd.sh')
+snap_line=$(t_get_plan_pos 'system/purge/snapd.sh')
 cups_line=$(t_get_plan_pos 'install.purge.cups')
-inst_line=$(t_get_plan_pos 'system/tree/install.sh')
+inst_line=$(t_get_plan_pos 'script/project-tree.sh')
 removed_line=$(t_get_plan_pos 'install.purge.removed')
 locks_line=$(t_get_plan_pos 'install.purge.locks')
 if [[ -n "${snap_line}" && -n "${cups_line}" && -n "${inst_line}" \
@@ -104,8 +104,8 @@ if awk '
     state == 2 && /pro enable/ { bad = 1 }
     END { exit !(inn == 2 && names && live && !bad && closed) }
 ' "${T_ROOT}/service/ubuntu-pro/install.sh" \
-   && grep -q 'check_ubuntu_lts' "${T_ROOT}/verify/workstation.sh" \
-   && grep -qF 'non demandés : version intermédiaire' "${T_ROOT}/verify/workstation.sh"; then
+   && grep -q 'check_ubuntu_lts' "${T_ROOT}/script/verify/workstation.sh" \
+   && grep -qF 'non demandés : version intermédiaire' "${T_ROOT}/script/verify/workstation.sh"; then
     t_pass "graph.pro.interim" "esm-infra, esm-apps et livepatch seulement sur une LTS"
 else
     t_fail "graph.pro.interim" "le poste active encore esm ou livepatch hors LTS"
@@ -120,7 +120,7 @@ if [[ "$(t_get_plan_pos 'service/ssh/configure.sh')" -lt "$(t_get_plan_pos 'serv
    && [[ "$(t_get_plan_pos 'apt-upgrade')" -lt "$(t_get_plan_pos 'service/usbguard/configure.sh')" ]] \
    && [[ "$(t_get_plan_pos 'service/usbguard/configure.sh')" -lt "$(t_get_plan_pos 'service/rkhunter/init-db.sh')" ]] \
    && [[ "$(t_get_plan_pos 'service/rkhunter/init-db.sh')" -lt "$(t_get_plan_pos 'service/aide/init-db.sh')" ]] \
-   && [[ "$(t_get_plan_pos 'service/aide/init-db.sh')" -lt "$(t_get_plan_pos 'verify/workstation.sh')" ]]; then
+   && [[ "$(t_get_plan_pos 'service/aide/init-db.sh')" -lt "$(t_get_plan_pos 'script/verify/workstation.sh')" ]]; then
     t_pass "graph.order.daily" "SSH avant UFW, USBGuard après correctifs, verify après AIDE"
 else
     t_fail "graph.order.daily" "USBGuard suit les paquets ; verify suit AIDE"
@@ -172,7 +172,7 @@ t_section "chemins exclus du scan"
 skip_lib="${T_ROOT}/service/cron/watchdogs/scan-skip-lib.sh"
 skip_tpl="${T_ROOT}/config/clamav/scan-skip.paths"
 skip_apply="${T_ROOT}/service/cron/watchdogs/apply-scan-skip.sh"
-skip_cmd="${T_ROOT}/service/cron/scan-skip.sh"
+skip_cmd="${T_ROOT}/script/scan-skip.sh"
 skip_idle="${T_ROOT}/service/cron/watchdogs/idle-scan.sh"
 skip_boot="${T_ROOT}/service/cron/watchdogs/boot-scan.sh"
 skip_clam="${T_ROOT}/service/cron/watchdogs/clamav.sh"
@@ -321,29 +321,29 @@ grep -q 'Persistent=${TIMER_PERSISTENT}' "${idle_timer}"
 grep -q 'Persistent=${TIMER_PERSISTENT}' "${reboot_timer}"
 grep -q 'TIMER_PERSISTENT=false' "${timers}"
 grep -q 'w-boot-chain.timer' "${conf}"
-grep -q 'boot-check.sh' "${conf}"
+test -f "${root}/script/boot-check.sh"
 grep -q 'systemctl disable --now w-boot-scan.timer' "${conf}"
 ! grep -q 'OnBootSec=2min' "${conf}" "${timers}" "${units}"/*.service "${units}"/*.timer
 ! grep -q 'OnBootSec=15min' "${conf}" "${timers}" "${units}"/*.service "${units}"/*.timer
 ! grep -q 'OnBootSec=20min' "${conf}" "${timers}" "${units}"/*.service "${units}"/*.timer
 ! grep -q 'Persistent=true' "${conf}" "${timers}" "${units}"/*.service "${units}"/*.timer
-grep -q 'w-boot-chain.timer' "${root}/verify/alerts.sh"
-grep -q 'w-boot-chain.timer' "${root}/verify/workstation.sh"
+grep -q 'w-boot-chain.timer' "${root}/script/verify/alerts.sh"
+grep -q 'w-boot-chain.timer' "${root}/script/verify/workstation.sh"
 grep -q 'PERIODIC_EVERY=2h' "${timers}"
 grep -q 'OnBootSec=${PERIODIC_ON_BOOT_SEC}' "${root}/config/cron/w-periodic-scan.timer"
 grep -q 'OnUnitActiveSec=${PERIODIC_EVERY}' "${root}/config/cron/w-periodic-scan.timer"
 grep -q 'Persistent=${TIMER_PERSISTENT}' "${root}/config/cron/w-periodic-scan.timer"
 grep -q 'w-periodic-scan.timer' "${conf}"
-grep -q 'w-periodic-scan.timer' "${root}/verify/alerts.sh"
-grep -q 'w-periodic-scan.timer' "${root}/verify/workstation.sh"
+grep -q 'w-periodic-scan.timer' "${root}/script/verify/alerts.sh"
+grep -q 'w-periodic-scan.timer' "${root}/script/verify/workstation.sh"
 grep -q 'HOURLY_EVERY=1h' "${timers}"
 grep -q 'HOURLY_ON_BOOT_SEC=1h' "${timers}"
 grep -q 'OnBootSec=${HOURLY_ON_BOOT_SEC}' "${root}/config/cron/w-hourly-scan.timer"
 grep -q 'OnUnitActiveSec=${HOURLY_EVERY}' "${root}/config/cron/w-hourly-scan.timer"
 grep -q 'Persistent=${TIMER_PERSISTENT}' "${root}/config/cron/w-hourly-scan.timer"
 grep -q 'w-hourly-scan.timer' "${conf}"
-grep -q 'w-hourly-scan.timer' "${root}/verify/alerts.sh"
-grep -q 'w-hourly-scan.timer' "${root}/verify/workstation.sh"
+grep -q 'w-hourly-scan.timer' "${root}/script/verify/alerts.sh"
+grep -q 'w-hourly-scan.timer' "${root}/script/verify/workstation.sh"
 awk '
     /aide.sh/ { if (!a) a = NR }
     /rkhunter.sh/ { if (a && !b) b = NR }
@@ -351,12 +351,12 @@ awk '
     /debsums.sh/ { if (c && !d) d = NR }
     END { exit (a && b && c && d && a < b && b < c && c < d) ? 0 : 1 }
 ' "${root}/service/cron/watchdogs/hourly-scan.sh"
-grep -q 'boot-check.sh' "${root}/verify/boot.sh"
-test -f "${root}/service/cron/boot-check.sh"
-grep -q '39f53479d3a045ac8e11786248231fbf' "${root}/service/cron/boot-check.sh"
-grep -q 'be02cf6855d2428ba40df7e9d022f03d' "${root}/service/cron/boot-check.sh"
-grep -q 'd9b373ed55a64feb8242e02dbe79a49c' "${root}/service/cron/boot-check.sh"
-grep -q 'src/config/global.conf' "${root}/service/cron/boot-check.sh"
+grep -q 'boot-check.sh' "${root}/script/verify/boot.sh"
+test -f "${root}/script/boot-check.sh"
+grep -q '39f53479d3a045ac8e11786248231fbf' "${root}/script/boot-check.sh"
+grep -q 'be02cf6855d2428ba40df7e9d022f03d' "${root}/script/boot-check.sh"
+grep -q 'd9b373ed55a64feb8242e02dbe79a49c' "${root}/script/boot-check.sh"
+grep -q 'src/config/global.conf' "${root}/script/boot-check.sh"
 CHAIN
 if [[ "${chain_rc}" -eq 0 ]]; then
     t_pass "graph.boot.chain" "chaîne sans délai fixe, contrôle manuel installé"
@@ -530,7 +530,7 @@ done
 if grep -q 'No other incoming allow rule is added.' "${T_ROOT}/doc/en/README.md"; then
     daily_ok=0
 fi
-ver="${T_ROOT}/verify/workstation.sh"
+ver="${T_ROOT}/script/verify/workstation.sh"
 grep -q 'allowtcpforwarding' "${ver}" || daily_ok=0
 grep -q 'allowagentforwarding' "${ver}" || daily_ok=0
 grep -qF 'SSH (limit)' "${ver}" || daily_ok=0
@@ -568,7 +568,7 @@ for old in configuration.md surveillance.md architecture.md files.md logs.md; do
 done
 grep -qF '## Documentation' "${readme}" || pages_ok=0
 grep -qF 'Click a flag to open all the information.' "${readme}" || pages_ok=0
-grep -qF 'https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/install.sh' "${readme}" || pages_ok=0
+grep -qF 'https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh' "${readme}" || pages_ok=0
 grep -qF 'ca-certificates curl git swaks tar' "${readme}" || pages_ok=0
 grep -qF 'sudo apt-get update' "${readme}" || pages_ok=0
 grep -qF 'git clone https://github.com/palarchsys/liltress-workstation' "${readme}" && pages_ok=0
@@ -583,7 +583,7 @@ grep -qF 'Liltress Workstation prepares an Ubuntu 26.04 or newer workstation.' "
 grep -qF 'It installs the local DNS resolver, the firewall, and the security checks.' "${readme}" || pages_ok=0
 grep -qF 'It installs the local DNS resolver, the firewall, and the security checks.' "${en}" || pages_ok=0
 if grep -qF 'Liltress Workstation' "${readme}" \
-   && grep -qF 'https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/install.sh' "${en}" \
+   && grep -qF 'https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh' "${en}" \
    && grep -qF 'ca-certificates curl git swaks tar' "${en}" \
    && grep -qF 'doc/en/README.md' "${readme}" \
    && grep -qF 'doc/fr/README.md' "${readme}" \

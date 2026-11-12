@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : test/suites/07_router.sh
+# File       : script/test/suites/07_router.sh
 # Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
@@ -70,16 +70,16 @@ for name in (
     "scripts/vm-export-logs.sh",
     "scripts/vm-probe.sh",
     "agents/route.sh",
-    "verify/alerts.sh",
-    "verify/workstation.sh",
-    "verify/boot.sh",
-    "verify/chkrootkit-fp.sh",
+    "script/verify/alerts.sh",
+    "script/verify/workstation.sh",
+    "script/verify/boot.sh",
+    "script/verify/chkrootkit-fp.sh",
     "scan-skip.sh",
-    "verify/matrix.sh",
-    "verify/livekit.sh",
-    "verify/wireguard.sh",
-    "workstation/test/run.sh",
-    "server/test/run.sh",
+    "script/verify/matrix.sh",
+    "script/verify/livekit.sh",
+    "script/verify/wireguard.sh",
+    "workstation/script/test/run.sh",
+    "server/script/test/run.sh",
     "agents/search.sh",
     "scripts/render-install.sh",
     "scripts/list-names.sh",
@@ -142,7 +142,7 @@ if [[ -n "${root}" ]]; then
         if ! grep -q "${suite_rel}" "${root}/agents/maps/tests.md"; then
             suite_gap="${suite_gap} ${suite_rel}"
         fi
-    done < <(find "${root}/workstation/test/suites" "${root}/server/test/suites" -name '[0-9][0-9]_*.sh' -type f | sort)
+    done < <(find "${root}/workstation/script/test/suites" "${root}/server/script/test/suites" -name '[0-9][0-9]_*.sh' -type f | sort)
     if [[ -z "${suite_gap}" ]]; then
         t_pass "route.tests.files" "chaque suite est dans l'index"
     else
@@ -151,12 +151,12 @@ if [[ -n "${root}" ]]; then
 
     help_user="$(bash "${root}/workstation/liltress" help)"
     help_server="$(bash "${root}/server/liltress" help)"
-    if [[ "${help_user}" == *"verify/workstation.sh"* && "${help_user}" == *"/opt/liltress-workstation/bin/scan-skip.sh"* && "${help_user}" != *"--basic"* ]]; then
+    if [[ "${help_user}" == *"script/verify/workstation.sh"* && "${help_user}" == *"/opt/liltress-workstation/script/scan-skip.sh"* && "${help_user}" != *"--basic"* ]]; then
         t_pass "help.user" "commandes du poste"
     else
         t_fail "help.user" "écran poste incomplet"
     fi
-    if [[ "${help_server}" == *"--basic"* && "${help_server}" == *"--avance"* && "${help_server}" == *"verify/matrix.sh"* && "${help_server}" != *"scan-skip"* ]]; then
+    if [[ "${help_server}" == *"--basic"* && "${help_server}" == *"--avance"* && "${help_server}" == *"script/verify/matrix.sh"* && "${help_server}" != *"scan-skip"* ]]; then
         t_pass "help.server" "commandes du serveur"
     else
         t_fail "help.server" "écran serveur incomplet"
@@ -223,8 +223,8 @@ PY
         t_fail "order.maps" "$(tr '\n' ' ' < "${ARTIFACTS}/order.txt" 2>/dev/null || true)"
     fi
 
-    if bash "${root}/scripts/render-install.sh" --print workstation | cmp -s - "${root}/workstation/install.sh" \
-        && bash "${root}/scripts/render-install.sh" --print server | cmp -s - "${root}/server/install.sh" \
+    if bash "${root}/scripts/render-install.sh" --print workstation | cmp -s - "${root}/workstation/script/install.sh" \
+        && bash "${root}/scripts/render-install.sh" --print server | cmp -s - "${root}/server/script/install.sh" \
         && bash "${root}/scripts/render-install.sh" --print workstation | grep -q 'liltress-workstation' \
         && bash "${root}/scripts/render-install.sh" --print workstation | grep -q 'scan-skip.paths' \
         && bash "${root}/scripts/render-install.sh" --print server | grep -q 'liltress-server' \

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : verify/alerts.sh
+# File       : script/verify/alerts.sh
 # Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
     cat << 'EOF'
-Usage : sudo bash verify/alerts.sh [--no-send]
+Usage : sudo bash script/verify/alerts.sh [--no-send]
 
 Contrôle la passe de démarrage qui envoie les alertes, la passe horaire, la passe différée,
 ClamAV à l'accès, et le chemin du courrier. Sans --no-send, un seul message d'essai part
@@ -117,7 +117,7 @@ else
 fi
 skip_list="${BASE}/src/config/clamav/scan-skip.paths"
 [[ -f "${skip_list}" ]] || skip_list="${BASE}/cron/scan-skip.paths"
-if [[ -x "${BASE}/bin/scan-skip.sh" && -f "${skip_list}" ]]; then
+if [[ -x "${BASE}/script/scan-skip.sh" && -f "${skip_list}" ]]; then
     record_pass "commande scan-skip.sh et liste des chemins"
 else
     record_fail "scan-skip.sh ou scan-skip.paths absent"

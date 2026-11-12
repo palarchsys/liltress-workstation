@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : test/suites/09_watchdog_branches.sh
+# File       : script/test/suites/09_watchdog_branches.sh
 # Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================

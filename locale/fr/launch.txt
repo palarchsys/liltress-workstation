@@ -25,11 +25,11 @@ Usage : {1}/liltress <commande>
 [launch.usage.extra.workstation]
 Vérification :
 
-  sudo bash verify/alerts.sh [--no-send]
-  sudo bash verify/workstation.sh "$PWD"
-  sudo bash verify/boot.sh
-  sudo bash verify/chkrootkit-fp.sh
-  sudo bash /opt/liltress-workstation/bin/scan-skip.sh list|add|del
+  sudo bash script/verify/alerts.sh [--no-send]
+  sudo bash script/verify/workstation.sh "$PWD"
+  sudo bash script/verify/boot.sh
+  sudo bash script/verify/chkrootkit-fp.sh
+  sudo bash /opt/liltress-workstation/script/scan-skip.sh list|add|del
   sudo ./liltress vpn
 
 [launch.usage.extra.server]
@@ -38,7 +38,7 @@ Vérification :
 
 Vérification :
 
-  sudo bash verify/alerts.sh [--no-send]
-  sudo bash verify/matrix.sh "$PWD" MATRIX
-  sudo bash verify/livekit.sh "$PWD" LIVEKIT
-  sudo bash verify/wireguard.sh "$PWD" WIREGUARD
+  sudo bash script/verify/alerts.sh [--no-send]
+  sudo bash script/verify/matrix.sh "$PWD" MATRIX
+  sudo bash script/verify/livekit.sh "$PWD" LIVEKIT
+  sudo bash script/verify/wireguard.sh "$PWD" WIREGUARD

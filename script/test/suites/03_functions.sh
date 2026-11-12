@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : test/suites/03_functions.sh
+# File       : script/test/suites/03_functions.sh
 # Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
@@ -128,8 +128,8 @@ lower=$'port 2222\npermitrootlogin no\npasswordauthentication yes\n'
 [[ "$(printf '%s\n' "${lower}" | read_sshd_value permitrootlogin)" == "no" ]]
 grep -q 'get_sshd_value permitrootlogin' "${root}/service/ssh/configure.sh"
 grep -q 'get_sshd_value permitrootlogin' "${root}/../server/service/ssh/configure.sh"
-grep -q 'get_sshd_value allowtcpforwarding' "${root}/verify/workstation.sh"
-grep -q 'tolower($1)=="permitrootlogin"' "${root}/service/cron/boot-check.sh"
+grep -q 'get_sshd_value allowtcpforwarding' "${root}/script/verify/workstation.sh"
+grep -q 'tolower($1)=="permitrootlogin"' "${root}/script/boot-check.sh"
 if grep -RInE "awk '/\\^permitrootlogin " "${root}/service" "${root}/verify" "${root}/../server/service" >/dev/null 2>&1; then
     exit 1
 fi

@@ -343,3 +343,65 @@ apply_postfix() {
         postconf -e "${key} = ${value}"
     done < "$(locate_config_file postfix/main.keys)"
 }
+
+send_install_mail() {
+    local detail="" cred_file="" tpl=""
+    local about=""
+    if ! declare -F get_text >/dev/null 2>&1; then
+        # shellcheck disable=SC1091
+        source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
+        # shellcheck disable=SC1091
+        source "${INSTALL_DIRECTORY}/config/global.conf"
+    fi
+    DATE="$(date '+%Y-%m-%d %H:%M:%S')"
+    HOSTNAME="${HOSTNAME:-$(hostname -s 2>/dev/null || hostname)}"
+    case "${MODULE_NAME:-}" in
+        Aide) about="$(get_text log.integrity-of-the-files-watched-by-help-help-chec)" ;;
+        Chkrootkit) about="Recherche de rootkits (chkrootkit -x -q)." ;;
+        Rkhunter) about="$(get_text log.search-of-rootkits-and-files-changed-rkhunter-ch)" ;;
+        Clamav) about="$(get_text log.files-reported-by-clamav-quarantine-and-journals)" ;;
+        Auditd) about="$(get_text log.events-of-audit-abnormal-ausearch)" ;;
+        Debsums) about="$(get_text log.files-of-packages-whose-the-checksum-a-changed-d)" ;;
+        Fail2ban) about="$(get_text log.bans-fail2ban-of-the-derni-res-24-h)" ;;
+        Crowdsec) about="$(get_text log.decisions-and-alerts-crowdsec-of-the-derni-res-2)" ;;
+        Ufw) about="$(get_text log.packages-blocked-by-ufw)" ;;
+        "Matrix Credentials") about="$(get_text log.credentials-matrix-element-and-postgres-created)" ;;
+        "Keycloak Credentials") about="Identifiants Keycloak et client du portail." ;;
+        "Livekit Credentials") about="Identifiants LiveKit (SFU et service de jetons)." ;;
+        "Wireguard Credentials") about="Identifiants du VPN wg-easy." ;;
+        "Users Credentials") about="$(get_text log.account-ssh-and-key-created-to-the-installation)" ;;
+        "Nginx htpasswd") about="$(get_text log.password-of-the-zone-of-administration-nginx)" ;;
+        *) about="Message du module ${MODULE_NAME:-inconnu}." ;;
+    esac
+    detail="$(printf '%s' "${CONTENT:-}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+    if [[ -z "${detail}" ]]; then
+        echo "$(get_text watchdog.mail-not-sent-empty-body "${MODULE_NAME:-?}")" >&2
+        return 0
+    fi
+    CONTENT="${about}
+
+${detail}"
+    export TITLE PROJECT_NAME HOSTNAME DATE MODULE_NAME CONTENT
+    tpl="$(locate_mail_template "${INSTALL_DIRECTORY:-}")" || {
+        echo "$(get_text watchdog.mail-not-sent-template-html-not-found "${MODULE_NAME}")" >&2
+        return 0
+    }
+    if ! MAIL_CONTENT="$(render_mail "${tpl}")"; then
+        echo "$(get_text watchdog.mail-not-sent-template-html-invalid "${MODULE_NAME}")" >&2
+        return 0
+    fi
+    if [[ "${MAIL_ALERTS:-0}" != "1" ]]; then
+        cred_file="/root/liltress-credentials.txt"
+        umask 077
+        {
+            printf '\n----- %s — %s -----\n' "${DATE}" "${MODULE_NAME:-message}"
+            printf '%s\n' "${MAIL_CONTENT}"
+        } >> "${cred_file}"
+        chmod 600 "${cred_file}"
+        printf "$(get_text log.credentials-saved-in-s-n)" "${cred_file}"
+        return 0
+    fi
+    echo "${MAIL_CONTENT}" | mail -s "${OBJECT}" \
+        -a "Content-Type: text/html; charset=UTF-8" \
+        "${WATCHDOG_MAIL}"
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : system/collect-logs.sh
-# Updated at : 2026-11-05
+# File       : script/log-collect.sh
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -17,4 +17,5 @@ source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 
 require_root
+
 collect_manual

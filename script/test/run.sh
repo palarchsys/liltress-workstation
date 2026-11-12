@@ -1,14 +1,24 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : test/run.sh
-# Updated at : 2026-11-11
+# File       : script/test/run.sh
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
 set -euo pipefail
 
 T_TEST_DIRECTORY="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-T_ROOT="$(cd -- "${T_TEST_DIRECTORY}/.." && pwd)"
+T_ROOT="${T_TEST_DIRECTORY}"
+while [[ -n "${T_ROOT}" && "${T_ROOT}" != "/" ]]; do
+    if [[ -f "${T_ROOT}/config/global.conf" ]]; then
+        break
+    fi
+    T_ROOT="$(dirname -- "${T_ROOT}")"
+done
+if [[ ! -f "${T_ROOT}/config/global.conf" ]]; then
+    printf 'config/global.conf introuvable depuis %s\n' "${T_TEST_DIRECTORY}" >&2
+    exit 1
+fi
 
 PROFILE=""
 while [[ $# -gt 0 ]]; do

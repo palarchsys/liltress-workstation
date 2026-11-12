@@ -53,7 +53,7 @@ run_launch() {
             exec bash "${root}/core/run/lynis.sh" "${root}" "$@"
             ;;
         logs)
-            exec bash "${root}/system/collect-logs.sh" "$@"
+            exec bash "${root}/script/log-collect.sh" "$@"
             ;;
         vpn)
             if [[ -f "${root}/service/vpn/cli.sh" ]]; then
@@ -66,12 +66,12 @@ run_launch() {
         help|-h|--help)
             printf '%s\n' "$(get_text launch.usage "${root}")"
             extra=""
-            if [[ -f "${root}/verify/workstation.sh" ]]; then
+            if [[ -f "${root}/script/verify/workstation.sh" ]]; then
                 extra="$(get_text launch.usage.extra.workstation)"
                 if [[ "${extra}" == "launch.usage.extra.workstation" ]]; then
                     extra=""
                 fi
-            elif [[ -f "${root}/verify/matrix.sh" ]]; then
+            elif [[ -f "${root}/script/verify/matrix.sh" ]]; then
                 extra="$(get_text launch.usage.extra.server)"
                 if [[ "${extra}" == "launch.usage.extra.server" ]]; then
                     extra=""

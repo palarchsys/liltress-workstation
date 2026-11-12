@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : test/suites/01_bash_syntax.sh
+# File       : script/test/suites/01_bash_syntax.sh
 # Updated at : 2026-11-05
 # Creator    : palarchsys
 # =============================================================================
@@ -51,4 +51,5 @@ while IFS= read -r file; do
 done < <(find "${find_paths[@]}" \
     -name '*.sh' -type f \
     -not -path '*/test/output/*' \
+    -not -path '*/log/test/*' \
     -not -path '*/node_modules/*' | sort)

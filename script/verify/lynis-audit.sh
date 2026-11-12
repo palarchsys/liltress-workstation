@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : verify/lynis-audit.sh
+# File       : script/verify/lynis-audit.sh
 # Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================

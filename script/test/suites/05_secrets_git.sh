@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : test/suites/05_secrets_git.sh
+# File       : script/test/suites/05_secrets_git.sh
 # Updated at : 2026-10-28
 # Creator    : palarchsys
 # =============================================================================

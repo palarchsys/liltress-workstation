@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : test/suites/11_action_table.sh
+# File       : script/test/suites/11_action_table.sh
 # Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================

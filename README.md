@@ -16,7 +16,7 @@ It installs the local DNS resolver, the firewall, and the security checks.
 ```bash
 sudo apt-get update
 sudo apt-get install -y ca-certificates curl git swaks tar
-curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh | sudo bash
 ```
 
 ## Documentation

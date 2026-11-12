@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : test/suites/06_sql_contract.sh
+# File       : script/test/suites/06_sql_contract.sh
 # Updated at : 2026-10-28
 # Creator    : palarchsys
 # =============================================================================

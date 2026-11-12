@@ -182,8 +182,6 @@ if [[ ! -d /var/jeux ]]; then
     install -d -m 750 -o "${CURRENT_USER}" -g "${CURRENT_USER}" /var/jeux
 fi
 install -d -m 755 "${CONFIG_BASE_DIRECTORY}/bin"
-install -m 755 "${DIR_SCRIPT_PATH}/scan-skip.sh" "${CONFIG_BASE_DIRECTORY}/bin/scan-skip.sh"
-install -m 755 "${DIR_SCRIPT_PATH}/boot-check.sh" "${CONFIG_BASE_DIRECTORY}/bin/boot-check.sh"
 install -m 755 "$(readlink -f "${INSTALL_DIRECTORY}/core/quarantine/restore.sh")" \
     "${CONFIG_BASE_DIRECTORY}/bin/quarantine-restore.sh"
 install -m 755 "$(readlink -f "${INSTALL_DIRECTORY}/core/mail/mail-test.sh")" \

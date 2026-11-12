@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : verify/workstation.sh
+# File       : script/verify/workstation.sh
 # Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================

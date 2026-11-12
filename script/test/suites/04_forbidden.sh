@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : test/suites/04_forbidden.sh
+# File       : script/test/suites/04_forbidden.sh
 # Updated at : 2026-11-04
 # Creator    : palarchsys
 # =============================================================================

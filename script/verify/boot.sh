@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : verify/boot.sh
+# File       : script/verify/boot.sh
 # Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
@@ -38,4 +38,4 @@ if [[ "${EUID}" -ne 0 ]]; then
 fi
 
 here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-exec bash "${here}/../service/cron/boot-check.sh"
+exec bash "${here}/../boot-check.sh"

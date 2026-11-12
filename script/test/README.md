@@ -17,7 +17,7 @@ bash test/run.sh
 Chaque run crée un dossier horodaté :
 
 ```
-test/output/YYYYMMDD-HHMMSS/
+log/test/YYYYMMDD-HHMMSS/
   summary.md      ← lire ça en premier
   summary.json
   run.log

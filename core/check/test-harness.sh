@@ -74,7 +74,7 @@ t_check_envsubst_leftover() {
 t_begin() {
     local stamp
     stamp="$(date '+%Y%m%d-%H%M%S')"
-    T_OUTPUT="${T_TEST_DIRECTORY}/output/${stamp}"
+    T_OUTPUT="${T_ROOT}/log/test/${stamp}"
     ARTIFACTS="${T_OUTPUT}/artifacts"
     T_SUITE_DIRECTORY="${T_OUTPUT}/suites"
     RUN_LOG="${T_OUTPUT}/run.log"

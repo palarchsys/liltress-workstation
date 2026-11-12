@@ -282,7 +282,7 @@ Décisions et alertes CrowdSec des dernières 24 h.
 Paquets bloqués par UFW.
 
 [log.run-this-script-with-sudo-sudo-bash-verify-alert]
-Lancez ce script avec sudo : sudo bash verify/alerts.sh\n
+Lancez ce script avec sudo : sudo bash script/verify/alerts.sh\n
 
 [log.result-ok-n]
 Résultat : OK\n
@@ -480,7 +480,7 @@ Retrait du profil {1}
 rkhunter --update rc={1} (poursuivi) : {2}
 
 [log.run-this-script-with-sudo-sudo-bash-verify-chkro]
-Lancez ce script avec sudo : sudo bash verify/chkrootkit-fp.sh
+Lancez ce script avec sudo : sudo bash script/verify/chkrootkit-fp.sh
 
 [log.snapd]
 snapd
@@ -492,10 +492,10 @@ snapd installé
 démarrage : {1}
 
 [log.sudo-bash-bin-scan-skip-sh-add-chemin]
-       sudo bash {1}/bin/scan-skip.sh add /chemin
+       sudo bash {1}/script/scan-skip.sh add /chemin
 
 [log.sudo-bash-bin-scan-skip-sh-del-chemin]
-       sudo bash {1}/bin/scan-skip.sh del /chemin
+       sudo bash {1}/script/scan-skip.sh del /chemin
 
 [log.systemd-coredump-masked]
 systemd-coredump masqué
@@ -507,7 +507,7 @@ Le contrôle peut prendre plusieurs minutes.
 Le dernier upgrade peut réactiver systemd-coredump.
 
 [log.usage-sudo-bash-bin-scan-skip-sh-list]
-Usage : sudo bash {1}/bin/scan-skip.sh list
+Usage : sudo bash {1}/script/scan-skip.sh list
 
 [log.user]
 - user : {1}
