@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/copy-log.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@ collect_manual() {
     stamp="$(date '+%Y%m%d-%H%M%S')"
     name="snapshot-${stamp}-$(hostname -s 2>/dev/null || hostname)"
     SERVER_TYPE="${SERVER_TYPE:-manual}"
-    INSTALL_LOG_DIR="${root}/log/${name}"
+    INSTALL_LOG_DIR="${root}/log/install/${name}"
     LOG_SYS=""
     old_umask="$(umask)"
     umask 022

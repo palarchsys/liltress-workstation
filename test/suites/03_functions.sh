@@ -142,7 +142,7 @@ fi
 
 t_section "journaux dans logs/"
 if grep -q 'trap install_exit EXIT' "${T_ROOT}/script/run.sh" \
-   && grep -q 'INSTALL_LOG_DIR="${root}/log/${name}"' "${MONO}/share/core/log/install-log.sh" \
+   && grep -q 'INSTALL_LOG_DIR="${root}/log/install/${name}"' "${MONO}/share/core/log/install-log.sh" \
    && grep -F -q '[[ "${code}" -ne 0 ]]' "${MONO}/share/core/log/install-log.sh"; then
     t_pass "logs.wire" "le poste écrit dans logs/ et copie les logiciels seulement en échec"
 else
@@ -222,7 +222,7 @@ if PRODUCT_ROOT="${T_ROOT}" bash -c '
     OS_VERSION_ID="26.10"
     export OS_PRETTY OS_VERSION_ID
     init_install_log
-    [[ "${INSTALL_LOG_DIR}" == "${INSTALL_DIRECTORY}/log/install-"*"-workstation" ]]
+    [[ "${INSTALL_LOG_DIR}" == "${INSTALL_DIRECTORY}/log/install/install-"*"-workstation" ]]
     grep -Fqx "os          : Ubuntu 26.10" "${INSTALL_LOG_DIR}/meta.txt"
     grep -Fqx "os          : Ubuntu 26.10" "${INSTALL_LOG_DIR}/install.log"
     OS_PRETTY="Ubuntu 26.10"

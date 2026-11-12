@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : script/apply-config.sh
-# Updated at : 2026-11-11
+# File       : script/config/apply-config.sh
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -10,29 +10,9 @@
 # Note       : The script does not call run.sh.
 # -----------------------------------------------------------------------------
 
-fail_apply() {
-    printf '%s\n' "$1"
-    printf 'error\n'
-    exit 1
-}
-
-show_refusals() {
-    local line=""
-    if [[ ${#CONFIG_ERRORS[@]} -eq 0 ]]; then
-        return 0
-    fi
-    for line in "${CONFIG_ERRORS[@]}"; do
-        printf 'refus: %s\n' "${line}"
-    done
-}
-
-clear_mail() {
-    POSTFIX_SMTP_LOGIN=""
-    POSTFIX_MAIL_ADDRESS=""
-    POSTFIX_MAIL_PASSWORD=""
-    POSTFIX_MAIL_SMTP=""
-    WATCHDOG_MAIL=""
-}
+common="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
+# shellcheck disable=SC1090
+source "${common}"
 
 root="${1:-}"
 if [[ -z "${root}" || ! -d "${root}" ]]; then
@@ -49,8 +29,8 @@ asked_smtp="${POSTFIX_MAIL_SMTP:-}"
 asked_watchdog="${WATCHDOG_MAIL:-}"
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck disable=SC1091
-source "${script_dir}/config-check.sh"
+# shellcheck disable=SC1090
+source "${script_dir}/../config-check.sh"
 
 LANGUAGE="${asked_language}"
 MAIL_ALERTS="${asked_mail:-0}"

@@ -1,17 +1,24 @@
 #!/usr/bin/env bash
 # =============================================================================
-# File       : script/monitor-host.sh
-# Updated at : 2026-11-08
+# File       : script/host/monitor-host.sh
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
 # Purpose    : Print the host name, the OS id and whether the install directory exists.
-# Note       : The script does not change the machine.
+# Note       : The script does not change the machine. The directory comes from global.conf.
 # -----------------------------------------------------------------------------
 
 set -u
 
-install_dir="/opt/liltress-workstation"
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+product_root="$(cd -- "${script_dir}/../.." && pwd)"
+install_dir=""
+if [[ -f "${product_root}/config/global.conf" ]]; then
+    # shellcheck disable=SC1091
+    source "${product_root}/config/global.conf"
+    install_dir="${CONFIG_BASE_DIRECTORY:-}"
+fi
 
 read_host_name() {
     local name=""
@@ -39,7 +46,7 @@ read_os_field() {
 }
 
 read_install_state() {
-    if [[ -d "${install_dir}" ]]; then
+    if [[ -n "${install_dir}" && -d "${install_dir}" ]]; then
         printf 'present'
         return 0
     fi

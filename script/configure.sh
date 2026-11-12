@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/configure.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,6 +13,8 @@ DIR_SCRIPT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck disable=SC1091
 source "${DIR_SCRIPT}/script/config-check.sh"
 # shellcheck disable=SC1091
+source "${DIR_SCRIPT}/script/config/common.sh"
+# shellcheck disable=SC1091
 source "${DIR_SCRIPT}/core/boot/lib.sh"
 
 show_usage() {
@@ -20,7 +22,7 @@ show_usage() {
 }
 
 read_secret() {
-    local __out="$1"
+    local secret_target="$1"
     local char="" buf=""
     while true; do
         IFS= read -r -s -n 1 char || log_error        "${INSTALL_WATCHER}" "configure.input-interrupted"
@@ -38,7 +40,7 @@ read_secret() {
         buf+="${char}"
         printf '*' >&2
     done
-    printf -v "${__out}" '%s' "${buf}"
+    printf -v "${secret_target}" '%s' "${buf}"
 }
 
 print_field() {
@@ -61,19 +63,19 @@ write_secret_line() {
 }
 
 prompt() {
-    local __var="$1" __label="$2" __example="$3" __default="$4" __kind="$5" __hint="$6"
+    local field_name="$1" field_label="$2" field_example="$3" field_default="$4" field_kind="$5" field_hint="$6"
     local value="" confirm="" attempt current=""
-    current="${!__var:-}"
-    [[ -n "${current}" ]] && __default="${current}"
+    current="${!field_name:-}"
+    [[ -n "${current}" ]] && field_default="${current}"
     for attempt in 1 2 3; do
         if [[ "${SECTION_OPEN:-0}" != "1" ]]; then
             echo "" >&2
         fi
-        if [[ "${__kind}" == "pro_token" || "${__kind}" == "secret" ]]; then
-            write_secret_line "${__label}" value
+        if [[ "${field_kind}" == "pro_token" || "${field_kind}" == "secret" ]]; then
+            write_secret_line "${field_label}" value
             value="${value// /}"
-            if [[ -z "${value}" && -n "${__default}" ]]; then
-                value="${__default}"
+            if [[ -z "${value}" && -n "${field_default}" ]]; then
+                value="${field_default}"
             else
                 write_secret_line "Confirmation" confirm
                 confirm="${confirm// /}"
@@ -84,16 +86,16 @@ prompt() {
                 fi
             fi
         else
-            print_field "${__label}"
+            print_field "${field_label}"
             IFS= read -r value || log_error        "${INSTALL_WATCHER}" "configure.input-interrupted"
             value="${value#"${value%%[![:space:]]*}"}"
             value="${value%"${value##*[![:space:]]}"}"
-            if [[ -z "${value}" && -n "${__default}" ]]; then
-                value="${__default}"
+            if [[ -z "${value}" && -n "${field_default}" ]]; then
+                value="${field_default}"
             fi
         fi
         local ok=0
-        case "${__kind}" in
+        case "${field_kind}" in
             pro_token) check_pro_token "${value}" && ok=1 ;;
             email) check_email "${value}" && ok=1 ;;
             secret) check_app_password "${value}" && ok=1 ;;
@@ -101,13 +103,13 @@ prompt() {
             bool01) [[ "${value}" =~ ^[01]$ ]] && ok=1 ;;
         esac
         if [[ "${ok}" == "1" ]]; then
-            printf -v "${__var}" '%s' "${value}"
+            printf -v "${field_name}" '%s' "${value}"
             return 0
         fi
         echo ""
-        log_warn         "${INSTALL_WATCHER}" "configure.script.warn.2" "${__hint}"
+        log_warn         "${INSTALL_WATCHER}" "configure.script.warn.2" "${field_hint}"
     done
-    log_error        "${INSTALL_WATCHER}" "configure.three-attempts-without-an-accepted-answer-exampl" "${__label}" "${__example}"
+    log_error        "${INSTALL_WATCHER}" "configure.three-attempts-without-an-accepted-answer-exampl" "${field_label}" "${field_example}"
 }
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
@@ -147,11 +149,11 @@ asked_language="${LANGUAGE}"
 
 set_config_default
 
-_saved_dir_set=0
-_saved_dir=""
+saved_dir_set=0
+saved_dir=""
 if [[ -n "${INSTALL_DIRECTORY+x}" ]]; then
-    _saved_dir_set=1
-    _saved_dir="${INSTALL_DIRECTORY}"
+    saved_dir_set=1
+    saved_dir="${INSTALL_DIRECTORY}"
     unset INSTALL_DIRECTORY || true
 fi
 if [[ -f "${DIR_SCRIPT}/config/global.conf" ]]; then
@@ -166,10 +168,10 @@ if [[ -f "${DIR_SCRIPT}/config/user.conf" ]]; then
     source "${DIR_SCRIPT}/config/user.conf"
     set -u
 fi
-if [[ "${_saved_dir_set}" == "1" ]]; then
-    INSTALL_DIRECTORY="${_saved_dir}"
+if [[ "${saved_dir_set}" == "1" ]]; then
+    INSTALL_DIRECTORY="${saved_dir}"
 fi
-unset _saved_dir _saved_dir_set
+unset saved_dir saved_dir_set
 LANGUAGE="${asked_language}"
 export LANGUAGE
 TEXT_READY=0
@@ -196,14 +198,6 @@ prompt UBUNTU_PRO_TOKEN \
     "Lettres et chiffres seulement, entre 6 et 100, sans espace."
 log_success      "${INSTALL_WATCHER}" "configure.ubuntu-pro-accepted"
 close_step_tree
-
-clear_mail() {
-    POSTFIX_SMTP_LOGIN=""
-    POSTFIX_MAIL_ADDRESS=""
-    POSTFIX_MAIL_PASSWORD=""
-    POSTFIX_MAIL_SMTP=""
-    WATCHDOG_MAIL=""
-}
 
 check_smtp_probe() {
     local out="" rc=0 safe=""
