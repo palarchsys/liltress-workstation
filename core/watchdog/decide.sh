@@ -89,7 +89,7 @@ check_watchdog_phase() {
     action_json="${here}/../../config/alert/action.json"
     WATCHDOG_STATUS="$(
         WATCHDOG_EXCLUDES="${excludes}" \
-        python3 "${here}/decide.py" "${phase}" "${log_dir}" "${since}" "${repair_file}" "${catalog}" "${apt_history}" "${dpkg_log}" "${state_dir}" "${action_json}"
+        python3 "${here}/../../python/alert-decide.py" "${phase}" "${log_dir}" "${since}" "${repair_file}" "${catalog}" "${apt_history}" "${dpkg_log}" "${state_dir}" "${action_json}"
     )" || WATCHDOG_STATUS="real"
     export WATCHDOG_STATUS
     printf '%s\n' "${WATCHDOG_STATUS}"

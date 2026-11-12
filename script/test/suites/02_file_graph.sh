@@ -5,22 +5,28 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
+locate_python_dir() {
+    local dir hops=0
+    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
+        if [[ -d "${dir}/share/python" ]]; then
+            printf '%s\n' "${dir}/share/python"
+            return 0
+        fi
+        if [[ -d "${dir}/python" ]]; then
+            printf '%s\n' "${dir}/python"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+    printf '%s\n' "dossier python introuvable" >&2
+    return 1
+}
+
 t_get_plan_pos() {
-    python3 - "${T_ROOT}/config/schema/installation.json" "$1" << 'PY'
-import json
-import sys
-data = json.load(open(sys.argv[1], encoding="utf-8"))
-needle = sys.argv[2]
-index = 0
-for category in data["categories"]:
-    for step in category["steps"]:
-        index += 1
-        blob = json.dumps(step, ensure_ascii=False)
-        if needle in blob:
-            print(index)
-            raise SystemExit(0)
-raise SystemExit(1)
-PY
+    python3 "$(locate_python_dir)/install-plan.py" index "${T_ROOT}/config/schema/installation.json" "$1"
 }
 
 t_section "étapes de run.sh"
@@ -31,17 +37,7 @@ while IFS= read -r step; do
     else
         t_fail "graph:${step}" "introuvable"
     fi
-done < <(python3 - "${T_ROOT}/config/schema/installation.json" << 'PY'
-import json, sys
-data = json.load(open(sys.argv[1], encoding="utf-8"))
-seen = []
-for category in data["categories"]:
-    for step in category["steps"]:
-        path = step.get("path")
-        if path and path not in seen:
-            seen.append(path)
-            print(path)
-PY
+done < <(python3 "$(locate_python_dir)/install-plan.py" paths "${T_ROOT}/config/schema/installation.json"
 )
 
 t_section "désinstallations avant system/install"
@@ -146,8 +142,8 @@ save_line="$(grep -n 'record-mirrors.sh" save' "${rk}" | head -1 | cut -d: -f1)"
 if [[ -x "${T_ROOT}/service/cron/watchdogs/record-mirrors.sh" ]] \
    && [[ -n "${check_line}" && -n "${update_line}" && -n "${save_line}" ]] \
    && [[ "${check_line}" -lt "${update_line}" && "${update_line}" -lt "${save_line}" ]] \
-   && grep -q 'rkhunter-mirrors.sha256' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
-   && grep -q 'perl-base/unicore' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
+   && grep -q 'rkhunter-mirrors.sha256' "${T_ROOT}/../share/python/debsums-filter.py" \
+   && grep -q 'perl-base/unicore' "${T_ROOT}/../share/python/debsums-filter.py" \
    && grep -q 'record-mirrors.sh" save' "${T_ROOT}/service/rkhunter/init-db.sh" \
    && [[ ! -e "${T_ROOT}/service/cron/watchdogs/debsums.ignore" ]]; then
     t_pass "graph.debsums.mirrors" "empreinte après --update, le fichier n'est pas ignoré"
@@ -184,7 +180,7 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -qF "printf '%s\\n' / /home /opt /tmp /etc /usr /var /boot /root" "${skip_lib}" \
    && grep -q '# home=' "${skip_tpl}" \
    && grep -qF '/var/jeux/*' "${skip_lib}" \
-   && grep -q 'BEGIN Liltress Workstation scan-skip' "${skip_apply}" \
+   && grep -q 'BEGIN Liltress Workstation scan-skip' "${T_ROOT}/../share/python/scan-skip-apply.py" \
    && grep -q 'OnAccessExcludePath' "${skip_apply}" \
    && grep -q 'systemctl restart clamav-daemon' "${skip_apply}" \
    && grep -q 'clamav-clamonacc.service' "${skip_apply}" \
@@ -223,10 +219,10 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -q 'rkhunter warnings' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'chkrootkit a produit une sortie' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'reset_debsums_log' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
-   && grep -q '"apt-get", "clean"' "${T_ROOT}/../share/core/watchdog/debsums.sh" \
-   && grep -q 'Dir::Cache::archives' "${T_ROOT}/../share/core/watchdog/debsums.sh" \
-   && grep -q '"install", "--reinstall", "-y", "--", pkg' "${T_ROOT}/../share/core/watchdog/debsums.sh" \
-   && grep -q '/var/cache/apt/archives' "${T_ROOT}/../share/core/watchdog/debsums.sh" \
+   && grep -q '"apt-get", "clean"' "${T_ROOT}/../share/python/debsums-reset.py" \
+   && grep -q 'Dir::Cache::archives' "${T_ROOT}/../share/python/debsums-reset.py" \
+   && grep -q '"install", "--reinstall", "-y", "--", pkg' "${T_ROOT}/../share/python/debsums-reset.py" \
+   && grep -q '/var/cache/apt/archives' "${T_ROOT}/../share/python/debsums-reset.py" \
    && grep -q 'RKHUNTER_REFRESH=1' "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
    && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/../share/core/watchdog/remedy.sh" \
    && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/service/rkhunter/configure.sh" \
@@ -495,7 +491,7 @@ grep -q '03:\*:\*' "${usb}" || daily_ok=0
 if grep -q 'usb-storage' "${usb}"; then
     daily_ok=0
 fi
-grep -q 'authorized_keys' "${T_ROOT}/service/aide/configure.sh" || daily_ok=0
+grep -q 'authorized_keys' "${T_ROOT}/../share/python/aide-home.py" || daily_ok=0
 grep -q '!/home/' "${T_ROOT}/config/aide/aide.conf" || daily_ok=0
 awk '
     $1 == "/etc" { etc = NR }
@@ -513,7 +509,7 @@ awk '
     /out\.extend/ { ext = NR }
     /path\.write_text/ { wr = NR }
     END { exit !(ext && wr && wr > ext) }
-' "${T_ROOT}/service/aide/configure.sh" || daily_ok=0
+' "${T_ROOT}/../share/python/aide-home.py" || daily_ok=0
 grep -q 'w-reboot-notice.timer' "${T_ROOT}/service/cron/configure.sh" || daily_ok=0
 grep -q 'scope global' "${T_ROOT}/service/ufw/configure.sh" || daily_ok=0
 grep -q 'SSH LAN' "${ufw_policy}" || daily_ok=0
@@ -643,12 +639,7 @@ done
 if grep -qF 'rclone.conf' "${T_ROOT}/README.md"; then
     alerts_ok=0
 fi
-if python3 - "${T_ROOT}/config/schema/installation.json" << 'PY'
-import json, sys
-data = json.load(open(sys.argv[1], encoding="utf-8"))
-hits = [step for category in data["categories"] for step in category["steps"] if step.get("path") == "service/rclone/install.sh"]
-sys.exit(0 if hits else 1)
-PY
+if python3 "$(locate_python_dir)/install-plan.py" has-path "${T_ROOT}/config/schema/installation.json"
 then
     alerts_ok=0
 fi
@@ -727,7 +718,7 @@ grep -q 'add_onaccess_directory /opt' "${root}/service/clamav/configure.sh"
 ! grep -q 'OnAccessIncludePath /' "${root}/service/clamav/configure.sh"
 ! grep -q 'OnAccessExcludePath' "${root}/service/clamav/configure.sh"
 grep -q 'ONACCESS_FIXED_EXCLUDE' "${root}/service/cron/watchdogs/apply-scan-skip.sh"
-grep -q 're.escape' "${root}/service/cron/watchdogs/apply-scan-skip.sh"
+grep -q 're.escape' "${root}/../share/python/scan-skip-apply.py"
 grep -q 'BASE}/src' "${root}/service/cron/watchdogs/apply-scan-skip.sh"
 grep -qF 'sub(/^\^/' "${root}/service/cron/watchdogs/clamav.sh"
 grep -q 'mktemp -p /run/liltress-workstation' "${root}/service/cron/watchdogs/clamav.sh"

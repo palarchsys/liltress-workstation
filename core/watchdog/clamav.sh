@@ -6,39 +6,28 @@
 # =============================================================================
 
 
-get_clamav_kind() {
-    python3 - "${1:-}" << 'PY'
-import re
-import sys
-from pathlib import Path
+locate_python_dir() {
+    local dir hops=0
+    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
+        if [[ -d "${dir}/share/python" ]]; then
+            printf '%s\n' "${dir}/share/python"
+            return 0
+        fi
+        if [[ -d "${dir}/python" ]]; then
+            printf '%s\n' "${dir}/python"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+    printf '%s\n' "dossier python introuvable" >&2
+    return 1
+}
 
-path = Path(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1] else None
-text = path.read_text(errors="replace") if path and path.is_file() else ""
-if re.search(r" FOUND$", text, re.M):
-    sys.stdout.write("infected")
-    raise SystemExit(0)
-access = re.compile(
-    r"Access denied|Can't access|Can't open file|Permission denied|No such file",
-    re.I,
-)
-summary = re.compile(
-    r"Known viruses:|Infected files:|Engine version:|Scanned directories:|"
-    r"Scanned files:|Data scanned:|Data read:|^Time:|Start Date:|End Date:"
-)
-real = False
-for raw in text.splitlines():
-    line = raw.strip()
-    if not line or summary.search(line) or access.search(line):
-        continue
-    if line.startswith("-----------") or re.match(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T", line):
-        continue
-    if re.search(r"ERROR:|LibClamAV", line):
-        real = True
-if real:
-    sys.stdout.write("error")
-else:
-    sys.stdout.write("ok")
-PY
+
+get_clamav_kind() {
+    python3 "$(locate_python_dir)/clamav-kind.py" "${1:-}"
 }
 
 invoke_clamav() {

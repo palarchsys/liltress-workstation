@@ -5,6 +5,26 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
+locate_python_dir() {
+    local dir hops=0
+    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
+        if [[ -d "${dir}/share/python" ]]; then
+            printf '%s\n' "${dir}/share/python"
+            return 0
+        fi
+        if [[ -d "${dir}/python" ]]; then
+            printf '%s\n' "${dir}/python"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+    printf '%s\n' "dossier python introuvable" >&2
+    return 1
+}
+
 t_section "vpn"
 
 vpn_dir="${T_ROOT}/service/vpn"
@@ -35,28 +55,7 @@ else
     t_fail "vpn.launch" "branche absente"
 fi
 
-if python3 - "${T_ROOT}/config/schema/installation.json" > "${ARTIFACTS}/vpn-order.txt" 2>&1 << 'PY'
-import json
-import sys
-from pathlib import Path
-
-data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-paths = []
-for category in data["categories"]:
-    if category["id"] != "install.security.title":
-        continue
-    for step in category["steps"]:
-        paths.append(step["path"])
-unbound = paths.index("service/unbound/install.sh")
-vpn = paths.index("service/vpn/install.sh")
-apparmor = paths.index("service/apparmor/install.sh")
-ufw = paths.index("service/ufw/configure.sh")
-configure = paths.index("service/vpn/configure.sh")
-if vpn != unbound + 1 or apparmor != vpn + 1:
-    sys.exit("install hors place")
-if configure != ufw + 1:
-    sys.exit("configure hors place")
-PY
+if python3 "$(locate_python_dir)/install-plan.py" vpn-order "${T_ROOT}/config/schema/installation.json" > "${ARTIFACTS}/vpn-order.txt" 2>&1
 then
     t_pass "vpn.order" "installation.json"
 else
@@ -70,24 +69,7 @@ else
     t_pass "vpn.forbid" "mots absents"
 fi
 
-if python3 - "${cfg_dir}/vpn.conf" "${T_ROOT}/service/ufw/egress.sh" "${vpn_dir}/lib.sh" > "${ARTIFACTS}/vpn-prio.txt" 2>&1 << 'PY'
-import re
-import sys
-from pathlib import Path
-
-conf = Path(sys.argv[1]).read_text(encoding="utf-8")
-egress = Path(sys.argv[2]).read_text(encoding="utf-8")
-lib = Path(sys.argv[3]).read_text(encoding="utf-8")
-found = re.search(r"^VPN_FW_PRIORITY=(-?\d+)\s*$", conf, re.M)
-if not found or found.group(1) != "-150":
-    sys.exit("priorité absente")
-if not re.search(r"priority 0", egress):
-    sys.exit("priorité egress absente")
-if "-150" not in lib:
-    sys.exit("priorité absente du script")
-if int(found.group(1)) >= 0:
-    sys.exit("priorité non négative")
-PY
+if python3 "$(locate_python_dir)/check-vpn-priority.py" "${cfg_dir}/vpn.conf" "${T_ROOT}/service/ufw/egress.sh" "${vpn_dir}/lib.sh" > "${ARTIFACTS}/vpn-prio.txt" 2>&1
 then
     t_pass "vpn.priority" "-150"
 else
@@ -158,32 +140,7 @@ else
     t_pass "vpn.profiles" "aucun profil versionné"
 fi
 
-if python3 - "${T_ROOT}/../share/locale" > "${ARTIFACTS}/vpn-keys.txt" 2>&1 << 'PY'
-import re
-import sys
-from pathlib import Path
-
-key_re = re.compile(r"^\[(vpn\.[a-z0-9-]+(?:\.[a-z0-9-]+)*)\]$")
-
-def bag(root, lang):
-    found = set()
-    folder = Path(root) / lang
-    for path in folder.glob("*.txt"):
-        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
-            match = key_re.match(line)
-            if match and match.group(1).startswith("vpn."):
-                found.add(match.group(1))
-    return found
-
-locale = Path(sys.argv[1])
-base = bag(locale, "en")
-if not base:
-    sys.exit("aucune clé")
-for lang in ("en", "fr", "de", "es"):
-    found = bag(locale, lang)
-    if found != base:
-        sys.exit(f"{lang} missing={sorted(base-found)[:6]} extra={sorted(found-base)[:6]}")
-PY
+if python3 "$(locate_python_dir)/check-locale.py" vpn "${T_ROOT}/../share/locale" > "${ARTIFACTS}/vpn-keys.txt" 2>&1
 then
     t_pass "vpn.keys" "quatre langues"
 else

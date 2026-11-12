@@ -395,21 +395,7 @@ elif check_ubuntu_pro; then
                     report_warn "${svc_name} non activé (état : ${svc_status:-inconnu}${svc_detail:+ : ${svc_detail}})"
                     ;;
             esac
-        done < <(pro status --format json 2>/dev/null | python3 -c '
-import json, sys
-data = json.load(sys.stdin)
-wanted = ("esm-infra", "esm-apps", "livepatch")
-for svc in data.get("services") or []:
-    name = svc.get("name")
-    if name not in wanted:
-        continue
-    detail = svc.get("status_details") or ""
-    warning = svc.get("warning") or {}
-    if isinstance(warning, dict) and warning.get("message"):
-        detail = warning["message"]
-    detail = detail.replace("\t", " ").replace("\n", " ")
-    print("%s\t%s\t%s" % (name, svc.get("status") or "", detail))
-')
+        done < <(pro status --format json 2>/dev/null | python3 "$(locate_python_dir)/pro-status.py")
         for svc in esm-infra esm-apps livepatch; do
             case " ${seen} " in
                 *" ${svc} "*) ;;

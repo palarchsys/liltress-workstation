@@ -5,6 +5,26 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
+locate_python_dir() {
+    local dir hops=0
+    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
+        if [[ -d "${dir}/share/python" ]]; then
+            printf '%s\n' "${dir}/share/python"
+            return 0
+        fi
+        if [[ -d "${dir}/python" ]]; then
+            printf '%s\n' "${dir}/python"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+    printf '%s\n' "dossier python introuvable" >&2
+    return 1
+}
+
 t_get_timestamp() { date '+%Y-%m-%d %H:%M:%S'; }
 
 t_log() {
@@ -187,30 +207,7 @@ t_finish() {
         echo "$(get_text log.configs-sandbox-artifacts)"
     } > "${T_OUTPUT}/summary.md"
 
-    python3 - "${T_OUTPUT}/summary.json" "${TOTAL_PASS}" "${TOTAL_FAIL}" "${TOTAL_WARN}" "${TOTAL_SKIP}" "${PROFILE}" "${T_RESULT_TSV}" << 'PY'
-import json, sys
-out, p, f, w, s, profile, tsv = sys.argv[1:8]
-items = []
-with open(tsv, encoding="utf-8") as fh:
-    for line in fh:
-        line = line.rstrip("\n")
-        if not line:
-            continue
-        status, ident, msg = line.split("\t", 2)
-        items.append({"status": status, "id": ident, "message": msg})
-payload = {
-    "profile": profile,
-    "pass": int(p),
-    "fail": int(f),
-    "warn": int(w),
-    "skip": int(s),
-    "ok": int(f) == 0,
-    "results": items,
-}
-with open(out, "w", encoding="utf-8") as fh:
-    json.dump(payload, fh, indent=2, ensure_ascii=False)
-    fh.write("\n")
-PY
+    python3 "$(locate_python_dir)/test-summary.py" "${T_OUTPUT}/summary.json" "${TOTAL_PASS}" "${TOTAL_FAIL}" "${TOTAL_WARN}" "${TOTAL_SKIP}" "${PROFILE}" "${T_RESULT_TSV}"
 
     t_log ""
     t_log "════════════════════════════════════════════════════════════════"

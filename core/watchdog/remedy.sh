@@ -5,6 +5,26 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
+locate_python_dir() {
+    local dir hops=0
+    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
+        if [[ -d "${dir}/share/python" ]]; then
+            printf '%s\n' "${dir}/share/python"
+            return 0
+        fi
+        if [[ -d "${dir}/python" ]]; then
+            printf '%s\n' "${dir}/python"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+    printf '%s\n' "dossier python introuvable" >&2
+    return 1
+}
+
 # -----------------------------------------------------------------------------
 # Purpose    : Quarantine a real finding and reinstall the package that owns it.
 # Note       : A baseline is refreshed only after the repair of that tool succeeded.
@@ -17,21 +37,7 @@ watchdog_case_actions() {
     local catalog=""
     catalog="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../config/alert/action.json"
     [[ -f "${catalog}" ]] || return 0
-    python3 - "${catalog}" "${tool}" "${class_id}" "${branch}" << 'PY'
-import json, sys
-path, tool, class_id, branch = sys.argv[1:]
-data = json.loads(open(path, encoding="utf-8").read())
-for dog in data.get("watchdogs", []):
-    if dog.get("name") != tool:
-        continue
-    for case in dog.get("cases", []):
-        if case.get("id") != class_id:
-            continue
-        for action in case.get(branch, []):
-            print(action)
-        sys.exit(0)
-sys.exit(0)
-PY
+    python3 "$(locate_python_dir)/alert-remedy.py" "${catalog}" "${tool}" "${class_id}" "${branch}"
 }
 
 watchdog_case_has() {

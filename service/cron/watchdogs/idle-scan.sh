@@ -5,6 +5,26 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
+locate_python_dir() {
+    local dir hops=0
+    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
+        if [[ -d "${dir}/share/python" ]]; then
+            printf '%s\n' "${dir}/share/python"
+            return 0
+        fi
+        if [[ -d "${dir}/python" ]]; then
+            printf '%s\n' "${dir}/python"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+    printf '%s\n' "dossier python introuvable" >&2
+    return 1
+}
+
 set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -99,34 +119,7 @@ if [[ "${kind}" == "error" ]]; then
 fi
 if [[ "${kind}" == "infected" ]]; then
     fresh_list="$(mktemp -p /run/liltress-workstation)"
-    python3 - "${LOG_FILE}" "${seen}" > "${fresh_list}" << 'PY'
-import sys
-from pathlib import Path
-
-log = Path(sys.argv[1]).read_text(errors="replace").splitlines()
-seen_path = Path(sys.argv[2])
-known = set()
-if seen_path.is_file():
-    known = {line for line in seen_path.read_text(errors="replace").splitlines() if line}
-fresh = []
-for line in log:
-    if not line.endswith(" FOUND"):
-        continue
-    body = line[:-6]
-    if ": " not in body:
-        continue
-    path, sig = body.rsplit(": ", 1)
-    key = sig + "\t" + path
-    if key in known or key in fresh:
-        continue
-    fresh.append(key)
-if fresh:
-    with seen_path.open("a", encoding="utf-8") as handle:
-        for key in fresh:
-            handle.write(key + "\n")
-    for key in fresh:
-        print(key)
-PY
+    python3 "$(locate_python_dir)/clamav-fresh.py" "${LOG_FILE}" "${seen}" > "${fresh_list}"
     chmod 600 "${seen}" 2>/dev/null || true
     new_count=0
     if [[ -s "${fresh_list}" ]]; then

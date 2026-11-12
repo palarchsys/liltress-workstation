@@ -5,6 +5,26 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
+locate_python_dir() {
+    local dir hops=0
+    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
+        if [[ -d "${dir}/share/python" ]]; then
+            printf '%s\n' "${dir}/share/python"
+            return 0
+        fi
+        if [[ -d "${dir}/python" ]]; then
+            printf '%s\n' "${dir}/python"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+    printf '%s\n' "dossier python introuvable" >&2
+    return 1
+}
+
 set -euo pipefail
 _text_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 _text_hops=0
@@ -108,25 +128,7 @@ else
         printf '%s\n' "$(get_text log.path-absent-of-the-list "${norm}")" >&2
         exit 1
     fi
-    python3 - "${SCAN_SKIP_FILE}" "${norm}" << 'PY'
-import sys
-from pathlib import Path
-
-dest = Path(sys.argv[1])
-target = sys.argv[2]
-kept = []
-for raw in dest.read_text(errors="replace").splitlines():
-    line = raw.strip()
-    if line == target:
-        continue
-    kept.append(raw)
-text = "\n".join(kept)
-if text and not text.endswith("\n"):
-    text += "\n"
-if not text.endswith("\n"):
-    text += "\n"
-dest.write_text(text)
-PY
+    python3 "$(locate_python_dir)/scan-skip-path.py" edit "${SCAN_SKIP_FILE}" "${norm}"
     printf "$(get_text log.path-removed "${norm}")"
 fi
 

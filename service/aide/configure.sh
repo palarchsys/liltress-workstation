@@ -5,6 +5,26 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
+locate_python_dir() {
+    local dir hops=0
+    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
+        if [[ -d "${dir}/share/python" ]]; then
+            printf '%s\n' "${dir}/share/python"
+            return 0
+        fi
+        if [[ -d "${dir}/python" ]]; then
+            printf '%s\n' "${dir}/python"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+    printf '%s\n' "dossier python introuvable" >&2
+    return 1
+}
+
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -21,43 +41,7 @@ log_info         "${INSTALL_WATCHER}" "configure.configuration-of-help-2"
 ensure_directory /etc/aide 755
 ensure_directory /var/lib/aide 700
 sed "s|__HF_BASE__|${CONFIG_BASE_DIRECTORY}|g" "$(locate_config_file aide/aide.conf)" > /etc/aide/aide.conf
-python3 - /etc/aide/aide.conf "${CURRENT_HOME}" << 'PY'
-import sys
-from pathlib import Path
-path, home = Path(sys.argv[1]), sys.argv[2].rstrip("/")
-text = path.read_text()
-begin = "# BEGIN Liltress Workstation account"
-end = "# END Liltress Workstation account"
-old_begin = "# BEGIN High-Fortress User account"
-old_end = "# END High-Fortress User account"
-lines = text.splitlines()
-out = []
-skip = False
-for line in lines:
-    if line.strip() in (begin, old_begin):
-        skip = True
-        continue
-    if line.strip() in (end, old_end):
-        skip = False
-        continue
-    if not skip:
-        out.append(line)
-names = [
-    f"{home}/.ssh/authorized_keys",
-    f"{home}/.bashrc",
-    f"{home}/.profile",
-    f"{home}/.bash_profile",
-    f"{home}/.config/autostart",
-    f"{home}/.config/systemd/user",
-]
-block = [begin]
-block.extend(f"{name} All" for name in names)
-block.append(f"!{home}/.ssh/known_hosts")
-block.append(f"!{home}/.ssh/known_hosts.old")
-block.append(end)
-out.extend(block)
-path.write_text("\n".join(out) + "\n")
-PY
+python3 "$(locate_python_dir)/aide-home.py" workstation /etc/aide/aide.conf "${CURRENT_HOME}"
 install -d -m 755 "${CONFIG_BASE_DIRECTORY}/bin"
 install -m 755 "${DIR_SCRIPT_PATH}/refresh-db.sh" "${CONFIG_BASE_DIRECTORY}/bin/aide-refresh-db.sh"
 log_success      "${INSTALL_WATCHER}" "configure.help-conf-installed"

@@ -6,6 +6,26 @@
 # =============================================================================
 
 
+locate_python_dir() {
+    local dir hops=0
+    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
+        if [[ -d "${dir}/share/python" ]]; then
+            printf '%s\n' "${dir}/share/python"
+            return 0
+        fi
+        if [[ -d "${dir}/python" ]]; then
+            printf '%s\n' "${dir}/python"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+    printf '%s\n' "dossier python introuvable" >&2
+    return 1
+}
+
+
 record_quarantine_origin() {
     local source="$1"
     local origin="$2"
@@ -207,34 +227,7 @@ record_quarantine_log() {
         phrase="$(signal_quarantine_holder "${path}" "${MOVE_STORED}" "$@")"
         printf '%s\n' "$(get_text watchdog.moved-in-quarantine-quarantine "${path}" "${phrase}" "${MOVE_STORED}")"
         MOVED_COUNT=$((MOVED_COUNT + 1))
-    done < <(python3 - "${source}" "${log}" << 'PY'
-import re
-import sys
-from pathlib import Path
-
-source = sys.argv[1]
-log_path = Path(sys.argv[2])
-text = log_path.read_text(errors="replace") if log_path.is_file() else ""
-path_re = re.compile(r"(/[^\s<>|,;]+)")
-seen = []
-for raw in text.splitlines():
-    line = raw.rstrip()
-    if source == "rkhunter":
-        if "Rootkit Hunter" in line:
-            hit = "INFECTED" in line
-        else:
-            hit = ("INFECTED" in line) or ("Rootkit" in line)
-    else:
-        hit = "INFECTED" in line
-    if not hit:
-        continue
-    for match in path_re.findall(line):
-        path = match.rstrip(".,:)")
-        if path not in seen:
-            seen.append(path)
-if seen:
-    sys.stdout.write("\n".join(seen) + "\n")
-PY
+    done < <(python3 "$(locate_python_dir)/alert-quarantine.py" "${source}" "${log}"
     )
     return 0
 }

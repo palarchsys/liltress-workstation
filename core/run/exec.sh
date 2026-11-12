@@ -5,6 +5,26 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
+locate_python_dir() {
+    local dir hops=0
+    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
+        if [[ -d "${dir}/share/python" ]]; then
+            printf '%s\n' "${dir}/share/python"
+            return 0
+        fi
+        if [[ -d "${dir}/python" ]]; then
+            printf '%s\n' "${dir}/python"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+    printf '%s\n' "dossier python introuvable" >&2
+    return 1
+}
+
 run_watch() {
     local watcher="$1"
     local error_key="$2"
@@ -232,36 +252,7 @@ run_install_plan() {
                     ;;
             esac
         fi
-    done < <(python3 - "${plan}" << 'PY'
-import json
-import sys
-
-allowed = {
-    "MAIL_ALERTS",
-    "SERVER_TYPE",
-    "MODE_TEST",
-    "MODE_DEV",
-}
-env_allowed = set()
-plan = json.load(open(sys.argv[1], encoding="utf-8"))
-for category in plan["categories"]:
-    for step in category["steps"]:
-        when = step.get("when") or {}
-        var = when.get("var", "")
-        eq = str(when.get("eq", ""))
-        if var and var not in allowed:
-            sys.exit("condition refusée : " + var)
-        env = step.get("env") or {}
-        for key in env:
-            if key not in env_allowed:
-                sys.exit("environnement refusé : " + key)
-        envspec = ",".join(f"{key}={env[key]}" for key in env)
-        if "path" in step:
-            kind, target = "path", step["path"]
-        else:
-            kind, target = "action", step["action"]
-        print("\x1f".join([category["id"], step["id"], kind, target, var, eq, envspec]))
-PY
+    done < <(python3 "$(locate_python_dir)/install-plan.py" steps "${plan}"
     )
 }
 

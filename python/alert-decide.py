@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =============================================================================
-# File       : core/watchdog/decide.py
+# File       : python/alert-decide.py
 # Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================

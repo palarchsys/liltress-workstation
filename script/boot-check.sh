@@ -5,6 +5,26 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
+locate_python_dir() {
+    local dir hops=0
+    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
+        if [[ -d "${dir}/share/python" ]]; then
+            printf '%s\n' "${dir}/share/python"
+            return 0
+        fi
+        if [[ -d "${dir}/python" ]]; then
+            printf '%s\n' "${dir}/python"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+    printf '%s\n' "dossier python introuvable" >&2
+    return 1
+}
+
 set -u
 BASE="${BASE:-/opt/liltress-workstation}"
 if [[ -f "${BASE}/bin/log.sh" ]]; then
@@ -44,18 +64,7 @@ record_boot_mark() {
 }
 
 get_millisecond() {
-    python3 - "$1" << 'PY'
-import sys
-s = sys.argv[1].strip()
-if s.endswith("ms"):
-    print(int(round(float(s[:-2]))))
-elif s.endswith("us"):
-    print(int(round(float(s[:-2]) / 1000.0)))
-elif s.endswith("s") and s != "infinity":
-    print(int(round(float(s[:-1]) * 1000.0)))
-else:
-    print(0)
-PY
+    python3 "$(locate_python_dir)/boot-duration.py" "$1"
 }
 
 nproc_n="$(nproc)"

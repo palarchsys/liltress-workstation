@@ -5,6 +5,26 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
+locate_python_dir() {
+    local dir hops=0
+    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
+        if [[ -d "${dir}/share/python" ]]; then
+            printf '%s\n' "${dir}/share/python"
+            return 0
+        fi
+        if [[ -d "${dir}/python" ]]; then
+            printf '%s\n' "${dir}/python"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+    printf '%s\n' "dossier python introuvable" >&2
+    return 1
+}
+
 set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
@@ -48,55 +68,7 @@ if [[ "${rc}" -ge 128 ]]; then
     crashed=1
 fi
 if [[ -f "${IGNORE}" || -f "${LOCAL_IGNORE}" ]]; then
-    python3 - "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}" << 'PY'
-import re
-import sys
-from pathlib import Path
-
-log_path = sys.argv[1]
-patterns = []
-for ignore_path in sys.argv[2:]:
-    path = Path(ignore_path)
-    if not path.is_file():
-        continue
-    for raw in path.read_text(errors="replace").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        try:
-            patterns.append(re.compile(line))
-        except re.error:
-            continue
-
-def ignored(line):
-    return any(p.search(line) for p in patterns)
-
-kept = [line for line in Path(log_path).read_text(errors="replace").splitlines() if line.strip() and not ignored(line)]
-headers = {
-    "WARNING: The following suspicious files and directories were found:",
-    "WARNING: Possible Linux BPFDoor Malware installed:",
-    "WARNING: output from chkwtmp:",
-    "WARNING: Output from ifpromisc:",
-}
-out = []
-i = 0
-while i < len(kept):
-    line = kept[i]
-    if line in headers:
-        body = []
-        j = i + 1
-        while j < len(kept) and kept[j] not in headers and not kept[j].startswith("Checking "):
-            body.append(kept[j])
-            j += 1
-        if body:
-            out.append(line)
-            out.extend(body)
-        i = j
-        continue
-    out.append(line)
-    i += 1
-Path(log_path).write_text(("\n".join(out) + "\n") if out else "")
-PY
+    python3 "$(locate_python_dir)/chkrootkit-filter.py" workstation "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}"
 fi
 CONFIRMED_COUNT=0
 confirmed_tmp="$(mktemp)"
