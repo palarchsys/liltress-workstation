@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/log.txt
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -593,14 +593,14 @@ Dieser Pfad steht nicht in der Liste: {1}
 [mail.install.test.title]
 Installation abgeschlossen
 
+[mail.install.test.block]
+Versand
+
 [mail.install.module]
 Installation
 
 [mail.install.test.body]
-Dies ist eine Testnachricht.
-
-Die Installation von {1} wurde korrekt abgeschlossen.
-Diese E-Mail prüft, dass Postfix {2} erreichen kann.
+Der Versand der E-Mail ist gelungen.
 
 [log.lynis-command]
 sudo bash liltress lynis

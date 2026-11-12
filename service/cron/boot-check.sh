@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/boot-check.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -40,7 +40,7 @@ record_boot_mark() {
         ECART) ecart_n=$((ecart_n + 1)) ;;
         EN_COURS) cours_n=$((cours_n + 1)) ;;
     esac
-    printf "$(get_text log.10s "$1")" "$2"
+    printf "$(get_text log.10s "$1")"$'\n' "$2"
 }
 
 get_millisecond() {
@@ -81,8 +81,8 @@ want_pct=$((limit * nproc_n))
 want_ms=$((want_pct * 10))
 boot_epoch="$(date -d "$(uptime -s)" +%s 2>/dev/null || echo 0)"
 
-printf "$(get_text log.host-date-start-nproc "$(hostname)" "$(date -Iseconds)" "$(uptime -s)" "${nproc_n}")"
-printf "$(get_text log.expected-chain-after-multi-user-target-nice-io-i "${nice_want}" "${want_pct}")"
+printf '%s\n' "$(get_text log.host-date-start-nproc "$(hostname)" "$(date -Iseconds)" "$(uptime -s)" "${nproc_n}")"
+printf '%s\n' "$(get_text log.expected-chain-after-multi-user-target-nice-io-i "${nice_want}" "${want_pct}")"
 printf "$(get_text log.n)"
 
 printf "$(get_text log.persistent-services-n)"

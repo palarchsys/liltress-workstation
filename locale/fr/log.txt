@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/fr/log.txt
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -593,14 +593,14 @@ Ce chemin n'est pas dans la liste : {1}
 [mail.install.test.title]
 Installation terminée
 
+[mail.install.test.block]
+Envoi
+
 [mail.install.module]
 Installation
 
 [mail.install.test.body]
-Ceci est un message de test.
-
-L'installation de {1} s'est terminée correctement.
-Cet e-mail vérifie que Postfix peut joindre {2}.
+L'envoi du courrier s'est bien déroulé.
 
 [log.lynis-command]
 sudo bash liltress lynis

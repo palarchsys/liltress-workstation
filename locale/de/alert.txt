@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/alert.txt
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -1098,6 +1098,12 @@ Geänderte Dateien
 
 [alert.mail.actions]
 Ausgeführte Aktionen
+
+[alert.mail.ignore]
+Aktion zum Ignorieren
+
+[alert.mail.ignore.command]
+{1}
 
 [alert.mail.services.empty]
 Kein betroffener Dienst

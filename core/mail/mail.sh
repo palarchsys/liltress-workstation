@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/mail/mail.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -285,7 +285,30 @@ except OSError as exc:
     unread = os.environ.get("TEXT_TEMPLATE_UNREADABLE") or "unreadable template: {1}"
     print(unread.replace("{1}", str(exc)), file=sys.stderr)
     sys.exit(1)
-for key in ("TITLE", "PROJECT_NAME", "HOSTNAME", "DATE", "MODULE_NAME", "MAIL_LANG", "MAIL_MODULE", "MAIL_READ", "MAIL_SEEN", "MAIL_CHECK", "MAIL_NEXT", "MAIL_SUBTITLE", "MAIL_FOOTER", "MAIL_BLOCK_SERVICES", "MAIL_BLOCK_FILES", "MAIL_BLOCK_ACTIONS", "MAIL_SERVICES", "MAIL_FILES", "MAIL_ACTIONS"):
+if os.environ.get("MAIL_TEST") == "1":
+    for name in ("TEST_MODULE", "TEST_READ", "TEST_SEEN"):
+        tpl = re.sub(
+            r"<!--" + name + r"_START-->.*?<!--" + name + r"_END-->",
+            "",
+            tpl,
+            count=1,
+            flags=re.S,
+        )
+for name, content_key in (
+    ("BLOCK_SERVICES", "MAIL_SERVICES"),
+    ("BLOCK_FILES", "MAIL_FILES"),
+    ("BLOCK_ACTIONS", "MAIL_ACTIONS"),
+    ("BLOCK_IGNORE", "MAIL_IGNORE"),
+):
+    if not os.environ.get(content_key, "").strip():
+        tpl = re.sub(
+            r"<!--" + name + r"_START-->.*?<!--" + name + r"_END-->",
+            "",
+            tpl,
+            count=1,
+            flags=re.S,
+        )
+for key in ("TITLE", "PROJECT_NAME", "HOSTNAME", "DATE", "MODULE_NAME", "MAIL_LANG", "MAIL_MODULE", "MAIL_READ", "MAIL_SEEN", "MAIL_CHECK", "MAIL_NEXT", "MAIL_SUBTITLE", "MAIL_FOOTER", "MAIL_BLOCK_SERVICES", "MAIL_BLOCK_FILES", "MAIL_BLOCK_ACTIONS", "MAIL_BLOCK_IGNORE", "MAIL_SERVICES", "MAIL_FILES", "MAIL_ACTIONS", "MAIL_IGNORE"):
     tpl = tpl.replace("${" + key + "}", html.escape(os.environ.get(key, ""), quote=False))
 tpl = tpl.replace("${CONTENT}", html.escape(content, quote=False))
 if advice:

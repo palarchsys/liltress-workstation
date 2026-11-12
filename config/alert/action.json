@@ -1,0 +1,2304 @@
+{
+  "deny": [
+    "/etc/passwd",
+    "/etc/shadow",
+    "/etc/sudoers",
+    "/etc/ssh/sshd_config",
+    "/usr/bin/sudo",
+    "/usr/bin/passwd",
+    "/usr/sbin/sshd"
+  ],
+  "watchdogs": [
+    {
+      "name": "aide",
+      "phase": "integrity",
+      "clean": [],
+      "crash": [
+        "crash",
+        "mail",
+        "zip"
+      ],
+      "cases": [
+        {
+          "id": "aide.snap-mount",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.snap-apparmor",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.kernel-boot",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.modules",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.firmware",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.python",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.locale",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.dbus",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.polkit",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.accounts",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.shells",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.sudoers",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.ssh-keys",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.sshd",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.preload",
+          "hold": 1,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.ldso",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.resolved",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.systemd",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.cron",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.udev",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.pam",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.alternatives",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.certs",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.letsencrypt",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.hosts",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.timezone",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.apt",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.netplan",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.wireguard",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.ufw",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.fail2ban",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.crowdsec",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.grub",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.sysctl",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.modules-load",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.product",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.machine-id",
+          "hold": 1,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.removed",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.package",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.conffile",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.unknown",
+          "hold": 1,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "aide.timer-added",
+          "hold": 0,
+          "explained-by": [
+            "timer-link"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "paths": [
+            "/etc/systemd/system/timers.target.wants/w-boot-chain.timer",
+            "/etc/systemd/system/timers.target.wants/w-hourly-scan.timer",
+            "/etc/systemd/system/timers.target.wants/w-idle-scan.timer",
+            "/etc/systemd/system/timers.target.wants/w-periodic-scan.timer",
+            "/etc/systemd/system/timers.target.wants/w-reboot-notice.timer",
+            "/etc/systemd/system/timers.target.wants/s-boot-chain.timer",
+            "/etc/systemd/system/timers.target.wants/s-hourly-scan.timer",
+            "/etc/systemd/system/timers.target.wants/s-periodic-scan.timer",
+            "/etc/systemd/system/timers.target.wants/s-reboot-notice.timer"
+          ]
+        }
+      ],
+      "quarantine": "never",
+      "baseline-after-real": "only-repaired-paths"
+    },
+    {
+      "name": "chkrootkit",
+      "phase": "malware",
+      "clean": [],
+      "crash": [
+        "crash",
+        "mail",
+        "zip"
+      ],
+      "cases": [
+        {
+          "id": "chk.bpfdoor",
+          "hold": 1,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.preload",
+          "hold": 1,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.binary",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.worm-string",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.sniffer",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.promisc",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.wtmp",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.lkm",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.bindshell",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.php",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.aliens",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.crontab",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.inetd",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.history",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "chk.unknown",
+          "hold": 1,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        }
+      ],
+      "quarantine": "unless-deny",
+      "baseline-after-real": "only-repaired-paths"
+    },
+    {
+      "name": "rkhunter",
+      "phase": "malware",
+      "clean": [],
+      "crash": [
+        "crash",
+        "mail",
+        "zip"
+      ],
+      "cases": [
+        {
+          "id": "rk.preload",
+          "hold": 1,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.empty-password",
+          "hold": 1,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.accounts",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.mirrors",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.script",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.properties",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.hidden-proc",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.hidden",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.deleted",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.dev",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.sniffer",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.promisc",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.ports",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.ssh",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.startup",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.apps",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.writable",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.immutable",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.module",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.inetd",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.hosts",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired",
+            "apt",
+            "dpkg",
+            "snap"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.named",
+          "hold": 1,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "rk.unknown",
+          "hold": 1,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [
+            "baseline"
+          ],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        }
+      ],
+      "quarantine": "unless-deny",
+      "baseline-after-real": "only-repaired-paths"
+    },
+    {
+      "name": "clamav",
+      "phase": "malware",
+      "clean": [],
+      "crash": [
+        "crash",
+        "mail",
+        "zip"
+      ],
+      "cases": [
+        {
+          "id": "clamav.found",
+          "hold": 1,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        }
+      ],
+      "quarantine": "unless-deny"
+    },
+    {
+      "name": "debsums",
+      "phase": "integrity",
+      "clean": [],
+      "crash": [
+        "crash",
+        "mail",
+        "zip"
+      ],
+      "cases": [
+        {
+          "id": "debsums.file",
+          "hold": 0,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        },
+        {
+          "id": "debsums.repair",
+          "hold": 0,
+          "explained-by": [
+            "exclude"
+          ],
+          "explained": [],
+          "real": [
+            "record-reinstall",
+            "mail",
+            "zip"
+          ]
+        }
+      ],
+      "quarantine": "never"
+    },
+    {
+      "name": "auditd",
+      "phase": "integrity",
+      "clean": [],
+      "crash": [
+        "crash",
+        "mail",
+        "zip"
+      ],
+      "cases": [
+        {
+          "id": "audit.exec",
+          "hold": 1,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [],
+          "real": [
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
+        }
+      ],
+      "quarantine": "never"
+    },
+    {
+      "name": "crowdsec",
+      "phase": "evergreen",
+      "clean": [],
+      "crash": [
+        "crash",
+        "mail",
+        "zip"
+      ],
+      "cases": [
+        {
+          "id": "crowdsec.ban",
+          "hold": 0,
+          "explained-by": [
+            "exclude"
+          ],
+          "explained": [],
+          "real": [
+            "ban",
+            "mail",
+            "zip"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "fail2ban",
+      "phase": "evergreen",
+      "clean": [],
+      "crash": [
+        "crash",
+        "mail",
+        "zip"
+      ],
+      "cases": [
+        {
+          "id": "fail2ban.ban",
+          "hold": 0,
+          "explained-by": [
+            "exclude"
+          ],
+          "explained": [],
+          "real": [
+            "ban",
+            "mail",
+            "zip"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "integrity",
+      "phase": "integrity",
+      "cases": [
+        {
+          "id": "integrity.list-absent",
+          "actions": []
+        },
+        {
+          "id": "integrity.first-stamp",
+          "actions": [
+            "stamp"
+          ]
+        },
+        {
+          "id": "integrity.unchanged",
+          "actions": []
+        },
+        {
+          "id": "integrity.changed",
+          "actions": [
+            "stamp",
+            "mail"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "egress",
+      "phase": "evergreen",
+      "cases": [
+        {
+          "id": "egress.journal-absent",
+          "actions": []
+        },
+        {
+          "id": "egress.first-stamp",
+          "actions": [
+            "stamp"
+          ]
+        },
+        {
+          "id": "egress.no-flow",
+          "actions": []
+        },
+        {
+          "id": "egress.no-suspect",
+          "actions": []
+        },
+        {
+          "id": "egress.block-rejected",
+          "actions": []
+        },
+        {
+          "id": "egress.blocked",
+          "actions": [
+            "reject",
+            "mail"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "idle-scan",
+      "phase": "malware",
+      "cases": [
+        {
+          "id": "idle-scan.game",
+          "actions": []
+        },
+        {
+          "id": "idle-scan.clamscan-absent",
+          "actions": []
+        },
+        {
+          "id": "idle-scan.no-file",
+          "actions": []
+        },
+        {
+          "id": "idle-scan.clean",
+          "actions": []
+        },
+        {
+          "id": "idle-scan.virus",
+          "hold": 1,
+          "explained-by": [
+            "exclude",
+            "repaired"
+          ],
+          "explained": [],
+          "real": [
+            "quarantine",
+            "reinstall",
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "quarantine",
+            "fail",
+            "mail",
+            "zip"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reboot-notice",
+      "phase": "evergreen",
+      "cases": [
+        {
+          "id": "reboot-notice.game",
+          "actions": []
+        },
+        {
+          "id": "reboot-notice.not-required",
+          "actions": []
+        },
+        {
+          "id": "reboot-notice.required",
+          "actions": [
+            "mail"
+          ]
+        }
+      ]
+    }
+  ]
+}

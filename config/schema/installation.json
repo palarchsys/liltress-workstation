@@ -322,6 +322,11 @@
           "action": "test-mail"
         },
         {
+          "id": "install.cron.enable",
+          "service": "cron",
+          "path": "service/cron/enable.sh"
+        },
+        {
           "id": "install.rkhunter.init",
           "service": "rkhunter",
           "path": "service/rkhunter/init-db.sh"

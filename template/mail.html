@@ -4,6 +4,7 @@
   MAIL_NEXT, écrits avec un dollar et des accolades, sont remplacés à l'envoi.
   Le bloc ADVICE_START / ADVICE_END est retiré quand le conseil est vide.
   Le bloc NOTE_START / NOTE_END est retiré quand la note est vide.
+  Les blocs TEST_MODULE, TEST_READ et TEST_SEEN sont retirés pour le courrier de test.
   Pour un autre style, ajoutez un fichier .html dans ce dossier et
   nommez-le dans MAIL_TEMPLATE (global.conf). Défaut : mail.html.
 -->
@@ -32,22 +33,28 @@
 <div style="margin:8px 0 0;font-size:13px;line-height:1.4;color:#44aae6;text-align:center;">${PROJECT_NAME} • ${HOSTNAME} • ${DATE}</div>
 </td>
 </tr>
+<!--TEST_MODULE_START-->
 <tr>
 <td style="padding:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:#cccccc;">
 <strong style="color:#e5b684;">${MAIL_MODULE}</strong> <span style="color:#44aae6;">${MODULE_NAME}</span>
 </td>
 </tr>
+<!--TEST_MODULE_END-->
+<!--TEST_READ_START-->
 <tr>
 <td style="padding:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#cccccc;">
 ${MAIL_READ}
 </td>
 </tr>
+<!--TEST_READ_END-->
 <tr>
 <td style="padding:8px 0 0;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border:1px solid #e5b684;">
+<!--TEST_SEEN_START-->
 <tr>
 <td style="padding:12px 16px 4px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.4;font-weight:bold;color:#e5b684;">${MAIL_SEEN}</td>
 </tr>
+<!--TEST_SEEN_END-->
 <tr>
 <td style="padding:4px 16px 14px;">
 <pre style="margin:0;width:100%;max-width:100%;box-sizing:border-box;display:block;background-color:#1e1e1e;color:#cccccc;font-family:Consolas,Courier New,monospace;font-size:13px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word;word-break:break-word;overflow-wrap:break-word;overflow-x:auto;">${CONTENT}</pre>

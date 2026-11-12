@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/report.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Purpose    : Fill the three mail blocks and send one watchdog report.
+# Purpose    : Fill the mail blocks and send one watchdog report.
 # Note       : Crash sentences keep the existing mail template.
 # -----------------------------------------------------------------------------
 
@@ -58,15 +58,34 @@ render_watchdog_rows() {
 
 watchdog_block() {
     local file_path="$1"
-    local empty_key="$2"
-    local body=""
     if [[ -s "${file_path}" ]]; then
-        body="$(cat -- "${file_path}")"
+        cat -- "${file_path}"
     fi
-    if [[ -z "${body}" ]]; then
-        body="$(get_text "${empty_key}")"
-    fi
-    printf '%s\n' "${body}"
+}
+
+watchdog_ignore_commands() {
+    local state_dir="$1"
+    local base="" tool="" found=""
+    local row_explained="" row_hold="" row_kind="" row_name="" row_when="" row_path="" row_tool="" row_class=""
+    base="$(get_product_base)"
+    [[ -f "${state_dir}/rows.tsv" ]] || return 0
+    for tool in aide rkhunter; do
+        found=""
+        while IFS=$'\t' read -r row_explained row_hold row_kind row_name row_when row_path row_tool row_class; do
+            [[ "${row_explained}" == "0" && "${row_tool}" == "${tool}" ]] || continue
+            found="yes"
+            break
+        done < "${state_dir}/rows.tsv"
+        [[ "${found}" == "yes" ]] || continue
+        case "${tool}" in
+            aide)
+                printf '%s\n' "$(get_text alert.mail.ignore.command "sudo bash ${base}/bin/aide-refresh-db.sh")"
+                ;;
+            rkhunter)
+                printf '%s\n' "$(get_text alert.mail.ignore.command "sudo bash ${base}/bin/rkhunter-refresh-db.sh")"
+                ;;
+        esac
+    done
 }
 
 send_watchdog_report() {
@@ -103,15 +122,26 @@ send_watchdog_report() {
     MAIL_BLOCK_SERVICES="$(get_text alert.mail.services)"
     MAIL_BLOCK_FILES="$(get_text alert.mail.files)"
     MAIL_BLOCK_ACTIONS="$(get_text alert.mail.actions)"
-    MAIL_SERVICES="$(watchdog_block "${state_dir}/services.txt" alert.mail.services.empty)"
-    MAIL_FILES="$(watchdog_block "${state_dir}/files.txt" alert.mail.files.empty)"
-    MAIL_ACTIONS="$(watchdog_block "${state_dir}/actions.txt" alert.mail.actions.empty)"
+    MAIL_BLOCK_IGNORE="$(get_text alert.mail.ignore)"
+    MAIL_SERVICES="$(watchdog_block "${state_dir}/services.txt")"
+    MAIL_FILES="$(watchdog_block "${state_dir}/files.txt")"
+    MAIL_ACTIONS="$(watchdog_block "${state_dir}/actions.txt")"
+    MAIL_IGNORE="$(watchdog_ignore_commands "${state_dir}")"
     CONTENT="${MAIL_SERVICES}"
+    if [[ -z "${CONTENT}" ]]; then
+        CONTENT="${MAIL_FILES}"
+    fi
+    if [[ -z "${CONTENT}" ]]; then
+        CONTENT="${MAIL_ACTIONS}"
+    fi
+    if [[ -z "${CONTENT}" ]]; then
+        CONTENT="${MAIL_IGNORE}"
+    fi
     MAIL_TEMPLATE_FILE="${template}"
     MAIL_ATTACH="${zip_path}"
     export TITLE MODULE_NAME PROJECT_NAME HOSTNAME DATE CONTENT
-    export MAIL_SUBTITLE MAIL_FOOTER MAIL_BLOCK_SERVICES MAIL_BLOCK_FILES MAIL_BLOCK_ACTIONS
-    export MAIL_SERVICES MAIL_FILES MAIL_ACTIONS MAIL_TEMPLATE_FILE MAIL_ATTACH
+    export MAIL_SUBTITLE MAIL_FOOTER MAIL_BLOCK_SERVICES MAIL_BLOCK_FILES MAIL_BLOCK_ACTIONS MAIL_BLOCK_IGNORE
+    export MAIL_SERVICES MAIL_FILES MAIL_ACTIONS MAIL_IGNORE MAIL_TEMPLATE_FILE MAIL_ATTACH
     ( deliver_mail ) || true
 }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/remedy.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -95,9 +95,12 @@ apply_watchdog_remedy() {
                 printf '%s - %s\n' "${moment}" "${action}" >> "${state_dir}/actions.txt"
             fi
         fi
-        package="${name}"
-        if [[ "${kind}" != "package" ]]; then
-            package=""
+        package=""
+        if [[ "${kind}" == "package" && -n "${name}" && "${name}" != "-" ]]; then
+            package="${name}"
+        fi
+        if [[ -z "${package}" ]]; then
+            continue
         fi
         if reinstall_watchdog_package "${package}"; then
             if [[ "${phase}" == "integrity" ]]; then
@@ -110,7 +113,7 @@ apply_watchdog_remedy() {
                 printf '%s\n' "${path}" >> "${state_dir}/repaired.txt"
             fi
         else
-            action="$(get_text alert.mail.action.failed "${name}")"
+            action="$(get_text alert.mail.action.failed "${package}")"
             printf '%s - %s\n' "${moment}" "${action}" >> "${state_dir}/actions.txt"
         fi
     done < "${state_dir}/rows.tsv"

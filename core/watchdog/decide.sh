@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/decide.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
 # -----------------------------------------------------------------------------
 # Purpose    : Classify one watchdog phase as clean, false positive, or real.
 # Note       : A hold class stays real unless the path was repaired or is listed in an exclude file.
+# Note       : An added product timer link under timers.target.wants is explained.
 # -----------------------------------------------------------------------------
 
 read_watchdog_exclude() {
@@ -111,6 +112,18 @@ PHASE_TOOLS = {
 }
 LATE = {"aide.removed", "aide.package", "aide.conffile", "aide.unknown", "chk.unknown", "rk.unknown"}
 UNKNOWN = {"aide": "aide.unknown", "chkrootkit": "chk.unknown", "rkhunter": "rk.unknown"}
+TIMER_LINKS = {
+    "/etc/systemd/system/timers.target.wants/w-boot-chain.timer",
+    "/etc/systemd/system/timers.target.wants/w-hourly-scan.timer",
+    "/etc/systemd/system/timers.target.wants/w-idle-scan.timer",
+    "/etc/systemd/system/timers.target.wants/w-periodic-scan.timer",
+    "/etc/systemd/system/timers.target.wants/w-reboot-notice.timer",
+    "/etc/systemd/system/timers.target.wants/s-boot-chain.timer",
+    "/etc/systemd/system/timers.target.wants/s-hourly-scan.timer",
+    "/etc/systemd/system/timers.target.wants/s-periodic-scan.timer",
+    "/etc/systemd/system/timers.target.wants/s-reboot-notice.timer",
+}
+added_timers = set()
 AIDE_ENTRY = re.compile(
     r"^(?:[fdlcbpsDP!?][+.\-:=> <?A-Za-z]*:\s+\S|(?:added|removed|changed):\s+\S)"
 )
@@ -280,6 +293,19 @@ def classify_text(tool, text, records):
     return chosen["id"], chosen.get("hold", "0")
 
 
+def aide_added(line):
+    stripped = line.strip()
+    low = stripped.lower()
+    if low.startswith("added:"):
+        return True
+    if low.startswith(("removed:", "changed:")):
+        return False
+    head = stripped.split(":", 1)[0].strip()
+    if len(head) < 2 or head[0] not in "fdlcbpsDP!?":
+        return False
+    return set(head[1:]) == {"+"}
+
+
 def aide_rows(text, records):
     rows = []
     for raw in text.splitlines():
@@ -290,6 +316,8 @@ def aide_rows(text, records):
             continue
         match = AIDE_PATH.match(line.strip())
         path = match.group(1).strip() if match else ""
+        if path in TIMER_LINKS and aide_added(line):
+            added_timers.add(path)
         class_id, hold = classify_text("aide", line, records)
         rows.append((path, class_id, hold, "aide"))
     return rows
@@ -432,7 +460,9 @@ for path, class_id, hold, tool, extra in found:
     banned = tool in {"crowdsec", "fail2ban"} and (
         (path != "-" and path in ips) or (extra and extra.lower() in scenarios) or (class_id.lower() in scenarios)
     )
-    if path in repair or banned or (path != "-" and excluded_path(path, prefixes)):
+    if path in added_timers:
+        explained = "1"
+    elif path in repair or banned or (path != "-" and excluded_path(path, prefixes)):
         explained = "1"
     elif hold == "1" or tool not in {"aide", "chkrootkit", "rkhunter"}:
         explained = "0"

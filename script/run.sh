@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/run.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -69,11 +69,23 @@ run_install_action() {
                     log_error "${INSTALL_WATCHER}" "log.g-watchdog-mail-is-empty-l-e-mail-of-end-of-inst"
                 fi
                 log_info "${INSTALL_WATCHER}" "log.send-of-the-e-mail-of-test-to" "${WATCHDOG_MAIL}"
+                mail_host="$(hostname -s 2>/dev/null || hostname)"
+                mail_date="$(date '+%Y-%m-%d %H:%M:%S')"
                 export TITLE="$(get_text mail.install.test.title)"
-                export MODULE_NAME="$(get_text mail.install.module)"
+                export MODULE_NAME="${TITLE}"
                 export PROJECT_NAME
                 export WATCHDOG_MAIL
-                export CONTENT="$(get_text mail.install.test.body "${PROJECT_NAME}" "${WATCHDOG_MAIL}")"
+                export HOSTNAME="${mail_host}"
+                export DATE="${mail_date}"
+                export MAIL_SUBTITLE="${PROJECT_NAME} • ${mail_host} • ${mail_date}"
+                export MAIL_FOOTER="${PROJECT_NAME}"
+                export MAIL_BLOCK_SERVICES="$(get_text mail.install.test.block)"
+                export MAIL_SERVICES="$(get_text mail.install.test.body)"
+                export CONTENT="${MAIL_SERVICES}"
+                export MAIL_FILES=""
+                export MAIL_ACTIONS=""
+                export MAIL_IGNORE=""
+                export MAIL_TEMPLATE_FILE="${INSTALL_DIRECTORY}/service/cron/watchdogs/mail-alert.html"
                 if ! bash "${INSTALL_DIRECTORY}/service/cron/watchdogs/send.sh"; then
                     log_error "${INSTALL_WATCHER}" "log.l-e-mail-of-test-toward-was-not-accepted-by-post" "${WATCHDOG_MAIL}"
                 fi
