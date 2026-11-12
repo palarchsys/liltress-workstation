@@ -23,12 +23,15 @@ else
     t_fail "action.hold" "statut ${status}"
 fi
 
-get_text() { printf 'Repair failed: %s' "${2:-}"; }
 # shellcheck disable=SC1091
 source "${MONO}/share/core/watchdog/remedy.sh"
-reinstall_watchdog_package() { return 1; }
 printf '0\t0\tfile\taide\t-\t/etc/foo\taide\taide.systemd\n' > "${work}/rows.tsv"
-apply_watchdog_remedy integrity "${work}"
+# The stub stays in this subshell. t_finish still calls the catalog get_text.
+(
+    get_text() { printf 'Repair failed: %s' "${2:-}"; }
+    reinstall_watchdog_package() { return 1; }
+    apply_watchdog_remedy integrity "${work}"
+)
 if grep -q 'Repair failed: aide' "${work}/actions.txt"; then
     t_fail "action.repair" "Repair failed: aide est encore écrit"
 else
