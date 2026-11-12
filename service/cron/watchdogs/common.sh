@@ -6,6 +6,10 @@
 # =============================================================================
 
 set -euo pipefail
+if [[ -n "${LILTRESS_COMMON_LOADED:-}" ]]; then
+    return 0
+fi
+LILTRESS_COMMON_LOADED=1
 BASE="${BASE:-/opt/liltress-workstation}"
 LOG_DIR="${BASE}/cron/security_logs"
 ALERT_DIR="${BASE}/cron/alerts"
@@ -20,11 +24,10 @@ log_pass()  { printf '%s %s\n' "$(date -Iseconds)" "$*" | tee -a "${LOG_FILE}"; 
 
 here_watchdog="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 for candidate_watchdog in \
-    "${here_watchdog}/../../../core/watchdog/load.sh" \
-    "${here_watchdog}/../../../../share/core/watchdog/load.sh" \
+    "${BASE:-}/core/watchdog/load.sh" \
+    "${here_watchdog}/../../core/watchdog/load.sh" \
     "${INSTALL_DIRECTORY:-}/core/watchdog/load.sh" \
-    "${CONFIG_BASE_DIRECTORY:-}/src/core/watchdog/load.sh" \
-    "${BASE:-}/src/core/watchdog/load.sh"
+    "${CONFIG_BASE_DIRECTORY:-}/core/watchdog/load.sh"
 do
     if [[ -n "${candidate_watchdog}" && -f "${candidate_watchdog}" ]]; then
         # shellcheck disable=SC1090
@@ -52,9 +55,6 @@ if ! declare -F load_shared_watchdog >/dev/null 2>&1; then
 fi
 if declare -F load_shared_watchdog >/dev/null 2>&1; then
     load_shared_watchdog "${here_watchdog}" || exit 1
-elif [[ -f "${here_watchdog}/watchdog.sh" ]]; then
-    # shellcheck disable=SC1091
-    source "${here_watchdog}/watchdog.sh"
 else
     printf '%s\n' "watchdog-load.sh not found" >&2
     exit 1
