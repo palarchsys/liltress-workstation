@@ -360,11 +360,6 @@
           "id": "install.reboot-notice",
           "service": "reboot",
           "action": "reboot-notice"
-        },
-        {
-          "id": "install.offer-remove",
-          "service": "remove",
-          "action": "offer-remove"
         }
       ]
     }

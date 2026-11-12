@@ -7,7 +7,18 @@
 
 
 locate_python_dir() {
-    local dir hops=0
+    local dir hops=0 candidate
+    for candidate in \
+        "${CONFIG_BASE_DIRECTORY:-}/python" \
+        "${BASE:-}/python" \
+        "${INSTALL_DIRECTORY:-}/python" \
+        "${INSTALL_DIRECTORY:-}/../share/python"
+    do
+        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
+            (cd -- "${candidate}" && pwd -P)
+            return 0
+        fi
+    done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
         if [[ -d "${dir}/share/python" ]]; then
@@ -15,7 +26,7 @@ locate_python_dir() {
             return 0
         fi
         if [[ -d "${dir}/python" ]]; then
-            printf '%s\n' "${dir}/python"
+            (cd -- "${dir}/python" && pwd -P)
             return 0
         fi
         dir="$(dirname -- "${dir}")"
@@ -239,7 +250,7 @@ run_install_plan() {
             fi
         else
             case "${target}" in
-                reboot-notice|offer-remove|http-check)
+                reboot-notice|http-check)
                     run_install_action "${target}"
                     ;;
                 *)

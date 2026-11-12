@@ -110,9 +110,6 @@ run_install_action() {
                 log_info "${INSTALL_WATCHER}" "log.a-reboot-is-recommended-kernel-libc"
             fi
             ;;
-        offer-remove)
-            offer_remove_installer
-            ;;
         *)
             log_error "${INSTALL_WATCHER}" "run.script.error.6" "${name}"
             ;;

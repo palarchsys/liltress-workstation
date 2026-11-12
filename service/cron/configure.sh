@@ -34,6 +34,7 @@ ensure_directory "${CONFIG_BASE_DIRECTORY}/cron/alerts" 750
 
 cp -a --dereference --remove-destination "${DIR_SCRIPT_PATH}/watchdogs/." "${CONFIG_BASE_DIRECTORY}/cron/bin/"
 chmod 750 "${CONFIG_BASE_DIRECTORY}/cron/bin/"*.sh
+install_python_runtime
 log_success      "${INSTALL_WATCHER}" "configure.watchdog-scripts-copied"
 log_info         "${INSTALL_WATCHER}" "configure.watchdog-copy-catalogs"
 source_core mail/mail.sh

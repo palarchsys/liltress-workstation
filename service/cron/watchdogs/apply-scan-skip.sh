@@ -6,7 +6,18 @@
 # =============================================================================
 
 locate_python_dir() {
-    local dir hops=0
+    local dir hops=0 candidate
+    for candidate in \
+        "${CONFIG_BASE_DIRECTORY:-}/python" \
+        "${BASE:-}/python" \
+        "${INSTALL_DIRECTORY:-}/python" \
+        "${INSTALL_DIRECTORY:-}/../share/python"
+    do
+        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
+            (cd -- "${candidate}" && pwd -P)
+            return 0
+        fi
+    done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
         if [[ -d "${dir}/share/python" ]]; then
@@ -14,7 +25,7 @@ locate_python_dir() {
             return 0
         fi
         if [[ -d "${dir}/python" ]]; then
-            printf '%s\n' "${dir}/python"
+            (cd -- "${dir}/python" && pwd -P)
             return 0
         fi
         dir="$(dirname -- "${dir}")"
@@ -86,6 +97,10 @@ load_onaccess_exclude() {
 load_onaccess_exclude
 collect_scan_skip_path
 if [[ ${#SCAN_SKIP_BAD[@]} -gt 0 ]]; then
+    if ! declare -F get_text >/dev/null 2>&1; then
+        # shellcheck disable=SC1090
+        source "${HERE}/text-load.sh"
+    fi
     install -d -m 750 "${BASE}/cron/security_logs"
     for line in "${SCAN_SKIP_BAD[@]}"; do
         printf "$(get_text watchdog.s-path-denied-s-n)" "$(date -Iseconds)" "${line}" | tee -a "${BASE}/cron/security_logs/scan-skip.log"

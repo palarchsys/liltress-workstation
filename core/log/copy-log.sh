@@ -8,9 +8,8 @@
 
 collect_manual() {
     local root="${INSTALL_DIRECTORY:-.}"
-    local stamp name old_umask
-    stamp="$(date '+%Y%m%d-%H%M%S')"
-    name="snapshot-${stamp}-$(hostname -s 2>/dev/null || hostname)"
+    local name old_umask
+    name="$(log_run_name snapshot "${root}")"
     SERVER_TYPE="${SERVER_TYPE:-manual}"
     INSTALL_LOG_DIR="${root}/log/install/${name}"
     LOG_SYS=""

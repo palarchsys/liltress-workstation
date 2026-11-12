@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/run/lynis.sh
-# Updated at : 2026-11-06
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -27,8 +27,8 @@ if [[ "${EUID}" -ne 0 ]]; then
     exit 1
 fi
 
-stamp="$(date +%Y%m%d-%H%M%S)"
-out="${root}/log/lynis-${stamp}"
+name="$(log_run_name lynis "${root}")"
+out="${root}/log/lynis/${name}"
 mkdir -p "${out}"
 lynis audit system --quick --no-colors --auditor "${auditor}" | tee "${out}/lynis-audit.txt"
 cp -a /var/log/lynis.log "${out}/lynis.log" 2>/dev/null || true

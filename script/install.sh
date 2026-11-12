@@ -90,6 +90,16 @@ if [[ -f "${legacy}/liltress" ]]; then
 fi
 rm -rf "${INSTALL_ROOT:?}"/*
 cp -a "${extracted}/." "${INSTALL_ROOT}/"
+for shared_name in core locale template python; do
+    if [[ -L "${INSTALL_ROOT}/${shared_name}" ]]; then
+        shared_real="$(readlink -f "${extracted}/${shared_name}" || true)"
+        rm -f -- "${INSTALL_ROOT}/${shared_name}"
+        if [[ -n "${shared_real}" && -d "${shared_real}" ]]; then
+            mkdir -p -- "${INSTALL_ROOT}/${shared_name}"
+            cp -a "${shared_real}/." "${INSTALL_ROOT}/${shared_name}/"
+        fi
+    fi
+done
 if [[ "${keep}" == "1" ]]; then
     mkdir -p "${INSTALL_ROOT}/config"
     cp -a "${tmp}/keep/global.conf" "${tmp}/keep/secrets.conf" "${INSTALL_ROOT}/config/"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/installer.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -123,11 +123,5 @@ remove_installer_tree() {
 }
 
 offer_remove_installer() {
-    local root=""
-    root="$(cd -- "${INSTALL_DIRECTORY:?}" && pwd -P)" || {
-        log_warn "${INSTALL_WATCHER:-BASH}" "install.log.warn.8"
-        return 0
-    }
-    show_closing_command "$(get_text install.log.info.4)" "sudo rm -rf ${root}"
     return 0
 }

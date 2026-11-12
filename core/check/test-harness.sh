@@ -1,13 +1,24 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/check/test-harness.sh
-# Updated at : 2026-11-07
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
 
 locate_python_dir() {
-    local dir hops=0
+    local dir hops=0 candidate
+    for candidate in \
+        "${CONFIG_BASE_DIRECTORY:-}/python" \
+        "${BASE:-}/python" \
+        "${INSTALL_DIRECTORY:-}/python" \
+        "${INSTALL_DIRECTORY:-}/../share/python"
+    do
+        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
+            (cd -- "${candidate}" && pwd -P)
+            return 0
+        fi
+    done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
         if [[ -d "${dir}/share/python" ]]; then
@@ -15,7 +26,7 @@ locate_python_dir() {
             return 0
         fi
         if [[ -d "${dir}/python" ]]; then
-            printf '%s\n' "${dir}/python"
+            (cd -- "${dir}/python" && pwd -P)
             return 0
         fi
         dir="$(dirname -- "${dir}")"
@@ -26,6 +37,11 @@ locate_python_dir() {
 }
 
 t_get_timestamp() { date '+%Y-%m-%d %H:%M:%S'; }
+
+if ! declare -F log_run_name >/dev/null 2>&1; then
+    # shellcheck disable=SC1091
+    source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../log/install-log.sh"
+fi
 
 t_log() {
     local line="[$(t_get_timestamp)] $*"
@@ -92,9 +108,9 @@ t_check_envsubst_leftover() {
 }
 
 t_begin() {
-    local stamp
-    stamp="$(date '+%Y%m%d-%H%M%S')"
-    T_OUTPUT="${T_ROOT}/log/test/${stamp}"
+    local name
+    name="$(log_run_name test "${T_ROOT}")"
+    T_OUTPUT="${T_ROOT}/log/test/${name}"
     ARTIFACTS="${T_OUTPUT}/artifacts"
     T_SUITE_DIRECTORY="${T_OUTPUT}/suites"
     RUN_LOG="${T_OUTPUT}/run.log"

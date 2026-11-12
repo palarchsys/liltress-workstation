@@ -114,19 +114,45 @@ get_distribution_label() {
     printf '%s\n' "${os_pretty}"
 }
 
-init_install_log() {
-    local root="${INSTALL_DIRECTORY:-.}"
-    local stamp name kind old_umask os_label
-    stamp="$(date '+%Y%m%d-%H%M%S')"
-    kind="${SERVER_TYPE:-}"
+log_product_kind() {
+    local root="${1:-}"
+    local kind="${SERVER_TYPE:-}"
+    local slug=""
+    if [[ -z "${kind}" && -n "${root}" && -f "${root}/config/global.conf" ]]; then
+        kind="$(awk -F= '/^SERVER_TYPE=/{gsub(/["'\'']/, "", $2); gsub(/[[:space:]]/, "", $2); print $2; exit}' "${root}/config/global.conf")"
+        slug="$(awk -F= '/^PROJECT_SLUG=/{gsub(/["'\'']/, "", $2); gsub(/[[:space:]]/, "", $2); print $2; exit}' "${root}/config/global.conf")"
+    fi
+    if [[ "${kind}" == "WORKSTATION" ]]; then
+        kind=""
+    fi
     if [[ -z "${kind}" ]]; then
-        if declare -F check_workstation >/dev/null 2>&1 && check_workstation; then
+        if [[ "${slug}" == "liltress-workstation" || "${PROJECT_SLUG:-}" == "liltress-workstation" ]]; then
             kind="workstation"
+        elif declare -F check_workstation >/dev/null 2>&1 && check_workstation; then
+            kind="workstation"
+        elif [[ -n "${root}" && "$(basename -- "${root}")" == "workstation" ]]; then
+            kind="workstation"
+        elif [[ -n "${root}" && "$(basename -- "${root}")" == "server" ]]; then
+            kind="server"
         else
             kind="unknown"
         fi
     fi
-    name="install-${stamp}-${kind}"
+    printf '%s\n' "${kind}"
+}
+
+log_run_name() {
+    local role="$1"
+    local root="${2:-}"
+    local stamp
+    stamp="$(date '+%Y%m%d-%H%M%S')"
+    printf '%s-%s-%s\n' "${role}" "${stamp}" "$(log_product_kind "${root}")"
+}
+
+init_install_log() {
+    local root="${INSTALL_DIRECTORY:-.}"
+    local name old_umask os_label
+    name="$(log_run_name install "${root}")"
 
     INSTALL_LOG_DIR="${root}/log/install/${name}"
     LOG_SYS=""

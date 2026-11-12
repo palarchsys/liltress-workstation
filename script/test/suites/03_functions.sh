@@ -250,13 +250,13 @@ if timeout 3 bash -c '
     inst="$(cd -- "${work}/inst" && pwd -P)"
     base="$(cd -- "${work}/base" && pwd -P)"
     out="$(INSTALL_DIRECTORY="${inst}" CONFIG_BASE_DIRECTORY="${base}" offer_remove_installer 2>&1)"
-    [[ "${out}" == *"sudo rm -rf ${inst}"* ]]
+    [[ "${out}" != *"sudo rm -rf ${inst}"* ]]
     [[ -f "${inst}/liltress" && -f "${inst}/config/global.conf" ]]
     out="$(MODE_TEST=1 MODE_DEV=1 INSTALL_DIRECTORY="${inst}" CONFIG_BASE_DIRECTORY="${base}" offer_remove_installer 2>&1)"
-    [[ "${out}" == *"sudo rm -rf ${inst}"* ]]
+    [[ "${out}" != *"sudo rm -rf ${inst}"* ]]
     [[ -f "${inst}/liltress" && -f "${inst}/config/global.conf" ]]
 ' bash "${MONO}/share/core/log/log.sh"; then
-    t_pass "user.mode-test.skip" "la fin affiche la commande et garde les fichiers"
+    t_pass "user.mode-test.skip" "la fin ne propose pas de supprimer le dossier de fonctionnement"
 else
-    t_fail "user.mode-test.skip" "la commande de retrait manque ou les fichiers ont bougé"
+    t_fail "user.mode-test.skip" "la commande de retrait est encore affichée ou les fichiers ont bougé"
 fi
