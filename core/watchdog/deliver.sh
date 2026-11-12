@@ -217,12 +217,18 @@ ${detail}"
         echo "$(get_text watchdog.mail-not-sent-command-mail-absent "${MODULE_NAME:-?}")" >&2
         exit 0
     fi
+    local mail_type=()
     local mail_attach=()
+    if mail --help 2>&1 | grep -q -- '--content-type'; then
+        mail_type+=(--content-type="text/html; charset=UTF-8")
+    else
+        mail_type+=(-a "Content-Type: text/html; charset=UTF-8")
+    fi
     if [[ -n "${MAIL_ATTACH:-}" && -f "${MAIL_ATTACH}" ]]; then
         mail_attach+=(-A "${MAIL_ATTACH}")
     fi
     printf '%s\n' "${MAIL_CONTENT}" | mail -s "${PROJECT_NAME} - ${HOSTNAME} - ${MODULE_NAME}" \
-        -a "Content-Type: text/html; charset=UTF-8" \
+        "${mail_type[@]}" \
         "${mail_attach[@]}" \
         "${WATCHDOG_MAIL}"
 }
