@@ -75,7 +75,15 @@ send_watchdog_report() {
     local zip_path="${3:-}"
     local title here template
     here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    template="${here}/../../service/cron/watchdogs/mail-alert.html"
+    template=""
+    for template in \
+        "${here}/../../service/cron/watchdogs/mail-alert.html" \
+        "${BASE:-}/cron/bin/mail-alert.html" \
+        "${CONFIG_BASE_DIRECTORY:-}/cron/bin/mail-alert.html"
+    do
+        [[ -f "${template}" ]] && break
+        template=""
+    done
     load_text "${LANGUAGE:-en}"
     case "${phase}" in
         integrity) title="$(get_text alert.mail.integrity.title)" ;;

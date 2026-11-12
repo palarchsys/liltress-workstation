@@ -29,7 +29,7 @@ else
     t_fail "vpn.layout" "rangement incomplet"
 fi
 
-if grep -q 'vpn)' "${T_ROOT}/core/launch.sh"; then
+if grep -q 'vpn)' "${T_ROOT}/core/run/launch.sh"; then
     t_pass "vpn.launch" "branche présente"
 else
     t_fail "vpn.launch" "branche absente"

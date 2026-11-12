@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/configure.sh
-# Updated at : 2026-11-07
+# Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,35 +12,38 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 # shellcheck disable=SC2155
 readonly DIR_SCRIPT_PATH="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
-source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_current_user
 
 cpu_quota="$(
     WATCHDOG_CPU_LIMIT="${WATCHDOG_CPU_LIMIT:-50}" \
-        bash -c 'source "$1" && get_cpu_quota_percent' _ "${INSTALL_DIRECTORY}/core/watchdog.sh"
+        bash -c 'source "$1" && get_cpu_quota_percent' _ "${INSTALL_DIRECTORY}/core/watchdog/watchdog.sh"
 )" || log_error        "${INSTALL_WATCHER}" "configure.quota-cpu-not-found"
 [[ "${cpu_quota}" =~ ^[0-9]+$ ]] || log_error        "${INSTALL_WATCHER}" "configure.quota-cpu-invalid" "${cpu_quota:-vide}"
 # shellcheck disable=SC1091
 source "$(locate_config_file cron/timers.conf)"
 
 log_info         "${INSTALL_WATCHER}" "configure.installation-of-the-watchdogs-chain-to-the-start" "${WATCHDOG_CPU_LIMIT}"
+log_info         "${INSTALL_WATCHER}" "configure.watchdog-copy-scripts"
 ensure_directory "${CONFIG_BASE_DIRECTORY}/cron/bin" 755
 ensure_directory "${CONFIG_BASE_DIRECTORY}/cron/cron_logs" 750
 ensure_directory "${CONFIG_BASE_DIRECTORY}/cron/security_logs" 750
 ensure_directory "${CONFIG_BASE_DIRECTORY}/cron/alerts" 750
 
-cp -a "${DIR_SCRIPT_PATH}/watchdogs/." "${CONFIG_BASE_DIRECTORY}/cron/bin/"
+cp -a --dereference --remove-destination "${DIR_SCRIPT_PATH}/watchdogs/." "${CONFIG_BASE_DIRECTORY}/cron/bin/"
 chmod 750 "${CONFIG_BASE_DIRECTORY}/cron/bin/"*.sh
-source_core mail.sh
+log_success      "${INSTALL_WATCHER}" "configure.watchdog-scripts-copied"
+log_info         "${INSTALL_WATCHER}" "configure.watchdog-copy-catalogs"
+source_core mail/mail.sh
 install_mail_templates "${CONFIG_BASE_DIRECTORY}/cron/bin"
-mail_src="$(readlink -f "${INSTALL_DIRECTORY}/core/mail.sh")"
+mail_src="$(readlink -f "${INSTALL_DIRECTORY}/core/mail/mail.sh")"
 [[ -f "${mail_src}" ]] || log_error        "${INSTALL_WATCHER}" "configure.core-mail-sh-not-found-core-mail-sh" "${INSTALL_DIRECTORY}"
 cp -f "${mail_src}" "${CONFIG_BASE_DIRECTORY}/cron/bin/mail.sh"
 chmod 750 "${CONFIG_BASE_DIRECTORY}/cron/bin/mail.sh"
-watch_src="$(readlink -f "${INSTALL_DIRECTORY}/core/watchdog.sh")"
-[[ -f "${watch_src}" ]] || log_error        "${INSTALL_WATCHER}" "configure.core-watchdog-sh-not-found" "${INSTALL_DIRECTORY}/core/watchdog.sh"
+watch_src="$(readlink -f "${INSTALL_DIRECTORY}/core/watchdog/watchdog.sh")"
+[[ -f "${watch_src}" ]] || log_error        "${INSTALL_WATCHER}" "configure.core-watchdog-sh-not-found" "${INSTALL_DIRECTORY}/core/watchdog/watchdog.sh"
 cp -f "${watch_src}" "${CONFIG_BASE_DIRECTORY}/cron/bin/watchdog.sh"
 chmod 750 "${CONFIG_BASE_DIRECTORY}/cron/bin/watchdog.sh"
 advice_src="$(dirname -- "${watch_src}")/alert-advice.txt"
@@ -60,42 +63,36 @@ copy_runtime_file() {
     install -m "${mode}" "${src_real}" "${dest}"
 }
 
-copy_runtime_file "${INSTALL_DIRECTORY}/core/log.sh" \
+copy_runtime_file "${INSTALL_DIRECTORY}/core/log/log.sh" \
     "${CONFIG_BASE_DIRECTORY}/cron/bin/log.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/text.sh" \
+copy_runtime_file "${INSTALL_DIRECTORY}/core/text/text.sh" \
     "${CONFIG_BASE_DIRECTORY}/cron/bin/text.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/display.sh" \
+copy_runtime_file "${INSTALL_DIRECTORY}/core/log/display.sh" \
     "${CONFIG_BASE_DIRECTORY}/cron/bin/display.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/journal.sh" \
+copy_runtime_file "${INSTALL_DIRECTORY}/core/log/journal.sh" \
     "${CONFIG_BASE_DIRECTORY}/cron/bin/journal.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/log.sh" \
+copy_runtime_file "${INSTALL_DIRECTORY}/core/log/log.sh" \
     "${CONFIG_BASE_DIRECTORY}/bin/log.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/text.sh" \
+copy_runtime_file "${INSTALL_DIRECTORY}/core/text/text.sh" \
     "${CONFIG_BASE_DIRECTORY}/bin/text.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/display.sh" \
+copy_runtime_file "${INSTALL_DIRECTORY}/core/log/display.sh" \
     "${CONFIG_BASE_DIRECTORY}/bin/display.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/journal.sh" \
+copy_runtime_file "${INSTALL_DIRECTORY}/core/log/journal.sh" \
     "${CONFIG_BASE_DIRECTORY}/bin/journal.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/text-load.sh" \
+copy_runtime_file "${INSTALL_DIRECTORY}/core/text/text-load.sh" \
     "${CONFIG_BASE_DIRECTORY}/bin/text-load.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/text-load.sh" \
+copy_runtime_file "${INSTALL_DIRECTORY}/core/text/text-load.sh" \
     "${CONFIG_BASE_DIRECTORY}/cron/bin/text-load.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/log.sh" \
-    "${CONFIG_BASE_DIRECTORY}/src/core/log.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/text.sh" \
-    "${CONFIG_BASE_DIRECTORY}/src/core/text.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/display.sh" \
-    "${CONFIG_BASE_DIRECTORY}/src/core/display.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/journal.sh" \
-    "${CONFIG_BASE_DIRECTORY}/src/core/journal.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/watchdog-load.sh" \
-    "${CONFIG_BASE_DIRECTORY}/src/core/watchdog-load.sh" 644
-copy_runtime_file "${INSTALL_DIRECTORY}/core/fs.sh" \
-    "${CONFIG_BASE_DIRECTORY}/src/core/fs.sh" 644
-copy_runtime_dir "${INSTALL_DIRECTORY}/core/text" \
-    "${CONFIG_BASE_DIRECTORY}/core/text"
+copy_runtime_dir "${INSTALL_DIRECTORY}/core" \
+    "${CONFIG_BASE_DIRECTORY}/src/core"
 copy_runtime_dir "${INSTALL_DIRECTORY}/../share/locale" \
     "${CONFIG_BASE_DIRECTORY}/locale"
+exclude_src="$(locate_config_file alert/exclude.list || true)"
+if [[ -n "${exclude_src}" && -f "${exclude_src}" ]]; then
+    install -D -m 644 "$(readlink -f "${exclude_src}")" \
+        "${CONFIG_BASE_DIRECTORY}/config/alert/exclude.list"
+fi
+log_success      "${INSTALL_WATCHER}" "configure.watchdog-catalogs-copied"
 ignore_src="$(locate_config_file chkrootkit/patterns.ignore || true)"
 if [[ -n "${ignore_src}" && -f "${ignore_src}" ]]; then
     install -m 644 "${ignore_src}" "${CONFIG_BASE_DIRECTORY}/cron/bin/chkrootkit.ignore"
@@ -124,6 +121,7 @@ chown root:root "/etc/cron.d/${PROJECT_SLUG}"
 chmod 600 "/etc/cron.d/${PROJECT_SLUG}"
 
 install -d -m 755 /etc/systemd/system
+log_info         "${INSTALL_WATCHER}" "configure.watchdog-enable-timers"
 systemctl_bin="$(command -v systemctl || true)"
 [[ -n "${systemctl_bin}" ]] || log_error        "${INSTALL_WATCHER}" "configure.systemctl-not-found"
 
@@ -176,11 +174,13 @@ systemctl disable --now w-egress-watch.timer >/dev/null 2>&1 || true
 systemctl disable --now w-egress-watch.service >/dev/null 2>&1 || true
 rm -f /etc/systemd/system/w-egress-watch.timer /etc/systemd/system/w-egress-watch.service
 run_silent       "${INSTALL_WATCHER}" "configure.cron.error.8" systemctl daemon-reload
-run_silent       "${INSTALL_WATCHER}" "configure.cron.error.9" systemctl enable w-boot-chain.timer
-run_silent       "${INSTALL_WATCHER}" "configure.cron.error.10" systemctl enable w-idle-scan.timer
-run_silent       "${INSTALL_WATCHER}" "configure.cron.error.11" systemctl enable w-reboot-notice.timer
-run_silent       "${INSTALL_WATCHER}" "configure.cron.error.12" systemctl enable w-periodic-scan.timer
-run_silent       "${INSTALL_WATCHER}" "configure.cron.error.13" systemctl enable w-hourly-scan.timer
+run_silent       "${INSTALL_WATCHER}" "configure.cron.error.9" systemctl enable --now w-boot-chain.timer
+run_silent       "${INSTALL_WATCHER}" "configure.cron.error.10" systemctl enable --now w-idle-scan.timer
+run_silent       "${INSTALL_WATCHER}" "configure.cron.error.11" systemctl enable --now w-reboot-notice.timer
+run_silent       "${INSTALL_WATCHER}" "configure.cron.error.12" systemctl enable --now w-periodic-scan.timer
+run_silent       "${INSTALL_WATCHER}" "configure.cron.error.13" systemctl enable --now w-hourly-scan.timer
+log_success      "${INSTALL_WATCHER}" "configure.watchdog-timers-armed"
+log_info         "${INSTALL_WATCHER}" "configure.watchdog-first-pass"
 log_success      "${INSTALL_WATCHER}" "configure.chain-of-start-hourly-password-and-scan-all-the-2" "${WATCHDOG_CPU_LIMIT}"
 
 export BASE="${CONFIG_BASE_DIRECTORY}"
@@ -194,11 +194,13 @@ fi
 install -d -m 755 "${CONFIG_BASE_DIRECTORY}/bin"
 install -m 755 "${DIR_SCRIPT_PATH}/scan-skip.sh" "${CONFIG_BASE_DIRECTORY}/bin/scan-skip.sh"
 install -m 755 "${DIR_SCRIPT_PATH}/boot-check.sh" "${CONFIG_BASE_DIRECTORY}/bin/boot-check.sh"
-install -m 755 "$(readlink -f "${INSTALL_DIRECTORY}/core/quarantine-restore.sh")" \
+install -m 755 "$(readlink -f "${INSTALL_DIRECTORY}/core/quarantine/restore.sh")" \
     "${CONFIG_BASE_DIRECTORY}/bin/quarantine-restore.sh"
-install -m 755 "$(readlink -f "${INSTALL_DIRECTORY}/core/mail-test.sh")" \
+install -m 755 "$(readlink -f "${INSTALL_DIRECTORY}/core/mail/mail-test.sh")" \
     "${CONFIG_BASE_DIRECTORY}/bin/mail-test.sh"
+log_info         "${INSTALL_WATCHER}" "configure.watchdog-scan-skip"
 bash "${CONFIG_BASE_DIRECTORY}/cron/bin/apply-scan-skip.sh"
+log_success      "${INSTALL_WATCHER}" "configure.watchdog-scan-skip-done"
 
 install -d -m 755 "${CONFIG_BASE_DIRECTORY}/config/integrity"
 install -m 644 \
@@ -208,6 +210,7 @@ install -m 644 \
     "${INSTALL_DIRECTORY}/config/global.conf" \
     "${CONFIG_BASE_DIRECTORY}/config/global.conf"
 export BASE="${CONFIG_BASE_DIRECTORY}"
+log_info         "${INSTALL_WATCHER}" "configure.watchdog-integrity"
 run_silent       "${INSTALL_WATCHER}" "configure.cron.error.14" bash "${CONFIG_BASE_DIRECTORY}/cron/bin/integrity.sh"
 
 log_info         "${INSTALL_WATCHER}" "configure.crontab-user-not-touch-no-cron-allow"

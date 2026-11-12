@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : verify/alerts.sh
-# Updated at : 2026-11-06
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -24,14 +24,14 @@ while [[ "${_text_hops}" -lt 8 && "${_text_dir}" != "/" ]]; do
         source "${_text_dir}/text-load.sh"
         break
     fi
-    if [[ -f "${_text_dir}/share/core/text-load.sh" ]]; then
+    if [[ -f "${_text_dir}/share/core/text/text-load.sh" ]]; then
         # shellcheck disable=SC1090
-        source "${_text_dir}/share/core/text-load.sh"
+        source "${_text_dir}/share/core/text/text-load.sh"
         break
     fi
-    if [[ -f "${_text_dir}/core/text-load.sh" ]]; then
+    if [[ -f "${_text_dir}/core/text/text-load.sh" ]]; then
         # shellcheck disable=SC1090
-        source "${_text_dir}/core/text-load.sh"
+        source "${_text_dir}/core/text/text-load.sh"
         break
     fi
     _text_dir="$(dirname -- "${_text_dir}")"
@@ -77,7 +77,7 @@ WARN=0
 REASONS=()
 
 # shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/core/verify.sh"
+source "${INSTALL_DIRECTORY}/core/check/verify.sh"
 
 printf "$(get_text log.liltress-workstation-checks-that-send-an-alert-n)"
 printf "$(get_text log.date-2 "$(date -Iseconds)")"

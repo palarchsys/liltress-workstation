@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/chkrootkit.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,12 +12,12 @@ source "${BASE}/cron/bin/common.sh"
 LOG_FILE="${LOG_DIR}/chkrootkit-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/chkrootkit-${STAMP}.txt"
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -f "${BASE}/src/core/fs.sh" ]]; then
+if [[ -f "${BASE}/src/core/host/fs.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${BASE}/src/core/fs.sh"
-elif [[ -f "${HERE}/../../../core/fs.sh" ]]; then
+    source "${BASE}/src/core/host/fs.sh"
+elif [[ -f "${HERE}/../../../core/host/fs.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${HERE}/../../../core/fs.sh"
+    source "${HERE}/../../../core/host/fs.sh"
 fi
 IGNORE=""
 if declare -F locate_config_file >/dev/null 2>&1; then

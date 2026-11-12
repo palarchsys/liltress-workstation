@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/08_mail.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
 t_section "modèle éditable"
 MONO="$(cd -- "${T_ROOT}/.." && pwd)"
-mail_sh="${MONO}/share/core/mail.sh"
+mail_sh="${MONO}/share/core/mail/mail.sh"
 tpl="${T_ROOT}/template/mail.html"
 
 if grep -q '^MAIL_TEMPLATE="mail.html"$' "${T_ROOT}/config/global.conf" \
    && grep -q 'install_mail_templates' "${T_ROOT}/service/cron/configure.sh" \
    && grep -q 'deliver_mail' "${T_ROOT}/service/cron/watchdogs/send.sh" \
-   && grep -q 'render_mail' "${MONO}/share/core/watchdog.sh" \
-   && grep -q 'core/watchdog.sh' "${T_ROOT}/service/cron/configure.sh" \
+   && grep -q 'render_mail' "${MONO}/share/core/watchdog/watchdog.sh" \
+   && grep -q 'core/watchdog/watchdog.sh' "${T_ROOT}/service/cron/configure.sh" \
    && ! grep -q 'MAIL_REDACT=1' "${T_ROOT}/service/cron/watchdogs/send.sh" \
    && grep -q 'NOTE_CMD' "${tpl}" \
    && grep -q '<!--NOTE_START-->' "${tpl}" \
@@ -23,7 +23,7 @@ if grep -q '^MAIL_TEMPLATE="mail.html"$' "${T_ROOT}/config/global.conf" \
    && grep -q 'alert-advice.txt' "${T_ROOT}/service/cron/configure.sh"; then
     t_pass "mail.wired" "template/mail.html, copie à l'install, rendu sans masquage des identifiants"
 else
-    t_fail "mail.wired" "le poste doit rendre template/mail.html via core/mail.sh"
+    t_fail "mail.wired" "le poste doit rendre template/mail.html via core/mail/mail.sh"
 fi
 
 # shellcheck disable=SC1090

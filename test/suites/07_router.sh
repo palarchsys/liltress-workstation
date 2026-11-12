@@ -24,7 +24,7 @@ else
     t_fail "route.check" "$(tr '\n' ' ' < "${ARTIFACTS}/route.txt")"
 fi
 
-if [[ -n "${root}" ]] && python3 - "${root}/agents/maps/commands.csv" "${root}/share/core/launch.sh" > "${ARTIFACTS}/commands.txt" 2>&1 << 'PY'
+if [[ -n "${root}" ]] && python3 - "${root}/agents/maps/commands.csv" "${root}/share/core/run/launch.sh" > "${ARTIFACTS}/commands.txt" 2>&1 << 'PY'
 import csv
 import sys
 from pathlib import Path

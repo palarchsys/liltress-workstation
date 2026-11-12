@@ -28,7 +28,7 @@ clear
 # shellcheck disable=SC1091
 source "${INSTALL_DIRECTORY}/config/global.conf"
 # shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 
 require_root
 chmod 755 "${INSTALL_DIRECTORY}/liltress"

@@ -595,7 +595,7 @@ cat > "${work}/probe.sh" << EOF
 set +e
 export BASE="${base}"
 export CLAMAV_QUARANTINE_DIR="${work}/quarantine"
-source "${parent}/share/core/watchdog.sh"
+source "${parent}/share/core/watchdog/watchdog.sh"
 result="${work}/quarantine-result.txt"
 : > "\${result}"
 sample="${work}/samples/plain.txt"
@@ -641,7 +641,7 @@ render_egress_body "${work}/kern.txt" "" > "${work}/egress-plain.out"
 if grep -q 'w-egress' "${work}/egress-plain.out" && ! grep -q 'Processus' "${work}/egress-plain.out"; then
     printf '%s\n' "plain-ok" >> "\${result}"
 fi
-restore_out="\$(bash "${parent}/share/core/quarantine-restore.sh" 20261022-010101-1-evil 2>&1)"
+restore_out="\$(bash "${parent}/share/core/quarantine/restore.sh" 20261022-010101-1-evil 2>&1)"
 restore_rc=\$?
 if [[ "\${restore_rc}" -eq 1 ]] && printf '%s\n' "\${restore_out}" | grep -Eq 'root requis|identifiant absent du registre'; then
     printf '%s\n' "restore-ok" >> "\${result}"
@@ -668,7 +668,7 @@ t_clear_holder
 
 t_section "chemins AIDE dans l'alerte"
 # shellcheck disable=SC1091
-source "${parent}/share/core/watchdog.sh"
+source "${parent}/share/core/watchdog/watchdog.sh"
 work="${ARTIFACTS}/branch/aide-paths"
 rm -rf "${work}"
 mkdir -p "${work}"

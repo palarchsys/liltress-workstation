@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/run/launch.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -15,7 +15,7 @@ load_launch_text() {
     if ! declare -F get_text >/dev/null 2>&1; then
         launch_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
         for launch_candidate in \
-            "${launch_here}/log.sh" \
+            "${launch_here}/../log/log.sh" \
             "${root}/core/log/log.sh" \
             "${root}/src/core/log/log.sh"
         do

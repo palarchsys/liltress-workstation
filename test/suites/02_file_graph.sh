@@ -84,7 +84,7 @@ t_section "carte sasl selon postfix"
 if grep -q 'get_sasl_map_type' "${T_ROOT}/service/postfix/configure.sh" \
    && grep -q 'sasl_passwd.db' "${T_ROOT}/service/postfix/configure.sh" \
    && grep -q 'sasl_passwd.cdb' "${T_ROOT}/service/postfix/configure.sh" \
-   && grep -q '__SASL_TYPE__' "${T_ROOT}/core/mail.sh" \
+   && grep -q '__SASL_TYPE__' "${T_ROOT}/core/mail/mail.sh" \
    && grep -q '__SASL_TYPE__:/etc/postfix/sasl_passwd' "${T_ROOT}/config/postfix/main.keys" \
    && ! grep -q 'hash:/etc/postfix/sasl_passwd' "${T_ROOT}/config/postfix/main.keys" \
    && ! grep -q 'cdb:/etc/postfix/sasl_passwd' "${T_ROOT}/config/postfix/main.keys"; then
@@ -199,9 +199,9 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && ! grep -q 'clamdscan' "${skip_clam}" \
    && grep -q 'list_clamav_scan' "${skip_clam}" \
    && grep -q 'report_clamav' "${skip_clam}" \
-   && grep -q 'clamscan --infected --no-summary' "${T_ROOT}/../share/core/watchdog.sh" \
-   && grep -q 'planté signal' "${T_ROOT}/../share/core/watchdog.sh" \
-   && grep -q 'tool="clamscan"' "${T_ROOT}/../share/core/watchdog.sh" \
+   && grep -q 'clamscan --infected --no-summary' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
+   && grep -q 'planté signal' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
+   && grep -q 'tool="clamscan"' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
    && grep -q 'scan-skip.sh list' "${T_ROOT}/../share/locale/fr/log.txt" \
    && grep -q 'log.usage-sudo-bash-bin-scan-skip-sh-list' "${skip_cmd}" \
    && grep -q 'scan-skip.sh add' "${T_ROOT}/../share/locale/fr/log.txt" \
@@ -223,12 +223,12 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -q 'rkhunter warnings' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'chkrootkit a produit une sortie' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'reset_debsums_log' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
-   && grep -q '"apt-get", "clean"' "${T_ROOT}/../share/core/watchdog.sh" \
-   && grep -q 'Dir::Cache::archives' "${T_ROOT}/../share/core/watchdog.sh" \
-   && grep -q '"install", "--reinstall", "-y", "--", pkg' "${T_ROOT}/../share/core/watchdog.sh" \
-   && grep -q '/var/cache/apt/archives' "${T_ROOT}/../share/core/watchdog.sh" \
+   && grep -q '"apt-get", "clean"' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
+   && grep -q 'Dir::Cache::archives' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
+   && grep -q '"install", "--reinstall", "-y", "--", pkg' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
+   && grep -q '/var/cache/apt/archives' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
    && grep -q 'RKHUNTER_REFRESH=1' "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
-   && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/../share/core/watchdog.sh" \
+   && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/../share/core/watchdog/watchdog.sh" \
    && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/service/rkhunter/configure.sh" \
    && grep -q 'get_text watchdog.clamav-in' "${T_ROOT}/service/cron/watchdogs/clamav-event.sh" \
    && grep -q 'ClamAV :' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
@@ -270,7 +270,7 @@ work="$(mktemp -d)"
 trap 'rm -rf "${work}"' EXIT
 printf '%s\n' '#!/bin/sh' 'echo 4' > "${work}/nproc"
 chmod 755 "${work}/nproc"
-got="$(PATH="${work}:${PATH}" WATCHDOG_CPU_LIMIT=20 bash -c 'source "$1" && get_cpu_quota_percent' _ "${root}/../share/core/watchdog.sh")"
+got="$(PATH="${work}:${PATH}" WATCHDOG_CPU_LIMIT=20 bash -c 'source "$1" && get_cpu_quota_percent' _ "${root}/../share/core/watchdog/watchdog.sh")"
 [[ "${got}" == "80" ]]
 grep -qF 'get_cpu_quota_percent' "${root}/service/cron/configure.sh"
 grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-boot-scan.service"
@@ -308,7 +308,7 @@ grep -qF 'ExecStart=-${systemctl_bin} start --wait w-boot-scan.service' "${chain
 grep -qF 'ExecStart=-${systemctl_bin} start --wait w-idle-scan.service' "${chain}"
 grep -qF 'ExecStart=-${systemctl_bin} start --wait w-reboot-notice.service' "${chain}"
 grep -q 'is-failed --quiet' "${chain}"
-grep -q 'core/log.sh' "${conf}"
+grep -q 'core/log/log.sh' "${conf}"
 timers="${root}/config/cron/timers.conf"
 grep -q 'OnBootSec=${BOOT_ON_BOOT_SEC}' "${boot_timer}"
 grep -q 'BOOT_ON_BOOT_SEC=0' "${timers}"
@@ -659,7 +659,7 @@ chmod 755 "${work}/cron/bin/send.sh"
 export BASE="${work}" PATH="${work}/bin:${PATH}"
 export SENT="${work}/sent" RCLONE="${work}/rclone.log"
 # shellcheck disable=SC1091
-source "${mono}/share/core/watchdog.sh"
+source "${mono}/share/core/watchdog/watchdog.sh"
 LOG_FILE="${work}/sec.log"
 ALERT_FILE="${work}/cron/alerts/sample.txt"
 : > "${LOG_FILE}"
@@ -775,8 +775,8 @@ grep -q 'flux sortant suspect bloqué' "${root}/../share/locale/fr/watchdog.txt"
 grep -q 'quarantine.registry' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'w_isolate' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'flux sortants hors des ports 53, 80 et 443' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'record_quarantine_origin' "${root}/../share/core/watchdog.sh"
-grep -q 'quarantine-restore.sh' "${root}/../share/core/watchdog.sh"
+grep -q 'record_quarantine_origin' "${root}/../share/core/watchdog/watchdog.sh"
+grep -q 'quarantine-restore.sh' "${root}/../share/core/watchdog/watchdog.sh"
 grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/rkhunter.sh"
 grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/chkrootkit.sh"
 grep -q 'non mis en quarantaine' "${root}/../share/core/text/fr/watchdog.txt"
@@ -799,7 +799,7 @@ grep -q 'overflow-x:auto' "${root}/template/mail.html"
 grep -q '<pre' "${root}/template/mail.html"
 grep -q 'quarantine-restore.sh' "${root}/service/cron/configure.sh"
 grep -q 'mail-test.sh' "${root}/service/cron/configure.sh"
-grep -q 'send_mail_test' "${root}/../share/core/mail-test.sh"
+grep -q 'send_mail_test' "${root}/../share/core/mail/mail-test.sh"
 WATCH
 if [[ "${watch_rc}" -eq 0 ]]; then
     t_pass "graph.watch" "surveillance continue et contrôles au démarrage"

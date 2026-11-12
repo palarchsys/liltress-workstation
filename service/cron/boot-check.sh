@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/boot-check.sh
-# Updated at : 2026-11-06
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,9 +13,9 @@ if [[ -f "${BASE}/bin/log.sh" ]]; then
 elif [[ -f "${BASE}/cron/bin/log.sh" ]]; then
     # shellcheck disable=SC1091
     source "${BASE}/cron/bin/log.sh"
-elif [[ -f "${BASE}/src/core/log.sh" ]]; then
+elif [[ -f "${BASE}/src/core/log/log.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${BASE}/src/core/log.sh"
+    source "${BASE}/src/core/log/log.sh"
 fi
 if ! declare -F get_text >/dev/null 2>&1; then
     printf '%s\n' "get_text absent" >&2

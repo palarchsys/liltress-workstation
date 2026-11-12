@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/apparmor/detect-and-apply.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -12,7 +12,7 @@
 INSTALL_DIRECTORY="${1:-${INSTALL_DIRECTORY:-}}"
 export INSTALL_DIRECTORY
 
-source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 

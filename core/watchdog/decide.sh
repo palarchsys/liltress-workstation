@@ -13,7 +13,15 @@
 read_watchdog_exclude() {
     local here shared product seen=""
     here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    shared="${here}/../../config/alert/exclude.list"
+    shared=""
+    for shared in \
+        "${here}/../../config/alert/exclude.list" \
+        "${BASE:-}/config/alert/exclude.list" \
+        "${CONFIG_BASE_DIRECTORY:-}/config/alert/exclude.list"
+    do
+        [[ -f "${shared}" ]] && break
+        shared=""
+    done
     if [[ -f "${shared}" ]]; then
         printf '%s\n' "${shared}"
         seen="${shared}"

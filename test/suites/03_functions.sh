@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/suites/03_functions.sh
-# Updated at : 2026-11-07
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -31,10 +31,10 @@ for name in get_current_user get_operating_system check_ubuntu_base check_deskto
     t_require_function "${name}" "${MONO}/share/core"
 done
 for name in check_email check_port check_smtp check_absolute_path check_drive_remote check_drive_path check_drive_probe check_app_password; do
-    t_require_function "${name}" "${MONO}/share/core/config-validators.sh"
+    t_require_function "${name}" "${MONO}/share/core/config/config-validators.sh"
 done
 t_require_function check_pro_token "${T_ROOT}/script/config-check.sh"
-t_require_function check_localhost_port "${MONO}/share/core/product.sh"
+t_require_function check_localhost_port "${MONO}/share/core/host/product.sh"
 
 t_section "base ubuntu"
 if bash -s -- "${T_ROOT}" << 'OSBASE'
@@ -42,13 +42,13 @@ set -euo pipefail
 root="$1"
 INSTALL_DIRECTORY="${root}"
 # shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/core/lib.sh"
-grep -q 'source /etc/os-release' "${INSTALL_DIRECTORY}/core/host.sh"
-grep -q 'dpkg --compare-versions' "${INSTALL_DIRECTORY}/core/host.sh"
-grep -q 'ge "26.04"' "${INSTALL_DIRECTORY}/core/host.sh"
-grep -q 'check_ubuntu_lts' "${INSTALL_DIRECTORY}/core/host.sh"
-grep -qF '!= "ubuntu"' "${INSTALL_DIRECTORY}/core/host.sh"
-if grep -q 'anduinos' "${INSTALL_DIRECTORY}/core/host.sh"; then
+source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
+grep -q 'source /etc/os-release' "${INSTALL_DIRECTORY}/core/host/host.sh"
+grep -q 'dpkg --compare-versions' "${INSTALL_DIRECTORY}/core/host/host.sh"
+grep -q 'ge "26.04"' "${INSTALL_DIRECTORY}/core/host/host.sh"
+grep -q 'check_ubuntu_lts' "${INSTALL_DIRECTORY}/core/host/host.sh"
+grep -qF '!= "ubuntu"' "${INSTALL_DIRECTORY}/core/host/host.sh"
+if grep -q 'anduinos' "${INSTALL_DIRECTORY}/core/host/host.sh"; then
     exit 1
 fi
 
@@ -106,7 +106,7 @@ then
 else
     t_fail "fn.os.base" "la base Ubuntu n'accepte pas 26.04 ou plus récent"
 fi
-if grep -q '!= "26.04"' "${T_ROOT}/core/host.sh"; then
+if grep -q '!= "26.04"' "${T_ROOT}/core/host/host.sh"; then
     t_fail "fn.os.strict" "la version est comparée par égalité stricte sur VERSION_ID"
 else
     t_pass "fn.os.strict" "la version est comparée au plancher 26.04"
@@ -118,7 +118,7 @@ set -euo pipefail
 root="$1"
 INSTALL_DIRECTORY="${root}"
 # shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 canon=$'Port 22\nPermitRootLogin no\nPasswordAuthentication yes\nAllowTcpForwarding no\n'
 lower=$'port 2222\npermitrootlogin no\npasswordauthentication yes\n'
 [[ "$(printf '%s\n' "${canon}" | read_sshd_value permitrootlogin)" == "no" ]]
@@ -142,14 +142,14 @@ fi
 
 t_section "journaux dans logs/"
 if grep -q 'trap install_exit EXIT' "${T_ROOT}/script/run.sh" \
-   && grep -q 'INSTALL_LOG_DIR="${root}/log/${name}"' "${MONO}/share/core/journal.sh" \
-   && grep -F -q '[[ "${code}" -ne 0 ]]' "${MONO}/share/core/journal.sh"; then
+   && grep -q 'INSTALL_LOG_DIR="${root}/log/${name}"' "${MONO}/share/core/log/journal.sh" \
+   && grep -F -q '[[ "${code}" -ne 0 ]]' "${MONO}/share/core/log/journal.sh"; then
     t_pass "logs.wire" "le poste écrit dans logs/ et copie les logiciels seulement en échec"
 else
     t_fail "logs.wire" "journaux du poste encore hors de logs/, ou copie même en succès"
 fi
-t_require_function render_mail "${MONO}/share/core/mail.sh"
-t_require_function install_mail_templates "${MONO}/share/core/mail.sh"
+t_require_function render_mail "${MONO}/share/core/mail/mail.sh"
+t_require_function install_mail_templates "${MONO}/share/core/mail/mail.sh"
 
 t_section "mode test du poste"
 if ! grep -q 'MODE_TEST' "${T_ROOT}/config/global.conf" \
@@ -160,7 +160,7 @@ if ! grep -q 'MODE_TEST' "${T_ROOT}/config/global.conf" \
    && ! grep -q 'SERVER_TYPE' "${T_ROOT}/script/run.sh" \
    && ! grep -RIn --include='*.sh' 'SERVER_TYPE' \
         "${T_ROOT}/system" "${T_ROOT}/service" "${T_ROOT}/verify" | grep -q . \
-   && ! grep -q 'MODE_TEST:-0' "${MONO}/share/core/log.sh"; then
+   && ! grep -q 'MODE_TEST:-0' "${MONO}/share/core/log/log.sh"; then
     t_pass "user.mode-test" "MODE_TEST absent du poste, SERVER_TYPE absent"
 else
     t_fail "user.mode-test" "MODE_TEST ou SERVER_TYPE encore présent sur le poste"
@@ -199,7 +199,7 @@ out="$(PRODUCT_ROOT="${T_ROOT}" bash -c '
     source "$1"
     run_step "$2" "one.sh"
     run_step "$2" MATRIX "two.sh"
-' bash "${T_ROOT}/core/lib.sh" "${tree}" 2>/dev/null)" || out=""
+' bash "${T_ROOT}/core/boot/lib.sh" "${tree}" 2>/dev/null)" || out=""
 if [[ "${out}" == "A:BASH:${tree}:"$'\n'"B:BASH:${tree}:MATRIX" ]]; then
     t_pass "user.mode-test.steps" "le poste lance l'étape sans profil, le serveur garde le sien"
 else
@@ -230,7 +230,7 @@ if PRODUCT_ROOT="${T_ROOT}" bash -c '
     init_install_log
     grep -Fqx "os          : Ubuntu 26.10" "${INSTALL_LOG_DIR}/meta.txt"
     ! grep -Fqx "os          : Ubuntu 26.10 26.10" "${INSTALL_LOG_DIR}/meta.txt"
-' bash "${T_ROOT}/core/lib.sh" "${log_work}"; then
+' bash "${T_ROOT}/core/boot/lib.sh" "${log_work}"; then
     t_pass "user.mode-test.logname" "journal nommé install-*-workstation, version de distribution écrite une fois"
 else
     t_fail "user.mode-test.logname" "le journal du poste omet -user ou la version de distribution"
@@ -255,7 +255,7 @@ if timeout 3 bash -c '
     out="$(MODE_TEST=1 MODE_DEV=1 INSTALL_DIRECTORY="${inst}" CONFIG_BASE_DIRECTORY="${base}" offer_remove_installer 2>&1)"
     [[ "${out}" == *"sudo rm -rf ${inst}"* ]]
     [[ -f "${inst}/liltress" && -f "${inst}/config/global.conf" ]]
-' bash "${MONO}/share/core/log.sh"; then
+' bash "${MONO}/share/core/log/log.sh"; then
     t_pass "user.mode-test.skip" "la fin affiche la commande et garde les fichiers"
 else
     t_fail "user.mode-test.skip" "la commande de retrait manque ou les fichiers ont bougé"

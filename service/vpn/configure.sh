@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/configure.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -14,7 +14,7 @@ if [[ -z "${PRODUCT_ROOT:-}" ]]; then
 fi
 
 # shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/core/lib.sh"
+source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 # shellcheck disable=SC1091
 source "${INSTALL_DIRECTORY}/config/global.conf"
 # shellcheck disable=SC1091

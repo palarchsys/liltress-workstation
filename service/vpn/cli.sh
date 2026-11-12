@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/cli.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -15,7 +15,7 @@ INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
 export INSTALL_WATCHER
 
 # shellcheck disable=SC1091
-source "${ROOT}/core/lib.sh"
+source "${ROOT}/core/boot/lib.sh"
 # shellcheck disable=SC1091
 source "${ROOT}/config/global.conf"
 # shellcheck disable=SC1091

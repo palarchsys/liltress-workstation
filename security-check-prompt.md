@@ -105,7 +105,7 @@ Exécute-les dans cet ordre. Un échec n'arrête pas la suite.
 
 ### Texte du produit
 
-- `text.log` — un de ces fichiers existe et se source : `cron/bin/log.sh`, `bin/log.sh`, `src/core/log.sh`. Après source, `declare -F get_text` et `declare -F read_language_file` réussissent.
+- `text.log` — un de ces fichiers existe et se source : `cron/bin/log.sh`, `bin/log.sh`, `src/core/log/log.sh`. Après source, `declare -F get_text` et `declare -F read_language_file` réussissent.
 - `text.catalog` — `core/text/<langue>` ou `locale/<langue>` contient des fichiers `.txt`. `get_text` sur une clé connue de veille ne renvoie pas la clé brute.
 - `text.common` — `bash -c 'source cron/bin/common.sh; declare -F get_text'` depuis la base ne sort pas `commande introuvable`. Ne pas lancer la passe entière.
 - `text.boot` — `bin/boot-check.sh` affiche un verdict, pas seulement des titres. S'il sort 127 ou `get_text absent` : ECHEC.

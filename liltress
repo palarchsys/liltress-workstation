@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : liltress
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
 set -euo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -f "${ROOT}/core/launch.sh" ]]; then
+if [[ -f "${ROOT}/core/run/launch.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${ROOT}/core/launch.sh"
-elif [[ -f "${ROOT}/../share/core/launch.sh" ]]; then
+    source "${ROOT}/core/run/launch.sh"
+elif [[ -f "${ROOT}/../share/core/run/launch.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${ROOT}/../share/core/launch.sh"
+    source "${ROOT}/../share/core/run/launch.sh"
 else
     printf 'launch.sh introuvable depuis %s\n' "${ROOT}" >&2
     exit 1

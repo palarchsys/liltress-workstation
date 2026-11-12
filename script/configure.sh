@@ -13,7 +13,7 @@ DIR_SCRIPT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck disable=SC1091
 source "${DIR_SCRIPT}/script/config-check.sh"
 # shellcheck disable=SC1091
-source "${DIR_SCRIPT}/core/lib.sh"
+source "${DIR_SCRIPT}/core/boot/lib.sh"
 
 show_usage() {
     printf '%s\n' "$(get_text configure.usage.workstation)"

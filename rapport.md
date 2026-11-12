@@ -12,13 +12,13 @@ Le total additionne 214 contrôles statiques inchangés (`/root/liltress-verify/
 
 Le profil statique du poste tient : SSH limité au LAN, UFW, sysctl, Unbound en boucle locale, audit, AppArmor, PAM, Secure Boot, LUKS, CrowdSec et fail2ban sont en place, et `pal` peut installer, compiler, lancer un snap et ouvrir une session TLS. Lynis est à 89, au-dessus du seuil de 80.
 
-L’exécution des contrôles planifiés est en échec. Les scripts de veille appellent `get_text` et `read_language_file`, définis dans `core/log.sh`, chargé par `core/watchdog-load.sh`. Ces deux fichiers sont dans l’archive amont et absents de l’arbre installé (`/opt/liltress-workstation/src` ne contient que `config`). La première passe de démarrage et la passe horaire sortent donc 127. La chaîne systemd affiche tout de même un succès, à cause du préfixe `-` sur son `ExecStart`.
+L’exécution des contrôles planifiés est en échec. Les scripts de veille appellent `get_text` et `read_language_file`, définis dans `core/log/log.sh`, chargé par `core/watchdog/load.sh`. Ces deux fichiers sont dans l’archive amont et absents de l’arbre installé (`/opt/liltress-workstation/src` ne contient que `config`). La première passe de démarrage et la passe horaire sortent donc 127. La chaîne systemd affiche tout de même un succès, à cause du préfixe `-` sur son `ExecStart`.
 
 La surveillance ClamAV à l’accès est également en échec. `clamdscan` reconnaît la chaîne d’essai standard. Le démon `clamonacc`, pourtant actif, laisse le fichier en place dans `/tmp`.
 
 ## ECHEC
 
-- ECHEC — bibliothèque de textes absente. `cron/bin/common.sh` cherche `watchdog-load.sh`, ne le trouve pas, puis charge `watchdog.sh`. Celui-ci ne trouve pas `log.sh`. Toute phrase du produit (`get_text`, `read_language_file`) s’arrête avec « commande introuvable ». Les fichiers présents dans l’archive sont `/tmp/liltress-workstation-src/core/log.sh` et `watchdog-load.sh`. L’empreinte `cron/integrity.sha256` de l’arbre installé reste valide : le manque est un fichier jamais déployé, pas une modification ultérieure. Conséquence directe : les scripts de rafraîchissement AIDE et rkhunter ne peuvent pas afficher leur phrase de succès, et `quarantine-restore.sh` non plus. Les commandes de calcul, elles, ont bien tourné (voir OK).
+- ECHEC — bibliothèque de textes absente. `cron/bin/common.sh` cherche `watchdog-load.sh`, ne le trouve pas, puis charge `watchdog.sh`. Celui-ci ne trouve pas `log.sh`. Toute phrase du produit (`get_text`, `read_language_file`) s’arrête avec « commande introuvable ». Les fichiers présents dans l’archive sont `/tmp/liltress-workstation-src/core/log/log.sh` et `watchdog-load.sh`. L’empreinte `cron/integrity.sha256` de l’arbre installé reste valide : le manque est un fichier jamais déployé, pas une modification ultérieure. Conséquence directe : les scripts de rafraîchissement AIDE et rkhunter ne peuvent pas afficher leur phrase de succès, et `quarantine-restore.sh` non plus. Les commandes de calcul, elles, ont bien tourné (voir OK).
 
 - ECHEC — `w-boot-scan.service` le 2026-11-06 à 08:34:00, code 127, environ 19 s. AIDE a fini son contrôle, puis `aide.sh` ligne 28 a appelé `get_text`. Journal : `get_text: commande introuvable`. L’unité `w-boot-chain.service` se termine avec `Result=success` et `ExecMainStatus=0` : le préfixe `-` masque l’échec du scan. Il n’y a pas eu de phrase « Contrôle de démarrage : OK ».
 
@@ -132,6 +132,6 @@ Vingt-sept preuves, utilisateur `pal` sauf les opérations de pare-feu qui exige
 
 Pas de reboot pour rejouer `OnBootSec` à froid. Pas d’import VPN. Pas de redémarrage d’USBGuard, ssh ou Unbound. Pas de rafale SSH contre fail2ban ou CrowdSec. Pas de second courrier. Le cœur manquant n’a pas été copié dans l’arbre installé : ce contrôle constate, il ne répare pas.
 
-Les prochaines passes horaire (vers 09:35) et périodique (vers 09:31) chargeront le même `common.sh`. Sans remise en place de `core/log.sh` et `core/watchdog-load.sh`, elles s’arrêteront au même endroit, et la chaîne de démarrage continuera d’afficher un succès systemd.
+Les prochaines passes horaire (vers 09:35) et périodique (vers 09:31) chargeront le même `common.sh`. Sans remise en place de `core/log/log.sh` et `core/watchdog/load.sh`, elles s’arrêteront au même endroit, et la chaîne de démarrage continuera d’afficher un succès systemd.
 
 Check : 258 OK / 19 A_VOIR / 7 ECHEC

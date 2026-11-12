@@ -6,18 +6,18 @@
 # =============================================================================
 
 PRODUCT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-if [[ -f "${PRODUCT_ROOT}/../share/core/bootstrap.sh" ]]; then
+if [[ -f "${PRODUCT_ROOT}/../share/core/boot/bootstrap.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${PRODUCT_ROOT}/../share/core/bootstrap.sh"
-elif [[ -f "${PRODUCT_ROOT}/core/bootstrap.sh" ]]; then
+    source "${PRODUCT_ROOT}/../share/core/boot/bootstrap.sh"
+elif [[ -f "${PRODUCT_ROOT}/core/boot/bootstrap.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${PRODUCT_ROOT}/core/bootstrap.sh"
+    source "${PRODUCT_ROOT}/core/boot/bootstrap.sh"
 else
     printf 'bootstrap core not found from %s\n' "${PRODUCT_ROOT}" >&2
     exit 1
 fi
-source_core config-validators.sh
-source_core log.sh
+source_core config/config-validators.sh
+source_core log/log.sh
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     printf '%s\n' "$(get_text configure.use-liltress-configures-check-n)" >&2
@@ -80,7 +80,7 @@ write_global_config() {
     cat > "${dest}" << EOF
 # =============================================================================
 # File       : config/global.conf
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -135,7 +135,7 @@ write_user_config() {
     cat > "${dest}" << EOF
 # =============================================================================
 # File       : config/user.conf
-# Updated at : 2026-11-07
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -153,7 +153,7 @@ write_secret_config() {
     cat > "${dest}" << EOF
 # =============================================================================
 # File       : config/secrets.conf
-# Updated at : 2026-10-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/common.sh
-# Updated at : 2026-11-06
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -20,11 +20,11 @@ log_pass()  { printf '%s %s\n' "$(date -Iseconds)" "$*" | tee -a "${LOG_FILE}"; 
 
 here_watchdog="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 for candidate_watchdog in \
-    "${here_watchdog}/../../../core/watchdog-load.sh" \
-    "${here_watchdog}/../../../../share/core/watchdog-load.sh" \
-    "${INSTALL_DIRECTORY:-}/core/watchdog-load.sh" \
-    "${CONFIG_BASE_DIRECTORY:-}/src/core/watchdog-load.sh" \
-    "${BASE:-}/src/core/watchdog-load.sh"
+    "${here_watchdog}/../../../core/watchdog/load.sh" \
+    "${here_watchdog}/../../../../share/core/watchdog/load.sh" \
+    "${INSTALL_DIRECTORY:-}/core/watchdog/load.sh" \
+    "${CONFIG_BASE_DIRECTORY:-}/src/core/watchdog/load.sh" \
+    "${BASE:-}/src/core/watchdog/load.sh"
 do
     if [[ -n "${candidate_watchdog}" && -f "${candidate_watchdog}" ]]; then
         # shellcheck disable=SC1090
@@ -36,9 +36,14 @@ if ! declare -F load_shared_watchdog >/dev/null 2>&1; then
     dir_watchdog="${here_watchdog}"
     hops_watchdog=0
     while [[ -n "${dir_watchdog}" && "${dir_watchdog}" != "/" && "${hops_watchdog}" -lt 16 ]]; do
-        if [[ -f "${dir_watchdog}/core/watchdog-load.sh" ]]; then
+        if [[ -f "${dir_watchdog}/src/core/watchdog/load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${dir_watchdog}/core/watchdog-load.sh"
+            source "${dir_watchdog}/src/core/watchdog/load.sh"
+            break
+        fi
+        if [[ -f "${dir_watchdog}/core/watchdog/load.sh" ]]; then
+            # shellcheck disable=SC1090
+            source "${dir_watchdog}/core/watchdog/load.sh"
             break
         fi
         dir_watchdog="$(dirname -- "${dir_watchdog}")"

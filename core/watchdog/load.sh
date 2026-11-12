@@ -27,15 +27,13 @@ source_text_engine() {
         fi
     fi
     for candidate in \
-        "${origin}/log.sh" \
-        "${PRODUCT_ROOT:-}/core/log/log.sh" \
-        "${origin}/../../../../share/core/log/log.sh" \
-        "${origin}/../../../core/log/log.sh" \
+        "${origin}/../log/log.sh" \
         "${BASE:-}/src/core/log/log.sh" \
         "${CONFIG_BASE_DIRECTORY:-}/src/core/log/log.sh" \
-        "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
-        "${INSTALL_DIRECTORY:-}/src/core/log/log.sh" \
-        "${PRODUCT_ROOT:-}/../share/core/log/log.sh"
+        "${PRODUCT_ROOT:-}/core/log/log.sh" \
+        "${origin}/log.sh" \
+        "${origin}/../../../core/log/log.sh" \
+        "${origin}/../../../../share/core/log/log.sh"
     do
         if [[ -n "${candidate}" && -f "${candidate}" ]]; then
             # shellcheck disable=SC1090
@@ -48,14 +46,15 @@ source_text_engine() {
 
 load_shared_watchdog() {
     local here="$1"
-    local candidate=""
-    source_text_engine "${here}" || true
+    local candidate="" engine=""
+    engine="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    source_text_engine "${engine}" || source_text_engine "${here}" || true
     for candidate in \
-        "${here}/watchdog.sh" \
+        "${engine}/watchdog.sh" \
+        "${BASE:-}/src/core/watchdog/watchdog.sh" \
+        "${CONFIG_BASE_DIRECTORY:-}/src/core/watchdog/watchdog.sh" \
         "${here}/../../../core/watchdog/watchdog.sh" \
-        "${here}/../../../../share/core/watchdog/watchdog.sh" \
-        "${BASE:-}/cron/bin/watchdog.sh" \
-        "${CONFIG_BASE_DIRECTORY:-}/cron/bin/watchdog.sh"
+        "${here}/../../../../share/core/watchdog/watchdog.sh"
     do
         if [[ -n "${candidate}" && -f "${candidate}" ]]; then
             # shellcheck disable=SC1090

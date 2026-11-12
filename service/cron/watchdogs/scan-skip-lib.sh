@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-skip-lib.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -100,11 +100,11 @@ locate_scan_skip_file() {
     here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     if ! declare -F locate_config_file >/dev/null 2>&1; then
         for candidate in \
-            "${INSTALL_DIRECTORY:-}/core/fs.sh" \
-            "${here}/../../../core/fs.sh" \
-            "${here}/../../../../share/core/fs.sh" \
-            "${here}/../../src/core/fs.sh" \
-            "${BASE}/src/core/fs.sh"
+            "${INSTALL_DIRECTORY:-}/core/host/fs.sh" \
+            "${here}/../../../core/host/fs.sh" \
+            "${here}/../../../../share/core/host/fs.sh" \
+            "${here}/../../src/core/host/fs.sh" \
+            "${BASE}/src/core/host/fs.sh"
         do
             [[ -n "${candidate}" && -f "${candidate}" ]] || continue
             # shellcheck disable=SC1090

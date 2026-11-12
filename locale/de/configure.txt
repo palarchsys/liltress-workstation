@@ -590,6 +590,36 @@ Installation der Sammlungen CrowdSec
 [configure.installation-of-the-watchdogs-chain-to-the-start]
 Installation der watchdogs (Kette zum Start, Passwort stündlich und Prüfung alle die 2 h, begrenzt zu {1}% des CPU gesamt)
 
+[configure.watchdog-copy-scripts]
+Kopie der Skripte nach cron/bin
+
+[configure.watchdog-scripts-copied]
+Watchdog-Skripte kopiert
+
+[configure.watchdog-copy-catalogs]
+Kopie der Engine und der Kataloge
+
+[configure.watchdog-catalogs-copied]
+Engine und Kataloge kopiert
+
+[configure.watchdog-enable-timers]
+Aktivierung der Timer
+
+[configure.watchdog-timers-armed]
+Timer scharf
+
+[configure.watchdog-first-pass]
+Erster Durchlauf durch den Start-Timer gestartet
+
+[configure.watchdog-scan-skip]
+Aktualisierung der ClamAV-Ausschlüsse
+
+[configure.watchdog-scan-skip-done]
+ClamAV-Ausschlüsse aktualisiert
+
+[configure.watchdog-integrity]
+Prüfsumme der Integritätsdateien
+
 [configure.ipt-modules]
 IPT_MODULES="{1}"
 

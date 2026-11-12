@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/postfix/configure.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -9,8 +9,8 @@ INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
 
-source "${INSTALL_DIRECTORY}/core/lib.sh"
-source_core mail.sh
+source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
+source_core mail/mail.sh
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 

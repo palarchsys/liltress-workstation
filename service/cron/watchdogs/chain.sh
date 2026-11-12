@@ -14,16 +14,31 @@
 set -euo pipefail
 
 chain_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-for chain_candidate in \
-    "${chain_dir}/../../../core/watchdog/load.sh" \
-    "${chain_dir}/../../../../share/core/watchdog/load.sh"
-do
-    if [[ -f "${chain_candidate}" ]]; then
-        # shellcheck disable=SC1090
-        source "${chain_candidate}"
+chain_root="${chain_dir}"
+chain_hops=0
+while [[ -n "${chain_root}" && "${chain_root}" != "/" && "${chain_hops}" -lt 16 ]]; do
+    if [[ -f "${chain_root}/src/core/watchdog/load.sh" ]]; then
+        # shellcheck disable=SC1091
+        source "${chain_root}/src/core/watchdog/load.sh"
         break
     fi
+    if [[ -f "${chain_root}/core/watchdog/load.sh" ]]; then
+        # shellcheck disable=SC1091
+        source "${chain_root}/core/watchdog/load.sh"
+        break
+    fi
+    if [[ -f "${chain_root}/share/core/watchdog/load.sh" ]]; then
+        # shellcheck disable=SC1091
+        source "${chain_root}/share/core/watchdog/load.sh"
+        break
+    fi
+    chain_root="$(dirname -- "${chain_root}")"
+    chain_hops=$((chain_hops + 1))
 done
+if ! declare -F load_shared_watchdog >/dev/null 2>&1; then
+    printf 'watchdog load.sh introuvable depuis %s\n' "${chain_dir}" >&2
+    exit 1
+fi
 load_shared_watchdog "${chain_dir}"
 
 run_watchdog_tool() {

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : test/run.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-11
 # Creator    : palarchsys
 # =============================================================================
 
@@ -61,12 +61,12 @@ if [[ "${product_ws}" -eq 0 && "${PROFILE}" == "WORKSTATION" ]]; then
     exit 2
 fi
 
-if [[ -f "${T_ROOT}/core/test-harness.sh" ]]; then
+if [[ -f "${T_ROOT}/core/check/test-harness.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${T_ROOT}/core/test-harness.sh"
-elif [[ -f "${T_ROOT}/../share/core/test-harness.sh" ]]; then
+    source "${T_ROOT}/core/check/test-harness.sh"
+elif [[ -f "${T_ROOT}/../share/core/check/test-harness.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${T_ROOT}/../share/core/test-harness.sh"
+    source "${T_ROOT}/../share/core/check/test-harness.sh"
 else
     printf 'test-harness.sh introuvable depuis %s\n' "${T_ROOT}" >&2
     exit 1
