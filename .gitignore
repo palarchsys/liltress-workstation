@@ -1,0 +1,92 @@
+# =============================================================================
+# File       : .gitignore
+# Updated at : 2026-11-12
+# Creator    : palarchsys
+# =============================================================================
+
+# Jeton Ubuntu Pro et mot de passe d'application Gmail.
+# Écrit par configure.sh, en mode 600.
+secrets.conf
+*.conf.save
+*.save.conf
+*.env
+
+# Empreinte des comptes. Le fichier réel est sur la machine, en mode 600.
+human.tsv
+
+# Rapports de lynis.sh, et copie de l'installation
+# lorsque DEBUG_INSTALL_LOG=1 dans global.conf.
+log/
+
+# Rapports du banc statique.
+test/output/
+
+# Recette de verify/workstation.sh lorsqu'elle est lancée
+# depuis le dossier des sources, sans journal d'installation.
+verify-report-*.md
+
+# Anciennes recettes texte, si un dossier en contient encore.
+verify-report-*.txt
+verify-report-*.tsv
+
+# Liens locaux vers share/. La publication copie les fichiers, pas le lien.
+/core
+/locale
+/template
+/python
+/system/purge/snapd.sh
+/script/log-collect.sh
+/script/version-update.sh
+/service/rkhunter/refresh-db.sh
+/service/acct/install.sh
+/service/aide/init-db.sh
+/service/aide/install.sh
+/service/apparmor/install.sh
+/service/auditd/install.sh
+/service/chkrootkit/install.sh
+/service/clamav/install.sh
+/service/crowdsec/install.sh
+/service/debsums/install.sh
+/service/fail2ban/install.sh
+/service/haveged/install.sh
+/service/lynis/install.sh
+/service/pam/install.sh
+/service/postfix/install.sh
+/service/rkhunter/install.sh
+/service/rngd/install.sh
+/service/ssh/install.sh
+/service/sysstat/install.sh
+/service/ubuntu-pro/install.sh
+/service/ufw/install.sh
+/service/unbound/install.sh
+/service/usbguard/install.sh
+/system/apt/install.sh
+/system/base/install.sh
+/script/project-tree.sh
+/service/cron/enable.sh
+/service/cron/watchdogs/chain.sh
+/service/cron/watchdogs/mail-alert.html
+/config/alert/exclude.list
+/config/alert/action.json
+/config/auditd/enable.rules
+/config/auditd/prelude.rules
+/config/crowdsec/package.list
+/config/crowdsec/preferences.conf
+/config/postfix/debconf.conf
+/config/usbguard/daemon.conf
+/config/usbguard/ipc.acl
+
+# Lois d'agent : dépôt privé liltress seulement.
+AGENTS.md
+
+# Éditeurs et environnements locaux.
+.idea/
+.vscode/
+.venv/
+*.swp
+*~
+
+/script/test/run.sh
+/script/host/monitor-host.sh
+/script/config/common.sh
+/log/
