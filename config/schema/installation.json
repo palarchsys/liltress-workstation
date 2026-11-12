@@ -317,6 +317,11 @@
       "id": "install.close.title",
       "steps": [
         {
+          "id": "install.test-mail",
+          "service": "mail",
+          "action": "test-mail"
+        },
+        {
           "id": "install.rkhunter.init",
           "service": "rkhunter",
           "path": "service/rkhunter/init-db.sh"
@@ -327,14 +332,14 @@
           "path": "service/aide/init-db.sh"
         },
         {
+          "id": "install.cron.arm",
+          "service": "cron",
+          "path": "service/cron/arm.sh"
+        },
+        {
           "id": "install.verify",
           "service": "verify",
           "path": "verify/workstation.sh"
-        },
-        {
-          "id": "install.test-mail",
-          "service": "mail",
-          "action": "test-mail"
         },
         {
           "id": "install.lynis.audit",

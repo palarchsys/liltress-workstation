@@ -14,40 +14,52 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${PROJECT_NAME} • ${HOSTNAME} • ${DATE}</title>
 </head>
-<body style="margin:0;padding:0;background-color:#0f172a;color:#e2e8f0;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0f172a" style="width:100%;background-color:#0f172a;margin:0;padding:0;">
+<body style="margin:0;padding:0;background-color:#1e1e1e;color:#cccccc;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1e1e1e" style="width:100%;background-color:#1e1e1e;margin:0;padding:0;">
 <tr>
 <td align="center" style="padding:16px;">
 <!--[if mso]>
 <table role="presentation" width="760" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td>
 <![endif]-->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#111827" style="width:100%;max-width:760px;table-layout:fixed;background-color:#111827;margin:0 auto;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1e1e1e" style="width:100%;max-width:760px;table-layout:fixed;background-color:#1e1e1e;margin:0 auto;">
 <tr>
-<td style="padding:20px 20px 16px;border-bottom:1px solid #334155;font-family:Arial,Helvetica,sans-serif;">
-<div style="margin:0;font-size:22px;line-height:1.3;font-weight:bold;color:#f8fafc;">${TITLE}</div>
-<div style="margin:6px 0 0;font-size:13px;line-height:1.4;color:#94a3b8;">${PROJECT_NAME} • ${HOSTNAME} • ${DATE}</div>
+<td style="padding:0 0 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border:1px solid #e5b684;">
+<tr>
+<td align="center" style="padding:14px 16px;font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:1.3;color:#cccccc;">${TITLE}</td>
+</tr>
+</table>
+<div style="margin:8px 0 0;font-size:13px;line-height:1.4;color:#44aae6;text-align:center;">${PROJECT_NAME} • ${HOSTNAME} • ${DATE}</div>
 </td>
 </tr>
 <tr>
-<td style="padding:16px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:#cbd5e1;">
-<strong>${MAIL_MODULE}</strong> ${MODULE_NAME}
+<td style="padding:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:#cccccc;">
+<strong style="color:#e5b684;">${MAIL_MODULE}</strong> <span style="color:#44aae6;">${MODULE_NAME}</span>
 </td>
 </tr>
 <tr>
-<td style="padding:12px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#e2e8f0;">
+<td style="padding:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#cccccc;">
 ${MAIL_READ}
 </td>
 </tr>
 <tr>
-<td style="padding:16px 20px 0;font-family:Arial,Helvetica,sans-serif;">
-<div style="margin:0 0 8px;font-size:13px;line-height:1.4;font-weight:bold;color:#93c5fd;">${MAIL_SEEN}</div>
-<pre style="margin:0;width:100%;max-width:100%;box-sizing:border-box;display:block;background-color:#020617;border:1px solid #334155;border-radius:8px;padding:14px;color:#e2e8f0;font-family:Consolas,Courier New,monospace;font-size:13px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word;word-break:break-word;overflow-wrap:break-word;overflow-x:auto;">${CONTENT}</pre>
+<td style="padding:8px 0 0;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border:1px solid #e5b684;">
+<tr>
+<td style="padding:12px 16px 4px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.4;font-weight:bold;color:#e5b684;">${MAIL_SEEN}</td>
+</tr>
+<tr>
+<td style="padding:4px 16px 14px;">
+<pre style="margin:0;width:100%;max-width:100%;box-sizing:border-box;display:block;background-color:#1e1e1e;color:#cccccc;font-family:Consolas,Courier New,monospace;font-size:13px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word;word-break:break-word;overflow-wrap:break-word;overflow-x:auto;">${CONTENT}</pre>
+</td>
+</tr>
+</table>
 </td>
 </tr>
 <!--ADVICE_START-->
 <tr>
 <td style="padding:8px 20px 0;font-family:Arial,Helvetica,sans-serif;">
-<div style="margin:0 0 12px;font-size:13px;line-height:1.4;font-weight:bold;color:#93c5fd;">${MAIL_CHECK}</div>
+<div style="margin:0 0 12px;font-size:13px;line-height:1.4;font-weight:bold;color:#e5b684;">${MAIL_CHECK}</div>
 ${ADVICE_HTML}
 </td>
 </tr>
@@ -55,12 +67,12 @@ ${ADVICE_HTML}
 <!--NOTE_START-->
 <tr>
 <td style="padding:4px 20px 16px;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1e293b" style="width:100%;background-color:#1e293b;border:1px solid #334155;border-radius:8px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1e1e1e" style="width:100%;background-color:#1e1e1e;border:1px solid #e5b684;">
 <tr>
 <td style="padding:16px;font-family:Arial,Helvetica,sans-serif;">
-<div style="margin:0 0 8px;font-size:13px;line-height:1.4;font-weight:bold;color:#93c5fd;">${MAIL_NEXT}</div>
-<p style="margin:0 0 12px;font-size:14px;line-height:1.55;color:#e2e8f0;">${NOTE}</p>
-<pre style="margin:0;width:100%;max-width:100%;box-sizing:border-box;display:block;background-color:#020617;border:1px solid #334155;border-radius:8px;padding:12px;color:#86efac;font-family:Consolas,Courier New,monospace;font-size:13px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word;word-break:break-word;overflow-wrap:break-word;overflow-x:auto;">${NOTE_CMD}</pre>
+<div style="margin:0 0 8px;font-size:13px;line-height:1.4;font-weight:bold;color:#e5b684;">${MAIL_NEXT}</div>
+<p style="margin:0 0 12px;font-size:14px;line-height:1.55;color:#cccccc;">${NOTE}</p>
+<pre style="margin:0;width:100%;max-width:100%;box-sizing:border-box;display:block;background-color:#1e1e1e;border:1px solid #e5b684;padding:12px;color:#44aae6;font-family:Consolas,Courier New,monospace;font-size:13px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word;word-break:break-word;overflow-wrap:break-word;overflow-x:auto;">${NOTE_CMD}</pre>
 </td>
 </tr>
 </table>
@@ -68,7 +80,7 @@ ${ADVICE_HTML}
 </tr>
 <!--NOTE_END-->
 <tr>
-<td bgcolor="#1e293b" style="background-color:#1e293b;padding:16px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.4;color:#64748b;text-align:center;">
+<td style="padding:16px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.4;color:#e5b684;text-align:center;">
 ${PROJECT_NAME}
 </td>
 </tr>

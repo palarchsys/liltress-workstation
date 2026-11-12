@@ -121,7 +121,6 @@ chown root:root "/etc/cron.d/${PROJECT_SLUG}"
 chmod 600 "/etc/cron.d/${PROJECT_SLUG}"
 
 install -d -m 755 /etc/systemd/system
-log_info         "${INSTALL_WATCHER}" "configure.watchdog-enable-timers"
 systemctl_bin="$(command -v systemctl || true)"
 [[ -n "${systemctl_bin}" ]] || log_error        "${INSTALL_WATCHER}" "configure.systemctl-not-found"
 
@@ -174,13 +173,6 @@ systemctl disable --now w-egress-watch.timer >/dev/null 2>&1 || true
 systemctl disable --now w-egress-watch.service >/dev/null 2>&1 || true
 rm -f /etc/systemd/system/w-egress-watch.timer /etc/systemd/system/w-egress-watch.service
 run_silent       "${INSTALL_WATCHER}" "configure.cron.error.8" systemctl daemon-reload
-run_silent       "${INSTALL_WATCHER}" "configure.cron.error.9" systemctl enable --now w-boot-chain.timer
-run_silent       "${INSTALL_WATCHER}" "configure.cron.error.10" systemctl enable --now w-idle-scan.timer
-run_silent       "${INSTALL_WATCHER}" "configure.cron.error.11" systemctl enable --now w-reboot-notice.timer
-run_silent       "${INSTALL_WATCHER}" "configure.cron.error.12" systemctl enable --now w-periodic-scan.timer
-run_silent       "${INSTALL_WATCHER}" "configure.cron.error.13" systemctl enable --now w-hourly-scan.timer
-log_success      "${INSTALL_WATCHER}" "configure.watchdog-timers-armed"
-log_info         "${INSTALL_WATCHER}" "configure.watchdog-first-pass"
 log_success      "${INSTALL_WATCHER}" "configure.chain-of-start-hourly-password-and-scan-all-the-2" "${WATCHDOG_CPU_LIMIT}"
 
 export BASE="${CONFIG_BASE_DIRECTORY}"
@@ -210,8 +202,5 @@ install -m 644 \
     "${INSTALL_DIRECTORY}/config/global.conf" \
     "${CONFIG_BASE_DIRECTORY}/config/global.conf"
 export BASE="${CONFIG_BASE_DIRECTORY}"
-log_info         "${INSTALL_WATCHER}" "configure.watchdog-integrity"
-run_silent       "${INSTALL_WATCHER}" "configure.cron.error.14" bash "${CONFIG_BASE_DIRECTORY}/cron/bin/integrity.sh"
-
 log_info         "${INSTALL_WATCHER}" "configure.crontab-user-not-touch-no-cron-allow"
 log_success      "${INSTALL_WATCHER}" "configure.watchdogs-installed-in-cron-bin" "${CONFIG_BASE_DIRECTORY}"
