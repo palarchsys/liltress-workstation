@@ -249,7 +249,7 @@ def advice_plain(text):
 def mail_heading(text):
     return (
         '<div style="margin:0 0 8px;font-size:13px;line-height:1.4;font-weight:bold;'
-        'color:#93c5fd;font-family:Arial,Helvetica,sans-serif;">'
+        'color:#e5b684;font-family:Arial,Helvetica,sans-serif;">'
         + html.escape(text, quote=False)
         + "</div>"
     )
@@ -257,9 +257,10 @@ def mail_heading(text):
 def mail_pre(text):
     return (
         '<pre style="margin:0 0 16px;width:100%;max-width:100%;box-sizing:border-box;'
-        'display:block;background-color:#020617;border:1px solid #334155;border-radius:8px;'
-        'padding:12px;color:#e2e8f0;font-family:Consolas,Courier New,monospace;font-size:13px;'
-        'line-height:1.45;white-space:pre;overflow-x:auto;">'
+        'display:block;background-color:#1e1e1e;border:1px solid #e5b684;'
+        'padding:12px;color:#cccccc;font-family:Consolas,Courier New,monospace;font-size:13px;'
+        'line-height:1.45;white-space:pre-wrap;word-wrap:break-word;word-break:break-word;'
+        'overflow-wrap:break-word;overflow-x:auto;">'
         + html.escape(text, quote=False)
         + "</pre>"
     )
