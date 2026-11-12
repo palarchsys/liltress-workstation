@@ -149,7 +149,9 @@ report_watchdog_module() {
             apply_watchdog_remedy "${phase}" "${state_dir}"
             refresh_watchdog_rows "${state_dir}" || true
             render_watchdog_rows "${state_dir}"
-            zip_path="$(write_watchdog_pack "${phase}" "${state_dir}" "$(dirname -- "${log}")")"
+            mkdir -p -- "${state_dir}/logs"
+            cp -f -- "${log}" "${state_dir}/logs/"
+            zip_path="$(write_watchdog_pack "${phase}" "${state_dir}" "${state_dir}/logs")"
             send_watchdog_report "${phase}" "${state_dir}" "${zip_path}"
             rm -rf -- "${state_dir}"
             return 0

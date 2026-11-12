@@ -66,12 +66,13 @@ run_watchdog_phase() {
     local state_dir="$5"
     local log_source="${base}/cron/security_logs"
     local log_copy="${state_dir}/logs"
-    local tool status tools=()
+    local phase_start tool status tools=()
     case "${phase}" in
         malware) tools=(clamav chkrootkit rkhunter) ;;
         integrity) tools=(debsums auditd aide) ;;
         *) return 0 ;;
     esac
+    phase_start="$(date +%s)"
     mkdir -p -- "${log_copy}" "${log_source}"
     for tool in "${tools[@]}"; do
         run_watchdog_tool "${tool}" "${base}" "${state_dir}/exit-${tool}"
@@ -80,7 +81,7 @@ run_watchdog_phase() {
             printf '%s\n' "${tool} ${status}" > "${log_copy}/crash-${tool}.log"
         fi
     done
-    collect_watchdog_logs "${log_source}" "${log_copy}" "${since}"
+    collect_watchdog_logs "${log_source}" "${log_copy}" "${phase_start}" "${phase}"
     check_watchdog_phase "${phase}" "${log_copy}" "${since}" "${repair_file}" "${state_dir}" >/dev/null
 }
 

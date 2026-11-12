@@ -7,7 +7,7 @@
 
 # -----------------------------------------------------------------------------
 # Purpose    : Write the zip a real watchdog detection attaches to the mail.
-# Note       : The archive stays in the product log directory and is mode 600.
+# Note       : The archive keeps only the logs of this pass. Later passes stay out.
 # -----------------------------------------------------------------------------
 
 write_watchdog_pack() {
@@ -71,7 +71,7 @@ with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
     add_text(archive, "manifest.txt", "\n".join(chunks).rstrip() + "\n")
     if logs and logs.is_dir():
         for path in sorted(logs.iterdir()):
-            if path.is_file() and allowed(path):
+            if path.is_file() and allowed(path) and not path.name.startswith("alert-"):
                 add_text(archive, f"logs/{path.name}", path.read_text(errors="replace"))
     for chunk in (os.environ.get("WATCHDOG_EXCLUDES") or "").split(":"):
         if not chunk:

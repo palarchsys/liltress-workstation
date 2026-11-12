@@ -38,12 +38,37 @@ collect_watchdog_logs() {
     local source_dir="$1"
     local dest_dir="$2"
     local since="$3"
-    local path
+    local phase="${4:-}"
+    local path name
     mkdir -p "${dest_dir}"
     [[ -d "${source_dir}" ]] || return 0
     while IFS= read -r path; do
         [[ -n "${path}" && -f "${path}" ]] || continue
-        cp -f -- "${path}" "${dest_dir}/$(basename -- "${path}")" 2>/dev/null || true
+        name="$(basename -- "${path}")"
+        case "${name}" in
+            alert-*.zip|watchdog-chain.lock|watchdog-chain.stamp) continue ;;
+        esac
+        case "${phase}" in
+            malware)
+                case "${name}" in
+                    clamav-*|chkrootkit-*|rkhunter-*|crash-clamav*|crash-chkrootkit*|crash-rkhunter*) ;;
+                    *) continue ;;
+                esac
+                ;;
+            integrity)
+                case "${name}" in
+                    debsums-*|auditd-*|aide-*|crash-debsums*|crash-auditd*|crash-aide*) ;;
+                    *) continue ;;
+                esac
+                ;;
+            evergreen)
+                case "${name}" in
+                    clamav-*|crowdsec-*|fail2ban-*|crash-clamav*|crash-crowdsec*|crash-fail2ban*) ;;
+                    *) continue ;;
+                esac
+                ;;
+        esac
+        cp -f -- "${path}" "${dest_dir}/${name}" 2>/dev/null || true
     done < <(find "${source_dir}" -maxdepth 1 -type f -newermt "@${since}" -print 2>/dev/null || true)
 }
 
