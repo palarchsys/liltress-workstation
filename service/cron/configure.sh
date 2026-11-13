@@ -26,7 +26,7 @@ cpu_quota="$(
 source "$(locate_config_file cron/timers.conf)"
 
 log_info         "${INSTALL_WATCHER}" "configure.installation-of-the-watchdogs-chain-to-the-start" "${WATCHDOG_CPU_LIMIT}"
-ensure_directory "${CONFIG_BASE_DIRECTORY}/cron" 755
+ensure_directory "${CONFIG_BASE_DIRECTORY}/cron" 750
 ensure_directory "${CONFIG_BASE_DIRECTORY}/cron/cron_logs" 750
 ensure_directory "${CONFIG_BASE_DIRECTORY}/cron/security_logs" 750
 ensure_directory "${CONFIG_BASE_DIRECTORY}/cron/alerts" 750

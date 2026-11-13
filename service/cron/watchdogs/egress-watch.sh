@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/egress-watch.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -67,7 +67,7 @@ fi
 record_egress_stamp() {
     local moment
     moment="$(date '+%Y-%m-%d %H:%M:%S')"
-    install -d -m 750 "${BASE}/cron"
+    mkdir -p -- "$(dirname -- "${stamp}")"
     printf '%s\n' "${moment}" > "${stamp}"
     chmod 600 "${stamp}"
 }

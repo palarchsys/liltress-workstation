@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/behavior.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -31,7 +31,7 @@ fi
 record_behavior_stamp() {
     local moment
     moment="$(date '+%m/%d/%Y %T')"
-    install -d -m 750 "${BASE}/cron"
+    mkdir -p -- "$(dirname -- "${stamp}")"
     printf '%s\n' "${moment}" > "${stamp}"
     chmod 600 "${stamp}"
 }

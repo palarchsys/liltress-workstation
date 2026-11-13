@@ -837,6 +837,35 @@ else
     t_fail "graph.watch" "la table de journal, auditd et les contrôles au démarrage doivent rester actifs"
 fi
 
+t_section "droits de cron et de log"
+fs="${T_ROOT}/core/host/fs.sh"
+user_cron="${T_ROOT}/service/cron/configure.sh"
+server_cron="${T_ROOT}/../server/service/cron/configure.sh"
+logs="${T_ROOT}/core/log/install-log.sh"
+if grep -qF 'chmod "${log_mode}" "${root}/cron"' "${fs}" \
+   && grep -qF 'find "${root}/log" -type d -exec chmod 750' "${fs}" \
+   && grep -qF 'find "${root}/log" -type f -exec chmod 640' "${fs}" \
+   && grep -qF 'ensure_directory "${CONFIG_BASE_DIRECTORY}/cron" 770 root "${CRON_USER}"' "${server_cron}" \
+   && ! grep -qF 'ensure_directory "${CONFIG_BASE_DIRECTORY}/cron" 755' "${server_cron}" \
+   && grep -qF 'ensure_directory "${CONFIG_BASE_DIRECTORY}/cron" 750' "${user_cron}" \
+   && ! grep -qF 'ensure_directory "${CONFIG_BASE_DIRECTORY}/cron" 755' "${user_cron}" \
+   && grep -qF 'chmod 750' "${logs}" \
+   && grep -qF 'chmod 640' "${logs}" \
+   && ! grep -qF 'chmod 755' "${logs}" \
+   && ! grep -qF 'chmod 644' "${logs}" \
+   && ! grep -qF 'install -d -m 750' "${T_ROOT}/service/cron/watchdogs/integrity.sh" \
+   && ! grep -qF 'install -d -m 750' "${T_ROOT}/service/cron/watchdogs/behavior.sh" \
+   && ! grep -qF 'install -d -m 750' "${T_ROOT}/service/cron/watchdogs/egress-watch.sh" \
+   && ! grep -qF 'install -d -m 750' "${T_ROOT}/service/ufw/egress.sh" \
+   && ! grep -qF 'install -d -m 750' "${T_ROOT}/../server/service/cron/watchdogs/integrity.sh" \
+   && ! grep -qF 'install -d -m 750' "${T_ROOT}/../server/service/cron/watchdogs/behavior.sh" \
+   && grep -qF 'set_tree_modes' "${T_ROOT}/service/aide/init-db.sh" \
+   && grep -qF 'set_tree_modes' "${T_ROOT}/../server/service/aide/init-db.sh"; then
+    t_pass "graph.modes" "cron suit le compte cron, log reste fermé"
+else
+    t_fail "graph.modes" "cron ou log redevient lisible par le compte local"
+fi
+
 t_section "noms des fichiers de configuration"
 t_check_config_name() {
     local rel="$1"

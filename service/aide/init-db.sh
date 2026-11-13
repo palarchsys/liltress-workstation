@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/aide/init-db.sh
-# Updated at : 2026-11-07
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -31,6 +31,8 @@ aide_log="${INSTALL_LOG_DIR:-/var/log/${PROJECT_SLUG}}/aide-init.log"
 mkdir -p "$(dirname "${aide_log}")"
 
 rm -f /var/lib/aide/aide.db.new /var/lib/aide/aide.db.new.gz
+
+set_tree_modes || log_error "${INSTALL_WATCHER}" "configure.secrets-conf-mode" "600"
 
 if ! aide --config="/etc/aide/aide.conf" --init >"${aide_log}" 2>&1; then
     log_warn "${INSTALL_WATCHER}" "log.help-init-a-returned-an-error-detail" "${aide_log}"

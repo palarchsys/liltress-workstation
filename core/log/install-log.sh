@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/install-log.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -39,12 +39,19 @@ publish_repo_logs() {
     local og file
     og="$(stat -c '%u:%g' "$abs_root" 2>/dev/null || true)"
 
+    if [[ -d "${abs_root}/log" ]]; then
+        chmod 750 "${abs_root}/log" 2>/dev/null || true
+    fi
+    if [[ -d "${abs_root}/log/install" ]]; then
+        chmod 750 "${abs_root}/log/install" 2>/dev/null || true
+    fi
+
     if [[ -f "$path" ]]; then
         if check_log_path_private "$path"; then
             rm -f "$path"
             return 0
         fi
-        chmod 644 "$path" 2>/dev/null || true
+        chmod 640 "$path" 2>/dev/null || true
         if [[ -n "$og" && "$og" != "0:0" ]]; then
             chown "$og" "$path" 2>/dev/null || true
         fi
@@ -62,9 +69,9 @@ publish_repo_logs() {
     while IFS= read -r file; do
         [[ -e "$file" ]] || continue
         if [[ -d "$file" ]]; then
-            chmod 755 "$file" 2>/dev/null || true
+            chmod 750 "$file" 2>/dev/null || true
         else
-            chmod 644 "$file" 2>/dev/null || true
+            chmod 640 "$file" 2>/dev/null || true
         fi
         if [[ -n "$og" && "$og" != "0:0" ]]; then
             chown "$og" "$file" 2>/dev/null || true

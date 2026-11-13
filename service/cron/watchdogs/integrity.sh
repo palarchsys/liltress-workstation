@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/integrity.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -46,7 +46,7 @@ while read -r path; do
 done < "${list}" | sort > "${current}"
 
 if [[ ! -s "${stamp}" ]]; then
-    install -d -m 750 "${BASE}/cron"
+    mkdir -p -- "$(dirname -- "${stamp}")"
     cat "${current}" > "${stamp}"
     chmod 600 "${stamp}"
     log_pass "$(get_text watchdog.initial-fingerprint-written)"

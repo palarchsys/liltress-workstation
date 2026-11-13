@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/03_functions.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -230,6 +230,10 @@ if PRODUCT_ROOT="${T_ROOT}" bash -c '
     init_install_log
     grep -Fqx "os          : Ubuntu 26.10" "${INSTALL_LOG_DIR}/meta.txt"
     ! grep -Fqx "os          : Ubuntu 26.10 26.10" "${INSTALL_LOG_DIR}/meta.txt"
+    [[ "$(stat -c %a "${INSTALL_DIRECTORY}/log")" == "750" ]]
+    [[ "$(stat -c %a "${INSTALL_DIRECTORY}/log/install")" == "750" ]]
+    [[ "$(stat -c %a "${INSTALL_LOG_DIR}")" == "750" ]]
+    [[ "$(stat -c %a "${INSTALL_LOG_DIR}/install.log")" == "640" ]]
 ' bash "${T_ROOT}/core/boot/lib.sh" "${log_work}"; then
     t_pass "user.mode-test.logname" "journal nommé install-*-workstation, version de distribution écrite une fois"
 else

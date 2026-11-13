@@ -211,12 +211,20 @@ set_tree_modes() {
     else
         cron_user="root"
     fi
+    if [[ -d "${root}/cron" ]]; then
+        chmod "${log_mode}" "${root}/cron"
+        chown "root:${cron_user}" "${root}/cron"
+    fi
     for rel in cron/cron_logs cron/security_logs cron/alerts cron/archives cron/quarantine; do
         if [[ -d "${root}/${rel}" ]]; then
             chmod "${log_mode}" "${root}/${rel}"
             chown "root:${cron_user}" "${root}/${rel}"
         fi
     done
+    if [[ -d "${root}/log" ]]; then
+        find "${root}/log" -type d -exec chmod 750 {} + -exec chown root:root {} +
+        find "${root}/log" -type f -exec chmod 640 {} + -exec chown root:root {} +
+    fi
 }
 
 encode_url() {

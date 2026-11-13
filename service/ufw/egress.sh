@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ufw/egress.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -19,7 +19,7 @@ require_root
 # shellcheck disable=SC1091
 source "$(locate_config_file ufw/egress.conf)"
 
-install -d -m 750 "${CONFIG_BASE_DIRECTORY}/cron"
+mkdir -p -- "${CONFIG_BASE_DIRECTORY}/cron"
 umask 077
 cat > "${CONFIG_BASE_DIRECTORY}/cron/egress.conf" << EOF
 NET_ISOLATE_SEC=${NET_ISOLATE_SEC}
