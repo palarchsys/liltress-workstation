@@ -69,7 +69,7 @@ liltress fehlt nach extraction.\n
 \nTéléchargement beendet. Die Quellen sind in %s.\n
 
 [install.launch-of-the-configuration-n-n]
-Start der Konfiguration.\n\n
+Start der Konfiguration.
 
 [install.nla-configuration-saved-password-more-the-check]
 \nLa Konfiguration gespeicherte Passwort mehr der Prüfung.\n

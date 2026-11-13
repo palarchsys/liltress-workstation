@@ -46,7 +46,7 @@ Le poste se prépare par l'installeur curl, ou par un clone suivi de `sudo ./lil
 ## ▪️ Curl
 
 ```bash
-sudo apt-get install -y ca-certificates curl git swaks
+sudo apt-get install -y ca-certificates curl git swaks >/dev/null 2>&1
 curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh | sudo bash
 ```
 

@@ -69,7 +69,7 @@ liltress absent après extraction.\n
 \nTéléchargement terminé. Les sources sont dans %s.\n
 
 [install.launch-of-the-configuration-n-n]
-Lancement de la configuration.\n\n
+Lancement de la configuration.
 
 [install.nla-configuration-saved-password-more-the-check]
 \nLa configuration enregistrée ne passe plus le contrôle.\n

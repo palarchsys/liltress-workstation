@@ -178,7 +178,7 @@ send_install_mail() {
     HOSTNAME="${HOSTNAME:-$(hostname -s 2>/dev/null || hostname)}"
     case "${MODULE_NAME:-}" in
         Aide) about="$(get_text log.integrity-of-the-files-watched-by-help-help-chec)" ;;
-        Chkrootkit) about="Recherche de rootkits (chkrootkit -x -q)." ;;
+        Chkrootkit) about="$(get_text watchdog.about.chkrootkit)" ;;
         Rkhunter) about="$(get_text log.search-of-rootkits-and-files-changed-rkhunter-ch)" ;;
         Clamav) about="$(get_text log.files-reported-by-clamav-quarantine-and-journals)" ;;
         Auditd) about="$(get_text log.events-of-audit-abnormal-ausearch)" ;;
@@ -187,12 +187,12 @@ send_install_mail() {
         Crowdsec) about="$(get_text log.decisions-and-alerts-crowdsec-of-the-derni-res-2)" ;;
         Ufw) about="$(get_text log.packages-blocked-by-ufw)" ;;
         "Matrix Credentials") about="$(get_text log.credentials-matrix-element-and-postgres-created)" ;;
-        "Keycloak Credentials") about="Identifiants Keycloak et client du portail." ;;
-        "Livekit Credentials") about="Identifiants LiveKit (SFU et service de jetons)." ;;
-        "Wireguard Credentials") about="Identifiants du VPN wg-easy." ;;
+        "Keycloak Credentials") about="$(get_text log.credentials-keycloak-and-portal-client)" ;;
+        "Livekit Credentials") about="$(get_text log.credentials-livekit-sfu-and-token-service)" ;;
+        "Wireguard Credentials") about="$(get_text log.credentials-of-the-vpn-wg-easy)" ;;
         "Users Credentials") about="$(get_text log.account-ssh-and-key-created-to-the-installation)" ;;
         "Nginx htpasswd") about="$(get_text log.password-of-the-zone-of-administration-nginx)" ;;
-        *) about="Message du module ${MODULE_NAME:-inconnu}." ;;
+        *) about="$(get_text watchdog.about.module "${MODULE_NAME:-$(get_text watchdog.module.unknown)}")" ;;
     esac
     detail="$(printf '%s' "${CONTENT:-}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
     if [[ -z "${detail}" ]]; then

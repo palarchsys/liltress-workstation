@@ -513,6 +513,10 @@ awk '
     $0 == "!__HF_BASE__/cron/rkhunter-mirrors\\.sha256$" { mirrors = NR }
     END { exit !(base && stamp > base && integ > stamp && mirrors > integ) }
 ' "${T_ROOT}/config/aide/aide.conf" || daily_ok=0
+grep -qF '!__HF_BASE__/log($|/)' "${T_ROOT}/config/aide/aide.conf" || daily_ok=0
+grep -qF '!/etc/systemd/system/snap-.*\.mount$' "${T_ROOT}/config/aide/aide.conf" || daily_ok=0
+grep -qF '!/etc/systemd/system/[^/]+\.wants/snap-.*\.mount$' "${T_ROOT}/config/aide/aide.conf" || daily_ok=0
+grep -qF '^/var/log(/|$)' "${T_ROOT}/config/chkrootkit/patterns.ignore" || daily_ok=0
 awk '
     /out\.extend/ { ext = NR }
     /path\.write_text/ { wr = NR }

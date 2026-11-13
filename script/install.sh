@@ -7,6 +7,9 @@
 
 set -euo pipefail
 
+INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
+export INSTALL_WATCHER
+
 REPO_URL="${REPO_URL:-https://github.com/palarchsys/liltress-workstation}"
 BRANCH="${BRANCH:-main}"
 INSTALL_ROOT="${INSTALL_ROOT:-/opt/liltress-workstation}"
@@ -30,7 +33,7 @@ if [[ -z "${INSTALL_ROOT}" || "${INSTALL_ROOT}" != /opt/* || "${INSTALL_ROOT}" =
 fi
 
 export DEBIAN_FRONTEND=noninteractive
-apt-get install -y -qq ca-certificates git >/dev/null
+apt-get install -y -qq ca-certificates git >/dev/null 2>&1
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -132,17 +135,35 @@ if [[ -n "$(find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -print -quit)" ]]; th
             read_language_file "${INSTALL_DIRECTORY}/config/global.conf" || true
         fi
     fi
+    if declare -F show_title_box >/dev/null 2>&1 && declare -F get_text >/dev/null 2>&1; then
+        clear
+        if [[ -f "${INSTALL_DIRECTORY}/script/verify/workstation.sh" ]]; then
+            show_title_box "$(get_text log.liltress-workstation-hardening-workstation)"
+        else
+            show_title_box "$(get_text log.liltress-choice-of-the-profile)"
+        fi
+        printf '\n' >&2
+    fi
     answer=""
     if [[ -r /dev/tty ]] && { exec 3<>/dev/tty; } 2>/dev/null; then
-        if declare -F get_text >/dev/null 2>&1; then
-            printf '%s' "$(get_text install.continue-o-n)" >&3
+        if declare -F get_text >/dev/null 2>&1 && declare -F show_title_box >/dev/null 2>&1; then
+            exec 3<&-
+            label="$(get_text install.continue-o-n)"
+            width="${#label}"
+            if (( width < 12 )); then
+                width=12
+            fi
+            printf '\n         \e[34m%*s\e[0m : ' "${width}" "${label}" >&2
+            IFS= read -r answer </dev/tty || answer=""
         else
             printf '%s' "Continue the installation? [O/N] " >&3
+            IFS= read -r answer <&3 || answer=""
+            exec 3<&-
         fi
-        IFS= read -r answer <&3 || answer=""
-        exec 3<&-
     else
-        if declare -F get_text >/dev/null 2>&1; then
+        if declare -F log_info >/dev/null 2>&1; then
+            log_info "${INSTALL_WATCHER}" "install.no-terminal"
+        elif declare -F get_text >/dev/null 2>&1; then
             printf '%s\n' "$(get_text install.no-terminal)" >&2
         else
             printf '%s\n' "No terminal for the question. Stopped." >&2
@@ -152,7 +173,9 @@ if [[ -n "$(find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -print -quit)" ]]; th
     case "${answer}" in
         O|o) accepted=1 ;;
         *)
-            if declare -F get_text >/dev/null 2>&1; then
+            if declare -F log_info >/dev/null 2>&1; then
+                log_info "${INSTALL_WATCHER}" "install.stopped"
+            elif declare -F get_text >/dev/null 2>&1; then
                 printf '%s\n' "$(get_text install.stopped)"
             else
                 printf '%s\n' "Stopped."
@@ -163,25 +186,28 @@ if [[ -n "$(find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -print -quit)" ]]; th
 fi
 
 if [[ -d "${INSTALL_ROOT}/.git" ]]; then
-    git -C "${INSTALL_ROOT}" fetch --depth 1 origin "${BRANCH}"
+    git -C "${INSTALL_ROOT}" fetch -q --depth 1 origin "${BRANCH}"
     trap - EXIT
     save_runtime "${INSTALL_ROOT}"
-    git -C "${INSTALL_ROOT}" clean -fdx
-    git -C "${INSTALL_ROOT}" checkout -f -B "${BRANCH}" FETCH_HEAD
+    git -C "${INSTALL_ROOT}" clean -fdq
+    git -C "${INSTALL_ROOT}" checkout -q -f -B "${BRANCH}" FETCH_HEAD
 else
     trap - EXIT
     save_runtime "${INSTALL_ROOT}"
     find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-    git clone --depth 1 --branch "${BRANCH}" "${REPO_URL}" "${INSTALL_ROOT}"
+    git clone -q --depth 1 --branch "${BRANCH}" "${REPO_URL}" "${INSTALL_ROOT}"
 fi
 
 if [[ ! -f "${INSTALL_ROOT}/config/global.conf" || ! -f "${INSTALL_ROOT}/liltress" ]]; then
-    if declare -F get_text >/dev/null 2>&1; then
+    if declare -F log_error >/dev/null 2>&1; then
+        log_error "${INSTALL_WATCHER}" "install.archive-github-invalid-config-global-conf-absent"
+    elif declare -F get_text >/dev/null 2>&1; then
         printf '%s\n' "$(get_text install.archive-github-invalid-config-global-conf-absent)" >&2
+        exit 1
     else
         printf '%s\n' "Invalid GitHub archive (config/global.conf absent)." >&2
+        exit 1
     fi
-    exit 1
 fi
 
 restore_kept
@@ -204,30 +230,43 @@ source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 read_language_file "${INSTALL_DIRECTORY}/config/global.conf"
 
+clear
+if [[ -f "${INSTALL_DIRECTORY}/script/verify/workstation.sh" ]]; then
+    show_title_box "$(get_text log.liltress-workstation-hardening-workstation)"
+else
+    show_title_box "$(get_text log.liltress-choice-of-the-profile)"
+fi
+printf '\n' >&2
+
 if [[ "${accepted}" -eq 0 ]]; then
     answer=""
     if [[ -r /dev/tty ]] && { exec 3<>/dev/tty; } 2>/dev/null; then
-        printf '%s' "$(get_text install.continue-o-n)" >&3
-        IFS= read -r answer <&3 || answer=""
         exec 3<&-
+        label="$(get_text install.continue-o-n)"
+        width="${#label}"
+        if (( width < 12 )); then
+            width=12
+        fi
+        printf '\n         \e[34m%*s\e[0m : ' "${width}" "${label}" >&2
+        IFS= read -r answer </dev/tty || answer=""
     else
-        printf '%s\n' "$(get_text install.no-terminal)" >&2
+        log_info "${INSTALL_WATCHER}" "install.no-terminal"
         exit 0
     fi
     case "${answer}" in
         O|o) ;;
         *)
-            printf '%s\n' "$(get_text install.stopped)"
+            log_info "${INSTALL_WATCHER}" "install.stopped"
             exit 0
             ;;
     esac
 fi
 
 if bash "${INSTALL_ROOT}/script/configure.sh" --check; then
-    printf '%s\n' "$(get_text install.launch-of-the-installation)"
+    log_info "${INSTALL_WATCHER}" "install.launch-of-the-installation"
     cd "${INSTALL_ROOT}"
     exec bash "${INSTALL_ROOT}/script/run.sh"
 fi
 
-printf '%b' "$(get_text install.launch-of-the-configuration-n-n)"
+log_info "${INSTALL_WATCHER}" "install.launch-of-the-configuration-n-n"
 exec bash "${INSTALL_ROOT}/script/configure.sh"

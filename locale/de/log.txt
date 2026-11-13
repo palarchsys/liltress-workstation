@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/log.txt
-# Updated at : 2026-11-12
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -961,6 +961,15 @@ Konto SSH und Schlüssel erstellt zu Installation.
 
 [log.password-of-the-zone-of-administration-nginx]
 Passwort von die zone von administration Nginx.
+
+[log.credentials-keycloak-and-portal-client]
+Zugangsdaten Keycloak und Portal-Client.
+
+[log.credentials-livekit-sfu-and-token-service]
+Zugangsdaten LiveKit (SFU und Token-Dienst).
+
+[log.credentials-of-the-vpn-wg-easy]
+Zugangsdaten des VPN wg-easy.
 
 [log.credentials-saved-in-s-n]
 Zugangsdaten gespeichert in %s\n

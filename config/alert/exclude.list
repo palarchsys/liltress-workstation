@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : config/alert/exclude.list
-# Updated at : 2026-11-11
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,6 +12,14 @@
 # -----------------------------------------------------------------------------
 
 /var/log/
+/opt/liltress-workstation/log/
+/opt/liltress-server/log/
+/opt/liltress-workstation/cron/security_logs/
+/opt/liltress-server/cron/security_logs/
+/opt/liltress-workstation/cron/cron_logs/
+/opt/liltress-server/cron/cron_logs/
+/opt/liltress-workstation/cron/alerts/
+/opt/liltress-server/cron/alerts/
 /var/cache/apt/
 /var/lib/apt/lists/
 /var/lib/snapd/sequence

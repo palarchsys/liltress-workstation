@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/mail-render.py
-# Updated at : 2026-11-12
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -85,18 +85,19 @@ def advice_plain(text):
 
 def mail_heading(text):
     return (
-        '<div style="margin:0 0 8px;font-size:13px;line-height:1.4;font-weight:bold;'
+        '<div style="margin:0;padding:12px 16px 4px;font-size:16px;line-height:1.4;'
         'color:#e5b684;font-family:Arial,Helvetica,sans-serif;">'
         + html.escape(text, quote=False)
         + "</div>"
     )
 
-def mail_pre(text):
+def mail_pre(text, gap=False):
+    margin = "0 0 16px" if gap else "0"
     return (
-        '<pre style="margin:0 0 16px;width:100%;max-width:100%;box-sizing:border-box;'
-        'display:block;background-color:#1e1e1e;border:1px solid #e5b684;'
-        'padding:12px;color:#cccccc;font-family:Consolas,Courier New,monospace;font-size:13px;'
-        'line-height:1.45;white-space:pre-wrap;word-wrap:break-word;word-break:break-word;'
+        '<pre style="margin:' + margin + ';width:100%;max-width:100%;box-sizing:border-box;'
+        'display:block;background-color:#1e1e1e;padding:4px 16px 14px;color:#cccccc;'
+        'font-family:Consolas,Courier New,monospace;font-size:13px;line-height:1.45;'
+        'white-space:pre-wrap;word-wrap:break-word;word-break:break-word;'
         'overflow-wrap:break-word;overflow-x:auto;">'
         + html.escape(text, quote=False)
         + "</pre>"
@@ -106,12 +107,19 @@ def advice_html(text):
     marked, blocks = advice_parts(text)
     if not marked:
         return mail_pre(text)
-    chunks = []
+    pieces = []
     for title, body in blocks:
         if title:
-            chunks.append(mail_heading(title))
+            pieces.append(("h", title))
         if body:
-            chunks.append(mail_pre(body))
+            pieces.append(("p", body))
+    chunks = []
+    last = len(pieces) - 1
+    for index, (kind, value) in enumerate(pieces):
+        if kind == "h":
+            chunks.append(mail_heading(value))
+        else:
+            chunks.append(mail_pre(value, gap=index != last))
     return "".join(chunks)
 
 plain_advice = advice_plain(advice)
@@ -125,6 +133,16 @@ except OSError as exc:
     sys.exit(1)
 if os.environ.get("MAIL_TEST") == "1":
     for name in ("TEST_MODULE", "TEST_READ", "TEST_SEEN"):
+        tpl = re.sub(
+            r"<!--" + name + r"_START-->.*?<!--" + name + r"_END-->",
+            "",
+            tpl,
+            count=1,
+            flags=re.S,
+        )
+# Reboot keeps the journal and drops the module line and the intro.
+if os.environ.get("MODULE_NAME") == "reboot":
+    for name in ("TEST_MODULE", "TEST_READ"):
         tpl = re.sub(
             r"<!--" + name + r"_START-->.*?<!--" + name + r"_END-->",
             "",

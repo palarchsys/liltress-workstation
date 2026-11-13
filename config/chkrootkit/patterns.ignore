@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : config/chkrootkit/patterns.ignore
-# Updated at : 2026-10-16
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -17,3 +17,9 @@
 PACKET SNIFFER\(.*/(NetworkManager|wpa_supplicant|systemd-networkd)\[
 
 ^[0-9]+ deletion\(s\) between
+
+^/var/log(/|$)
+^/opt/liltress-workstation/log(/|$)
+^/opt/liltress-workstation/cron/security_logs(/|$)
+^/opt/liltress-workstation/cron/cron_logs(/|$)
+^/opt/liltress-workstation/cron/alerts(/|$)

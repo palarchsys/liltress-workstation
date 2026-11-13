@@ -5,6 +5,7 @@
   Le bloc ADVICE_START / ADVICE_END est retiré quand le conseil est vide.
   Le bloc NOTE_START / NOTE_END est retiré quand la note est vide.
   Les blocs TEST_MODULE, TEST_READ et TEST_SEEN sont retirés pour le courrier de test.
+  Le module reboot retire TEST_MODULE et TEST_READ. Le journal reste.
   Pour un autre style, ajoutez un fichier .html dans ce dossier et
   nommez-le dans MAIL_TEMPLATE (global.conf). Défaut : mail.html.
 -->
@@ -15,10 +16,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${PROJECT_NAME} • ${HOSTNAME} • ${DATE}</title>
 </head>
-<body style="margin:0;padding:0;background-color:#1e1e1e;color:#cccccc;">
+<body style="margin:0;background-color:#1e1e1e;color:#cccccc;font-family:Arial,Helvetica,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1e1e1e" style="width:100%;background-color:#1e1e1e;margin:0;padding:0;">
 <tr>
-<td align="center" style="padding:16px;">
+<td align="center" style="padding:24px;">
 <!--[if mso]>
 <table role="presentation" width="760" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td>
 <![endif]-->
@@ -30,29 +31,31 @@
 <td align="center" style="padding:14px 16px;font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:1.3;color:#cccccc;">${TITLE}</td>
 </tr>
 </table>
-<div style="margin:8px 0 0;font-size:13px;line-height:1.4;color:#44aae6;text-align:center;">${PROJECT_NAME} • ${HOSTNAME} • ${DATE}</div>
 </td>
+</tr>
+<tr>
+<td align="center" style="padding:0 0 20px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;color:#44aae6;">${PROJECT_NAME} • ${HOSTNAME} • ${DATE}</td>
 </tr>
 <!--TEST_MODULE_START-->
 <tr>
-<td style="padding:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:#cccccc;">
-<strong style="color:#e5b684;">${MAIL_MODULE}</strong> <span style="color:#44aae6;">${MODULE_NAME}</span>
+<td style="padding:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;color:#cccccc;">
+<span style="color:#e5b684;">${MAIL_MODULE}</span> <span style="color:#44aae6;">${MODULE_NAME}</span>
 </td>
 </tr>
 <!--TEST_MODULE_END-->
 <!--TEST_READ_START-->
 <tr>
-<td style="padding:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#cccccc;">
+<td style="padding:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;color:#cccccc;">
 ${MAIL_READ}
 </td>
 </tr>
 <!--TEST_READ_END-->
 <tr>
-<td style="padding:8px 0 0;">
+<td style="padding:0 0 16px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border:1px solid #e5b684;">
 <!--TEST_SEEN_START-->
 <tr>
-<td style="padding:12px 16px 4px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.4;font-weight:bold;color:#e5b684;">${MAIL_SEEN}</td>
+<td style="padding:12px 16px 4px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.4;color:#e5b684;">${MAIL_SEEN}</td>
 </tr>
 <!--TEST_SEEN_END-->
 <tr>
@@ -65,21 +68,33 @@ ${MAIL_READ}
 </tr>
 <!--ADVICE_START-->
 <tr>
-<td style="padding:8px 20px 0;font-family:Arial,Helvetica,sans-serif;">
-<div style="margin:0 0 12px;font-size:13px;line-height:1.4;font-weight:bold;color:#e5b684;">${MAIL_CHECK}</div>
+<td style="padding:0 0 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border:1px solid #e5b684;">
+<tr>
+<td style="padding:12px 16px 4px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.4;color:#e5b684;">${MAIL_CHECK}</td>
+</tr>
+<tr>
+<td style="padding:0;">
 ${ADVICE_HTML}
+</td>
+</tr>
+</table>
 </td>
 </tr>
 <!--ADVICE_END-->
 <!--NOTE_START-->
 <tr>
-<td style="padding:4px 20px 16px;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1e1e1e" style="width:100%;background-color:#1e1e1e;border:1px solid #e5b684;">
+<td style="padding:0 0 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border:1px solid #e5b684;">
 <tr>
-<td style="padding:16px;font-family:Arial,Helvetica,sans-serif;">
-<div style="margin:0 0 8px;font-size:13px;line-height:1.4;font-weight:bold;color:#e5b684;">${MAIL_NEXT}</div>
-<p style="margin:0 0 12px;font-size:14px;line-height:1.55;color:#cccccc;">${NOTE}</p>
-<pre style="margin:0;width:100%;max-width:100%;box-sizing:border-box;display:block;background-color:#1e1e1e;border:1px solid #e5b684;padding:12px;color:#44aae6;font-family:Consolas,Courier New,monospace;font-size:13px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word;word-break:break-word;overflow-wrap:break-word;overflow-x:auto;">${NOTE_CMD}</pre>
+<td style="padding:12px 16px 4px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.4;color:#e5b684;">${MAIL_NEXT}</td>
+</tr>
+<tr>
+<td style="padding:4px 16px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;color:#cccccc;">${NOTE}</td>
+</tr>
+<tr>
+<td style="padding:4px 16px 14px;">
+<pre style="margin:0;width:100%;max-width:100%;box-sizing:border-box;display:block;background-color:#1e1e1e;color:#cccccc;font-family:Consolas,Courier New,monospace;font-size:13px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word;word-break:break-word;overflow-wrap:break-word;overflow-x:auto;">${NOTE_CMD}</pre>
 </td>
 </tr>
 </table>
@@ -87,9 +102,7 @@ ${ADVICE_HTML}
 </tr>
 <!--NOTE_END-->
 <tr>
-<td style="padding:16px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.4;color:#e5b684;text-align:center;">
-${PROJECT_NAME}
-</td>
+<td align="center" style="padding:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.4;color:#e5b684;">${PROJECT_NAME}</td>
 </tr>
 </table>
 <!--[if mso]>

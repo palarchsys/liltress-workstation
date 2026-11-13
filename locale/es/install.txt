@@ -69,7 +69,7 @@ liltress ausente después extraction.\n
 \nTéléchargement terminado. Los fuentes son en %s.\n
 
 [install.launch-of-the-configuration-n-n]
-Lanzamiento de la Configuración.\n\n
+Lanzamiento de la Configuración.
 
 [install.nla-configuration-saved-password-more-the-check]
 \nLa Configuración guardada contraseña más el control.\n
