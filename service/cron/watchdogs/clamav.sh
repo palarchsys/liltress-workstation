@@ -15,7 +15,7 @@
 set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/common.sh"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 LOG_FILE="${LOG_DIR}/clamav-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/clamav-${STAMP}.txt"
 if ! command -v clamscan >/dev/null; then
@@ -109,7 +109,7 @@ report_clamav || true
 if [[ "${kind}" == "infected" ]]; then
     mapfile -t found_lines < <(grep ' FOUND$' "${LOG_FILE}" || true)
     response="${HERE}/clamav-response.sh"
-    [[ -x "${BASE}/cron/bin/clamav-response.sh" ]] && response="${BASE}/cron/bin/clamav-response.sh"
+    [[ -x "${BASE}/service/cron/watchdogs/clamav-response.sh" ]] && response="${BASE}/service/cron/watchdogs/clamav-response.sh"
     for line in "${found_lines[@]+"${found_lines[@]}"}"; do
         body="${line% FOUND}"
         virus="${body##*: }"

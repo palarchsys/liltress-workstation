@@ -62,14 +62,8 @@ export INSTALL_DIRECTORY
 source "${INSTALL_DIRECTORY}/config/global.conf"
 
 BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
-BIN="${BASE}/cron/bin"
+BIN="${BASE}/service/cron/watchdogs"
 LOG_DIR="${BASE}/cron/security_logs"
-MAIL_CONF="${BASE}/cron/mail.conf"
-
-if [[ -f "${MAIL_CONF}" ]]; then
-    # shellcheck disable=SC1090
-    source "${MAIL_CONF}"
-fi
 set -u
 
 FAIL=0
@@ -115,7 +109,7 @@ if [[ -x "${BIN}/idle-scan.sh" ]]; then
 else
     record_fail "idle-scan.sh absent de ${BIN}"
 fi
-skip_list="${BASE}/src/config/clamav/scan-skip.paths"
+skip_list="${BASE}/config/clamav/scan-skip.paths"
 [[ -f "${skip_list}" ]] || skip_list="${BASE}/cron/scan-skip.paths"
 if [[ -x "${BASE}/script/scan-skip.sh" && -f "${skip_list}" ]]; then
     record_pass "commande scan-skip.sh et liste des chemins"
@@ -204,10 +198,10 @@ if [[ -x "${BIN}/send.sh" ]]; then
 else
     record_fail "send.sh absent de ${BIN}"
 fi
-if [[ -f "${BIN}/mail.html" || -f "${BIN}/template/mail.html" ]]; then
+if [[ -f "${BASE}/template/${MAIL_TEMPLATE:-mail.html}" ]]; then
     record_pass "modèle HTML présent"
 else
-    record_fail "modèle HTML absent de ${BIN}"
+    record_fail "modèle HTML absent de ${BASE}/template"
 fi
 if command -v mail >/dev/null 2>&1; then
     record_pass "commande mail présente"

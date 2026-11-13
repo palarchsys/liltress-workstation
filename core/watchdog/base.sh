@@ -46,8 +46,8 @@ send_path() {
     fi
     local base
     base="$(get_product_base)"
-    if [[ -x "${base}/cron/bin/send.sh" ]]; then
-        printf '%s\n' "${base}/cron/bin/send.sh"
+    if [[ -x "${base}/service/cron/watchdogs/send.sh" ]]; then
+        printf '%s\n' "${base}/service/cron/watchdogs/send.sh"
         return 0
     fi
     return 1

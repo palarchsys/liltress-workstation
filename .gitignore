@@ -18,6 +18,9 @@ human.tsv
 # lorsque DEBUG_INSTALL_LOG=1 dans global.conf.
 log/
 
+# Journaux, alertes et quarantaine. Les scripts restent dans service/cron/.
+/cron/
+
 # Rapports du banc statique.
 test/output/
 

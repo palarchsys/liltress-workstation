@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/fs.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,10 +18,10 @@ locate_config_file() {
         roots+=("${PRODUCT_ROOT}")
     fi
     if [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
-        roots+=("${CONFIG_BASE_DIRECTORY}/src" "${CONFIG_BASE_DIRECTORY}")
+        roots+=("${CONFIG_BASE_DIRECTORY}")
     fi
     if [[ -n "${BASE:-}" ]]; then
-        roots+=("${BASE}/src" "${BASE}")
+        roots+=("${BASE}")
     fi
     for probe in "${INSTALL_DIRECTORY:-}" "${PRODUCT_ROOT:-}"; do
         [[ -n "${probe}" && -d "${probe}" ]] || continue
@@ -135,16 +135,87 @@ load_usb_rule() {
     done < "$(locate_config_file usbguard/daemon.conf)"
 }
 
-copy_runtime_dir() {
-    local src="$1" dest="$2" src_real="" dest_real=""
-    [[ -d "${src}" ]] || return 0
-    src_real="$(readlink -f "${src}")"
-    if [[ -d "${dest}" ]]; then
-        dest_real="$(readlink -f "${dest}" 2>/dev/null || true)"
-        [[ "${src_real}" == "${dest_real}" ]] && return 0
+mode_file() {
+    local mode="$1"
+    local path="$2"
+    [[ -e "${path}" ]] || return 0
+    chmod "${mode}" "${path}"
+}
+
+set_tree_modes() {
+    local root="${CONFIG_BASE_DIRECTORY:?}"
+    local cron_user="${CRON_USER:-}"
+    local log_mode="750"
+    local rel=""
+    [[ "${root}" == /opt/* && "${root}" != "/opt" ]] || return 1
+    [[ -d "${root}" ]] || return 1
+    chmod 755 "${root}"
+    chown root:root "${root}"
+    if [[ -d "${root}/.git" ]]; then
+        chmod 700 "${root}/.git"
+        chown root:root "${root}/.git"
     fi
-    install -d -m 755 "${dest}"
-    cp -a "${src_real}/." "${dest}/"
+    find "${root}" \
+        -path "${root}/.git" -prune -o \
+        -path "${root}/cron" -prune -o \
+        -path "${root}/secrets" -prune -o \
+        -path "${root}/log" -prune -o \
+        -type d -exec chmod 755 {} + -exec chown root:root {} +
+    find "${root}" \
+        -path "${root}/.git" -prune -o \
+        -path "${root}/cron" -prune -o \
+        -path "${root}/secrets" -prune -o \
+        -path "${root}/log" -prune -o \
+        -type f -name '*.sh' -exec chmod 644 {} + -exec chown root:root {} +
+    for rel in \
+        liltress \
+        script/configure.sh \
+        script/run.sh \
+        script/install.sh \
+        core/mail/mail-test.sh \
+        core/quarantine/restore.sh \
+        service/aide/refresh-db.sh \
+        service/rkhunter/refresh-db.sh \
+        service/chkrootkit/ignore-log.sh \
+        service/debsums/ignore-log.sh \
+        system/sysctl/sysctl-apply.sh \
+        system/sysctl/w-sysctl-apply.sh \
+        service/unbound/nm-dispatcher.sh
+    do
+        mode_file 755 "${root}/${rel}"
+    done
+    if [[ -d "${root}/service/cron/watchdogs" ]]; then
+        find "${root}/service/cron/watchdogs" -type f -name '*.sh' \
+            ! -name 'common.sh' ! -name 'scan-skip-lib.sh' \
+            -exec chmod 755 {} +
+    fi
+    if [[ -d "${root}/service/vpn" ]]; then
+        find "${root}/service/vpn" -type f -name '*.sh' -exec chmod 755 {} +
+    fi
+    if [[ -d "${root}/config" ]]; then
+        find "${root}/config" -type d -exec chmod 755 {} + -exec chown root:root {} +
+        find "${root}/config" -type f ! -name 'secrets.conf' -exec chmod 644 {} + -exec chown root:root {} +
+    fi
+    if [[ -f "${root}/config/secrets.conf" ]]; then
+        chmod 600 "${root}/config/secrets.conf" || return 1
+        chown root:root "${root}/config/secrets.conf" || return 1
+    fi
+    if [[ -d "${root}/secrets" ]]; then
+        chmod 700 "${root}/secrets" || return 1
+        chown root:root "${root}/secrets" || return 1
+        find "${root}/secrets" -type f -exec chmod 600 {} + -exec chown root:root {} + || return 1
+    fi
+    if [[ -n "${cron_user}" ]] && id -u "${cron_user}" >/dev/null 2>&1; then
+        log_mode="770"
+    else
+        cron_user="root"
+    fi
+    for rel in cron/cron_logs cron/security_logs cron/alerts cron/archives cron/quarantine; do
+        if [[ -d "${root}/${rel}" ]]; then
+            chmod "${log_mode}" "${root}/${rel}"
+            chown "root:${cron_user}" "${root}/${rel}"
+        fi
+    done
 }
 
 encode_url() {

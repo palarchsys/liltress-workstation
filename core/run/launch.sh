@@ -17,7 +17,7 @@ load_launch_text() {
         for launch_candidate in \
             "${launch_here}/../log/log.sh" \
             "${root}/core/log/log.sh" \
-            "${root}/src/core/log/log.sh"
+            "${root}/core/log/log.sh"
         do
             if [[ -n "${launch_candidate}" && -f "${launch_candidate}" ]]; then
                 # shellcheck disable=SC1090

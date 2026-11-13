@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/log.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,10 +13,6 @@ load_log_bootstrap() {
     fi
     bootstrap_candidate="${log_dir}"
     while [[ -z "${bootstrap_file}" && -n "${bootstrap_candidate}" && "${bootstrap_candidate}" != "/" && "${hops}" -lt 16 ]]; do
-        if [[ -f "${bootstrap_candidate}/src/core/boot/bootstrap.sh" ]]; then
-            bootstrap_file="${bootstrap_candidate}/src/core/boot/bootstrap.sh"
-            break
-        fi
         if [[ -f "${bootstrap_candidate}/core/boot/bootstrap.sh" ]]; then
             bootstrap_file="${bootstrap_candidate}/core/boot/bootstrap.sh"
             break

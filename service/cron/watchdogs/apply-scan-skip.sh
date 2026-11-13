@@ -68,8 +68,8 @@ load_onaccess_exclude() {
     ONACCESS_FIXED_EXCLUDE="${ONACCESS_FIXED_EXCLUDE:-/var/lib/snapd /snap /var/lib/clamav/quarantine /var/lib/clamav/tmp /var/log}"
     for candidate in \
         "${INSTALL_DIRECTORY:-}/config/clamav/onaccess.conf" \
-        "${BASE}/src/config/clamav/onaccess.conf" \
-        "/opt/liltress-workstation/src/config/clamav/onaccess.conf"
+        "${BASE}/config/clamav/onaccess.conf" \
+        "/opt/liltress-workstation/config/clamav/onaccess.conf"
     do
         [[ -f "${candidate}" ]] || continue
         found="${candidate}"

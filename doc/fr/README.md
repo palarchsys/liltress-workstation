@@ -47,7 +47,7 @@ Le poste se prépare par l'installeur curl, ou par un clone suivi de `sudo ./lil
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y ca-certificates curl git swaks tar
+sudo apt-get install -y ca-certificates curl git swaks
 curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh | sudo bash
 ```
 
@@ -116,7 +116,7 @@ Chaque fichier d'alerte est sous `/opt/liltress-workstation/cron/alerts`.<br/>
 Le courrier suit la langue `LANGUAGE`.<br/>
 Le courrier part seulement si `MAIL_ALERTS=1`.<br/>
 <br/>
-Le courrier part seulement si `MAIL_ALERTS=1`, si `WATCHDOG_MAIL` est défini, et si `/opt/liltress-workstation/cron/bin/send.sh` est exécutable.<br/>
+Le courrier part seulement si `MAIL_ALERTS=1`, si `WATCHDOG_MAIL` est défini, et si `/opt/liltress-workstation/service/cron/watchdogs/send.sh` est exécutable.<br/>
 Un contrôle propre n'envoie pas de courrier.<br/>
 Si une ligne du journal est inconnue, ne lancez pas la commande.<br/>
 Gardez le courrier.
@@ -133,7 +133,7 @@ Le chemin du journal dans le courrier est le fichier réel.<br/>
 La forme est `/opt/liltress-workstation/cron/security_logs/aide-YYYYMMDD-HHMMSS.log`.
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/aide-refresh-db.sh
+sudo bash /opt/liltress-workstation/service/aide/refresh-db.sh
 ```
 
 La commande reconstruit la base AIDE à partir du disque actuel.<br/>
@@ -147,7 +147,7 @@ L'exemple ci-dessous montre la forme.<br/>
 Le courrier contient le chemin réel.
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/chkrootkit-ignore-log.sh '/opt/liltress-workstation/cron/security_logs/chkrootkit-YYYYMMDD-HHMMSS.log'
+sudo bash /opt/liltress-workstation/service/chkrootkit/ignore-log.sh '/opt/liltress-workstation/cron/security_logs/chkrootkit-YYYYMMDD-HHMMSS.log'
 ```
 
 La commande enregistre les lignes de ce journal dans `/opt/liltress-workstation/cron/chkrootkit.local.ignore`.<br/>
@@ -177,7 +177,7 @@ Un fichier dont le nom correspond à `.clamav-quarantine-lock.*` n'envoie pas de
 Le script sort en 0 avant le journal et avant `log_alert`.
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/quarantine-restore.sh <id>
+sudo bash /opt/liltress-workstation/core/quarantine/restore.sh <id>
 ```
 
 L'exemple montre la forme.<br/>
@@ -227,7 +227,7 @@ Un courrier d'erreur non plus.<br/>
 La forme du journal est `/opt/liltress-workstation/cron/security_logs/rkhunter-YYYYMMDD-HHMMSS.log`.
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/rkhunter-refresh-db.sh
+sudo bash /opt/liltress-workstation/service/rkhunter/refresh-db.sh
 ```
 
 La commande recalcule la base de propriétés rkhunter à partir du disque actuel.<br/>
@@ -320,7 +320,7 @@ Lance `lynis audit system --quick --no-colors` et écrit le rapport sous `<sourc
 ## ▪️ Base AIDE
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/aide-refresh-db.sh
+sudo bash /opt/liltress-workstation/service/aide/refresh-db.sh
 ```
 
 Reconstruit `/var/lib/aide/aide.db`.<br/>
@@ -329,7 +329,7 @@ La ligne de succès est `Base de référence AIDE enregistrée.`
 ## ▪️ Empreinte des miroirs rkhunter
 
 ```bash
-sudo bash /opt/liltress-workstation/cron/bin/record-mirrors.sh save
+sudo bash /opt/liltress-workstation/service/cron/watchdogs/record-mirrors.sh save
 ```
 
 Écrit le SHA-256 de `/var/lib/rkhunter/db/mirrors.dat` dans `/opt/liltress-workstation/cron/rkhunter-mirrors.sha256` en mode `600`.<br/>

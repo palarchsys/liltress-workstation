@@ -38,9 +38,9 @@ collect_text_dirs() {
         "$(cd -- "${text_here}/../.." && pwd)/locale/${lang}"
         "${text_product}/locale/${lang}"
         "${INSTALL_DIRECTORY:-}/locale/${lang}"
-        "${text_base}/src/locale/${lang}"
         "${text_base}/locale/${lang}"
-        "${INSTALL_DIRECTORY:-}/src/locale/${lang}"
+        "${text_base}/locale/${lang}"
+        "${INSTALL_DIRECTORY:-}/locale/${lang}"
     )
     if [[ -n "${TEXT_DIR:-}" ]]; then
         text_candidates+=("${TEXT_DIR}/${lang}")

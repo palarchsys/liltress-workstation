@@ -41,7 +41,7 @@ set_rkhunter_note() {
     local base
     base="$(get_product_base)"
     NOTE="$(get_text alert.note.rkhunter)"
-    NOTE_CMD="sudo bash ${base}/bin/rkhunter-refresh-db.sh"
+    NOTE_CMD="sudo bash ${base}/service/rkhunter/refresh-db.sh"
 }
 
 reset_debsums_log() {

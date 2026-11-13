@@ -80,8 +80,8 @@ refresh_watchdog_baseline() {
     base="$(get_product_base)"
     case "${tool}" in
         aide)
-            if [[ -x "${base}/bin/aide-refresh-db.sh" ]]; then
-                run_limited bash "${base}/bin/aide-refresh-db.sh"
+            if [[ -x "${base}/service/aide/refresh-db.sh" ]]; then
+                run_limited bash "${base}/service/aide/refresh-db.sh"
             elif command -v aide >/dev/null 2>&1; then
                 run_limited aide --update
             else
@@ -89,8 +89,8 @@ refresh_watchdog_baseline() {
             fi
             ;;
         rkhunter)
-            if [[ -x "${base}/bin/rkhunter-refresh-db.sh" ]]; then
-                run_limited bash "${base}/bin/rkhunter-refresh-db.sh"
+            if [[ -x "${base}/service/rkhunter/refresh-db.sh" ]]; then
+                run_limited bash "${base}/service/rkhunter/refresh-db.sh"
             elif command -v rkhunter >/dev/null 2>&1; then
                 run_limited rkhunter --propupd --nocolors
             else
@@ -98,8 +98,8 @@ refresh_watchdog_baseline() {
             fi
             ;;
         chkrootkit)
-            if [[ -x "${base}/bin/chkrootkit-ignore-log.sh" && -n "${WATCHDOG_LOG:-}" ]]; then
-                run_limited bash "${base}/bin/chkrootkit-ignore-log.sh" "${WATCHDOG_LOG}"
+            if [[ -x "${base}/service/chkrootkit/ignore-log.sh" && -n "${WATCHDOG_LOG:-}" ]]; then
+                run_limited bash "${base}/service/chkrootkit/ignore-log.sh" "${WATCHDOG_LOG}"
             else
                 return 1
             fi

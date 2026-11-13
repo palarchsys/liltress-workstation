@@ -17,9 +17,9 @@ chain_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 chain_root="${chain_dir}"
 chain_hops=0
 while [[ -n "${chain_root}" && "${chain_root}" != "/" && "${chain_hops}" -lt 16 ]]; do
-    if [[ -f "${chain_root}/src/core/watchdog/load.sh" ]]; then
+    if [[ -f "${chain_root}/core/watchdog/load.sh" ]]; then
         # shellcheck disable=SC1091
-        source "${chain_root}/src/core/watchdog/load.sh"
+        source "${chain_root}/core/watchdog/load.sh"
         break
     fi
     if [[ -f "${chain_root}/core/watchdog/load.sh" ]]; then
@@ -45,7 +45,7 @@ run_watchdog_tool() {
     local tool="$1"
     local base="$2"
     local status_file="$3"
-    local bin="${base}/cron/bin/${tool}.sh"
+    local bin="${base}/service/cron/watchdogs/${tool}.sh"
     local status=0
     if [[ ! -x "${bin}" ]]; then
         printf '%s\n' 0 > "${status_file}"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/project-tree.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -16,6 +16,7 @@ require_root
 log_info         "${INSTALL_WATCHER}" "install.creation-tree-secured-of-the-project"
 ensure_directory "${CONFIG_BASE_DIRECTORY}" 755
 ensure_directory "${SECRET_DIRECTORY}" 700
+set_tree_modes || log_error "${INSTALL_WATCHER}" "configure.secrets-conf-mode" "600"
 if ! check_workstation; then
     ensure_directory "${DOCKER_BASE_DIRECTORY}" 755
 fi

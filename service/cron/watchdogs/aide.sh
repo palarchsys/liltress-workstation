@@ -8,7 +8,7 @@
 set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/common.sh"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 LOG_FILE="${LOG_DIR}/aide-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/aide-${STAMP}.txt"
 if ! command -v aide >/dev/null; then

@@ -79,10 +79,10 @@ watchdog_ignore_commands() {
         [[ "${found}" == "yes" ]] || continue
         case "${tool}" in
             aide)
-                printf '%s\n' "$(get_text alert.mail.ignore.command "sudo bash ${base}/bin/aide-refresh-db.sh")"
+                printf '%s\n' "$(get_text alert.mail.ignore.command "sudo bash ${base}/service/aide/refresh-db.sh")"
                 ;;
             rkhunter)
-                printf '%s\n' "$(get_text alert.mail.ignore.command "sudo bash ${base}/bin/rkhunter-refresh-db.sh")"
+                printf '%s\n' "$(get_text alert.mail.ignore.command "sudo bash ${base}/service/rkhunter/refresh-db.sh")"
                 ;;
         esac
     done
@@ -97,8 +97,8 @@ send_watchdog_report() {
     template=""
     for template in \
         "${here}/../../service/cron/watchdogs/mail-alert.html" \
-        "${BASE:-}/cron/bin/mail-alert.html" \
-        "${CONFIG_BASE_DIRECTORY:-}/cron/bin/mail-alert.html"
+        "${BASE:-}/service/cron/watchdogs/mail-alert.html" \
+        "${CONFIG_BASE_DIRECTORY:-}/service/cron/watchdogs/mail-alert.html"
     do
         [[ -f "${template}" ]] && break
         template=""

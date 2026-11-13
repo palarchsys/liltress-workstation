@@ -39,7 +39,7 @@ locate_python_dir() {
 set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/common.sh"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 LOG_FILE="${LOG_DIR}/debsums-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/debsums-${STAMP}.txt"
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"

@@ -9,7 +9,7 @@ set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/common.sh"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 LOG_FILE="${LOG_DIR}/reboot-notice-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/reboot-notice-${STAMP}.txt"
 : > "${LOG_FILE}"

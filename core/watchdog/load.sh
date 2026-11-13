@@ -28,8 +28,8 @@ source_text_engine() {
     fi
     for candidate in \
         "${origin}/../log/log.sh" \
-        "${BASE:-}/src/core/log/log.sh" \
-        "${CONFIG_BASE_DIRECTORY:-}/src/core/log/log.sh" \
+        "${BASE:-}/core/log/log.sh" \
+        "${CONFIG_BASE_DIRECTORY:-}/core/log/log.sh" \
         "${PRODUCT_ROOT:-}/core/log/log.sh" \
         "${origin}/log.sh" \
         "${origin}/../../../core/log/log.sh" \
@@ -51,8 +51,8 @@ load_shared_watchdog() {
     source_text_engine "${engine}" || source_text_engine "${here}" || true
     for candidate in \
         "${engine}/watchdog.sh" \
-        "${BASE:-}/src/core/watchdog/watchdog.sh" \
-        "${CONFIG_BASE_DIRECTORY:-}/src/core/watchdog/watchdog.sh" \
+        "${BASE:-}/core/watchdog/watchdog.sh" \
+        "${CONFIG_BASE_DIRECTORY:-}/core/watchdog/watchdog.sh" \
         "${here}/../../../core/watchdog/watchdog.sh" \
         "${here}/../../../../share/core/watchdog/watchdog.sh"
     do

@@ -66,7 +66,7 @@ fi
 load_installed_text
 BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/scan-skip-lib.sh"
+source "${BASE}/service/cron/watchdogs/scan-skip-lib.sh"
 
 show_usage() {
     printf "$(get_text log.usage-sudo-bash-bin-scan-skip-sh-list "${BASE}")" >&2
@@ -143,5 +143,5 @@ else
     printf "$(get_text log.path-removed "${norm}")"
 fi
 
-bash "${BASE}/cron/bin/apply-scan-skip.sh"
+bash "${BASE}/service/cron/watchdogs/apply-scan-skip.sh"
 exit 0

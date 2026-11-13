@@ -27,8 +27,8 @@ case "${rk_rc}" in
     *) log_warn "${INSTALL_WATCHER}" "log.rkhunter-update-rc-continued" "${rk_rc}" "${rk_out}";;
 esac
 
-if [[ ( "${rk_rc}" -eq 0 || "${rk_rc}" -eq 2 ) && -x "${CONFIG_BASE_DIRECTORY}/cron/bin/record-mirrors.sh" ]]; then
-    BASE="${CONFIG_BASE_DIRECTORY}" bash "${CONFIG_BASE_DIRECTORY}/cron/bin/record-mirrors.sh" save || true
+if [[ ( "${rk_rc}" -eq 0 || "${rk_rc}" -eq 2 ) && -x "${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/record-mirrors.sh" ]]; then
+    BASE="${CONFIG_BASE_DIRECTORY}" bash "${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/record-mirrors.sh" save || true
 fi
 
 run_silent "${INSTALL_WATCHER}" "install.rkhunter.error" rkhunter --propupd

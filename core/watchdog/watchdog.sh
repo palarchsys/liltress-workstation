@@ -9,8 +9,8 @@ if ! declare -F get_text >/dev/null 2>&1; then
     text_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     for text_candidate in \
         "${text_here}/../log/log.sh" \
-        "${CONFIG_BASE_DIRECTORY:-}/src/core/log/log.sh" \
-        "${BASE:-}/src/core/log/log.sh" \
+        "${CONFIG_BASE_DIRECTORY:-}/core/log/log.sh" \
+        "${BASE:-}/core/log/log.sh" \
         "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
         "${PRODUCT_ROOT:-}/core/log/log.sh" \
         "${PRODUCT_ROOT:-}/../share/core/log/log.sh"

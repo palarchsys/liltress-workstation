@@ -243,7 +243,7 @@ if systemctl is-enabled --quiet w-hourly-scan.timer 2>/dev/null; then
 else
     report_fail "timer de passe horaire absent"
 fi
-boot_bin="${CONFIG_BASE_DIRECTORY}/cron/bin/boot-scan.sh"
+boot_bin="${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/boot-scan.sh"
 if [[ -f "${boot_bin}" ]] \
     && grep -q 'integrity.sh' "${boot_bin}" \
     && grep -q 'behavior.sh' "${boot_bin}" \
@@ -295,7 +295,7 @@ else
 fi
 # shellcheck disable=SC1091
 source "${INSTALL_DIRECTORY}/config/ufw/egress.conf"
-response="${CONFIG_BASE_DIRECTORY}/cron/bin/clamav-response.sh"
+response="${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/clamav-response.sh"
 if [[ -f "${response}" ]] \
     && grep -q 'kill -TERM' "${response}" \
     && ! grep -q 'CLAMAV_KILL' "${response}" \

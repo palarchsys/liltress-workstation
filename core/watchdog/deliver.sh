@@ -58,17 +58,17 @@ log_alert() {
     else
         if [[ "${AIDE_REFRESH:-}" == "1" ]]; then
             note="$(get_text alert.note.aide)"
-            note_cmd="sudo bash ${base}/bin/aide-refresh-db.sh"
+            note_cmd="sudo bash ${base}/service/aide/refresh-db.sh"
         elif [[ "${RKHUNTER_REFRESH:-}" == "1" ]]; then
             set_rkhunter_note
             note="${NOTE}"
             note_cmd="${NOTE_CMD}"
         elif [[ "${CHKROOTKIT_IGNORE:-}" == "1" && -n "${log}" ]]; then
             note="$(get_text alert.note.chkrootkit)"
-            note_cmd="sudo bash ${base}/bin/chkrootkit-ignore-log.sh '${log}'"
+            note_cmd="sudo bash ${base}/service/chkrootkit/ignore-log.sh '${log}'"
         elif [[ "${DEBSUMS_IGNORE:-}" == "1" && -n "${log}" ]]; then
             note="$(get_text alert.note.debsums)"
-            note_cmd="sudo bash ${base}/bin/debsums-ignore-log.sh '${log}'"
+            note_cmd="sudo bash ${base}/service/debsums/ignore-log.sh '${log}'"
         fi
         if tool="$(get_alert_tool "${module}" "${log}" "${summary}")"; then
             render_alert_advice "${tool}" "${log}" "${summary}"
@@ -99,21 +99,38 @@ log_alert() {
             return 0
         fi
     fi
-    if [[ "${MAIL_ALERTS:-0}" == "1" && -n "${WATCHDOG_MAIL:-}" ]]; then
+    if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
         send="$(send_path)" || true
         if [[ -n "${send}" ]]; then
-            TITLE="${TITLE}" \
-            MODULE_NAME="${module}" \
-            CONTENT="${summary}
+            if [[ -n "${WATCHDOG_MAIL:-}" || "${EUID}" -eq 0 ]]; then
+                TITLE="${TITLE}" \
+                MODULE_NAME="${module}" \
+                CONTENT="${summary}
 
 ${excerpt}" \
-            NOTE="${NOTE:-}" \
-            NOTE_CMD="${NOTE_CMD:-}" \
-            ADVICE="${ADVICE:-}" \
-            WATCHDOG_MAIL="${WATCHDOG_MAIL}" \
-            PROJECT_NAME="${PROJECT_NAME}" \
-            MAIL_TEMPLATE="${MAIL_TEMPLATE:-mail.html}" \
-                bash "${send}" || true
+                NOTE="${NOTE:-}" \
+                NOTE_CMD="${NOTE_CMD:-}" \
+                ADVICE="${ADVICE:-}" \
+                WATCHDOG_MAIL="${WATCHDOG_MAIL}" \
+                PROJECT_NAME="${PROJECT_NAME}" \
+                MAIL_TEMPLATE="${MAIL_TEMPLATE:-mail.html}" \
+                    bash "${send}" || true
+            else
+                TITLE="${TITLE}" \
+                MODULE_NAME="${module}" \
+                CONTENT="${summary}
+
+${excerpt}" \
+                NOTE="${NOTE:-}" \
+                NOTE_CMD="${NOTE_CMD:-}" \
+                ADVICE="${ADVICE:-}" \
+                PROJECT_NAME="${PROJECT_NAME}" \
+                MAIL_TEMPLATE="${MAIL_TEMPLATE:-mail.html}" \
+                MAIL_ALERTS="${MAIL_ALERTS}" \
+                CONFIG_BASE_DIRECTORY="${CONFIG_BASE_DIRECTORY:-}" \
+                BASE="${BASE:-}" \
+                    sudo -n -- "${send}" || true
+            fi
         fi
     fi
 }
@@ -163,15 +180,14 @@ ${detail}"
     _mail_sh=""
     for _candidate in \
         "${script_dir}/mail.sh" \
-        "${CONFIG_BASE_DIRECTORY:-}/cron/bin/mail.sh" \
-        "${CONFIG_BASE_DIRECTORY:-}/src/core/mail/mail.sh" \
+        "${CONFIG_BASE_DIRECTORY:-}/core/mail/mail.sh" \
         "${INSTALL_DIRECTORY:-}/core/mail/mail.sh" \
         "${INSTALL_DIRECTORY:-}/../share/core/mail/mail.sh" \
         "${script_dir}/../../../core/mail/mail.sh" \
         "${script_dir}/../../../../share/core/mail/mail.sh" \
         "${script_dir}/../share/core/mail/mail.sh" \
         "${script_dir}/../../core/mail/mail.sh" \
-        "${script_dir}/../../src/core/mail/mail.sh"
+        "${script_dir}/../../core/mail/mail.sh"
     do
         if [[ -n "${_candidate}" && -f "${_candidate}" ]]; then
             _mail_sh="${_candidate}"

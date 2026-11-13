@@ -149,7 +149,7 @@ else
     t_fail "logs.wire" "journaux du poste encore hors de logs/, ou copie même en succès"
 fi
 t_require_function render_mail "${MONO}/share/core/mail/mail.sh"
-t_require_function install_mail_templates "${MONO}/share/core/mail/mail.sh"
+t_require_function locate_mail_template "${MONO}/share/core/mail/mail.sh"
 
 t_section "mode test du poste"
 if ! grep -q 'MODE_TEST' "${T_ROOT}/config/global.conf" \

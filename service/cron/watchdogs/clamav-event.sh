@@ -8,7 +8,7 @@
 set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/common.sh"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 file="${CLAM_VIRUSEVENT_FILENAME:-inconnu}"
 virus="${CLAM_VIRUSEVENT_VIRUSNAME:-inconnu}"
 base="$(basename -- "${file}")"
@@ -26,7 +26,7 @@ export CLAMAV_EVENT_VIRUS="${virus}"
 export CLAMAV_EVENT_KIND=onaccess
 export CLAMAV_EVENT_MAIL=1
 export CLAMAV_RESPONSE_STAMP="${STAMP}"
-response="${BASE}/cron/bin/clamav-response.sh"
+response="${BASE}/service/cron/watchdogs/clamav-response.sh"
 if [[ ! -x "${response}" ]]; then
     response="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/clamav-response.sh"
 fi

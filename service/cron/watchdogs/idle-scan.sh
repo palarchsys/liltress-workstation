@@ -40,7 +40,7 @@ set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/common.sh"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 # shellcheck disable=SC1091
 source "${HERE}/scan-skip-lib.sh"
 LOG_FILE="${LOG_DIR}/idle-scan-${STAMP}.log"
@@ -135,7 +135,7 @@ if [[ "${kind}" == "infected" ]]; then
     new_count=0
     if [[ -s "${fresh_list}" ]]; then
         response="${HERE}/clamav-response.sh"
-        [[ -x "${BASE}/cron/bin/clamav-response.sh" ]] && response="${BASE}/cron/bin/clamav-response.sh"
+        [[ -x "${BASE}/service/cron/watchdogs/clamav-response.sh" ]] && response="${BASE}/service/cron/watchdogs/clamav-response.sh"
         while IFS=$'\t' read -r sig origin; do
             [[ -n "${sig}" && -n "${origin}" ]] || continue
             new_count=$((new_count + 1))

@@ -390,10 +390,10 @@ Geben Sie an der Journal chkrootkit genannt in l
 Geben Sie an der Journal debsums genannt in l
 
 [log.example-sudo-bash-bin-chkrootkit-ignore-log-sh-c]
-Beispiel: sudo bash {1}/bin/chkrootkit-ignore-log.sh {2}/cron/security_logs/chkrootkit-DATE.log
+Beispiel: sudo bash {1}/service/chkrootkit/ignore-log.sh {2}/cron/security_logs/chkrootkit-DATE.log
 
 [log.example-sudo-bash-bin-debsums-ignore-log-sh-cron]
-Beispiel: sudo bash {1}/bin/debsums-ignore-log.sh {2}/cron/security_logs/debsums-DATE.log
+Beispiel: sudo bash {1}/service/debsums/ignore-log.sh {2}/cron/security_logs/debsums-DATE.log
 
 [log.expected-chain-after-multi-user-target-nice-io-i]
 erwartet: Kette nach multi-user.target, Nice={1}, IO=idle, CPUQuota={2}%
@@ -732,7 +732,7 @@ MODE_TEST={1}
 Erzeugung des Passwort für {1}
 
 [log.global-conf-not-found-g-install-directory-or-opt]
-global.conf nicht gefunden (INSTALL_DIRECTORY oder /opt/liltress/src/config/global.conf)\n
+global.conf nicht gefunden (INSTALL_DIRECTORY oder /opt/liltress/config/global.conf)\n
 
 [log.global-configuration-nginx]
 Konfiguration global Nginx

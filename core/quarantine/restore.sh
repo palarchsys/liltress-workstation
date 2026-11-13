@@ -15,10 +15,10 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 for candidate in \
     "${script_dir}/log.sh" \
     "${script_dir}/../log/log.sh" \
-    "${script_dir}/../src/core/log/log.sh" \
-    "${CONFIG_BASE_DIRECTORY:-}/src/core/log/log.sh" \
+    "${script_dir}/../core/log/log.sh" \
+    "${CONFIG_BASE_DIRECTORY:-}/core/log/log.sh" \
     "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
-    "${INSTALL_DIRECTORY:-}/src/core/log/log.sh"
+    "${INSTALL_DIRECTORY:-}/core/log/log.sh"
 do
     if [[ -n "${candidate}" && -f "${candidate}" ]]; then
         # shellcheck disable=SC1090
@@ -65,9 +65,8 @@ esac
 if ! declare -F watchdog_runtime_file >/dev/null 2>&1; then
     for candidate in \
         "${script_dir}/../core/watchdog/base.sh" \
-        "${script_dir}/../src/core/watchdog/base.sh" \
         "${base}/core/watchdog/base.sh" \
-        "${base}/src/core/watchdog/base.sh"
+        "${base}/core/watchdog/base.sh"
     do
         if [[ -f "${candidate}" ]]; then
             # shellcheck disable=SC1090

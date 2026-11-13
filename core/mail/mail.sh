@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/mail/mail.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -40,51 +40,15 @@ check_mail_template_name() {
     [[ "${1:-}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*\.html$ ]]
 }
 
-log_mail_fatal() {
-    if declare -F log_error >/dev/null 2>&1; then
-        log_error "${INSTALL_WATCHER:-BASH}" "install.mail.error" "$*"
-    fi
-    printf '%s\n' "$*" >&2
-    exit 1
-}
-
-install_mail_templates() {
-    local dest="$1"
-    local src="${INSTALL_DIRECTORY:?}/template"
-    local chosen="${MAIL_TEMPLATE:-mail.html}"
-    local f base n=0
-    local nullglob_was=0
-    [[ -d "${dest}" ]] || log_mail_fatal "$(get_text mail.directory-of-installation-of-the-mod-les-absent "${dest}")"
-    [[ -d "${src}" ]] || log_mail_fatal "$(get_text mail.directory-template-absent "${src}")"
-    check_mail_template_name "${chosen}" || log_mail_fatal "$(get_text mail.g-mail-template-invalid-example-mail-html "${chosen}")"
-
-    if shopt -q nullglob; then
-        nullglob_was=1
-    fi
-    shopt -s nullglob
-    for f in "${src}/"*.html; do
-        base="$(basename -- "${f}")"
-        check_mail_template_name "${base}" || log_mail_fatal "$(get_text mail.name-of-template-denied-example-mail-html "${base}")"
-        cp -f -- "${f}" "${dest}/${base}"
-        chmod 644 "${dest}/${base}"
-        n=$((n + 1))
-    done
-    if [[ "${nullglob_was}" -eq 0 ]]; then
-        shopt -u nullglob
-    fi
-    [[ "${n}" -ge 1 ]] || log_mail_fatal "$(get_text mail.no-file-html-in "${src}")"
-    [[ -f "${dest}/${chosen}" ]] || log_mail_fatal "$(get_text mail.template-absent-of "${chosen}" "${src}")"
-}
-
 get_mail_name() {
     local here="${1:-}"
     local conf line
     local -a confs=()
     [[ -n "${INSTALL_DIRECTORY:-}" ]] && confs+=("${INSTALL_DIRECTORY}/config/global.conf")
-    [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]] && confs+=("${CONFIG_BASE_DIRECTORY}/src/config/global.conf")
+    [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]] && confs+=("${CONFIG_BASE_DIRECTORY}/config/global.conf")
     if [[ -n "${here}" ]]; then
         confs+=(
-            "${here}/../../src/config/global.conf"
+            "${here}/../../config/global.conf"
             "${here}/../../../config/global.conf"
             "${here}/../config/global.conf"
         )
@@ -111,14 +75,13 @@ locate_mail_template() {
     name="$(get_mail_name "${here}")"
     check_mail_template_name "${name}" || return 1
     [[ -n "${INSTALL_DIRECTORY:-}" ]] && dirs+=("${INSTALL_DIRECTORY}/template")
-    [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]] && dirs+=("${CONFIG_BASE_DIRECTORY}/src/template")
+    [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]] && dirs+=("${CONFIG_BASE_DIRECTORY}/template")
+    [[ -n "${BASE:-}" ]] && dirs+=("${BASE}/template")
     if [[ -n "${here}" ]]; then
         dirs+=(
-            "${here}/../../src/template"
+            "${here}/../../template"
             "${here}/../../../template"
             "${here}/../template"
-            "${here}"
-            "${here}/../../service/cron/watchdogs"
         )
     fi
     for dir in "${dirs[@]}"; do
@@ -141,7 +104,7 @@ render_mail() {
             "${mail_here}/log.sh" \
             "${PRODUCT_ROOT:-}/core/log/log.sh" \
             "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
-            "${INSTALL_DIRECTORY:-}/src/core/log/log.sh"
+            "${INSTALL_DIRECTORY:-}/core/log/log.sh"
         do
             if [[ -n "${mail_candidate}" && -f "${mail_candidate}" ]]; then
                 # shellcheck disable=SC1090

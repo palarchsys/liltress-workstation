@@ -47,7 +47,7 @@ Der Arbeitsplatz wird durch den Curl-Installer vorbereitet, oder durch einen Klo
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y ca-certificates curl git swaks tar
+sudo apt-get install -y ca-certificates curl git swaks
 curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh | sudo bash
 ```
 
@@ -116,7 +116,7 @@ Jede Alarmdatei liegt unter `/opt/liltress-workstation/cron/alerts`.<br/>
 Die Nachricht folgt der Sprache `LANGUAGE`.<br/>
 Post geht nur ab, wenn `MAIL_ALERTS=1`.<br/>
 <br/>
-Die Post geht nur ab, wenn `MAIL_ALERTS=1`, wenn `WATCHDOG_MAIL` gesetzt ist, und wenn `/opt/liltress-workstation/cron/bin/send.sh` ausführbar ist.<br/>
+Die Post geht nur ab, wenn `MAIL_ALERTS=1`, wenn `WATCHDOG_MAIL` gesetzt ist, und wenn `/opt/liltress-workstation/service/cron/watchdogs/send.sh` ausführbar ist.<br/>
 Eine saubere Kontrolle sendet keine Post.<br/>
 Wenn eine Journalzeile unbekannt ist, starten Sie den Befehl nicht.<br/>
 Behalten Sie die Post.
@@ -133,7 +133,7 @@ Der Journalpfad in der Post ist die echte Datei.<br/>
 Die Form ist `/opt/liltress-workstation/cron/security_logs/aide-YYYYMMDD-HHMMSS.log`.
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/aide-refresh-db.sh
+sudo bash /opt/liltress-workstation/service/aide/refresh-db.sh
 ```
 
 Der Befehl baut die AIDE-Basis aus der aktuellen Platte neu auf.<br/>
@@ -147,7 +147,7 @@ Das Beispiel unten zeigt die Form.<br/>
 Die Post enthält den echten Pfad.
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/chkrootkit-ignore-log.sh '/opt/liltress-workstation/cron/security_logs/chkrootkit-YYYYMMDD-HHMMSS.log'
+sudo bash /opt/liltress-workstation/service/chkrootkit/ignore-log.sh '/opt/liltress-workstation/cron/security_logs/chkrootkit-YYYYMMDD-HHMMSS.log'
 ```
 
 Der Befehl zeichnet die Zeilen dieses Journals in `/opt/liltress-workstation/cron/chkrootkit.local.ignore` auf.<br/>
@@ -177,7 +177,7 @@ Eine Datei, deren Name `.clamav-quarantine-lock.*` entspricht, sendet keine Post
 Das Skript endet mit 0 vor dem Journal und vor `log_alert`.
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/quarantine-restore.sh <id>
+sudo bash /opt/liltress-workstation/core/quarantine/restore.sh <id>
 ```
 
 Das Beispiel zeigt die Form.<br/>
@@ -227,7 +227,7 @@ Eine Fehlerpost ebenfalls nicht.<br/>
 Die Journalform ist `/opt/liltress-workstation/cron/security_logs/rkhunter-YYYYMMDD-HHMMSS.log`.
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/rkhunter-refresh-db.sh
+sudo bash /opt/liltress-workstation/service/rkhunter/refresh-db.sh
 ```
 
 Der Befehl berechnet die rkhunter-Eigenschaftsbasis aus der aktuellen Platte neu.<br/>
@@ -320,7 +320,7 @@ Startet `lynis audit system --quick --no-colors` und schreibt den Bericht unter 
 ## ▪️ AIDE-Basis
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/aide-refresh-db.sh
+sudo bash /opt/liltress-workstation/service/aide/refresh-db.sh
 ```
 
 Baut `/var/lib/aide/aide.db` neu auf.<br/>
@@ -329,7 +329,7 @@ Die Erfolgszeile ist `Base de référence AIDE enregistrée.`
 ## ▪️ rkhunter-Spiegelstempel
 
 ```bash
-sudo bash /opt/liltress-workstation/cron/bin/record-mirrors.sh save
+sudo bash /opt/liltress-workstation/service/cron/watchdogs/record-mirrors.sh save
 ```
 
 Schreibt den SHA-256 von `/var/lib/rkhunter/db/mirrors.dat` nach `/opt/liltress-workstation/cron/rkhunter-mirrors.sha256` mit Modus `600`.<br/>

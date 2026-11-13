@@ -14,4 +14,4 @@ Nice=${WATCHDOG_LIMIT_NICE}
 IOSchedulingClass=idle
 CPUQuota=${cpu_quota}%
 Environment=CLAMAV_DEFER=1
-ExecStart=${CONFIG_BASE_DIRECTORY}/cron/bin/clamav.sh
+ExecStart=${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/clamav.sh

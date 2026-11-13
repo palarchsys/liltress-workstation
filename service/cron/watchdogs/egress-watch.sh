@@ -44,7 +44,7 @@ locate_python_dir() {
 set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/common.sh"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 if [[ -f "${BASE}/cron/egress.conf" ]]; then
     # shellcheck disable=SC1091
     source "${BASE}/cron/egress.conf"

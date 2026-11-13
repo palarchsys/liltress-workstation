@@ -26,7 +26,3 @@ if grep -qE '^[[:space:]]*WEB_CMD=' /etc/rkhunter.conf; then
 fi
 
 log_info         "${INSTALL_WATCHER}" "configure.base-rkhunter-propupd-after-the-purge-of-the-pac"
-install -d -m 755 "${CONFIG_BASE_DIRECTORY}/bin"
-install -m 755 \
-    "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/refresh-db.sh" \
-    "${CONFIG_BASE_DIRECTORY}/bin/rkhunter-refresh-db.sh"

@@ -53,7 +53,5 @@ ensure_directory /etc/aide 755
 ensure_directory /var/lib/aide 700
 sed "s|__HF_BASE__|${CONFIG_BASE_DIRECTORY}|g" "$(locate_config_file aide/aide.conf)" > /etc/aide/aide.conf
 python3 "$(locate_python_dir)/aide-home.py" workstation /etc/aide/aide.conf "${CURRENT_HOME}"
-install -d -m 755 "${CONFIG_BASE_DIRECTORY}/bin"
-install -m 755 "${DIR_SCRIPT_PATH}/refresh-db.sh" "${CONFIG_BASE_DIRECTORY}/bin/aide-refresh-db.sh"
 log_success      "${INSTALL_WATCHER}" "configure.help-conf-installed"
 log_info         "${INSTALL_WATCHER}" "configure.base-help-after-the-purge-of-the-packages-and-rk"

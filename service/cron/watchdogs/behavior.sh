@@ -12,7 +12,7 @@
 set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/common.sh"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 LOG_FILE="${LOG_DIR}/behavior-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/behavior-${STAMP}.txt"
 MODULE_NAME="Auditd"

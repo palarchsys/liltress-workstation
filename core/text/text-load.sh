@@ -14,8 +14,6 @@ load_installed_text() {
         for candidate in \
             "${dir}/log.sh" \
             "${dir}/bin/log.sh" \
-            "${dir}/cron/bin/log.sh" \
-            "${dir}/src/core/log/log.sh" \
             "${dir}/core/log/log.sh" \
             "${dir}/share/core/log/log.sh"
         do

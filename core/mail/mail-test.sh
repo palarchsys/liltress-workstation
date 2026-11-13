@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/mail/mail-test.sh
-# Updated at : 2026-11-06
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 # -----------------------------------------------------------------------------
@@ -14,13 +14,12 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 for candidate in \
     "${script_dir}/log.sh" \
-    "${script_dir}/../cron/bin/log.sh" \
-    "${script_dir}/../log/log.sh" \
-    "${script_dir}/../src/core/log/log.sh" \
     "${script_dir}/../core/log/log.sh" \
-    "${CONFIG_BASE_DIRECTORY:-}/src/core/log/log.sh" \
+    "${script_dir}/../log/log.sh" \
+    "${script_dir}/../core/log/log.sh" \
+    "${CONFIG_BASE_DIRECTORY:-}/core/log/log.sh" \
     "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
-    "${INSTALL_DIRECTORY:-}/src/core/log/log.sh"
+    "${INSTALL_DIRECTORY:-}/core/log/log.sh"
 do
     if [[ -n "${candidate}" && -f "${candidate}" ]]; then
         # shellcheck disable=SC1090
@@ -54,15 +53,7 @@ send_mail_test() {
     fi
     # shellcheck disable=SC1091
     source "${base}/config/global.conf"
-    if [[ -f "${base}/cron/mail.conf" ]]; then
-        # shellcheck disable=SC1091
-        source "${base}/cron/mail.conf"
-    fi
-    if [[ -f "${base}/cron/bin/watchdog.conf" ]]; then
-        # shellcheck disable=SC1091
-        source "${base}/cron/bin/watchdog.conf"
-    fi
-    if [[ -z "${WATCHDOG_MAIL:-}" && -f "${base}/config/secrets.conf" ]]; then
+    if [[ -z "${WATCHDOG_MAIL:-}" && -r "${base}/config/secrets.conf" ]]; then
         # shellcheck disable=SC1091
         source "${base}/config/secrets.conf"
     fi
@@ -71,7 +62,7 @@ send_mail_test() {
         PROJECT_NAME="Liltress"
     fi
     export PROJECT_NAME
-    send_sh="${base}/cron/bin/send.sh"
+    send_sh="${base}/service/cron/watchdogs/send.sh"
     if [[ ! -f "${send_sh}" ]]; then
         printf '%s\n' "$(get_text mail.send-not-found)" >&2
         exit 1
@@ -88,7 +79,7 @@ send_mail_test() {
         printf '%s\n' "$(get_text mail.command-mail-absent)" >&2
         exit 1
     fi
-    if [[ ! -f "${base}/cron/bin/${MAIL_TEMPLATE:-mail.html}" ]]; then
+    if [[ ! -f "${base}/template/${MAIL_TEMPLATE:-mail.html}" ]]; then
         printf '%s\n' "$(get_text mail.template-absent)" >&2
         exit 1
     fi
@@ -103,7 +94,7 @@ send_mail_test() {
 $(get_text mail.test.line-wide "${wide}")
 $(get_text mail.test.line-short)"
     export NOTE="$(get_text mail.test.note)"
-    export NOTE_CMD="sudo bash ${base}/bin/mail-test.sh"
+    export NOTE_CMD="sudo bash ${base}/core/mail/mail-test.sh"
     err_file="$(mktemp)"
     if ! bash "${send_sh}" >/dev/null 2>"${err_file}"; then
         rm -f "${err_file}"

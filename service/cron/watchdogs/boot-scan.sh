@@ -9,7 +9,7 @@ set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/common.sh"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 LOG_FILE="${LOG_DIR}/boot-scan-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/boot-scan-${STAMP}.txt"
 : > "${LOG_FILE}"
@@ -49,7 +49,7 @@ fi
 run_check apply-scan-skip.sh "préparation des exclusions"
 run_check integrity.sh "intégrité"
 run_check behavior.sh "audit"
-if [[ -x "${BASE}/cron/bin/egress-table.sh" ]]; then
-    bash "${BASE}/cron/bin/egress-table.sh" || true
+if [[ -x "${BASE}/cron/egress-table.sh" ]]; then
+    bash "${BASE}/cron/egress-table.sh" || true
 fi
 run_check egress-watch.sh "journal sortant"

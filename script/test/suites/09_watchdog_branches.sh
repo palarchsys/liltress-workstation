@@ -259,8 +259,8 @@ fi
 
 t_set_user integrity.sh
 printf 'alpha\n' > "${base}/file-a"
-mkdir -p "${base}/src/config/integrity"
-cat > "${base}/src/config/integrity/paths.list" << EOF
+mkdir -p "${base}/config/integrity"
+cat > "${base}/config/integrity/paths.list" << EOF
 # comment
 /no/such/liltress-file
 ${base}/file-a
@@ -674,11 +674,11 @@ evil="${work}/samples/evil.bin"
 printf 'evil\n' > "\${evil}"
 printf '%s\n' "INFECTED: \${evil}" > "\${log}"
 record_quarantine_log rkhunter "\${log}" systemd sshd unbound fail2ban gamescope > "${work}/move.out"
-if [[ ! -e "\${evil}" ]] && grep -q "\${evil}" "${base}/cron/quarantine.registry" && grep -q 'quarantine-restore.sh' "${base}/cron/quarantine.pending"; then
+if [[ ! -e "\${evil}" ]] && grep -q "\${evil}" "${base}/cron/quarantine.registry" && grep -q 'core/quarantine/restore.sh' "${base}/cron/quarantine.pending"; then
     printf '%s\n' "move-ok" >> "\${result}"
 fi
 take_quarantine_note
-if printf '%s\n' "\${NOTE_CMD}" | grep -q 'quarantine-restore.sh' && [[ ! -e "${base}/cron/quarantine.pending" ]]; then
+if printf '%s\n' "\${NOTE_CMD}" | grep -q 'core/quarantine/restore.sh' && [[ ! -e "${base}/cron/quarantine.pending" ]]; then
     printf '%s\n' "take-ok" >> "\${result}"
 fi
 printf '%s\n' "INFECTED: /etc/passwd" > "\${log}"
@@ -877,10 +877,10 @@ done
 grep -Fq "snap info gnome-46-2404" "${snap_alert}" || snap_ok=0
 grep -Fq 'Unité de montage snapd' "${snap_alert}" || snap_ok=0
 grep -Fq 'publisher: canonical' "${snap_alert}" || snap_ok=0
-grep -Fq "sudo bash ${BASE}/bin/aide-refresh-db.sh" "${snap_alert}" || snap_ok=0
+grep -Fq "sudo bash ${BASE}/service/aide/refresh-db.sh" "${snap_alert}" || snap_ok=0
 grep -Fq "${hold_note}" "${snap_alert}" && snap_ok=0
 snap_at="$(grep -n 'snap info gnome-46-2404' "${snap_alert}" | head -n 1 | cut -d: -f1 || true)"
-refresh_at="$(grep -n 'aide-refresh-db.sh' "${snap_alert}" | head -n 1 | cut -d: -f1 || true)"
+refresh_at="$(grep -n 'service/aide/refresh-db.sh' "${snap_alert}" | head -n 1 | cut -d: -f1 || true)"
 [[ -n "${snap_at}" && -n "${refresh_at}" && "${snap_at}" -lt "${refresh_at}" ]] || snap_ok=0
 [[ "${ADVICE_HOLD:-0}" == "0" ]] || snap_ok=0
 if [[ "${snap_ok}" -eq 1 ]]; then
@@ -898,9 +898,9 @@ LOG="${snap_log}" LOG_FILE="${snap_log}" ALERT_FILE="${en_alert}" MODULE_NAME="A
     log_alert "AIDE: changes detected (code 1, detail ${snap_log})"
 en_ok=1
 grep -Fq 'snapd mount unit' "${en_alert}" || en_ok=0
-grep -Fq "sudo bash ${BASE}/bin/aide-refresh-db.sh" "${en_alert}" || en_ok=0
+grep -Fq "sudo bash ${BASE}/service/aide/refresh-db.sh" "${en_alert}" || en_ok=0
 en_title="$(grep -n 'snapd mount unit' "${en_alert}" | head -n 1 | cut -d: -f1 || true)"
-en_cmd="$(grep -n 'aide-refresh-db.sh' "${en_alert}" | head -n 1 | cut -d: -f1 || true)"
+en_cmd="$(grep -n 'service/aide/refresh-db.sh' "${en_alert}" | head -n 1 | cut -d: -f1 || true)"
 [[ -n "${en_title}" && -n "${en_cmd}" && "${en_title}" -lt "${en_cmd}" ]] || en_ok=0
 LANGUAGE="${saved_lang}"
 TEXT_READY=0
@@ -921,10 +921,10 @@ echo_ok=1
 grep -Fq 'debsums' "${echo_alert}" || echo_ok=0
 grep -Fq 'dpkg -V' "${echo_alert}" || echo_ok=0
 grep -Fq "for c in echo" "${echo_alert}" || echo_ok=0
-grep -Fq "chkrootkit-ignore-log.sh '${echo_log}'" "${echo_alert}" || echo_ok=0
+grep -Fq "service/chkrootkit/ignore-log.sh '${echo_log}'" "${echo_alert}" || echo_ok=0
 grep -Fq "${hold_note}" "${echo_alert}" && echo_ok=0
 echo_at="$(grep -n 'debsums' "${echo_alert}" | head -n 1 | cut -d: -f1 || true)"
-ignore_at="$(grep -n 'chkrootkit-ignore-log.sh' "${echo_alert}" | head -n 1 | cut -d: -f1 || true)"
+ignore_at="$(grep -n 'service/chkrootkit/ignore-log.sh' "${echo_alert}" | head -n 1 | cut -d: -f1 || true)"
 [[ -n "${echo_at}" && -n "${ignore_at}" && "${echo_at}" -lt "${ignore_at}" ]] || echo_ok=0
 [[ "${ADVICE_HOLD:-0}" == "0" ]] || echo_ok=0
 if [[ "${echo_ok}" -eq 1 ]]; then
@@ -944,9 +944,9 @@ unk_ok=1
 grep -Fq '/var/opt/not-catalog/evil.bin' "${unk_alert}" || unk_ok=0
 grep -Fq 'Ligne AIDE sans classe' "${unk_alert}" || unk_ok=0
 grep -Fq "${hold_note}" "${unk_alert}" || unk_ok=0
-grep -Fq "sudo bash ${BASE}/bin/aide-refresh-db.sh" "${unk_alert}" || unk_ok=0
+grep -Fq "sudo bash ${BASE}/service/aide/refresh-db.sh" "${unk_alert}" || unk_ok=0
 unk_at="$(grep -n 'Ligne AIDE sans classe' "${unk_alert}" | head -n 1 | cut -d: -f1 || true)"
-unk_cmd="$(grep -n 'aide-refresh-db.sh' "${unk_alert}" | head -n 1 | cut -d: -f1 || true)"
+unk_cmd="$(grep -n 'service/aide/refresh-db.sh' "${unk_alert}" | head -n 1 | cut -d: -f1 || true)"
 [[ -n "${unk_at}" && -n "${unk_cmd}" && "${unk_at}" -lt "${unk_cmd}" ]] || unk_ok=0
 [[ "${ADVICE_HOLD:-1}" == "1" ]] || unk_ok=0
 if [[ "${unk_ok}" -eq 1 ]]; then
@@ -965,9 +965,9 @@ LOG="${uid_log}" LOG_FILE="${uid_log}" ALERT_FILE="${uid_alert}" MODULE_NAME="Rk
 uid_ok=1
 grep -Fq 'UID 0' "${uid_alert}" || uid_ok=0
 grep -Fq "${hold_note}" "${uid_alert}" || uid_ok=0
-grep -Fq "sudo bash ${BASE}/bin/rkhunter-refresh-db.sh" "${uid_alert}" || uid_ok=0
+grep -Fq "sudo bash ${BASE}/service/rkhunter/refresh-db.sh" "${uid_alert}" || uid_ok=0
 uid_at="$(grep -n 'UID 0' "${uid_alert}" | head -n 1 | cut -d: -f1 || true)"
-uid_cmd="$(grep -n 'rkhunter-refresh-db.sh' "${uid_alert}" | head -n 1 | cut -d: -f1 || true)"
+uid_cmd="$(grep -n 'service/rkhunter/refresh-db.sh' "${uid_alert}" | head -n 1 | cut -d: -f1 || true)"
 [[ -n "${uid_at}" && -n "${uid_cmd}" && "${uid_at}" -lt "${uid_cmd}" ]] || uid_ok=0
 [[ "${ADVICE_HOLD:-0}" == "1" ]] || uid_ok=0
 if [[ "${uid_ok}" -eq 1 ]]; then

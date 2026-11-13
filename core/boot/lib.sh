@@ -46,27 +46,6 @@ locate_python_dir() {
     return 1
 }
 
-install_python_runtime() {
-    local src="" dest="" candidate
-    dest="${CONFIG_BASE_DIRECTORY:?}/python"
-    for candidate in \
-        "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python" \
-        "${DIR_SCRIPT_PATH:-}/../../python" \
-        "${DIR_SCRIPT_PATH:-}/../../../share/python"
-    do
-        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
-            src="$(cd -- "${candidate}" && pwd -P)"
-            break
-        fi
-    done
-    if [[ -z "${src}" ]]; then
-        log_error "${INSTALL_WATCHER:-BASH}" "configure.core-watchdog-sh-not-found" "python"
-    fi
-    mkdir -p -- "${dest}"
-    cp -a --dereference --remove-destination "${src}/." "${dest}/"
-}
-
 if [[ -f "${PRODUCT_ROOT}/../share/core/boot/bootstrap.sh" ]]; then
     # shellcheck disable=SC1091
     source "${PRODUCT_ROOT}/../share/core/boot/bootstrap.sh"

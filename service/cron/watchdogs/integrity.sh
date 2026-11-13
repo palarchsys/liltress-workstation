@@ -12,7 +12,7 @@
 set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/common.sh"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 LOG_FILE="${LOG_DIR}/integrity-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/integrity-${STAMP}.txt"
 MODULE_NAME="Integrite"
@@ -20,7 +20,7 @@ MODULE_NAME="Integrite"
 list=""
 for candidate in \
     "${BASE}/config/integrity/paths.list" \
-    "${BASE}/src/config/integrity/paths.list" \
+    "${BASE}/config/integrity/paths.list" \
     "${INSTALL_DIRECTORY:-}/config/integrity/paths.list"
 do
     [[ -f "${candidate}" ]] || continue

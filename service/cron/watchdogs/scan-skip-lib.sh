@@ -127,8 +127,8 @@ locate_scan_skip_file() {
             "${INSTALL_DIRECTORY:-}/core/host/fs.sh" \
             "${here}/../../../core/host/fs.sh" \
             "${here}/../../../../share/core/host/fs.sh" \
-            "${here}/../../src/core/host/fs.sh" \
-            "${BASE}/src/core/host/fs.sh"
+            "${here}/../../core/host/fs.sh" \
+            "${BASE}/core/host/fs.sh"
         do
             [[ -n "${candidate}" && -f "${candidate}" ]] || continue
             # shellcheck disable=SC1090
@@ -145,8 +145,8 @@ locate_scan_skip_file() {
     for candidate in \
         "${INSTALL_DIRECTORY:-}/config/clamav/scan-skip.paths" \
         "${here}/../../../config/clamav/scan-skip.paths" \
-        "${here}/../../src/config/clamav/scan-skip.paths" \
-        "${BASE}/src/config/clamav/scan-skip.paths"
+        "${here}/../../config/clamav/scan-skip.paths" \
+        "${BASE}/config/clamav/scan-skip.paths"
     do
         [[ -n "${candidate}" && -f "${candidate}" ]] || continue
         printf '%s\n' "${candidate}"
@@ -156,7 +156,7 @@ locate_scan_skip_file() {
         printf '%s\n' "${INSTALL_DIRECTORY}/config/clamav/scan-skip.paths"
         return 0
     fi
-    printf '%s\n' "${BASE}/src/config/clamav/scan-skip.paths"
+    printf '%s\n' "${BASE}/config/clamav/scan-skip.paths"
 }
 
 ensure_scan_skip_file() {
@@ -167,7 +167,7 @@ ensure_scan_skip_file() {
     dest="${template}"
     if [[ "${dest}" != "${BASE}/"* ]]; then
         if [[ -z "${CONFIG_BASE_DIRECTORY:-}" || "${dest}" != "${CONFIG_BASE_DIRECTORY}/"* ]]; then
-            dest="${BASE}/src/config/clamav/scan-skip.paths"
+            dest="${BASE}/config/clamav/scan-skip.paths"
         fi
     fi
     SCAN_SKIP_FILE="${dest}"

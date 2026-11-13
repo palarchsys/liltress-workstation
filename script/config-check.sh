@@ -122,7 +122,7 @@ if [[ -n "\${INSTALL_DIRECTORY:-}" && -f "\${INSTALL_DIRECTORY}/config/user.conf
     # shellcheck disable=SC1091
     source "\${INSTALL_DIRECTORY}/config/user.conf"
 fi
-if [[ -n "\${INSTALL_DIRECTORY:-}" && -f "\${INSTALL_DIRECTORY}/config/secrets.conf" ]]; then
+if [[ -n "\${INSTALL_DIRECTORY:-}" && -r "\${INSTALL_DIRECTORY}/config/secrets.conf" ]]; then
     # shellcheck disable=SC1091
     source "\${INSTALL_DIRECTORY}/config/secrets.conf"
 fi

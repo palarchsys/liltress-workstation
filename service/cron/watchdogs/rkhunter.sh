@@ -8,22 +8,22 @@
 set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/common.sh"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 LOG_FILE="${LOG_DIR}/rkhunter-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/rkhunter-${STAMP}.txt"
 if ! command -v rkhunter >/dev/null; then
     log_pass "$(get_text watchdog.rkhunter-absent-skip)"
     exit 0
 fi
-if [[ -x "${BASE}/cron/bin/record-mirrors.sh" ]]; then
-    if ! bash "${BASE}/cron/bin/record-mirrors.sh" check; then
+if [[ -x "${BASE}/service/cron/watchdogs/record-mirrors.sh" ]]; then
+    if ! bash "${BASE}/service/cron/watchdogs/record-mirrors.sh" check; then
         log_alert "$(get_text watchdog.mirrors-dat-changed-outside-rkhunter-update)"
     fi
 fi
 rk_rc=0
 rkhunter --update --nocolors >> "${LOG_FILE}" 2>&1 || rk_rc=$?
 if [[ "${rk_rc}" -eq 0 || "${rk_rc}" -eq 2 ]]; then
-    bash "${BASE}/cron/bin/record-mirrors.sh" save || true
+    bash "${BASE}/service/cron/watchdogs/record-mirrors.sh" save || true
 fi
 rk_local=/etc/rkhunter.conf.local
 touch "${rk_local}"

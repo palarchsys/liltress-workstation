@@ -11,17 +11,16 @@ mail_sh="${MONO}/share/core/mail/mail.sh"
 tpl="${T_ROOT}/template/mail.html"
 
 if grep -q '^MAIL_TEMPLATE="mail.html"$' "${T_ROOT}/config/global.conf" \
-   && grep -q 'install_mail_templates' "${T_ROOT}/service/cron/configure.sh" \
+   && ! grep -q 'install_mail_templates' "${T_ROOT}/service/cron/configure.sh" \
    && grep -q 'deliver_mail' "${T_ROOT}/service/cron/watchdogs/send.sh" \
    && grep -q 'render_mail' "${mail_sh}" \
-   && grep -q 'core/watchdog/watchdog.sh' "${T_ROOT}/service/cron/configure.sh" \
+   && grep -q 'locate_mail_template' "${mail_sh}" \
    && ! grep -q 'MAIL_REDACT=1' "${T_ROOT}/service/cron/watchdogs/send.sh" \
    && grep -q 'NOTE_CMD' "${tpl}" \
    && grep -q '<!--NOTE_START-->' "${tpl}" \
    && grep -q '<!--NOTE_END-->' "${tpl}" \
-   && grep -q '<!--ADVICE_START-->' "${tpl}" \
-   && grep -q 'alert-advice.txt' "${T_ROOT}/service/cron/configure.sh"; then
-    t_pass "mail.wired" "template/mail.html, copie à l'install, rendu sans masquage des identifiants"
+   && grep -q '<!--ADVICE_START-->' "${tpl}"; then
+    t_pass "mail.wired" "template/mail.html est lu sur place, rendu sans masquage des identifiants"
 else
     t_fail "mail.wired" "le poste doit rendre template/mail.html via core/mail/mail.sh"
 fi
@@ -29,28 +28,26 @@ fi
 # shellcheck disable=SC1090
 source "${mail_sh}"
 stage="$(mktemp -d)"
-mkdir -p "${stage}/template" "${stage}/dest"
+mkdir -p "${stage}/template"
 printf '<pre>${CONTENT}</pre>\n' > "${stage}/template/mail.html"
 printf '<pre>autre</pre>\n' > "${stage}/template/autre.html"
-if INSTALL_DIRECTORY="${stage}" MAIL_TEMPLATE="autre.html" install_mail_templates "${stage}/dest" \
-   && [[ -f "${stage}/dest/mail.html" && -f "${stage}/dest/autre.html" ]] \
-   && grep -q 'autre' "${stage}/dest/autre.html"; then
-    t_pass "mail.install-many" "tous les .html de template/ sont copiés"
+if got="$(INSTALL_DIRECTORY="${stage}" MAIL_TEMPLATE="autre.html" locate_mail_template "${stage}")" \
+   && [[ "${got}" == "${stage}/template/autre.html" ]] \
+   && [[ ! -e "${stage}/dest" ]]; then
+    t_pass "mail.install-many" "le modèle choisi est lu dans template/"
 else
-    t_fail "mail.install-many" "la copie des modèles a échoué"
+    t_fail "mail.install-many" "locate_mail_template ne lit pas template/"
 fi
-mkdir -p "${stage}/dest-e"
-
-if INSTALL_DIRECTORY="${stage}" MAIL_TEMPLATE="mail.html" bash -c '
+if got="$(INSTALL_DIRECTORY="${stage}" MAIL_TEMPLATE="mail.html" bash -c '
     set -euo pipefail
     # shellcheck disable=SC1090
     source "$1"
-    install_mail_templates "$2"
-' bash "${mail_sh}" "${stage}/dest-e" \
-   && [[ -f "${stage}/dest-e/mail.html" ]]; then
-    t_pass "mail.install-set-e" "la copie survit à set -e quand nullglob est inactif"
+    locate_mail_template "$2"
+' bash "${mail_sh}" "${stage}")" \
+   && [[ "${got}" == "${stage}/template/mail.html" ]]; then
+    t_pass "mail.install-set-e" "la lecture du modèle survit à set -e"
 else
-    t_fail "mail.install-set-e" "la copie quitte sous set -e sans écrire le modèle"
+    t_fail "mail.install-set-e" "la lecture du modèle quitte sous set -e"
 fi
 rm -rf "${stage}"
 

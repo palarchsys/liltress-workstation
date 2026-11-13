@@ -13,7 +13,7 @@ Wants=systemd-sysctl.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=__HF_BASE__/cron/bin/w-sysctl-apply.sh
+ExecStart=__HF_BASE__/system/sysctl/w-sysctl-apply.sh
 
 [Install]
 WantedBy=multi-user.target

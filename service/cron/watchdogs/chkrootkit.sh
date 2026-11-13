@@ -39,13 +39,13 @@ locate_python_dir() {
 set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/common.sh"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 LOG_FILE="${LOG_DIR}/chkrootkit-${STAMP}.log"
 ALERT_FILE="${ALERT_DIR}/chkrootkit-${STAMP}.txt"
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -f "${BASE}/src/core/host/fs.sh" ]]; then
+if [[ -f "${BASE}/core/host/fs.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${BASE}/src/core/host/fs.sh"
+    source "${BASE}/core/host/fs.sh"
 elif [[ -f "${HERE}/../../../core/host/fs.sh" ]]; then
     # shellcheck disable=SC1091
     source "${HERE}/../../../core/host/fs.sh"
@@ -61,7 +61,7 @@ if [[ ! -f "${IGNORE}" && -f "${HERE}/chkrootkit.ignore" ]]; then
     IGNORE="${HERE}/chkrootkit.ignore"
 fi
 if [[ ! -f "${IGNORE}" ]]; then
-    IGNORE="${BASE}/src/config/chkrootkit/patterns.ignore"
+    IGNORE="${BASE}/config/chkrootkit/patterns.ignore"
 fi
 
 LOCAL_IGNORE="${BASE}/cron/chkrootkit.local.ignore"

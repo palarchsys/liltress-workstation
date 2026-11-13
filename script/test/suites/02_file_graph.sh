@@ -235,8 +235,9 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -q '"install", "--reinstall", "-y", "--", pkg' "${T_ROOT}/../share/python/debsums-reset.py" \
    && grep -q '/var/cache/apt/archives' "${T_ROOT}/../share/python/debsums-reset.py" \
    && grep -q 'RKHUNTER_REFRESH=1' "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
-   && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/../share/core/watchdog/remedy.sh" \
-   && grep -q 'rkhunter-refresh-db.sh' "${T_ROOT}/service/rkhunter/configure.sh" \
+   && grep -q 'service/rkhunter/refresh-db.sh' "${T_ROOT}/../share/core/watchdog/remedy.sh" \
+   && test -f "${T_ROOT}/service/rkhunter/refresh-db.sh" \
+   && ! grep -q 'bin/rkhunter-refresh-db.sh' "${T_ROOT}/service/rkhunter/configure.sh" \
    && grep -q 'get_text watchdog.clamav-in' "${T_ROOT}/service/cron/watchdogs/clamav-event.sh" \
    && grep -q 'ClamAV :' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'get_clamav_kind' "${skip_clam}" \
@@ -261,11 +262,11 @@ if grep -q '^After=unbound' "${T_ROOT}/config/unbound/resolved-service.conf"; th
 fi
 grep -q '^Wants=unbound.service$' "${T_ROOT}/config/unbound/resolved-service.conf" || order_ok=0
 grep -q 'chkrootkit/patterns.ignore' "${T_ROOT}/service/chkrootkit/install.sh" || order_ok=0
-grep -q 'src/config/chkrootkit' "${T_ROOT}/service/chkrootkit/install.sh" || order_ok=0
+grep -q 'src/config/chkrootkit' "${T_ROOT}/service/chkrootkit/install.sh" && order_ok=0
 if [[ "${order_ok}" -eq 1 ]]; then
-    t_pass "graph.unbound.order" "Unbound après le réseau, liste chkrootkit installée"
+    t_pass "graph.unbound.order" "Unbound après le réseau, liste chkrootkit lue sur place"
 else
-    t_fail "graph.unbound.order" "Unbound ne doit pas précéder systemd-resolved, la liste chkrootkit doit être copiée"
+    t_fail "graph.unbound.order" "Unbound ne doit pas précéder systemd-resolved, la liste chkrootkit reste dans config/"
 fi
 
 t_section "plafond CPU"
@@ -315,7 +316,7 @@ grep -qF 'ExecStart=-${systemctl_bin} start --wait w-boot-scan.service' "${chain
 grep -qF 'ExecStart=-${systemctl_bin} start --wait w-idle-scan.service' "${chain}"
 grep -qF 'ExecStart=-${systemctl_bin} start --wait w-reboot-notice.service' "${chain}"
 grep -q 'is-failed --quiet' "${chain}"
-grep -q 'core/log/log.sh' "${conf}"
+grep -q 'core/log/log.sh' "${root}/script/boot-check.sh"
 timers="${root}/config/cron/timers.conf"
 grep -q 'OnBootSec=${BOOT_ON_BOOT_SEC}' "${boot_timer}"
 grep -q 'BOOT_ON_BOOT_SEC=0' "${timers}"
@@ -363,7 +364,7 @@ test -f "${root}/script/boot-check.sh"
 grep -q '39f53479d3a045ac8e11786248231fbf' "${root}/script/boot-check.sh"
 grep -q 'be02cf6855d2428ba40df7e9d022f03d' "${root}/script/boot-check.sh"
 grep -q 'd9b373ed55a64feb8242e02dbe79a49c' "${root}/script/boot-check.sh"
-grep -q 'src/config/global.conf' "${root}/script/boot-check.sh"
+grep -q '${BASE}/config/global.conf' "${root}/script/boot-check.sh"
 CHAIN
 if [[ "${chain_rc}" -eq 0 ]]; then
     t_pass "graph.boot.chain" "chaîne sans délai fixe, contrôle manuel installé"
@@ -399,17 +400,13 @@ set -euo pipefail
 root="$1"
 work="$(mktemp -d)"
 trap 'rm -rf "${work}"' EXIT
-mkdir -p "${work}/cron/bin" "${work}/bin"
-cat > "${work}/cron/mail.conf" << EOF
-MAIL_ALERTS="1"
-WATCHDOG_MAIL="alerts@example.com"
-PROJECT_NAME="Liltress Workstation"
-EOF
-cat > "${work}/cron/bin/send.sh" << 'EOF'
+mkdir -p "${work}/service/cron/watchdogs" "${work}/bin"
+export MAIL_ALERTS="1" WATCHDOG_MAIL="alerts@example.com" PROJECT_NAME="Liltress Workstation"
+cat > "${work}/service/cron/watchdogs/send.sh" << 'EOF'
 #!/usr/bin/env bash
 printf '%s\n----\n' "${CONTENT}" >> "${SENT}"
 EOF
-chmod 755 "${work}/cron/bin/send.sh"
+chmod 755 "${work}/service/cron/watchdogs/send.sh"
 cat > "${work}/bin/clamscan" << 'EOF'
 #!/usr/bin/env bash
 for f in "$@"; do
@@ -576,7 +573,7 @@ done
 grep -qF '## Documentation' "${readme}" || pages_ok=0
 grep -qF 'Click a flag to open all the information.' "${readme}" || pages_ok=0
 grep -qF 'https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh' "${readme}" || pages_ok=0
-grep -qF 'ca-certificates curl git swaks tar' "${readme}" || pages_ok=0
+grep -qF 'ca-certificates curl git swaks' "${readme}" || pages_ok=0
 grep -qF 'sudo apt-get update' "${readme}" || pages_ok=0
 grep -qF 'git clone https://github.com/palarchsys/liltress-workstation' "${readme}" && pages_ok=0
 grep -qF 'Do not copy it into a message, a ticket, or a repository.' "${readme}" && pages_ok=0
@@ -591,7 +588,7 @@ grep -qF 'It installs the local DNS resolver, the firewall, and the security che
 grep -qF 'It installs the local DNS resolver, the firewall, and the security checks.' "${en}" || pages_ok=0
 if grep -qF 'Liltress Workstation' "${readme}" \
    && grep -qF 'https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh' "${en}" \
-   && grep -qF 'ca-certificates curl git swaks tar' "${en}" \
+   && grep -qF 'ca-certificates curl git swaks' "${en}" \
    && grep -qF 'doc/en/README.md' "${readme}" \
    && grep -qF 'doc/fr/README.md' "${readme}" \
    && grep -qF 'doc/de/README.md' "${readme}" \
@@ -767,10 +764,11 @@ grep -q 'th sport 68 th dport 67 accept' "${root}/service/ufw/egress.sh"
 grep -q 'th sport 546 th dport 547 accept' "${root}/service/ufw/egress.sh"
 grep -q 'th dport 161 meta pkttype' "${root}/service/ufw/egress.sh"
 grep -q 'w-egress-table.service' "${root}/service/ufw/egress.sh"
-grep -q 'config/integrity/paths.list' "${root}/service/cron/configure.sh"
-grep -Fq 'watchdogs/." "${CONFIG_BASE_DIRECTORY}/cron/bin/"' "${root}/service/cron/configure.sh"
+test -f "${root}/config/integrity/paths.list"
+! grep -q 'cron/bin/' "${root}/service/cron/configure.sh"
+! grep -q 'install_mail_templates' "${root}/service/cron/configure.sh"
 test -f "${root}/service/cron/watchdogs/integrity.sh"
-grep -Fq '${CONFIG_BASE_DIRECTORY}/config/global.conf' "${root}/service/cron/configure.sh"
+grep -Fq 'source "${INSTALL_DIRECTORY}/config/global.conf"' "${root}/service/cron/configure.sh"
 ! grep -q 'NET_ISOLATE=' "${root}/config/ufw/egress.conf"
 ! grep -q 'NET_ISOLATE:-' "${root}/service/cron/watchdogs/clamav-response.sh"
 grep -q 'NET_ISOLATE_SEC=120' "${root}/config/ufw/egress.conf"
@@ -800,7 +798,7 @@ grep -q 'quarantine.registry' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'w_isolate' "${root}/service/cron/watchdogs/egress-watch.sh"
 ! grep -q 'flux sortants hors des ports 53, 80 et 443' "${root}/service/cron/watchdogs/egress-watch.sh"
 grep -q 'record_quarantine_origin' "${root}/../share/core/watchdog/quarantine.sh"
-grep -q 'quarantine-restore.sh' "${root}/../share/core/watchdog/quarantine.sh"
+grep -q 'core/quarantine/restore.sh' "${root}/../share/core/watchdog/quarantine.sh"
 grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/rkhunter.sh"
 grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/chkrootkit.sh"
 grep -q 'non mis en quarantaine' "${root}/../share/locale/fr/watchdog.txt"
@@ -821,8 +819,10 @@ grep -q 'white-space:pre-wrap' "${root}/template/mail.html"
 grep -q 'word-break:break-word' "${root}/template/mail.html"
 grep -q 'overflow-x:auto' "${root}/template/mail.html"
 grep -q '<pre' "${root}/template/mail.html"
-grep -q 'quarantine-restore.sh' "${root}/service/cron/configure.sh"
-grep -q 'mail-test.sh' "${root}/service/cron/configure.sh"
+test -f "${root}/core/quarantine/restore.sh"
+test -f "${root}/core/mail/mail-test.sh"
+! grep -q 'bin/quarantine-restore.sh' "${root}/service/cron/configure.sh"
+! grep -q 'bin/mail-test.sh' "${root}/service/cron/configure.sh"
 grep -q 'send_mail_test' "${root}/../share/core/mail/mail-test.sh"
 WATCH
 if [[ "${watch_rc}" -eq 0 ]]; then

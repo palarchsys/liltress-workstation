@@ -591,7 +591,7 @@ Installation der Sammlungen CrowdSec
 Installation der watchdogs (Kette zum Start, Passwort stündlich und Prüfung alle die 2 h, begrenzt zu {1}% des CPU gesamt)
 
 [configure.watchdog-copy-scripts]
-Kopie der Skripte nach cron/bin
+Die Skripte bleiben im Depot
 
 [configure.watchdog-scripts-copied]
 Watchdog-Skripte kopiert
@@ -768,7 +768,7 @@ Aktualisierung des initramfs (Module blacklist)
 Aktualisierung der Signaturen (kann nehmen 1–2 min)
 
 [configure.watchdogs-installed-in-cron-bin]
-Watchdogs installiert in {1}/cron/bin
+Watchdogs bereit in {1}
 
 [configure.yescrypt-for-the-new-hash-old-intact]
 YESCRYPT für die neue hash, alte intakt

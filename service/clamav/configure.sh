@@ -53,12 +53,6 @@ run_silent       "${INSTALL_WATCHER}" "configure.clamav.error" systemctl enable 
 run_silent       "${INSTALL_WATCHER}" "configure.clamav.error" systemctl enable --now clamav-daemon
 
 get_current_user
-install -d -m 755 "${CONFIG_BASE_DIRECTORY}/cron/bin"
-install -m 755 \
-    "${INSTALL_DIRECTORY}/service/cron/watchdogs/common.sh" \
-    "${INSTALL_DIRECTORY}/service/cron/watchdogs/clamav-event.sh" \
-    "${INSTALL_DIRECTORY}/service/cron/watchdogs/clamav-response.sh" \
-    "${CONFIG_BASE_DIRECTORY}/cron/bin/"
 rm -f "${CONFIG_BASE_DIRECTORY}/cron/clamav.conf"
 
 download_dir="$(ensure_xdg_directory DOWNLOAD Downloads)"
@@ -68,7 +62,7 @@ music_dir="$(ensure_xdg_directory MUSIC Music)"
 pictures_dir="$(ensure_xdg_directory PICTURES Pictures)"
 videos_dir="$(ensure_xdg_directory VIDEOS Videos)"
 
-event="${CONFIG_BASE_DIRECTORY}/cron/bin/clamav-event.sh"
+event="${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/clamav-event.sh"
 clam_conf="/etc/clamav/clamd.conf"
 if [[ -f "${clam_conf}" ]]; then
     if ! grep -q "${ONACCESS_MARKER}" "${clam_conf}" \

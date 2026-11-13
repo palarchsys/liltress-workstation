@@ -47,7 +47,7 @@ The workstation is prepared by the curl installer, or by a clone followed by `su
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y ca-certificates curl git swaks tar
+sudo apt-get install -y ca-certificates curl git swaks
 curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh | sudo bash
 ```
 
@@ -116,7 +116,7 @@ Each alert file is stored under `/opt/liltress-workstation/cron/alerts`.<br/>
 The mail follows the `LANGUAGE` language.<br/>
 Mail leaves only when `MAIL_ALERTS=1`.<br/>
 <br/>
-Mail is sent only when `MAIL_ALERTS=1`, `WATCHDOG_MAIL` is set, and `/opt/liltress-workstation/cron/bin/send.sh` is executable.<br/>
+Mail is sent only when `MAIL_ALERTS=1`, `WATCHDOG_MAIL` is set, and `/opt/liltress-workstation/service/cron/watchdogs/send.sh` is executable.<br/>
 A clean check does not send mail.<br/>
 If a journal line is unknown, do not run the command.<br/>
 Keep the mail.
@@ -133,7 +133,7 @@ The journal path in the mail is the real file.<br/>
 The form is `/opt/liltress-workstation/cron/security_logs/aide-YYYYMMDD-HHMMSS.log`.
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/aide-refresh-db.sh
+sudo bash /opt/liltress-workstation/service/aide/refresh-db.sh
 ```
 
 The command rebuilds the AIDE database from the current disk.<br/>
@@ -147,7 +147,7 @@ The example below shows the form.<br/>
 The mail contains the real path.
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/chkrootkit-ignore-log.sh '/opt/liltress-workstation/cron/security_logs/chkrootkit-YYYYMMDD-HHMMSS.log'
+sudo bash /opt/liltress-workstation/service/chkrootkit/ignore-log.sh '/opt/liltress-workstation/cron/security_logs/chkrootkit-YYYYMMDD-HHMMSS.log'
 ```
 
 The command records the lines of that journal in `/opt/liltress-workstation/cron/chkrootkit.local.ignore`.<br/>
@@ -177,7 +177,7 @@ A file whose name matches `.clamav-quarantine-lock.*` does not send mail.<br/>
 The script exits 0 before the journal and before `log_alert`.
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/quarantine-restore.sh <id>
+sudo bash /opt/liltress-workstation/core/quarantine/restore.sh <id>
 ```
 
 The example shows the form.<br/>
@@ -227,7 +227,7 @@ An error mail does not either.<br/>
 The journal form is `/opt/liltress-workstation/cron/security_logs/rkhunter-YYYYMMDD-HHMMSS.log`.
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/rkhunter-refresh-db.sh
+sudo bash /opt/liltress-workstation/service/rkhunter/refresh-db.sh
 ```
 
 The command recalculates the rkhunter property database from the current disk.<br/>
@@ -320,7 +320,7 @@ Runs `lynis audit system --quick --no-colors` and writes the report under `<sour
 ## ▪️ AIDE baseline
 
 ```bash
-sudo bash /opt/liltress-workstation/bin/aide-refresh-db.sh
+sudo bash /opt/liltress-workstation/service/aide/refresh-db.sh
 ```
 
 Rebuilds `/var/lib/aide/aide.db`.<br/>
@@ -329,7 +329,7 @@ The success line is `Base de référence AIDE enregistrée.`
 ## ▪️ rkhunter mirror stamp
 
 ```bash
-sudo bash /opt/liltress-workstation/cron/bin/record-mirrors.sh save
+sudo bash /opt/liltress-workstation/service/cron/watchdogs/record-mirrors.sh save
 ```
 
 Writes the SHA-256 of `/var/lib/rkhunter/db/mirrors.dat` to `/opt/liltress-workstation/cron/rkhunter-mirrors.sha256` mode `600`.<br/>

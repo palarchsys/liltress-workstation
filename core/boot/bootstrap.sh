@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/boot/bootstrap.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,10 +13,10 @@ source_core() {
     core_root="$(cd -- "${here}/.." && pwd)"
     roots+=("${core_root}")
     if [[ -n "${PRODUCT_ROOT:-}" ]]; then
-        roots+=("${PRODUCT_ROOT}/core" "${PRODUCT_ROOT}/src/core" "${PRODUCT_ROOT}/../share/core")
+        roots+=("${PRODUCT_ROOT}/core" "${PRODUCT_ROOT}/../share/core")
     fi
     if [[ -n "${INSTALL_DIRECTORY:-}" ]]; then
-        roots+=("${INSTALL_DIRECTORY}/core" "${INSTALL_DIRECTORY}/src/core" "${INSTALL_DIRECTORY}/../share/core")
+        roots+=("${INSTALL_DIRECTORY}/core" "${INSTALL_DIRECTORY}/../share/core")
     fi
     for root in "${roots[@]}"; do
         [[ -n "${root}" && -d "${root}" ]] || continue

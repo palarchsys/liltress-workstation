@@ -64,7 +64,7 @@ record_quarantine_origin() {
         >> "${registry}" || return 0
     chmod 600 "${registry}" 2>/dev/null || true
     quoted="$(printf '%q' "${id}")"
-    printf '%s\n' "sudo bash ${base}/bin/quarantine-restore.sh ${quoted}" >> "${dir}/quarantine.pending" || return 0
+    printf '%s\n' "sudo bash ${base}/core/quarantine/restore.sh ${quoted}" >> "${dir}/quarantine.pending" || return 0
     chmod 600 "${dir}/quarantine.pending" 2>/dev/null || true
     return 0
 }
@@ -80,7 +80,7 @@ add_existing_restore() {
     [[ -n "${id}" ]] || return 0
     [[ -w "$(dirname -- "${registry}")" ]] || return 0
     quoted="$(printf '%q' "${id}")"
-    printf '%s\n' "sudo bash ${base}/bin/quarantine-restore.sh ${quoted}" >> "$(watchdog_runtime_file "${base}" quarantine.pending)" || return 0
+    printf '%s\n' "sudo bash ${base}/core/quarantine/restore.sh ${quoted}" >> "$(watchdog_runtime_file "${base}" quarantine.pending)" || return 0
     chmod 600 "$(watchdog_runtime_file "${base}" quarantine.pending)" 2>/dev/null || true
     return 0
 }

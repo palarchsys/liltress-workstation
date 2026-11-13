@@ -70,9 +70,6 @@ EOF
 
 cp -f /etc/sysctl.d/90-liltress-workstation.conf /etc/sysctl.d/99-zzz-liltress-workstation.conf
 chmod 644 /etc/sysctl.d/90-liltress-workstation.conf /etc/sysctl.d/99-zzz-liltress-workstation.conf
-install -d -m 755 "${CONFIG_BASE_DIRECTORY}/cron/bin"
-install -m 755 "${DIR_SCRIPT_PATH}/w-sysctl-apply.sh" \
-    "${CONFIG_BASE_DIRECTORY}/cron/bin/w-sysctl-apply.sh"
 sed "s|__HF_BASE__|${CONFIG_BASE_DIRECTORY}|g" "$(locate_config_file system/sysctl.service)" \
     > /etc/systemd/system/liltress-workstation-sysctl.service
 

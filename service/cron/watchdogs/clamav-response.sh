@@ -14,7 +14,7 @@
 set -euo pipefail
 BASE="${BASE:-/opt/liltress-workstation}"
 # shellcheck disable=SC1091
-source "${BASE}/cron/bin/common.sh"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 if [[ -z "${LOG_FILE:-}" ]]; then
     LOG_FILE="${LOG_DIR}/clamav-response-${STAMP}.log"
 fi

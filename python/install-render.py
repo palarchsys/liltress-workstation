@@ -31,8 +31,8 @@ if start is None or end is None:
     sys.exit(1)
 text = "".join(raw[start:end])
 token = "__HF_TEMPLATE_REPO__"
-if text.count(token) != 1:
-    print("jeton de dépôt absent ou répété", file=sys.stderr)
+if text.count(token) < 1:
+    print("jeton de dépôt absent", file=sys.stderr)
     sys.exit(1)
 text = text.replace(token, repos[product])
 

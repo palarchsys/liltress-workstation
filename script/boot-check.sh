@@ -41,12 +41,12 @@ BASE="${BASE:-/opt/liltress-workstation}"
 if [[ -f "${BASE}/bin/log.sh" ]]; then
     # shellcheck disable=SC1091
     source "${BASE}/bin/log.sh"
-elif [[ -f "${BASE}/cron/bin/log.sh" ]]; then
+elif [[ -f "${BASE}/service/cron/watchdogs/log.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${BASE}/cron/bin/log.sh"
-elif [[ -f "${BASE}/src/core/log/log.sh" ]]; then
+    source "${BASE}/service/cron/watchdogs/log.sh"
+elif [[ -f "${BASE}/core/log/log.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${BASE}/src/core/log/log.sh"
+    source "${BASE}/core/log/log.sh"
 fi
 if ! declare -F get_text >/dev/null 2>&1; then
     printf '%s\n' "get_text absent" >&2
@@ -83,7 +83,7 @@ limit=50
 nice_want=19
 global_conf=""
 for candidate in \
-    "${BASE}/src/config/global.conf" \
+    "${BASE}/config/global.conf" \
     "${BASE}/config/global.conf"
 do
     if [[ -f "${candidate}" ]]; then

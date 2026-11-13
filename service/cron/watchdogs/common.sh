@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/common.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -15,9 +15,14 @@ LOG_DIR="${BASE}/cron/security_logs"
 ALERT_DIR="${BASE}/cron/alerts"
 mkdir -p "${LOG_DIR}" "${ALERT_DIR}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-if [[ -f "${BASE}/cron/mail.conf" ]]; then
+if [[ -z "${MAIL_ALERTS:-}" && -f "${BASE}/config/global.conf" ]]; then
+    INSTALL_DIRECTORY="${BASE}"
     # shellcheck disable=SC1091
-    source "${BASE}/cron/mail.conf"
+    source "${BASE}/config/global.conf"
+fi
+if [[ -z "${WATCHDOG_MAIL:-}" && -r "${BASE}/config/secrets.conf" ]]; then
+    # shellcheck disable=SC1091
+    source "${BASE}/config/secrets.conf"
 fi
 
 log_pass()  { printf '%s %s\n' "$(date -Iseconds)" "$*" | tee -a "${LOG_FILE}"; }
@@ -39,11 +44,6 @@ if ! declare -F load_shared_watchdog >/dev/null 2>&1; then
     dir_watchdog="${here_watchdog}"
     hops_watchdog=0
     while [[ -n "${dir_watchdog}" && "${dir_watchdog}" != "/" && "${hops_watchdog}" -lt 16 ]]; do
-        if [[ -f "${dir_watchdog}/src/core/watchdog/load.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir_watchdog}/src/core/watchdog/load.sh"
-            break
-        fi
         if [[ -f "${dir_watchdog}/core/watchdog/load.sh" ]]; then
             # shellcheck disable=SC1090
             source "${dir_watchdog}/core/watchdog/load.sh"

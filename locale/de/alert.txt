@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/alert.txt
-# Updated at : 2026-11-12
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -337,11 +337,11 @@ Bibliothek vorgeladen
 644 root:root
 oder 600 root:root
 ein Konfigurationsdatei dass Sie bearbeitet
-nicht ein Programmdatei neu unter cron/bin
+keine neue Programmdatei unter service/cron/watchdogs
 
 [alert.aide.product.malicious]
 777
-ein Programmdatei neu unter cron/bin dass Sie nicht installiert
+eine neue Programmdatei unter service/cron/watchdogs, die Sie nicht installiert haben
 Eigentümer anders als root:root
 
 [alert.aide.product.title]
