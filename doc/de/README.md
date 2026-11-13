@@ -47,6 +47,7 @@ Der Arbeitsplatz wird durch den Curl-Installer vorbereitet, oder durch einen Klo
 
 ```bash
 sudo apt-get update
+sudo apt-get upgrade -y
 sudo apt-get install -y ca-certificates curl git swaks
 curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh | sudo bash
 ```

@@ -12,17 +12,26 @@ BRANCH="${BRANCH:-main}"
 INSTALL_ROOT="${INSTALL_ROOT:-/opt/liltress-workstation}"
 
 if [[ "${EUID}" -ne 0 ]]; then
-    echo "$(get_text install.this-script-must-be-executed-as-root-sudo)" >&2
+    if declare -F get_text >/dev/null 2>&1; then
+        printf '%s\n' "$(get_text install.this-script-must-be-executed-as-root-sudo)" >&2
+    else
+        printf '%s\n' "This script must be run as root (sudo)." >&2
+    fi
     exit 1
 fi
 
 if [[ -z "${INSTALL_ROOT}" || "${INSTALL_ROOT}" != /opt/* || "${INSTALL_ROOT}" == "/opt" || "${INSTALL_ROOT}" == "/" || "${INSTALL_ROOT}" == *..* || "${INSTALL_ROOT}" == *[[:space:]]* ]]; then
-    echo "$(get_text install.root-of-install-rejected "${INSTALL_ROOT}")" >&2
+    if declare -F get_text >/dev/null 2>&1; then
+        printf '%s\n' "$(get_text install.root-of-install-rejected "${INSTALL_ROOT}")" >&2
+    else
+        printf '%s\n' "Install root rejected: ${INSTALL_ROOT}" >&2
+    fi
     exit 1
 fi
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
+NEEDRESTART_MODE=a apt-get upgrade -y -qq
 apt-get install -y -qq ca-certificates git >/dev/null
 
 tmp="$(mktemp -d)"
@@ -104,7 +113,6 @@ restore_kept() {
     fi
 }
 
-echo "$(get_text install.download-branch "${REPO_URL}" "${BRANCH}")"
 mkdir -p "${INSTALL_ROOT}"
 save_prepared "${INSTALL_ROOT}"
 save_scan_skip "${INSTALL_ROOT}"
@@ -125,7 +133,11 @@ else
 fi
 
 if [[ ! -f "${INSTALL_ROOT}/config/global.conf" || ! -f "${INSTALL_ROOT}/liltress" ]]; then
-    echo "$(get_text install.archive-github-invalid-config-global-conf-absent)" >&2
+    if declare -F get_text >/dev/null 2>&1; then
+        printf '%s\n' "$(get_text install.archive-github-invalid-config-global-conf-absent)" >&2
+    else
+        printf '%s\n' "Invalid GitHub archive (config/global.conf absent)." >&2
+    fi
     exit 1
 fi
 
