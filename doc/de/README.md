@@ -53,6 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/mai
 ```
 
 `install.sh` fragt `[O/N]` am Terminal.<br/>
+`O` ersetzt den installierten Baum durch den geholten Zweig.<br/>
 `O` startet `script/run.sh`, wenn `script/configure.sh --check` gelingt.<br/>
 Jede andere Antwort beendet das Programm.<br/>
 Eine fehlgeschlagene Prüfung startet `script/configure.sh`.

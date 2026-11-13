@@ -122,11 +122,56 @@ if [[ -f "${INSTALL_ROOT}/src/liltress" ]]; then
     save_runtime "${INSTALL_ROOT}/src"
 fi
 
+accepted=0
+if [[ -n "$(find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
+    if [[ -f "${INSTALL_ROOT}/core/boot/lib.sh" && -f "${INSTALL_ROOT}/core/boot/bootstrap.sh" && -f "${INSTALL_ROOT}/config/global.conf" ]]; then
+        INSTALL_DIRECTORY="${INSTALL_ROOT}"
+        # shellcheck disable=SC1091
+        source "${INSTALL_DIRECTORY}/core/boot/lib.sh" || true
+        # shellcheck disable=SC1091
+        source "${INSTALL_DIRECTORY}/config/global.conf" || true
+        if declare -F read_language_file >/dev/null 2>&1; then
+            read_language_file "${INSTALL_DIRECTORY}/config/global.conf" || true
+        fi
+    fi
+    answer=""
+    if [[ -r /dev/tty ]] && { exec 3<>/dev/tty; } 2>/dev/null; then
+        if declare -F get_text >/dev/null 2>&1; then
+            printf '%s' "$(get_text install.continue-o-n)" >&3
+        else
+            printf '%s' "Continue the installation? [O/N] " >&3
+        fi
+        IFS= read -r answer <&3 || answer=""
+        exec 3<&-
+    else
+        if declare -F get_text >/dev/null 2>&1; then
+            printf '%s\n' "$(get_text install.no-terminal)" >&2
+        else
+            printf '%s\n' "No terminal for the question. Stopped." >&2
+        fi
+        exit 0
+    fi
+    case "${answer}" in
+        O|o) accepted=1 ;;
+        *)
+            if declare -F get_text >/dev/null 2>&1; then
+                printf '%s\n' "$(get_text install.stopped)"
+            else
+                printf '%s\n' "Stopped."
+            fi
+            exit 0
+            ;;
+    esac
+fi
+
 if [[ -d "${INSTALL_ROOT}/.git" ]]; then
-    git -C "${INSTALL_ROOT}" checkout -- config/global.conf config/user.conf
     git -C "${INSTALL_ROOT}" fetch --depth 1 origin "${BRANCH}"
-    git -C "${INSTALL_ROOT}" merge --ff-only FETCH_HEAD
+    trap - EXIT
+    save_runtime "${INSTALL_ROOT}"
+    git -C "${INSTALL_ROOT}" clean -fdx
+    git -C "${INSTALL_ROOT}" checkout -f -B "${BRANCH}" FETCH_HEAD
 else
+    trap - EXIT
     save_runtime "${INSTALL_ROOT}"
     find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
     git clone --depth 1 --branch "${BRANCH}" "${REPO_URL}" "${INSTALL_ROOT}"
@@ -142,6 +187,7 @@ if [[ ! -f "${INSTALL_ROOT}/config/global.conf" || ! -f "${INSTALL_ROOT}/liltres
 fi
 
 restore_kept
+trap 'rm -rf "$tmp"' EXIT
 rm -rf "${INSTALL_ROOT:?}/src"
 chmod 755 "${INSTALL_ROOT}/liltress"
 INSTALL_DIRECTORY="${INSTALL_ROOT}" bash -c '
@@ -160,22 +206,24 @@ source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 read_language_file "${INSTALL_DIRECTORY}/config/global.conf"
 
-answer=""
-if [[ -r /dev/tty ]] && { exec 3<>/dev/tty; } 2>/dev/null; then
-    printf '%s' "$(get_text install.continue-o-n)" >&3
-    IFS= read -r answer <&3 || answer=""
-    exec 3<&-
-else
-    printf '%s\n' "$(get_text install.no-terminal)" >&2
-    exit 0
-fi
-case "${answer}" in
-    O|o) ;;
-    *)
-        printf '%s\n' "$(get_text install.stopped)"
+if [[ "${accepted}" -eq 0 ]]; then
+    answer=""
+    if [[ -r /dev/tty ]] && { exec 3<>/dev/tty; } 2>/dev/null; then
+        printf '%s' "$(get_text install.continue-o-n)" >&3
+        IFS= read -r answer <&3 || answer=""
+        exec 3<&-
+    else
+        printf '%s\n' "$(get_text install.no-terminal)" >&2
         exit 0
-        ;;
-esac
+    fi
+    case "${answer}" in
+        O|o) ;;
+        *)
+            printf '%s\n' "$(get_text install.stopped)"
+            exit 0
+            ;;
+    esac
+fi
 
 if bash "${INSTALL_ROOT}/script/configure.sh" --check; then
     printf '%s\n' "$(get_text install.launch-of-the-installation)"

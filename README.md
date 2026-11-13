@@ -21,6 +21,7 @@ curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/mai
 ```
 
 `install.sh` asks `[O/N]` on the terminal.<br/>
+`O` replaces the installed tree with the fetched branch.<br/>
 `O` runs `script/run.sh` when `script/configure.sh --check` succeeds.<br/>
 Any other answer stops.<br/>
 A failed check runs `script/configure.sh`.
