@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/install.txt
-# Updated at : 2026-11-11
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -76,6 +76,18 @@ Start der Konfiguration.\n\n
 
 [install.launch-of-the-questions-n-n]
 Start der Fragen.\n\n
+
+[install.continue-o-n]
+Installation fortsetzen? [O/N] 
+
+[install.no-terminal]
+Kein Terminal für die Frage. Abbruch.
+
+[install.stopped]
+Abbruch.
+
+[install.launch-of-the-installation]
+Start der Installation.
 
 [install.token-google-drive-absent-or-mode-different-of-6]
 Token Google Drive fehlt ({1}) oder Modus unterschiedlich von 600.

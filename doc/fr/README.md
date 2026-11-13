@@ -51,6 +51,11 @@ sudo apt-get install -y ca-certificates curl git swaks
 curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh | sudo bash
 ```
 
+`install.sh` demande `[O/N]` sur le terminal.<br/>
+`O` lance `script/run.sh` lorsque `script/configure.sh --check` réussit.<br/>
+Toute autre réponse arrête le programme.<br/>
+Un contrôle en échec lance `script/configure.sh`.
+
 ## ▪️ Clone
 
 ```bash

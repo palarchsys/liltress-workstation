@@ -141,17 +141,35 @@ INSTALL_DIRECTORY="${INSTALL_ROOT}" bash -c '
     set_tree_modes
 '
 
-if [[ ! -f "${tmp}/keep/global.conf" ]]; then
-    printf "$(get_text install.nt-l-chargement-finished-the-sources-are-in-s-n)" "${INSTALL_ROOT}"
-    printf "$(get_text install.launch-of-the-configuration-n-n)"
-    exec bash "${INSTALL_ROOT}/script/configure.sh"
+INSTALL_DIRECTORY="${INSTALL_ROOT}"
+# shellcheck disable=SC1091
+source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
+# shellcheck disable=SC1091
+source "${INSTALL_DIRECTORY}/config/global.conf"
+read_language_file "${INSTALL_DIRECTORY}/config/global.conf"
+
+answer=""
+if [[ -r /dev/tty ]] && { exec 3<>/dev/tty; } 2>/dev/null; then
+    printf '%s' "$(get_text install.continue-o-n)" >&3
+    IFS= read -r answer <&3 || answer=""
+    exec 3<&-
+else
+    printf '%s\n' "$(get_text install.no-terminal)" >&2
+    exit 0
+fi
+case "${answer}" in
+    O|o) ;;
+    *)
+        printf '%s\n' "$(get_text install.stopped)"
+        exit 0
+        ;;
+esac
+
+if bash "${INSTALL_ROOT}/script/configure.sh" --check; then
+    printf '%s\n' "$(get_text install.launch-of-the-installation)"
+    cd "${INSTALL_ROOT}"
+    exec bash "${INSTALL_ROOT}/script/run.sh"
 fi
 
-if ! bash "${INSTALL_ROOT}/script/configure.sh" --check; then
-    printf "$(get_text install.nla-configuration-saved-password-more-the-check)" >&2
-    printf "$(get_text install.launch-of-the-questions-n-n)" >&2
-    exec bash "${INSTALL_ROOT}/script/configure.sh"
-fi
-
-cd "${INSTALL_ROOT}"
-exec bash "${INSTALL_ROOT}/script/run.sh"
+printf '%b' "$(get_text install.launch-of-the-configuration-n-n)"
+exec bash "${INSTALL_ROOT}/script/configure.sh"
