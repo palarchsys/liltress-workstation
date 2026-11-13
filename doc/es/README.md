@@ -46,8 +46,6 @@ El puesto se prepara con el instalador curl, o con un clon seguido de `sudo ./li
 ## ▪️ Curl
 
 ```bash
-sudo apt-get update
-sudo apt-get upgrade -y
 sudo apt-get install -y ca-certificates curl git swaks
 curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh | sudo bash
 ```

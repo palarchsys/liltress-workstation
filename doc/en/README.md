@@ -46,8 +46,6 @@ The workstation is prepared by the curl installer, or by a clone followed by `su
 ## ▪️ Curl
 
 ```bash
-sudo apt-get update
-sudo apt-get upgrade -y
 sudo apt-get install -y ca-certificates curl git swaks
 curl -fsSL https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh | sudo bash
 ```

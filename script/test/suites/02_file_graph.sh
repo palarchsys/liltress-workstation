@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/02_file_graph.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-13
 # Creator    : palarchsys
 # =============================================================================
 
@@ -574,7 +574,8 @@ grep -qF '## Documentation' "${readme}" || pages_ok=0
 grep -qF 'Click a flag to open all the information.' "${readme}" || pages_ok=0
 grep -qF 'https://raw.githubusercontent.com/palarchsys/liltress-workstation/main/script/install.sh' "${readme}" || pages_ok=0
 grep -qF 'ca-certificates curl git swaks' "${readme}" || pages_ok=0
-grep -qF 'sudo apt-get update' "${readme}" || pages_ok=0
+grep -qF 'sudo apt-get update' "${readme}" && pages_ok=0
+grep -qF 'sudo apt-get upgrade' "${readme}" && pages_ok=0
 grep -qF 'git clone https://github.com/palarchsys/liltress-workstation' "${readme}" && pages_ok=0
 grep -qF 'Do not copy it into a message, a ticket, or a repository.' "${readme}" && pages_ok=0
 for flag in en fr de es; do

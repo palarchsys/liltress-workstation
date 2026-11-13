@@ -30,8 +30,6 @@ if [[ -z "${INSTALL_ROOT}" || "${INSTALL_ROOT}" != /opt/* || "${INSTALL_ROOT}" =
 fi
 
 export DEBIAN_FRONTEND=noninteractive
-apt-get update -qq
-NEEDRESTART_MODE=a apt-get upgrade -y -qq
 apt-get install -y -qq ca-certificates git >/dev/null
 
 tmp="$(mktemp -d)"
