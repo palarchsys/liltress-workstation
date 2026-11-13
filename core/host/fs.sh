@@ -175,6 +175,7 @@ set_tree_modes() {
         core/mail/mail-test.sh \
         core/quarantine/restore.sh \
         service/aide/refresh-db.sh \
+        service/apparmor/detect-and-apply.sh \
         service/rkhunter/refresh-db.sh \
         service/chkrootkit/ignore-log.sh \
         service/debsums/ignore-log.sh \
