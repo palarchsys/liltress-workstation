@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/up.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -344,7 +344,7 @@ run_vpn_test() {
     auth_file="$(get_vpn_profile_dir "${name}")/auth.txt"
     if [[ -f "${auth_file}" ]] && ! check_vpn_auth_file "${auth_file}"; then
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.import.auth-wait" "${name}" "${auth_file}"
-        return 0
+        return 1
     fi
     active="$(get_vpn_active 2>/dev/null || true)"
     if check_vpn_mode && [[ -n "${active}" && "${active}" != "${name}" ]] && check_vpn_tunnel "${active}"; then
@@ -357,7 +357,7 @@ run_vpn_test() {
         fi
         record_vpn_attempt "${name}" 0
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.test.fail" "${name}"
-        return 0
+        return 1
     fi
     if [[ -n "${active}" && "${active}" == "${name}" ]] && check_vpn_tunnel "${name}"; then
         record_vpn_attempt "${name}" 1
@@ -395,4 +395,5 @@ run_vpn_test() {
         clear_vpn_network
     fi
     log_info "${INSTALL_WATCHER:-BASH}" "vpn.test.fail" "${name}"
+    return 1
 }

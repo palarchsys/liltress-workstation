@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/failover.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -94,16 +94,21 @@ run_vpn_failover() {
     fi
     mapfile -t names < <(list_vpn_failover_names)
     if (( ${#names[@]} == 0 )); then
-        arm_vpn_lockdown
-        restart_vpn_services
-        send_vpn_alert "-" "-" "-" "failover"
-        log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.none"
+        if [[ "$(count_vpn_profiles)" == "0" ]]; then
+            send_vpn_alert "-" "-" "-" "failover"
+            run_vpn_mode_off
+            log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.none"
+        else
+            arm_vpn_lockdown
+            restart_vpn_services
+            send_vpn_alert "-" "-" "-" "failover"
+            log_info "${INSTALL_WATCHER:-BASH}" "vpn.mode.hold"
+        fi
         return 0
     fi
     log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.start"
     for name in "${names[@]}"; do
         if check_vpn_encrypted "${name}" && ! check_vpn_passphrase; then
-            record_vpn_attempt "${name}" 0
             continue
         fi
         try=1
@@ -119,12 +124,39 @@ run_vpn_failover() {
             apply_vpn_nft "${name}" 0 || true
             try=$((try + 1))
         done
-        record_vpn_attempt "${name}" 0
+        forget_vpn_profile "${name}" "dead"
     done
-    arm_vpn_lockdown
-    restart_vpn_services
-    send_vpn_alert "-" "-" "-" "failover"
-    log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.none"
+    if [[ "$(count_vpn_profiles)" == "0" ]]; then
+        send_vpn_alert "-" "-" "-" "failover"
+        run_vpn_mode_off
+        log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.none"
+    else
+        arm_vpn_lockdown
+        restart_vpn_services
+        send_vpn_alert "-" "-" "-" "failover"
+        log_info "${INSTALL_WATCHER:-BASH}" "vpn.mode.hold"
+    fi
+}
+
+forget_vpn_profile() {
+    local name="$1" reason="${2:-rm}" total
+    [[ -n "${name}" ]] || return 1
+    total="$(count_vpn_profiles)"
+    remove_vpn_iface "${name}" || true
+    rm -rf "$(get_vpn_profile_dir "${name}")"
+    if declare -F remove_vpn_state >/dev/null 2>&1; then
+        remove_vpn_state "${name}"
+    fi
+    if [[ "${reason}" == "dead" ]]; then
+        log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.drop" "${name}"
+        return 0
+    fi
+    if [[ "${total}" == "1" ]]; then
+        run_vpn_mode_off
+        log_success "${INSTALL_WATCHER:-BASH}" "vpn.rm.last" "${name}"
+        return 0
+    fi
+    log_success "${INSTALL_WATCHER:-BASH}" "vpn.rm.ok" "${name}"
 }
 
 run_vpn_mode_off() {

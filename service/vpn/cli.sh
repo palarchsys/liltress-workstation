@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/cli.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -46,15 +46,16 @@ show_vpn_usage() {
 }
 
 remove_vpn_profile() {
-    local name="${1:-}" active
+    local name="${1:-}" active total
     [[ -n "${name}" ]] || show_vpn_usage
     check_vpn_name "${name}" || log_error "${INSTALL_WATCHER}" "vpn.import.bad-name" "${name}"
     [[ -d "$(get_vpn_profile_dir "${name}")" && -f "$(get_vpn_profile_dir "${name}")/meta" ]] || log_error "${INSTALL_WATCHER}" "vpn.rm.missing" "${name}"
     active="$(get_vpn_active 2>/dev/null || true)"
-    [[ "${active}" == "${name}" ]] && log_error "${INSTALL_WATCHER}" "vpn.rm.active" "${name}"
-    rm -rf "$(get_vpn_profile_dir "${name}")"
-    remove_vpn_state "${name}"
-    log_success "${INSTALL_WATCHER}" "vpn.rm.ok" "${name}"
+    total="$(count_vpn_profiles)"
+    if [[ "${active}" == "${name}" && "${total}" != "1" ]]; then
+        log_error "${INSTALL_WATCHER}" "vpn.rm.active" "${name}"
+    fi
+    forget_vpn_profile "${name}" "rm"
 }
 
 show_vpn_status() {
@@ -98,7 +99,7 @@ show_vpn_status() {
 }
 
 list_vpn_profiles() {
-    local home dir name proto found=0 kind valid validated observed tested state
+    local home dir name proto found=0 kind valid validated observed tested state brand
     home="$(get_vpn_home)"
     refresh_vpn_state
     shopt -s nullglob
@@ -118,7 +119,8 @@ list_vpn_profiles() {
                 observed="$(printf '%s\n' "${state}" | sed -n '3p')"
                 tested="$(printf '%s\n' "${state}" | sed -n '4p')"
             fi
-            printf '%s  %s\n' "$(get_text vpn.list.line "${name}" "${proto}" "${valid}" "${validated}" "${observed}" "${tested}")" "${dir%/}"
+            brand="$(get_vpn_meta "${name}" brand 2>/dev/null || true)"
+            printf '%s  %s\n' "$(get_text vpn.list.line "${name}" "${proto}" "${valid}" "${validated}" "${observed}" "${tested}" "${brand}")" "${dir%/}"
             found=1
         done
     done
@@ -188,10 +190,9 @@ case "${cmd}" in
         list_vpn_profiles
         ;;
     import)
-        [[ $# -eq 3 ]] || show_vpn_usage
+        [[ $# -eq 4 ]] || show_vpn_usage
         case "$1" in
-            wireguard) install_vpn_wireguard "$2" "$3" ;;
-            openvpn) install_vpn_openvpn "$2" "$3" ;;
+            wireguard|openvpn) install_vpn_bundle "$1" "$2" "$3" "$4" ;;
             *) show_vpn_usage ;;
         esac
         ;;

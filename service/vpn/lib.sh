@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/lib.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,6 +18,20 @@ get_vpn_root() {
 get_vpn_home() {
     local base="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
     printf '%s/vpn\n' "${base}"
+}
+
+count_vpn_profiles() {
+    local home kind dir total=0
+    home="$(get_vpn_home)"
+    shopt -s nullglob
+    for kind in wireguard openvpn profiles; do
+        for dir in "${home}/${kind}"/*/; do
+            [[ -d "${dir}" ]] || continue
+            total=$((total + 1))
+        done
+    done
+    shopt -u nullglob
+    printf '%s\n' "${total}"
 }
 
 load_vpn_settings() {
@@ -134,7 +148,7 @@ get_vpn_meta() {
 
 write_vpn_meta() {
     local dir="$1" proto="$2" ep4="$3" ep6="$4" port="$5"
-    local transport="$6" iface="$7" v6="$8" enc="$9"
+    local transport="$6" iface="$7" v6="$8" enc="$9" brand="${10:-}"
     umask 077
     cat > "${dir}/meta" << EOF
 proto=${proto}
@@ -145,6 +159,7 @@ transport=${transport}
 iface=${iface}
 has_ipv6=${v6}
 encrypted=${enc}
+brand=${brand}
 EOF
     chmod 600 "${dir}/meta"
 }

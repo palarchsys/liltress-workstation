@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/10_vpn.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -140,7 +140,7 @@ marker="$(printf '%s%s =' 'Private' 'Key')"
 printf '[Interface]\n%s not-a-real-secret\n' "${marker}" > "${ARTIFACTS}/fake-wg.conf"
 printf 'remote example.invalid 1194 udp\nca ca.crt\n' > "${ARTIFACTS}/fake.ovpn"
 needle="$(printf '%s%s =' 'Private' 'Key')"
-if git -C "${T_ROOT}" grep -n -F -e "${needle}" -- . ':!test/output' > "${ARTIFACTS}/vpn-secret-grep.txt" 2>/dev/null; then
+if git -C "${T_ROOT}" grep -n -F -e "${needle}" -- . ':!test/output' ':!doc/examples' > "${ARTIFACTS}/vpn-secret-grep.txt" 2>/dev/null; then
     t_fail "vpn.secret-grep" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-secret-grep.txt" | head -c 300)"
 else
     t_pass "vpn.secret-grep" "chaîne absente du suivi"
@@ -256,13 +256,27 @@ cert client.crt
 key client.key
 crl-verify crl.pem
 EOF
+brand_cg="${ARTIFACTS}/vpn-brand-cg"
+rm -rf "${brand_cg}"
+mkdir -p "${brand_cg}"
+cp -a "${import_src}/ca.crt" "${import_src}/client.crt" "${import_src}/client.key" "${import_src}/auth.txt" "${brand_cg}/"
+cat > "${brand_cg}/openvpn.ovpn" << 'EOF'
+client
+remote 203.0.113.10 443
+proto udp
+auth-user-pass
+ca ca.crt
+cert client.crt
+key client.key
+EOF
 saved_import="${CONFIG_BASE_DIRECTORY:-}"
 export CONFIG_BASE_DIRECTORY="${import_root}"
+export VPN_IMPORT_STAGE_ONLY=1
 import_ok=1
 if ! install_vpn_openvpn "cg-usa" "${import_src}/openvpn.ovpn"; then
     import_ok=0
 fi
-import_profile="${import_root}/vpn/openvpn/cg-usa"
+import_profile="${VPN_STAGE_DIR}"
 for import_file in source runtime ca.crt client.crt client.key crl.pem auth.txt meta; do
     [[ -f "${import_profile}/${import_file}" ]] || import_ok=0
 done
@@ -274,6 +288,7 @@ grep -q 'alice' "${import_profile}/auth.txt" || import_ok=0
 grep -q 'comp-lzo' "${import_profile}/runtime" && import_ok=0
 grep -q '^up ' "${import_profile}/runtime" && import_ok=0
 [[ -e "${import_profile}/client.up" ]] && import_ok=0
+[[ -d "${import_root}/vpn/openvpn/cg-usa" ]] && import_ok=0
 printf 'only-name\n' > "${import_src}/openvpn.ovpn"
 printf 'ca missing.crt\nremote 203.0.113.10 1194\nproto udp\n' > "${import_src}/openvpn.ovpn"
 if ( install_vpn_openvpn "cg-miss" "${import_src}/openvpn.ovpn" ); then
@@ -287,14 +302,10 @@ remote 203.0.113.11 1194
 proto udp
 auth-user-pass
 EOF
-if ! install_vpn_openvpn "cg-wait" "${import_src}/bare.ovpn"; then
+if ( install_vpn_openvpn "cg-wait" "${import_src}/bare.ovpn" ); then
     import_ok=0
 fi
-wait_auth="${import_root}/vpn/openvpn/cg-wait/auth.txt"
-[[ -f "${wait_auth}" ]] || import_ok=0
-if check_vpn_auth_file "${wait_auth}"; then
-    import_ok=0
-fi
+[[ -d "${import_root}/vpn/openvpn/cg-wait" ]] && import_ok=0
 wg_src="${ARTIFACTS}/vpn-import-wg.conf"
 {
     printf '%s\n' '[Interface]'
@@ -309,18 +320,166 @@ wg_src="${ARTIFACTS}/vpn-import-wg.conf"
 if ! install_vpn_wireguard "mullvad" "${wg_src}"; then
     import_ok=0
 fi
-wg_profile="${import_root}/vpn/wireguard/mullvad"
+wg_profile="${VPN_STAGE_DIR}"
 [[ -f "${wg_profile}/source" && -f "${wg_profile}/runtime" ]] || import_ok=0
 grep -q 'Table = off' "${wg_profile}/runtime" || import_ok=0
 grep -q 'DNS' "${wg_profile}/runtime" && import_ok=0
 grep -q '203.0.113.20:51820' "${wg_profile}/runtime" || import_ok=0
+[[ -d "${import_root}/vpn/wireguard/mullvad" ]] && import_ok=0
+if [[ "${import_ok}" -eq 1 ]]; then
+    t_pass "vpn.import.files" "copie en attente, auth vide refusé"
+else
+    t_fail "vpn.import.files" "copie incomplète"
+fi
+
+brand_mu="${ARTIFACTS}/vpn-brand-mu"
+brand_gap="${ARTIFACTS}/vpn-brand-gap"
+brand_zip="${ARTIFACTS}/vpn-brand-replace.zip"
+rm -rf "${brand_mu}" "${brand_gap}"
+mkdir -p "${brand_mu}" "${brand_gap}"
+cp -a "${wg_src}" "${brand_mu}/config.conf"
+cp -a "${brand_cg}/openvpn.ovpn" "${brand_cg}/ca.crt" "${brand_cg}/client.crt" "${brand_cg}/auth.txt" "${brand_gap}/"
+python3 - "${brand_zip}" << 'PY'
+import sys
+import zipfile
+path = sys.argv[1]
+with zipfile.ZipFile(path, "w") as archive:
+    archive.writestr("config.ovpn", "remote 203.0.113.10 1194\nauth-user-pass\nREPLACE\n")
+    archive.writestr("auth.txt", "REPLACE\nREPLACE\n")
+PY
+brand_ok=1
+if ! install_vpn_bundle openvpn cyberghost cg-brand "${brand_cg}"; then
+    brand_ok=0
+fi
+grep -q 'brand=cyberghost' "${VPN_STAGE_DIR}/meta" || brand_ok=0
+[[ -d "${import_root}/vpn/openvpn/cg-brand" ]] && brand_ok=0
+if ! install_vpn_bundle wireguard mullvad mu-brand "${brand_mu}"; then
+    brand_ok=0
+fi
+grep -q 'brand=mullvad' "${VPN_STAGE_DIR}/meta" || brand_ok=0
+[[ -d "${import_root}/vpn/wireguard/mu-brand" ]] && brand_ok=0
+VPN_IMPORT_STAGE_ONLY=0
+if ( install_vpn_bundle openvpn mullvad mu-bad "${brand_mu}" ); then
+    brand_ok=0
+fi
+[[ -d "${import_root}/vpn/openvpn/mu-bad" ]] && brand_ok=0
+if ( install_vpn_bundle wireguard nordvpn nord-bad "${brand_mu}" ); then
+    brand_ok=0
+fi
+[[ -d "${import_root}/vpn/wireguard/nord-bad" ]] && brand_ok=0
+if ( install_vpn_bundle wireguard pia pia-bad "${brand_mu}" ); then
+    brand_ok=0
+fi
+[[ -d "${import_root}/vpn/wireguard/pia-bad" ]] && brand_ok=0
+if ( install_vpn_bundle openvpn cyberghost cg-gap "${brand_gap}" ); then
+    brand_ok=0
+fi
+[[ -d "${import_root}/vpn/openvpn/cg-gap" ]] && brand_ok=0
+if ( install_vpn_bundle openvpn acme acme-1 "${brand_cg}" ); then
+    brand_ok=0
+fi
+[[ -d "${import_root}/vpn/openvpn/acme-1" ]] && brand_ok=0
+if ( install_vpn_bundle openvpn nordvpn nord-rep "${brand_zip}" ); then
+    brand_ok=0
+fi
+[[ -d "${import_root}/vpn/openvpn/nord-rep" ]] && brand_ok=0
+[[ -f "${T_ROOT}/doc/examples/nordvpn.zip" ]] || brand_ok=0
+if ( install_vpn_bundle openvpn nordvpn nord-ex "${T_ROOT}/doc/examples/nordvpn.zip" ); then
+    brand_ok=0
+fi
+[[ -d "${import_root}/vpn/openvpn/nord-ex" ]] && brand_ok=0
+if [[ "${brand_ok}" -eq 1 ]]; then
+    t_pass "vpn.brand" "marque, refus, REPLACE"
+else
+    t_fail "vpn.brand" "contrôle de marque"
+fi
+
+unset VPN_IMPORT_STAGE_ONLY
+run_vpn_test() { return 1; }
+roll_ok=1
+if install_vpn_openvpn "cg-roll" "${brand_cg}/openvpn.ovpn"; then
+    roll_ok=0
+fi
+[[ -d "${import_root}/vpn/openvpn/cg-roll" ]] && roll_ok=0
+unset -f run_vpn_test
+if [[ "${roll_ok}" -eq 1 ]]; then
+    t_pass "vpn.rollback" "essai en échec, rien publié"
+else
+    t_fail "vpn.rollback" "profil publié"
+fi
 if [[ -n "${saved_import}" ]]; then
     export CONFIG_BASE_DIRECTORY="${saved_import}"
 else
     unset CONFIG_BASE_DIRECTORY
 fi
-if [[ "${import_ok}" -eq 1 ]]; then
-    t_pass "vpn.import.files" "certificats, auth.txt et WireGuard"
+
+# shellcheck disable=SC1091
+source "${vpn_dir}/failover.sh"
+apply_vpn_systemd() { return 0; }
+clear_vpn_network() { return 0; }
+restart_vpn_services() { return 0; }
+remove_vpn_iface() { return 0; }
+arm_vpn_lockdown() { return 0; }
+VPN_TRACE=""
+send_vpn_alert() { VPN_TRACE="${VPN_TRACE}alert "; return 0; }
+run_vpn_mode_off() {
+    VPN_TRACE="${VPN_TRACE}off "
+    set_vpn_state_mode off
+    VPN_MODE=off
+}
+life_root="${ARTIFACTS}/vpn-life-root"
+rm -rf "${life_root}"
+mkdir -p "${life_root}"
+export CONFIG_BASE_DIRECTORY="${life_root}"
+life_ok=1
+write_vpn_state || life_ok=0
+if ( run_vpn_mode_on ); then
+    life_ok=0
+fi
+load_vpn_settings
+check_vpn_mode && life_ok=0
+kept="${life_root}/vpn/openvpn/kept"
+mkdir -p "${kept}"
+printf 'proto=openvpn\n' > "${kept}/meta"
+set_vpn_state_mode on
+VPN_TRACE=""
+run_vpn_mode_off
+[[ -d "${kept}" ]] || life_ok=0
+load_vpn_settings
+check_vpn_mode && life_ok=0
+rm -rf "${kept}"
+solo="${life_root}/vpn/openvpn/solo"
+mkdir -p "${solo}"
+printf 'proto=openvpn\n' > "${solo}/meta"
+set_vpn_state_mode on
+forget_vpn_profile solo rm
+[[ -d "${solo}" ]] && life_ok=0
+load_vpn_settings
+check_vpn_mode && life_ok=0
+left="${life_root}/vpn/openvpn/left"
+mkdir -p "${left}"
+printf 'proto=openvpn\n' > "${left}/meta"
+set_vpn_state_mode on
+VPN_TRACE=""
+run_vpn_failover
+[[ -d "${left}" ]] || life_ok=0
+load_vpn_settings
+check_vpn_mode || life_ok=0
+[[ "${VPN_TRACE}" == "alert " ]] || life_ok=0
+rm -rf "${left}"
+set_vpn_state_mode on
+VPN_TRACE=""
+run_vpn_failover
+load_vpn_settings
+check_vpn_mode && life_ok=0
+[[ "${VPN_TRACE}" == "alert off " ]] || life_ok=0
+if [[ -n "${saved_import}" ]]; then
+    export CONFIG_BASE_DIRECTORY="${saved_import}"
 else
-    t_fail "vpn.import.files" "copie incomplète"
+    unset CONFIG_BASE_DIRECTORY
+fi
+if [[ "${life_ok}" -eq 1 ]]; then
+    t_pass "vpn.life" "dernier retrait, mode, reprise"
+else
+    t_fail "vpn.life" "trace ${VPN_TRACE}"
 fi

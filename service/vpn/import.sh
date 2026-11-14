@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/import.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -104,22 +104,34 @@ check_vpn_import_name() {
 finish_vpn_import() {
     local work="$1" name="$2" endpoint="$3" proto="$4"
     local dest
+    if [[ "${VPN_IMPORT_STAGE_ONLY:-0}" == "1" ]]; then
+        VPN_STAGE_DIR="${work}"
+        printf '%s\n' "${work}" > "$(get_vpn_home)/.stage-path"
+        chmod 600 "$(get_vpn_home)/.stage-path"
+        return 0
+    fi
     dest="$(get_vpn_profile_dir "${name}" "${proto}")"
     mkdir -p "$(dirname -- "${dest}")"
     chmod 700 "$(dirname -- "${dest}")"
     chmod 700 "${work}"
     find "${work}" -type f -exec chmod 600 {} +
     mv "${work}" "${dest}"
+    if declare -F run_vpn_test >/dev/null 2>&1; then
+        if ! run_vpn_test "${name}"; then
+            rm -rf "${dest}"
+            if declare -F remove_vpn_state >/dev/null 2>&1; then
+                remove_vpn_state "${name}"
+            fi
+            return 1
+        fi
+    fi
     if declare -F log_success >/dev/null 2>&1; then
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.import.ok" "${name}" "${endpoint}"
-    fi
-    if declare -F run_vpn_test >/dev/null 2>&1; then
-        run_vpn_test "${name}" || true
     fi
 }
 
 install_vpn_wireguard() {
-    local name="$1" src="$2" work private line trimmed section=""
+    local name="$1" src="$2" brand="${3:-}" work private line trimmed section=""
     local peers=0 has_private=0 has_public=0 endpoint_line="" host port
     local ep4="" ep6="" pinned="" chosen="" address v6=0
     local -a rows=()
@@ -183,7 +195,7 @@ install_vpn_wireguard() {
             v6=1
         fi
     done < <(list_vpn_wg_addresses "${work}/runtime")
-    write_vpn_meta "${work}" wireguard "${ep4}" "${ep6}" "${port}" udp "${VPN_IFACE_WG:-wg-liltress}" "${v6}" 0
+    write_vpn_meta "${work}" wireguard "${ep4}" "${ep6}" "${port}" udp "${VPN_IFACE_WG:-wg-liltress}" "${v6}" 0 "${brand}"
     finish_vpn_import "${work}" "${name}" "${pinned}" wireguard
 }
 
@@ -345,15 +357,18 @@ copy_vpn_auth() {
             fi
         done
         if [[ ! -f "${work}/auth.txt" ]]; then
-            : > "${work}/auth.txt"
+            return 1
         fi
+    fi
+    if ! check_vpn_auth_file "${work}/auth.txt"; then
+        return 1
     fi
     chmod 600 "${work}/auth.txt"
     printf 'auth-user-pass auth.txt\n' >> "${work}/runtime"
 }
 
 install_vpn_openvpn() {
-    local name="$1" src="$2" work dir base line trimmed key rest token path copied tail
+    local name="$1" src="$2" brand="${3:-}" work dir base line trimmed key rest token path copied tail
     local in_tag=0 proto="udp" port="1194" remote_count=0 host="" rport="" rproto=""
     local ep4="" ep6="" pinned="" chosen="" enc=0 extra=0 auth_done=0
     local -a rows=()
@@ -488,7 +503,7 @@ install_vpn_openvpn() {
     if grep -q 'ENCRYPTED' "${work}/source" "${work}/runtime" "${work}"/* 2>/dev/null; then
         enc=1
     fi
-    write_vpn_meta "${work}" openvpn "${ep4}" "${ep6}" "${port}" "${proto}" "${VPN_IFACE_OVPN}" 0 "${enc}"
+    write_vpn_meta "${work}" openvpn "${ep4}" "${ep6}" "${port}" "${proto}" "${VPN_IFACE_OVPN}" 0 "${enc}" "${brand}"
     if (( extra == 1 )) && declare -F log_info >/dev/null 2>&1; then
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.import.remote" "${pinned}"
     fi
@@ -535,7 +550,7 @@ refresh_vpn_endpoint() {
         pinned="${ep6%% *}"
         chosen="[${pinned}]:${port}"
     fi
-    write_vpn_meta "${dir}" "${proto}" "${ep4}" "${ep6}" "${port}" "$(get_vpn_meta "${name}" transport)" "$(get_vpn_meta "${name}" iface)" "$(get_vpn_meta "${name}" has_ipv6)" "$(get_vpn_meta "${name}" encrypted)"
+    write_vpn_meta "${dir}" "${proto}" "${ep4}" "${ep6}" "${port}" "$(get_vpn_meta "${name}" transport)" "$(get_vpn_meta "${name}" iface)" "$(get_vpn_meta "${name}" has_ipv6)" "$(get_vpn_meta "${name}" encrypted)" "$(get_vpn_meta "${name}" brand 2>/dev/null || true)"
     if [[ "${proto}" == "wireguard" ]]; then
         sed -i "s|^[[:space:]]*Endpoint[[:space:]]*=.*|Endpoint = ${chosen}|" "${runtime}"
     else
@@ -549,3 +564,190 @@ refresh_vpn_endpoint() {
     fi
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.refresh.ok" "${name}" "${pinned}"
 }
+
+vpn_brand_cited() {
+    local ovpn="$1" line trimmed key rest token
+    [[ -f "${ovpn}" ]] || return 0
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+        line="${line%$'\r'}"
+        trimmed="$(strip_vpn_text "${line}")"
+        [[ -z "${trimmed}" || "${trimmed}" == \#* || "${trimmed}" == \;* ]] && continue
+        key="${trimmed%%[[:space:]]*}"
+        rest="${trimmed#"${key}"}"
+        rest="$(strip_vpn_text "${rest}")"
+        case "${key}" in
+            ca|cert|key|tls-crypt|tls-auth|tls-crypt-v2|dh|pkcs12|secret|extra-certs|crl-verify|askpass)
+                token="$(get_vpn_ovpn_token "${rest}")"
+                token="${token%%[[:space:]]*}"
+                [[ -z "${token}" || "${token}" == \<* ]] && continue
+                basename -- "${token}"
+                ;;
+        esac
+    done < "${ovpn}"
+}
+
+vpn_brand_names() {
+    local dir="$1" name base ovpn cited
+    shift
+    local -A allow=()
+    for name in "$@"; do
+        [[ -f "${dir}/${name}" ]] || return 2
+        allow["${name}"]=1
+    done
+    ovpn=""
+    if [[ -f "${dir}/config.ovpn" ]]; then
+        ovpn="${dir}/config.ovpn"
+    elif [[ -f "${dir}/openvpn.ovpn" ]]; then
+        ovpn="${dir}/openvpn.ovpn"
+    fi
+    if [[ -n "${ovpn}" ]]; then
+        while IFS= read -r cited; do
+            [[ -n "${cited}" ]] && allow["${cited}"]=1
+        done < <(vpn_brand_cited "${ovpn}")
+    fi
+    for name in "${dir}"/*; do
+        [[ -e "${name}" ]] || continue
+        base="$(basename -- "${name}")"
+        [[ -n "${allow[${base}]+x}" ]] || return 2
+        [[ -f "${name}" && ! -L "${name}" ]] || return 2
+    done
+    return 0
+}
+
+vpn_brand_plain() {
+    local dir="$1" file
+    for file in "${dir}"/*; do
+        [[ -f "${file}" ]] || continue
+        if grep -q 'REPLACE' "${file}"; then
+            return 3
+        fi
+    done
+    return 0
+}
+
+vpn_brand_openvpn() {
+    local dir="$1"
+    shift
+    vpn_brand_names "${dir}" "$@" || return 2
+    vpn_brand_plain "${dir}" || return 3
+    check_vpn_auth_file "${dir}/auth.txt" || return 4
+}
+
+vpn_brand_wireguard() {
+    local dir="$1"
+    vpn_brand_names "${dir}" config.conf || return 2
+    vpn_brand_plain "${dir}" || return 3
+}
+
+open_vpn_bundle() {
+    local path="$1" dest="$2" name base
+    if [[ -d "${path}" ]]; then
+        for name in "${path}"/*; do
+            [[ -e "${name}" ]] || continue
+            [[ -L "${name}" || ! -f "${name}" ]] && return 1
+            base="$(basename -- "${name}")"
+            cp -a "${name}" "${dest}/${base}" || return 1
+        done
+        return 0
+    fi
+    [[ -f "${path}" ]] || return 1
+    python3 - "${path}" "${dest}" << 'PY'
+import os
+import sys
+import zipfile
+
+src, dest = sys.argv[1], sys.argv[2]
+try:
+    archive = zipfile.ZipFile(src)
+except zipfile.BadZipFile:
+    sys.exit(1)
+found = []
+for info in archive.infolist():
+    raw = info.filename.replace("\\", "/").strip("/")
+    if not raw:
+        continue
+    if raw.startswith("/") or ".." in raw.split("/"):
+        sys.exit(1)
+    if "/" in raw:
+        sys.exit(1)
+    if info.file_size > 1048576:
+        sys.exit(1)
+    found.append((info, raw))
+if not found or len(found) > 12:
+    sys.exit(1)
+for info, base in found:
+    target = os.path.join(dest, base)
+    with archive.open(info) as incoming, open(target, "wb") as outgoing:
+        outgoing.write(incoming.read())
+    os.chmod(target, 0o600)
+PY
+}
+
+install_vpn_bundle() {
+    local proto="$1" brand="$2" name="$3" path="$4"
+    local dest src rc=0 stage_file
+    check_vpn_import_name "${name}" || return 1
+    if [[ ! -e "${path}" ]]; then
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
+        return 1
+    fi
+    dest="$(mktemp -d "$(get_vpn_home)/.bundle.XXXXXX")"
+    chmod 700 "${dest}"
+    if ! open_vpn_bundle "${path}" "${dest}"; then
+        rm -rf "${dest}"
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.shape" "${name}"
+        return 1
+    fi
+    if ! declare -F "vpn_brand_${brand}" >/dev/null 2>&1; then
+        rm -rf "${dest}"
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.brand" "${brand}" "${proto}"
+        return 1
+    fi
+    "vpn_brand_${brand}" "${proto}" "${dest}" || rc=$?
+    if (( rc != 0 )); then
+        rm -rf "${dest}"
+        case "${rc}" in
+            1) log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.brand" "${brand}" "${proto}" ;;
+            3) log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.replace" "${name}" ;;
+            4) log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.auth" ;;
+            *) log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.shape" "${name}" ;;
+        esac
+        return 1
+    fi
+    case "${proto}" in
+        wireguard) src="${dest}/config.conf" ;;
+        openvpn)
+            if [[ -f "${dest}/openvpn.ovpn" ]]; then
+                src="${dest}/openvpn.ovpn"
+            else
+                src="${dest}/config.ovpn"
+            fi
+            ;;
+        *)
+            rm -rf "${dest}"
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.brand" "${brand}" "${proto}"
+            return 1
+            ;;
+    esac
+    stage_file="$(get_vpn_home)/.stage-path"
+    rm -f "${stage_file}"
+    (
+        case "${proto}" in
+            wireguard) install_vpn_wireguard "${name}" "${src}" "${brand}" ;;
+            openvpn) install_vpn_openvpn "${name}" "${src}" "${brand}" ;;
+        esac
+    ) || rc=$?
+    if [[ -f "${stage_file}" ]]; then
+        VPN_STAGE_DIR="$(tr -d '[:space:]' < "${stage_file}")"
+        rm -f "${stage_file}"
+    fi
+    rm -rf "${dest}"
+    return "${rc}"
+}
+
+# shellcheck disable=SC1091
+for VPN_BRAND_FILE in "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/brands/"*.sh; do
+    [[ -f "${VPN_BRAND_FILE}" ]] || continue
+    source "${VPN_BRAND_FILE}"
+done
+unset VPN_BRAND_FILE

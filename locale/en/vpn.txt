@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/en/vpn.txt
-# Updated at : 2026-11-11
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -10,8 +10,8 @@ Usage: liltress vpn <command>
 
   status
   list
-  import wireguard <name> <file>
-  import openvpn <name> <file>
+  import openvpn <brand> <name> <archive or directory>
+  import wireguard <brand> <name> <archive or directory>
   test <name>
   switch <name>
   mode on
@@ -37,7 +37,7 @@ Bypass entries: {1}.
 No active profile.
 
 [vpn.list.line]
-{1} {2} {3} {4} {5} {6}
+{1} {2} {3} {4} {5} {6} {7}
 
 [vpn.list.empty]
 No profile.
@@ -61,7 +61,7 @@ Name {1} did not resolve.
 Extra remotes ignored. Kept {1}.
 
 [vpn.import.auth]
-auth-user-pass needs a file path.
+auth.txt needs two lines: the name, then the secret.
 
 [vpn.import.peer]
 Profile {1} must contain one peer.
@@ -205,10 +205,25 @@ VPN failover.
 Profile {1} is up.
 
 [vpn.failover.none]
-No validated profile. The killswitch stays on.
+No profile. Direct network, killswitch off.
 
 [vpn.service.restart]
 Dependent services restarted.
 
 [vpn.import.auth-wait]
-Profile {1} is imported. Write the name and the secret in {2}, then run vpn test.
+Profile {1} does not have two lines in {2}.
+
+[vpn.import.brand]
+Brand {1} does not accept {2}.
+
+[vpn.import.shape]
+Folder {1} does not have this brand's files.
+
+[vpn.import.replace]
+The word REPLACE is still present in {1}.
+
+[vpn.failover.drop]
+Profile {1} no longer answers. It is removed.
+
+[vpn.rm.last]
+Last profile {1} removed. Killswitch off.

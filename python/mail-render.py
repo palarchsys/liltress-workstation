@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/mail-render.py
-# Updated at : 2026-11-13
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -131,25 +131,18 @@ except OSError as exc:
     unread = os.environ.get("TEXT_TEMPLATE_UNREADABLE") or "unreadable template: {1}"
     print(unread.replace("{1}", str(exc)), file=sys.stderr)
     sys.exit(1)
-if os.environ.get("MAIL_TEST") == "1":
-    for name in ("TEST_MODULE", "TEST_READ", "TEST_SEEN"):
-        tpl = re.sub(
-            r"<!--" + name + r"_START-->.*?<!--" + name + r"_END-->",
-            "",
-            tpl,
-            count=1,
-            flags=re.S,
+if not os.environ.get("MAIL_SUBTITLE", "").strip():
+    os.environ["MAIL_SUBTITLE"] = " • ".join(
+        part
+        for part in (
+            os.environ.get("PROJECT_NAME", ""),
+            os.environ.get("HOSTNAME", ""),
+            os.environ.get("DATE", ""),
         )
-# Reboot keeps the journal and drops the module line and the intro.
-if os.environ.get("MODULE_NAME") == "reboot":
-    for name in ("TEST_MODULE", "TEST_READ"):
-        tpl = re.sub(
-            r"<!--" + name + r"_START-->.*?<!--" + name + r"_END-->",
-            "",
-            tpl,
-            count=1,
-            flags=re.S,
-        )
+        if part
+    )
+if not os.environ.get("MAIL_FOOTER", "").strip():
+    os.environ["MAIL_FOOTER"] = os.environ.get("PROJECT_NAME", "")
 for name, content_key in (
     ("BLOCK_SERVICES", "MAIL_SERVICES"),
     ("BLOCK_FILES", "MAIL_FILES"),
