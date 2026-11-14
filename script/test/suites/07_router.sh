@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/07_router.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -118,12 +118,12 @@ if [[ -n "${root}" ]]; then
 
     help_user="$(bash "${root}/workstation/liltress" help)"
     help_server="$(bash "${root}/server/liltress" help)"
-    if [[ "${help_user}" == *"script/verify/workstation.sh"* && "${help_user}" == *"/opt/liltress-workstation/script/scan-skip.sh"* && "${help_user}" != *"--basic"* ]]; then
+    if [[ "${help_user}" == *"verify workstation"* && "${help_user}" == *"maintain scan-skip"* && "${help_user}" != *"--basic"* ]]; then
         t_pass "help.user" "commandes du poste"
     else
         t_fail "help.user" "écran poste incomplet"
     fi
-    if [[ "${help_server}" == *"--basic"* && "${help_server}" == *"--avance"* && "${help_server}" == *"script/verify/matrix.sh"* && "${help_server}" != *"scan-skip"* ]]; then
+    if [[ "${help_server}" == *"--basic"* && "${help_server}" == *"--avance"* && "${help_server}" == *"verify matrix"* && "${help_server}" != *"scan-skip"* ]]; then
         t_pass "help.server" "commandes du serveur"
     else
         t_fail "help.server" "écran serveur incomplet"
@@ -165,5 +165,64 @@ if [[ -n "${root}" ]]; then
         t_fail "search.scope" "next_step est dans le résultat"
     else
         t_pass "search.scope" "next_step hors recherche"
+    fi
+
+    sudo_ok=1
+    bash -n "${root}/share/system/sudoers/apply.sh" || sudo_ok=0
+    [[ -L "${root}/workstation/system/sudoers/apply.sh" ]] || sudo_ok=0
+    [[ -L "${root}/server/system/sudoers/apply.sh" ]] || sudo_ok=0
+    if ! python3 - "${root}" > "${ARTIFACTS}/sudoers-extract.txt" << 'PY'
+import csv
+import sys
+from pathlib import Path
+root = Path(sys.argv[1])
+allowed = {
+    "workstation": {"liltress", "vpn", "verify", "maintain"},
+    "server": {"liltress", "verify", "maintain"},
+}
+lines = (root / "commands.csv").read_text(encoding="utf-8").splitlines(keepends=True)
+for product, groups in allowed.items():
+    expect = [lines[0]]
+    for line in lines[1:]:
+        if not line.strip():
+            continue
+        row = next(csv.reader([line]))
+        if row[1] == product and row[2] in groups:
+            expect.append(line if line.endswith("\n") else line + "\n")
+    got = (root / product / "system" / "sudoers" / "commands.csv").read_text(encoding="utf-8")
+    if got != "".join(expect):
+        print(product)
+        sys.exit(1)
+PY
+    then
+        sudo_ok=0
+    fi
+    ws_out="${ARTIFACTS}/sudoers-workstation"
+    sv_out="${ARTIFACTS}/sudoers-server"
+    rm -f "${ws_out}" "${sv_out}"
+    if ! SUDOERS_OUT="${ws_out}" SUDO_USER=liltress bash "${root}/workstation/system/sudoers/apply.sh" BASH "${root}/workstation" > "${ARTIFACTS}/sudoers-ws.log" 2>&1; then
+        sudo_ok=0
+    fi
+    if ! SUDOERS_OUT="${sv_out}" MAIN_USER=liltress bash "${root}/server/system/sudoers/apply.sh" BASH "${root}/server" > "${ARTIFACTS}/sudoers-sv.log" 2>&1; then
+        sudo_ok=0
+    fi
+    grep -q 'liltress vpn ' "${ws_out}" || sudo_ok=0
+    grep -q 'liltress verify workstation' "${ws_out}" || sudo_ok=0
+    grep -q 'liltress maintain aide' "${ws_out}" || sudo_ok=0
+    grep -q 'NOPASSWD: ALL' "${ws_out}" && sudo_ok=0
+    grep -Eq 'liltress (timer|cron|install)( |$)' "${ws_out}" && sudo_ok=0
+    grep -q 'liltress vpn ' "${sv_out}" && sudo_ok=0
+    grep -q 'liltress verify matrix' "${sv_out}" || sudo_ok=0
+    grep -q 'liltress maintain aide' "${sv_out}" || sudo_ok=0
+    grep -q 'NOPASSWD: ALL' "${sv_out}" && sudo_ok=0
+    grep -Eq 'liltress (timer|cron|install)( |$)' "${sv_out}" && sudo_ok=0
+    if command -v visudo >/dev/null 2>&1; then
+        visudo -cf "${ws_out}" >/dev/null 2>&1 || sudo_ok=0
+        visudo -cf "${sv_out}" >/dev/null 2>&1 || sudo_ok=0
+    fi
+    if [[ "${sudo_ok}" -eq 1 ]]; then
+        t_pass "sudoers.render" "extraits et règles sans mot de passe"
+    else
+        t_fail "sudoers.render" "poste $(tr '\n' ' ' < "${ARTIFACTS}/sudoers-ws.log" 2>/dev/null) serveur $(tr '\n' ' ' < "${ARTIFACTS}/sudoers-sv.log" 2>/dev/null)"
     fi
 fi

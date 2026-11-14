@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/check-commands.py
-# Updated at : 2026-11-12
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -42,11 +42,19 @@ if mode == 'csv':
         seen.add(key)
         commands.append(command)
     blob = "\n".join(commands)
-    for verb in ("configure", "check", "run", "lynis", "logs", "help", "vpn"):
-        if f"liltress {verb}" not in blob:
+    for verb in (
+        "configure", "check", "run", "lynis", "logs", "help", "vpn",
+        "verify", "maintain", "timer", "cron", "install",
+    ):
+        if f"liltress {verb}" not in blob and f'liltress" {verb}' not in blob:
             print(f"verbe absent : {verb}")
             sys.exit(1)
-        arm = "help|" if verb == "help" else f"{verb})"
+        if verb == "help":
+            arm = "help|"
+        elif verb in ("timer", "cron"):
+            arm = "timer|cron)"
+        else:
+            arm = f"{verb})"
         if arm not in launch:
             print(f"verbe hors de launch.sh : {verb}")
             sys.exit(1)
@@ -56,14 +64,6 @@ if mode == 'csv':
         "scripts/vm-export-logs.sh",
         "scripts/vm-probe.sh",
         "agents/route.sh",
-        "script/verify/alerts.sh",
-        "script/verify/workstation.sh",
-        "script/verify/boot.sh",
-        "script/verify/chkrootkit-fp.sh",
-        "scan-skip.sh",
-        "script/verify/matrix.sh",
-        "script/verify/livekit.sh",
-        "script/verify/wireguard.sh",
         "workstation/script/test/run.sh",
         "server/script/test/run.sh",
         "agents/search.sh",

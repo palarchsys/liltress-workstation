@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : .gitignore
-# Updated at : 2026-11-12
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -38,6 +38,7 @@ verify-report-*.tsv
 /template
 /python
 /system/purge/snapd.sh
+/system/sudoers/apply.sh
 /script/log-collect.sh
 /script/version-update.sh
 /service/rkhunter/refresh-db.sh

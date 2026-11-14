@@ -140,6 +140,7 @@ finish_vpn_import() {
     if declare -F log_success >/dev/null 2>&1; then
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.import.ok" "${name}" "${endpoint}"
     fi
+    bash "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/refresh-integrity.sh"
 }
 
 install_vpn_wireguard() {

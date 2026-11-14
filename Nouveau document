@@ -1,0 +1,4 @@
+pal@rchsys:/media/Workplace/liltress/workstation$ sudo bash scripts/vm-probe.sh user
+[sudo: authenticate] Mot de passe : 
+bash: scripts/vm-probe.sh: Aucun fichier ou dossier de ce nom
+

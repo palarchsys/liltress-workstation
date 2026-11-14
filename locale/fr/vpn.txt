@@ -263,3 +263,21 @@ Le profil {1} ne répond plus. Il est retiré.
 
 [vpn.rm.last]
 Dernier profil {1} retiré. Killswitch désarmé.
+
+[vpn.integrity.start]
+Recalcul des bases d'intégrité.
+
+[vpn.integrity.ok]
+Bases d'intégrité recalculées.
+
+[vpn.integrity.skip]
+Base {1} absente.
+
+[vpn.integrity.aide]
+La base AIDE n'a pas été réécrite.
+
+[vpn.integrity.rkhunter]
+La base rkhunter n'a pas été réécrite.
+
+[vpn.integrity.stamp]
+Le cachet d'intégrité n'a pas été réécrit.

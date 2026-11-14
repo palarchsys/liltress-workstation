@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/fr/configure.txt
-# Updated at : 2026-11-11
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -623,8 +623,8 @@ Empreinte des fichiers d'intégrité
 [configure.ipt-modules]
 IPT_MODULES="{1}"
 
-[configure.ipv6-and-user-namespaces-active]
-IPv6 et user namespaces actifs.
+[configure.ipv6-disabled-user-namespaces-active]
+IPv6 coupé. User namespaces actifs.
 
 [configure.jail-local-installed-sshd-port]
 jail.local posé (sshd port {1})

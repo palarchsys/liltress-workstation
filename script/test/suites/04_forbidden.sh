@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/04_forbidden.sh
-# Updated at : 2026-11-04
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -29,7 +29,24 @@ t_check_forbidden "forbid.password-no" '^[[:space:]]*PasswordAuthentication[[:sp
 t_check_forbidden "forbid.allowusers" '^[[:space:]]*AllowUsers[[:space:]]'
 t_check_forbidden "forbid.ufw-out" 'ufw[[:space:]]+default[[:space:]]+deny[[:space:]]+outgoing'
 t_check_forbidden "forbid.ufw-reset" 'ufw[[:space:]]+--force[[:space:]]+reset'
-t_check_forbidden "forbid.ipv6" 'disable_ipv6[[:space:]]*='
+sysctl_file="${T_ROOT}/system/sysctl/configure.sh"
+if grep -qF 'net.ipv6.conf.all.disable_ipv6 = 1' "${sysctl_file}" \
+    && grep -qF 'net.ipv6.conf.default.disable_ipv6 = 1' "${sysctl_file}" \
+    && grep -qF 'kernel.yama.ptrace_scope = 1' "${sysctl_file}" \
+    && ! grep -qE 'unprivileged_userns_clone[[:space:]]*=[[:space:]]*0' "${sysctl_file}" \
+    && grep -qF 'UFW_IPV6=no' "${T_ROOT}/config/ufw/policy.conf"; then
+    t_pass "require.ipv6-off" "sysctl et UFW coupent IPv6"
+else
+    t_fail "require.ipv6-off" "IPv6 poste non coupé par défaut"
+fi
+ipv6_hits="$(t_get_forbidden_hit 'disable_ipv6[[:space:]]*=' \
+    | grep -v 'system/sysctl/configure.sh:' \
+    | grep -v '/script/test/' || true)"
+if [[ -n "${ipv6_hits}" ]]; then
+    t_fail "forbid.ipv6-elsewhere" "$(printf '%s' "${ipv6_hits}" | tr '\n' ' ' | head -c 500)"
+else
+    t_pass "forbid.ipv6-elsewhere" "aucune autre ligne"
+fi
 t_check_forbidden "forbid.usb" '(^|[[:space:]])(blacklist|install)[[:space:]]+usb-storage'
 tmp_hits="$(t_get_forbidden_hit '/tmp[^#]*noexec|noexec[^#]*/tmp' | grep -v '/verify/' | grep -v 'est noexec' || true)"
 if [[ -n "${tmp_hits}" ]]; then

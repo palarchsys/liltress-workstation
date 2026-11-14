@@ -263,3 +263,21 @@ Profil {1} antwortet nicht mehr. Es wird entfernt.
 
 [vpn.rm.last]
 Letztes Profil {1} entfernt. Killswitch aus.
+
+[vpn.integrity.start]
+Integritätsbasen werden neu berechnet.
+
+[vpn.integrity.ok]
+Integritätsbasen neu berechnet.
+
+[vpn.integrity.skip]
+Basis {1} fehlt.
+
+[vpn.integrity.aide]
+Die AIDE-Basis wurde nicht neu geschrieben.
+
+[vpn.integrity.rkhunter]
+Die rkhunter-Basis wurde nicht neu geschrieben.
+
+[vpn.integrity.stamp]
+Der Integritätsstempel wurde nicht neu geschrieben.

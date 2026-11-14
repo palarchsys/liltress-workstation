@@ -89,6 +89,11 @@
           "path": "system/pam/configure.sh"
         },
         {
+          "id": "install.sudoers",
+          "service": "sudoers",
+          "path": "system/sudoers/apply.sh"
+        },
+        {
           "id": "install.banners",
           "service": "banners",
           "path": "system/banners/configure.sh"

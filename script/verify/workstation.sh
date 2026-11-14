@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/verify/workstation.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -141,10 +141,12 @@ if [[ "$(sysctl -n kernel.yama.ptrace_scope 2>/dev/null || echo missing)" == "1"
 else
     report_fail "ptrace_scope n'est pas 1"
 fi
-if [[ "$(sysctl -n net.ipv6.conf.all.disable_ipv6 2>/dev/null || echo 0)" == "0" ]]; then
-    report_pass "IPv6 laissé actif"
+ipv6_all="$(sysctl -n net.ipv6.conf.all.disable_ipv6 2>/dev/null || echo 0)"
+ipv6_default="$(sysctl -n net.ipv6.conf.default.disable_ipv6 2>/dev/null || echo 0)"
+if [[ "${ipv6_all}" == "1" && "${ipv6_default}" == "1" ]]; then
+    report_pass "IPv6 coupé"
 else
-    report_fail "IPv6 désactivé"
+    report_fail "IPv6 encore actif"
 fi
 if [[ -n "$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || true)" \
     && "$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || echo 1)" == "0" ]]; then

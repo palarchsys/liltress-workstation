@@ -148,15 +148,18 @@ forget_vpn_profile() {
     if [[ "${reason}" == "dead" ]]; then
         note_vpn_log failover "${name}" drop "${reason}"
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.drop" "${name}"
+        bash "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/refresh-integrity.sh"
         return 0
     fi
     note_vpn_log rm "${name}" ok "${reason}"
     if [[ "${total}" == "1" ]]; then
         run_vpn_mode_off
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.rm.last" "${name}"
+        bash "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/refresh-integrity.sh"
         return 0
     fi
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.rm.ok" "${name}"
+    bash "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/refresh-integrity.sh"
 }
 
 run_vpn_mode_off() {

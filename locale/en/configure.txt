@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/en/configure.txt
-# Updated at : 2026-11-11
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -623,8 +623,8 @@ Fingerprint of the integrity files
 [configure.ipt-modules]
 IPT_MODULES="{1}"
 
-[configure.ipv6-and-user-namespaces-active]
-IPv6 and user namespaces active.
+[configure.ipv6-disabled-user-namespaces-active]
+IPv6 disabled. User namespaces active.
 
 [configure.jail-local-installed-sshd-port]
 jail.local installed (sshd port {1})

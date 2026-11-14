@@ -263,3 +263,21 @@ Profile {1} no longer answers. It is removed.
 
 [vpn.rm.last]
 Last profile {1} removed. Killswitch off.
+
+[vpn.integrity.start]
+Integrity baselines are being recalculated.
+
+[vpn.integrity.ok]
+Integrity baselines recalculated.
+
+[vpn.integrity.skip]
+Baseline {1} is absent.
+
+[vpn.integrity.aide]
+The AIDE baseline was not rewritten.
+
+[vpn.integrity.rkhunter]
+The rkhunter baseline was not rewritten.
+
+[vpn.integrity.stamp]
+The integrity stamp was not rewritten.

@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/fr/launch.txt
-# Updated at : 2026-11-11
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -20,25 +20,30 @@ Usage : {1}/liltress <commande>
   lynis       audit Lynis (root)
   logs        copie les journaux
   vpn         tunnel WireGuard ou OpenVPN (root)
+  verify      contrôle le produit installé (root)
+  maintain    recalcule une base ou rejoue un entretien (root)
+  timer       lance un contrôle planifié du poste (root)
+  cron        lance un contrôle planifié du serveur (root)
+  install     prépare les paquets ou le clone
   help        cette aide
 
 [launch.usage.extra.workstation]
 Vérification :
 
-  sudo bash script/verify/alerts.sh [--no-send]
-  sudo bash script/verify/workstation.sh "$PWD"
-  sudo bash script/verify/boot.sh
-  sudo bash script/verify/chkrootkit-fp.sh
-  sudo bash /opt/liltress-workstation/script/scan-skip.sh list|add|del
-  sudo ./liltress vpn
+  sudo "./liltress" verify alerts [--no-send]
+  sudo "./liltress" verify workstation
+  sudo "./liltress" verify boot
+  sudo "./liltress" verify chkrootkit
+  sudo "./liltress" maintain scan-skip list|add|del
+  sudo "./liltress" vpn
 
 [launch.usage.extra.server]
-  sudo ./liltress configure --basic   nom du projet + domaine ; le reste est calculé
-  sudo ./liltress configure --avance  toutes les questions, sauf le profil serveur
+  sudo "./liltress" configure --basic   nom du projet + domaine ; le reste est calculé
+  sudo "./liltress" configure --avance  toutes les questions, sauf le profil serveur
 
 Vérification :
 
-  sudo bash script/verify/alerts.sh [--no-send]
-  sudo bash script/verify/matrix.sh "$PWD" MATRIX
-  sudo bash script/verify/livekit.sh "$PWD" LIVEKIT
-  sudo bash script/verify/wireguard.sh "$PWD" WIREGUARD
+  sudo "./liltress" verify alerts [--no-send]
+  sudo "./liltress" verify matrix
+  sudo "./liltress" verify livekit
+  sudo "./liltress" verify wireguard

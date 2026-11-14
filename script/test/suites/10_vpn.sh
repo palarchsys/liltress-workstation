@@ -37,6 +37,7 @@ locate_python_dir() {
 }
 
 t_section "vpn"
+export VPN_SKIP_INTEGRITY=1
 
 vpn_dir="${T_ROOT}/service/vpn"
 cfg_dir="${T_ROOT}/config/vpn"
@@ -1024,4 +1025,53 @@ if [[ "${nm_ok}" -eq 1 ]]; then
     t_pass "vpn.nm" "fiche NetworkManager, table directe, répartiteur"
 else
     t_fail "vpn.nm" "${nm_why}"
+fi
+
+hook_ok=1
+import_hits="$(grep -c 'refresh-integrity.sh' "${vpn_dir}/import.sh" || true)"
+forget_hits="$(grep -c 'refresh-integrity.sh' "${vpn_dir}/failover.sh" || true)"
+[[ "${import_hits}" == "1" ]] || hook_ok=0
+[[ "${forget_hits}" == "3" ]] || hook_ok=0
+stage_line="$(grep -n 'VPN_IMPORT_STAGE_ONLY' "${vpn_dir}/import.sh" | head -n 1 | cut -d: -f1)"
+ok_line="$(grep -n 'vpn.import.ok' "${vpn_dir}/import.sh" | head -n 1 | cut -d: -f1)"
+hook_line="$(grep -n 'refresh-integrity.sh' "${vpn_dir}/import.sh" | head -n 1 | cut -d: -f1)"
+[[ -n "${stage_line}" && -n "${ok_line}" && -n "${hook_line}" ]] || hook_ok=0
+[[ "${stage_line}" -lt "${ok_line}" && "${ok_line}" -lt "${hook_line}" ]] || hook_ok=0
+if [[ "${EUID}" -ne 0 && ! -f /etc/aide/aide.conf ]]; then
+    mark="${ARTIFACTS}/vpn-integrity-mark"
+    rm -f "${mark}"
+    mark_root="${ARTIFACTS}/vpn-integrity-root"
+    rm -rf "${mark_root}"
+    mkdir -p "${mark_root}/vpn/openvpn/kept" "${mark_root}/vpn/openvpn/gone"
+    printf 'proto=openvpn\n' > "${mark_root}/vpn/openvpn/kept/meta"
+    printf 'proto=openvpn\n' > "${mark_root}/vpn/openvpn/gone/meta"
+    saved_mark_base="${CONFIG_BASE_DIRECTORY:-}"
+    saved_mark_install="${INSTALL_DIRECTORY:-}"
+    export CONFIG_BASE_DIRECTORY="${mark_root}"
+    export INSTALL_DIRECTORY="${mark_root}"
+    unset VPN_SKIP_INTEGRITY
+    export VPN_INTEGRITY_MARK="${mark}"
+    # shellcheck disable=SC1091
+    source "${vpn_dir}/failover.sh"
+    forget_vpn_profile gone rm || hook_ok=0
+    grep -qx 'ran' "${mark}" || hook_ok=0
+    [[ -d "${mark_root}/vpn/openvpn/kept" ]] || hook_ok=0
+    [[ -d "${mark_root}/vpn/openvpn/gone" ]] && hook_ok=0
+    export VPN_SKIP_INTEGRITY=1
+    unset VPN_INTEGRITY_MARK
+    if [[ -n "${saved_mark_base}" ]]; then
+        export CONFIG_BASE_DIRECTORY="${saved_mark_base}"
+    else
+        unset CONFIG_BASE_DIRECTORY
+    fi
+    if [[ -n "${saved_mark_install}" ]]; then
+        export INSTALL_DIRECTORY="${saved_mark_install}"
+    else
+        unset INSTALL_DIRECTORY
+    fi
+fi
+if [[ "${hook_ok}" -eq 1 ]]; then
+    t_pass "vpn.integrity" "recalcul après retrait, pas sur un essai en échec"
+else
+    t_fail "vpn.integrity" "import ${import_hits} retrait ${forget_hits}"
 fi

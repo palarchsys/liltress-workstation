@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/es/install.txt
-# Updated at : 2026-11-13
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -1283,3 +1283,15 @@ Nombre de rol o de base Postgres no válido (esperado: identificador SQL simple)
 
 [install.livekit-rtc-external-ip]
 RTC : use_external_ip: true (STUN, reco cloud LiveKit)
+
+[install.sudoers.start]
+Escritura de las órdenes sudoers.
+
+[install.sudoers.ok]
+Órdenes sudoers instaladas para {1}.
+
+[install.sudoers.user]
+Falta el usuario que instala.
+
+[install.sudoers.invalid]
+Archivo sudoers rechazado.

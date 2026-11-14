@@ -63,7 +63,7 @@ sudo git clone https://github.com/palarchsys/liltress-workstation /opt/liltress-
 cd /opt/liltress-workstation
 sudo ./liltress configure
 sudo bash /opt/liltress-workstation/script/version-update.sh
-sudo bash /opt/liltress-workstation/script/boot-check.sh
+sudo "./liltress" verify boot
 ```
 
 ## Action de configure.sh
@@ -138,7 +138,7 @@ Le chemin du journal dans le courrier est le fichier réel.<br/>
 La forme est `/opt/liltress-workstation/cron/security_logs/aide-YYYYMMDD-HHMMSS.log`.
 
 ```bash
-sudo bash /opt/liltress-workstation/service/aide/refresh-db.sh
+sudo "./liltress" maintain aide
 ```
 
 La commande reconstruit la base AIDE à partir du disque actuel.<br/>
@@ -152,7 +152,7 @@ L'exemple ci-dessous montre la forme.<br/>
 Le courrier contient le chemin réel.
 
 ```bash
-sudo bash /opt/liltress-workstation/service/chkrootkit/ignore-log.sh '/opt/liltress-workstation/cron/security_logs/chkrootkit-YYYYMMDD-HHMMSS.log'
+sudo "./liltress" maintain chkrootkit '/opt/liltress-workstation/cron/security_logs/chkrootkit-YYYYMMDD-HHMMSS.log'
 ```
 
 La commande enregistre les lignes de ce journal dans `/opt/liltress-workstation/cron/chkrootkit.local.ignore`.<br/>
@@ -232,7 +232,7 @@ Un courrier d'erreur non plus.<br/>
 La forme du journal est `/opt/liltress-workstation/cron/security_logs/rkhunter-YYYYMMDD-HHMMSS.log`.
 
 ```bash
-sudo bash /opt/liltress-workstation/service/rkhunter/refresh-db.sh
+sudo "./liltress" maintain rkhunter
 ```
 
 La commande recalcule la base de propriétés rkhunter à partir du disque actuel.<br/>
@@ -279,7 +279,7 @@ L'installeur refuse de démarrer lorsque le contrôle ne passe pas.
 ## ▪️ script/verify/alerts.sh
 
 ```bash
-sudo bash script/verify/alerts.sh
+sudo "./liltress" verify alerts
 ```
 
 Contrôle le timer de la chaîne, le timer différé, ClamAV à l'accès, et le chemin du courrier.<br/>
@@ -288,13 +288,13 @@ Le sujet se termine par `Contrôle`.<br/>
 La ligne de succès est `Résultat : OK`.
 
 ```bash
-sudo bash script/verify/alerts.sh --no-send
+sudo "./liltress" verify alerts --no-send
 ```
 
 ## ▪️ script/verify/workstation.sh
 
 ```bash
-sudo bash script/verify/workstation.sh "$PWD"
+sudo "./liltress" verify workstation
 ```
 
 Lance la vérification du poste.<br/>
@@ -304,7 +304,7 @@ La même passe contrôle le relais SSH, la règle de pare-feu SSH, USBGuard, le 
 ## ▪️ Contrôle après démarrage
 
 ```bash
-sudo bash /opt/liltress-workstation/script/boot-check.sh
+sudo "./liltress" verify boot
 ```
 
 Vérifie les services de sécurité du démarrage et les trois passes de cette session.<br/>
@@ -325,7 +325,7 @@ Lance `lynis audit system --quick --no-colors` et écrit le rapport sous `<sourc
 ## ▪️ Base AIDE
 
 ```bash
-sudo bash /opt/liltress-workstation/service/aide/refresh-db.sh
+sudo "./liltress" maintain aide
 ```
 
 Reconstruit `/var/lib/aide/aide.db`.<br/>
@@ -334,7 +334,7 @@ La ligne de succès est `Base de référence AIDE enregistrée.`
 ## ▪️ Empreinte des miroirs rkhunter
 
 ```bash
-sudo bash /opt/liltress-workstation/service/cron/watchdogs/record-mirrors.sh save
+sudo "./liltress" maintain mirrors save
 ```
 
 Écrit le SHA-256 de `/var/lib/rkhunter/db/mirrors.dat` dans `/opt/liltress-workstation/cron/rkhunter-mirrors.sha256` en mode `600`.<br/>
@@ -343,9 +343,9 @@ sudo bash /opt/liltress-workstation/service/cron/watchdogs/record-mirrors.sh sav
 ## ▪️ Chemins exclus du scan
 
 ```bash
-sudo bash /opt/liltress-workstation/script/scan-skip.sh list
-sudo bash /opt/liltress-workstation/script/scan-skip.sh add $HOME/.cache/exemple
-sudo bash /opt/liltress-workstation/script/scan-skip.sh del $HOME/.cache/exemple
+sudo "./liltress" maintain scan-skip list
+sudo "./liltress" maintain scan-skip add $HOME/.cache/exemple
+sudo "./liltress" maintain scan-skip del $HOME/.cache/exemple
 ```
 
 Le fichier de liste est `/opt/liltress-workstation/config/clamav/scan-skip.paths`.<br/>

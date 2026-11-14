@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/sysctl/configure.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -15,7 +15,7 @@ require_root
 # shellcheck disable=SC2155
 readonly DIR_SCRIPT_PATH="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
-log_info         "${INSTALL_WATCHER}" "configure.ipv6-and-user-namespaces-active"
+log_info         "${INSTALL_WATCHER}" "configure.ipv6-disabled-user-namespaces-active"
 
 ip_forward=1
 rp_filter=2
@@ -43,6 +43,8 @@ net.ipv4.conf.default.rp_filter = ${rp_filter}
 net.ipv4.ip_forward = ${ip_forward}
 net.ipv4.conf.all.forwarding = ${ip_forward}
 
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
 net.ipv6.conf.all.accept_redirects = 0
 net.ipv6.conf.default.accept_redirects = 0
 net.ipv6.conf.all.accept_source_route = 0
