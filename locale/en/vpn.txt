@@ -189,6 +189,9 @@ Profile {1} is valid.
 [vpn.test.fail]
 Profile {1} is not valid.
 
+[vpn.test.fail-reason]
+Profile {1} is not valid: {2}.
+
 [vpn.test.kept]
 Profile {1} is valid. The current tunnel stays.
 
@@ -213,6 +216,9 @@ Dependent services restarted.
 [vpn.import.auth-wait]
 Profile {1} does not have two lines in {2}.
 
+[vpn.import.auth-failed]
+The server refused the credentials of {1}.
+
 [vpn.import.brand]
 Brand {1} does not accept {2}.
 
@@ -229,7 +235,7 @@ File not found: {1}.
 {1} is not a zip archive.
 
 [vpn.import.zipdir]
-The archive contains folder {1}. Files must sit at the root.
+The archive contains folder {1}. Only one folder is opened, and only auth.txt may sit beside it.
 
 [vpn.import.zipdeep]
 The archive contains a forbidden path: {1}.

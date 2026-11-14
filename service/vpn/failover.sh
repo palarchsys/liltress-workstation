@@ -97,15 +97,18 @@ run_vpn_failover() {
         if [[ "$(count_vpn_profiles)" == "0" ]]; then
             send_vpn_alert "-" "-" "-" "failover"
             run_vpn_mode_off
+            note_vpn_log failover "-" none ""
             log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.none"
         else
             arm_vpn_lockdown
             restart_vpn_services
             send_vpn_alert "-" "-" "-" "failover"
+            note_vpn_log failover "-" hold ""
             log_info "${INSTALL_WATCHER:-BASH}" "vpn.mode.hold"
         fi
         return 0
     fi
+    note_vpn_log failover "-" start ""
     log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.start"
     for name in "${names[@]}"; do
         if check_vpn_encrypted "${name}" && ! check_vpn_passphrase; then
@@ -114,9 +117,11 @@ run_vpn_failover() {
         try=1
         while (( try <= VPN_FAILOVER_TRIES )); do
             raised=0
+            note_vpn_log failover "${name}" try "${try}"
             run_vpn_profile "${name}" "${VPN_FAILOVER_TIMEOUT}" || raised=$?
             if (( raised == 0 )); then
                 finish_vpn_open "${name}"
+                note_vpn_log failover "${name}" ok ""
                 log_success "${INSTALL_WATCHER:-BASH}" "vpn.failover.ok" "${name}"
                 return 0
             fi
@@ -129,11 +134,13 @@ run_vpn_failover() {
     if [[ "$(count_vpn_profiles)" == "0" ]]; then
         send_vpn_alert "-" "-" "-" "failover"
         run_vpn_mode_off
+        note_vpn_log failover "-" none ""
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.none"
     else
         arm_vpn_lockdown
         restart_vpn_services
         send_vpn_alert "-" "-" "-" "failover"
+        note_vpn_log failover "-" hold ""
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.mode.hold"
     fi
 }
@@ -148,9 +155,11 @@ forget_vpn_profile() {
         remove_vpn_state "${name}"
     fi
     if [[ "${reason}" == "dead" ]]; then
+        note_vpn_log failover "${name}" drop "${reason}"
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.drop" "${name}"
         return 0
     fi
+    note_vpn_log rm "${name}" ok "${reason}"
     if [[ "${total}" == "1" ]]; then
         run_vpn_mode_off
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.rm.last" "${name}"
@@ -166,6 +175,7 @@ run_vpn_mode_off() {
     apply_vpn_systemd || true
     clear_vpn_network
     restart_vpn_services
+    note_vpn_log mode-off "-" ok ""
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.mode.off"
 }
 
@@ -175,21 +185,28 @@ run_vpn_mode_on() {
     load_vpn_settings
     active="$(get_vpn_active 2>/dev/null || true)"
     if check_vpn_mode && [[ -n "${active}" ]] && check_vpn_tunnel "${active}"; then
+        note_vpn_log mode-on "${active}" ok "same"
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.mode.same" "${active}"
         return 0
     fi
     if ! check_vpn_mode; then
         if ! check_vpn_any_valid; then
+            note_vpn_log mode-on "-" fail "none"
             log_error "${INSTALL_WATCHER:-BASH}" "vpn.mode.none"
         fi
         set_vpn_state_mode on
         load_vpn_settings
-        apply_vpn_systemd || log_error "${INSTALL_WATCHER:-BASH}" "vpn.install.fail"
+        apply_vpn_systemd || {
+            note_vpn_log mode-on "-" fail "install"
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.install.fail"
+        }
     elif ! check_vpn_any_valid; then
+        note_vpn_log mode-on "-" hold ""
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.mode.hold"
         return 0
     fi
     run_vpn_failover
+    note_vpn_log mode-on "-" ok ""
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.mode.on"
 }
 

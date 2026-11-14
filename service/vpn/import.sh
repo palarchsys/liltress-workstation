@@ -89,6 +89,7 @@ check_vpn_import_name() {
     local name="$1" home dest
     check_vpn_name "${name}" || {
         if declare -F log_error >/dev/null 2>&1; then
+            note_vpn_log import "${name}" fail "bad-name"
             log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.bad-name" "${name}"
         fi
         return 1
@@ -97,6 +98,7 @@ check_vpn_import_name() {
     mkdir -p "${home}/wireguard" "${home}/openvpn"
     chmod 700 "${home}/wireguard" "${home}/openvpn" 2>/dev/null || true
     if [[ -e "${home}/wireguard/${name}" || -e "${home}/openvpn/${name}" || -e "${home}/profiles/${name}" ]]; then
+        note_vpn_log import "${name}" fail "exists"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.exists" "${name}"
     fi
 }
@@ -118,6 +120,7 @@ finish_vpn_import() {
     mv "${work}" "${dest}"
     if declare -F run_vpn_test >/dev/null 2>&1; then
         if ! run_vpn_test "${name}"; then
+            note_vpn_log import "${name}" fail "handshake ${proto}"
             rm -rf "${dest}"
             if declare -F remove_vpn_state >/dev/null 2>&1; then
                 remove_vpn_state "${name}"
@@ -125,6 +128,7 @@ finish_vpn_import() {
             return 1
         fi
     fi
+    note_vpn_log import "${name}" ok "${proto} ${endpoint}"
     if declare -F log_success >/dev/null 2>&1; then
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.import.ok" "${name}" "${endpoint}"
     fi
@@ -137,6 +141,7 @@ install_vpn_wireguard() {
     local -a rows=() lack_fields=()
     check_vpn_import_name "${name}" || return 1
     [[ -f "${src}" ]] || {
+        note_vpn_log import "${name}" fail "missing $(basename -- "${src}")"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "$(basename -- "${src}")"
         return 1
     }
@@ -163,6 +168,7 @@ install_vpn_wireguard() {
     done < "${work}/source"
     if (( peers != 1 )); then
         rm -rf "${work}"
+        note_vpn_log import "${name}" fail "peer ${peers}"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.peer" "${name}" "${peers}"
         return 1
     fi
@@ -171,17 +177,20 @@ install_vpn_wireguard() {
     [[ -n "${endpoint_line}" ]] || lack_fields+=("Endpoint")
     if (( ${#lack_fields[@]} )); then
         rm -rf "${work}"
+        note_vpn_log import "${name}" fail "missing ${lack_fields[*]}"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "${lack_fields[*]}"
         return 1
     fi
     read -r host port < <(get_vpn_wg_endpoint "${endpoint_line}") || {
         rm -rf "${work}"
+        note_vpn_log import "${name}" fail "missing Endpoint"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "Endpoint"
         return 1
     }
     mapfile -t rows < <(get_vpn_host "${host}" || true)
     if (( ${#rows[@]} == 0 )); then
         rm -rf "${work}"
+        note_vpn_log import "${name}" fail "dns ${host}"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.dns" "${host}"
     fi
     for line in "${rows[@]}"; do
@@ -406,6 +415,7 @@ install_vpn_openvpn() {
     local -a rows=()
     check_vpn_import_name "${name}" || return 1
     [[ -f "${src}" ]] || {
+        note_vpn_log import "${name}" fail "missing $(basename -- "${src}")"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "$(basename -- "${src}")"
         return 1
     }
@@ -472,8 +482,10 @@ install_vpn_openvpn() {
                 if ! copy_vpn_auth "${dir}" "${work}" "${token}"; then
                     rm -rf "${work}"
                     if [[ -n "${token}" && ! -f "${dir}/${token}" ]]; then
+                        note_vpn_log import "${name}" fail "missing $(basename -- "${token}")"
                         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "$(basename -- "${token}")"
                     else
+                        note_vpn_log import "${name}" fail "auth $(vpn_auth_line_count "${dir}/auth.txt")"
                         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.auth" "$(vpn_auth_line_count "${dir}/auth.txt")"
                     fi
                     return 1
@@ -490,6 +502,7 @@ install_vpn_openvpn() {
                 tail="$(get_vpn_ovpn_token "${tail}")"
                 if ! copy_vpn_material "${key}" "${token}" "${tail}" "${dir}" "${work}"; then
                     rm -rf "${work}"
+                    note_vpn_log import "${name}" fail "missing $(basename -- "${token}")"
                     log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "$(basename -- "${token}")"
                     return 1
                 fi
@@ -504,6 +517,7 @@ install_vpn_openvpn() {
     done < "${work}/source"
     if [[ -z "${host}" ]]; then
         rm -rf "${work}"
+        note_vpn_log import "${name}" fail "missing remote"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "remote"
         return 1
     fi
@@ -512,18 +526,21 @@ install_vpn_openvpn() {
         tcp|tcp4|tcp6|tcp-client|tcp-server) proto="tcp" ;;
         *)
             rm -rf "${work}"
+            note_vpn_log import "${name}" fail "missing proto"
             log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "proto"
             return 1
             ;;
     esac
     [[ "${port}" =~ ^[0-9]+$ ]] || {
         rm -rf "${work}"
+        note_vpn_log import "${name}" fail "missing port"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "port"
         return 1
     }
     mapfile -t rows < <(get_vpn_host "${host}" || true)
     if (( ${#rows[@]} == 0 )); then
         rm -rf "${work}"
+        note_vpn_log import "${name}" fail "dns ${host}"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.dns" "${host}"
     fi
     for line in "${rows[@]}"; do
@@ -555,8 +572,14 @@ refresh_vpn_endpoint() {
     local name="$1" proto host port ep4="" ep6="" line pinned chosen
     local -a rows=()
     local dir runtime
-    check_vpn_name "${name}" || log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.bad-name" "${name}"
-    [[ -f "$(get_vpn_profile_dir "${name}")/meta" ]] || log_error "${INSTALL_WATCHER:-BASH}" "vpn.rm.missing" "${name}"
+    if ! check_vpn_name "${name}"; then
+        note_vpn_log refresh "${name}" fail "bad-name"
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.bad-name" "${name}"
+    fi
+    if [[ ! -f "$(get_vpn_profile_dir "${name}")/meta" ]]; then
+        note_vpn_log refresh "${name}" fail "missing"
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.rm.missing" "${name}"
+    fi
     proto="$(get_vpn_meta "${name}" proto)"
     port="$(get_vpn_meta "${name}" port)"
     dir="$(get_vpn_profile_dir "${name}")"
@@ -564,17 +587,22 @@ refresh_vpn_endpoint() {
     if [[ "${proto}" == "wireguard" ]]; then
         host="$(awk -F= '/^[[:space:]]*Endpoint[[:space:]]*=/{print $2; exit}' "${dir}/source")"
         host="$(strip_vpn_text "${host}")"
-        read -r host port < <(get_vpn_wg_endpoint "${host}") || log_error "${INSTALL_WATCHER:-BASH}" "vpn.refresh.fail" "${name}"
+        read -r host port < <(get_vpn_wg_endpoint "${host}") || {
+            note_vpn_log refresh "${name}" fail "endpoint"
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.refresh.fail" "${name}"
+        }
     else
         host="$(awk '/^[[:space:]]*remote[[:space:]]/{print $2; exit}' "${dir}/source")"
         host="$(get_vpn_ovpn_token "${host}")"
     fi
     if get_vpn_ipv4_parts "${host}" >/dev/null 2>&1 || get_vpn_v6_groups "${host}" >/dev/null 2>&1; then
+        note_vpn_log refresh "${name}" ok "${host}"
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.refresh.ok" "${name}" "${host}"
         return 0
     fi
     mapfile -t rows < <(get_vpn_host "${host}" || true)
     if (( ${#rows[@]} == 0 )); then
+        note_vpn_log refresh "${name}" fail "dns"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.refresh.fail" "${name}"
     fi
     for line in "${rows[@]}"; do
@@ -603,6 +631,7 @@ refresh_vpn_endpoint() {
         apply_vpn_nft "${name}" 1
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.refresh.active" "${name}"
     fi
+    note_vpn_log refresh "${name}" ok "${pinned}"
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.refresh.ok" "${name}" "${pinned}"
 }
 
@@ -715,6 +744,7 @@ log_vpn_import_fault() {
     kind="${VPN_IMPORT_FAULT%%$'\t'*}"
     rest="${VPN_IMPORT_FAULT#*$'\t'}"
     [[ "${rest}" == "${VPN_IMPORT_FAULT}" ]] && rest=""
+    note_vpn_log import "${name}" fail "${kind} ${rest}"
     case "${kind}" in
         absent)
             log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.absent" "${rest}" ;;
@@ -935,6 +965,7 @@ install_vpn_bundle() {
     local dest src rc=0 stage_file
     check_vpn_import_name "${name}" || return 1
     if [[ ! -e "${path}" ]]; then
+        note_vpn_log import "${name}" fail "absent ${path}"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.absent" "${path}"
         return 1
     fi
@@ -947,6 +978,7 @@ install_vpn_bundle() {
     fi
     if ! declare -F "vpn_brand_${brand}" >/dev/null 2>&1; then
         rm -rf "${dest}"
+        note_vpn_log import "${name}" fail "brand ${brand} ${proto}"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.brand" "${brand}" "${proto}"
         return 1
     fi
@@ -954,6 +986,7 @@ install_vpn_bundle() {
     if (( rc != 0 )); then
         rm -rf "${dest}"
         if (( rc == 1 )); then
+            note_vpn_log import "${name}" fail "brand ${brand} ${proto}"
             log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.brand" "${brand}" "${proto}"
             return 1
         fi
@@ -971,6 +1004,7 @@ install_vpn_bundle() {
             ;;
         *)
             rm -rf "${dest}"
+            note_vpn_log import "${name}" fail "brand ${brand} ${proto}"
             log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.brand" "${brand}" "${proto}"
             return 1
             ;;

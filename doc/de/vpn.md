@@ -43,7 +43,8 @@ Nach dem Entfernen des letzten Profils schärft das nächste gültige Profil den
 
 Das Archiv oder der Ordner enthält genau die Dateinamen der Marke.<br/>
 Eine zusätzliche Datei, eine fehlende Datei oder die Datei des anderen Protokolls wird abgelehnt.<br/>
-Die Dateien liegen in der Wurzel. Es gibt keinen Unterordner.<br/>
+Ein Ordner am Anfang des Archivs wird geöffnet. auth.txt darf daneben liegen.<br/>
+Das Tagebuch des Tages ist `log/vpn/YYYY-MM-DD.log`.<br/>
 Steht das Wort REPLACE noch da, stoppt der Import vor dem Versuch.<br/>
 Das Beispiel nutzt `203.0.113.10`. Es kann keinen Tunnel öffnen.<br/>
 <br/>

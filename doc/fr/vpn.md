@@ -43,7 +43,8 @@ Après le retrait du dernier profil, le prochain profil valide arme de nouveau l
 
 L'archive ou le dossier contient exactement les noms de fichiers de la marque.<br/>
 Un fichier en trop, un fichier manquant, ou le fichier de l'autre protocole est refusé.<br/>
-Les fichiers sont à la racine. Il n'y a pas de sous-dossier.<br/>
+Un seul dossier en tête d'archive est ouvert. auth.txt peut être à côté de ce dossier.<br/>
+Le journal du jour est `log/vpn/YYYY-MM-DD.log`.<br/>
 Si le mot REPLACE est encore présent, l'import s'arrête avant l'essai.<br/>
 L'exemple utilise `203.0.113.10`. Il ne peut pas ouvrir un tunnel.<br/>
 <br/>

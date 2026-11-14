@@ -15,6 +15,39 @@ get_vpn_root() {
     cd -- "${here}/../.." && pwd
 }
 
+note_vpn_log() {
+    local action="$1" name="${2:-}" result="${3:-}" detail="${4:-}"
+    local root dir file stamp old
+    [[ "${action}" == "watch" ]] && return 0
+    if [[ "${detail}" == *'BEGIN '* || "${detail}" == *PRIVATE* ]]; then
+        detail="secret"
+    fi
+    detail="${detail//$'\t'/ }"
+    detail="${detail//$'\n'/ }"
+    name="${name//$'\t'/ }"
+    name="${name//$'\n'/ }"
+    result="${result//$'\t'/ }"
+    result="${result//$'\n'/ }"
+    root="$(get_vpn_root 2>/dev/null)" || return 0
+    [[ -n "${root}" ]] || return 0
+    dir="${root}/log/vpn"
+    old="$(umask)"
+    umask 077
+    mkdir -p "${dir}" 2>/dev/null || { umask "${old}"; return 0; }
+    chmod 700 "${dir}" 2>/dev/null || true
+    file="${dir}/$(date '+%Y-%m-%d').log"
+    stamp="$(date '+%Y-%m-%dT%H:%M:%S.%N%z')"
+    {
+        if command -v flock >/dev/null 2>&1; then
+            flock -w 2 9 || true
+        fi
+        printf '%s\t%s\t%s\t%s\t%s\n' "${stamp}" "${action}" "${name}" "${result}" "${detail}" >> "${file}" || true
+    } 9>>"${dir}/day.lock"
+    chmod 600 "${file}" 2>/dev/null || true
+    umask "${old}"
+    return 0
+}
+
 get_vpn_home() {
     local base="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
     printf '%s/vpn\n' "${base}"

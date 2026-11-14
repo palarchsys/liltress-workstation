@@ -48,11 +48,18 @@ show_vpn_usage() {
 remove_vpn_profile() {
     local name="${1:-}" active total
     [[ -n "${name}" ]] || show_vpn_usage
-    check_vpn_name "${name}" || log_error "${INSTALL_WATCHER}" "vpn.import.bad-name" "${name}"
-    [[ -d "$(get_vpn_profile_dir "${name}")" && -f "$(get_vpn_profile_dir "${name}")/meta" ]] || log_error "${INSTALL_WATCHER}" "vpn.rm.missing" "${name}"
+    if ! check_vpn_name "${name}"; then
+        note_vpn_log rm "${name}" fail "bad-name"
+        log_error "${INSTALL_WATCHER}" "vpn.import.bad-name" "${name}"
+    fi
+    if [[ ! -d "$(get_vpn_profile_dir "${name}")" || ! -f "$(get_vpn_profile_dir "${name}")/meta" ]]; then
+        note_vpn_log rm "${name}" fail "missing"
+        log_error "${INSTALL_WATCHER}" "vpn.rm.missing" "${name}"
+    fi
     active="$(get_vpn_active 2>/dev/null || true)"
     total="$(count_vpn_profiles)"
     if [[ "${active}" == "${name}" && "${total}" != "1" ]]; then
+        note_vpn_log rm "${name}" fail "active"
         log_error "${INSTALL_WATCHER}" "vpn.rm.active" "${name}"
     fi
     forget_vpn_profile "${name}" "rm"

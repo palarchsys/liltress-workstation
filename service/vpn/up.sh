@@ -110,6 +110,7 @@ apply_vpn_profile() {
     chmod 600 "${dir}/status" "${dir}/openvpn.log"
     ip link del "${iface}" >/dev/null 2>&1 || true
     openvpn \
+        --cd "${dir}" \
         --config "${runtime}" \
         --dev "${iface}" \
         --dev-type tun \
@@ -117,6 +118,7 @@ apply_vpn_profile() {
         --route-noexec \
         --pull-filter ignore "dhcp-option DNS" \
         --pull-filter ignore redirect-gateway \
+        --pull-filter ignore route-ipv6 \
         --connect-timeout "${VPN_HANDSHAKE_TIMEOUT}" \
         --connect-retry-max 1 \
         --daemon \
@@ -150,6 +152,9 @@ check_vpn_handshake() {
         printf '%s\n' "${now}" > "${dir}/handshake"
         chmod 600 "${dir}/status" "${dir}/handshake"
         return 0
+    fi
+    if [[ -f "${dir}/openvpn.log" ]] && grep -Eq 'Options error|TLS Error|VERIFY ERROR' "${dir}/openvpn.log"; then
+        return 2
     fi
     return 1
 }
@@ -251,6 +256,7 @@ apply_vpn_probe() {
     chmod 600 "${dir}/probe.log"
     ip link del "${iface}" >/dev/null 2>&1 || true
     openvpn \
+        --cd "${dir}" \
         --config "${runtime}" \
         --dev "${iface}" \
         --dev-type tun \
@@ -258,6 +264,7 @@ apply_vpn_probe() {
         --route-noexec \
         --pull-filter ignore "dhcp-option DNS" \
         --pull-filter ignore redirect-gateway \
+        --pull-filter ignore route-ipv6 \
         --connect-timeout "${VPN_HANDSHAKE_TIMEOUT}" \
         --connect-retry-max 1 \
         --daemon \
@@ -286,6 +293,9 @@ check_vpn_probe() {
     fi
     if [[ -f "${dir}/probe.log" ]] && grep -q 'Initialization Sequence Completed' "${dir}/probe.log"; then
         return 0
+    fi
+    if [[ -f "${dir}/probe.log" ]] && grep -Eq 'Options error|TLS Error|VERIFY ERROR' "${dir}/probe.log"; then
+        return 2
     fi
     return 1
 }
@@ -335,15 +345,55 @@ run_vpn_probe() {
     return 0
 }
 
+vpn_fault_line() {
+    local file="$1" line path base guard=0
+    [[ -f "${file}" && ! -L "${file}" ]] || return 1
+    line="$(grep -E 'AUTH_FAILED|Options error|TLS Error|VERIFY ERROR|Cannot ioctl TUNSETIFF' "${file}" | head -n 1 || true)"
+    [[ -n "${line}" ]] || return 1
+    while [[ "${line}" =~ (/[^[:space:]\'\"]+) ]]; do
+        guard=$((guard + 1))
+        (( guard > 8 )) && break
+        path="${BASH_REMATCH[1]}"
+        base="$(basename -- "${path}")"
+        [[ "${base}" == "${path}" ]] && break
+        line="${line//"${path}"/"${base}"}"
+    done
+    printf '%s' "${line}"
+}
+
+report_vpn_fail() {
+    local name="$1" dir line file
+    dir="$(get_vpn_profile_dir "${name}")"
+    for file in "${dir}/openvpn.log" "${dir}/probe.log"; do
+        [[ -f "${file}" ]] || continue
+        if grep -q 'AUTH_FAILED' "${file}"; then
+            log_info "${INSTALL_WATCHER:-BASH}" "vpn.import.auth-failed" "${name}"
+            note_vpn_log test "${name}" fail "AUTH_FAILED"
+            return 0
+        fi
+    done
+    for file in "${dir}/openvpn.log" "${dir}/probe.log"; do
+        line="$(vpn_fault_line "${file}" 2>/dev/null || true)"
+        [[ -n "${line}" ]] || continue
+        log_info "${INSTALL_WATCHER:-BASH}" "vpn.test.fail-reason" "${name}" "${line}"
+        note_vpn_log test "${name}" fail "${line}"
+        return 0
+    done
+    log_info "${INSTALL_WATCHER:-BASH}" "vpn.test.fail" "${name}"
+    note_vpn_log test "${name}" fail ""
+}
+
 run_vpn_test() {
     local name="${1:-}" active first=0 raised=0 auth_file
     load_vpn_settings
     check_vpn_name "${name}" || log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.bad-name" "${name}"
     [[ -f "$(get_vpn_profile_dir "${name}")/runtime" ]] || log_error "${INSTALL_WATCHER:-BASH}" "vpn.profile.invalid" "${name}"
     log_info "${INSTALL_WATCHER:-BASH}" "vpn.test.start" "${name}"
+    note_vpn_log test "${name}" start ""
     auth_file="$(get_vpn_profile_dir "${name}")/auth.txt"
     if [[ -f "${auth_file}" ]] && ! check_vpn_auth_file "${auth_file}"; then
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.import.auth-wait" "${name}" "${auth_file}"
+        note_vpn_log test "${name}" fail "auth-wait"
         return 1
     fi
     active="$(get_vpn_active 2>/dev/null || true)"
@@ -353,15 +403,17 @@ run_vpn_test() {
         if (( raised == 0 )); then
             record_vpn_attempt "${name}" 1
             log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.kept" "${name}"
+            note_vpn_log test "${name}" ok "kept"
             return 0
         fi
         record_vpn_attempt "${name}" 0
-        log_info "${INSTALL_WATCHER:-BASH}" "vpn.test.fail" "${name}"
+        report_vpn_fail "${name}"
         return 1
     fi
     if [[ -n "${active}" && "${active}" == "${name}" ]] && check_vpn_tunnel "${name}"; then
         record_vpn_attempt "${name}" 1
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.ok" "${name}"
+        note_vpn_log test "${name}" ok "up"
         return 0
     fi
     if ! check_vpn_had_valid; then
@@ -373,6 +425,7 @@ run_vpn_test() {
         if check_vpn_mode; then
             finish_vpn_open "${name}"
             log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.ok" "${name}"
+            note_vpn_log test "${name}" ok "open"
             return 0
         fi
         if (( first == 1 )); then
@@ -381,11 +434,13 @@ run_vpn_test() {
             load_vpn_settings
             apply_vpn_systemd || true
             log_success "${INSTALL_WATCHER:-BASH}" "vpn.mode.on"
+            note_vpn_log test "${name}" ok "mode"
             return 0
         fi
         record_vpn_attempt "${name}" 1
         clear_vpn_network
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.ok" "${name}"
+        note_vpn_log test "${name}" ok "open"
         return 0
     fi
     record_vpn_attempt "${name}" 0
@@ -394,6 +449,6 @@ run_vpn_test() {
     else
         clear_vpn_network
     fi
-    log_info "${INSTALL_WATCHER:-BASH}" "vpn.test.fail" "${name}"
+    report_vpn_fail "${name}"
     return 1
 }

@@ -43,7 +43,8 @@ Tras retirar el último perfil, el siguiente perfil válido arma de nuevo el kil
 
 El archivo o la carpeta contiene exactamente los nombres de archivo de la marca.<br/>
 Un archivo de más, un archivo que falta, o el archivo del otro protocolo se rechaza.<br/>
-Los archivos están en la raíz. No hay subcarpeta.<br/>
+Se abre una sola carpeta al inicio del archivo. auth.txt puede estar a su lado.<br/>
+El diario del día es `log/vpn/YYYY-MM-DD.log`.<br/>
 Si la palabra REPLACE sigue presente, la importación se detiene antes de la prueba.<br/>
 El ejemplo usa `203.0.113.10`. No puede abrir un túnel.<br/>
 <br/>

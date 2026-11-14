@@ -189,6 +189,9 @@ Profil {1} ist gültig.
 [vpn.test.fail]
 Profil {1} ist nicht gültig.
 
+[vpn.test.fail-reason]
+Profil {1} ist nicht gültig: {2}.
+
 [vpn.test.kept]
 Profil {1} ist gültig. Der aktuelle Tunnel bleibt.
 
@@ -213,6 +216,9 @@ Abhängige Dienste neu gestartet.
 [vpn.import.auth-wait]
 Profil {1} hat keine zwei Zeilen in {2}.
 
+[vpn.import.auth-failed]
+Der Server hat die Anmeldung von {1} abgelehnt.
+
 [vpn.import.brand]
 Die Marke {1} akzeptiert {2} nicht.
 
@@ -229,7 +235,7 @@ Datei nicht gefunden: {1}.
 {1} ist kein Zip-Archiv.
 
 [vpn.import.zipdir]
-Das Archiv enthält den Ordner {1}. Die Dateien müssen in der Wurzel liegen.
+Das Archiv enthält den Ordner {1}. Nur ein Ordner wird geöffnet, und nur auth.txt darf daneben liegen.
 
 [vpn.import.zipdeep]
 Das Archiv enthält einen verbotenen Pfad: {1}.

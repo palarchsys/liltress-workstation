@@ -43,7 +43,8 @@ After the last profile is removed, the next valid profile arms the killswitch ag
 
 The archive or the directory holds exactly the brand's file names.<br/>
 An extra file, a missing file, or the other protocol's file is refused.<br/>
-The files sit at the root. There is no subdirectory.<br/>
+One directory at the top of the archive is opened. auth.txt may sit beside that directory.<br/>
+The day's journal is `log/vpn/YYYY-MM-DD.log`.<br/>
 If the word REPLACE is still present, the import stops before the handshake.<br/>
 The example uses `203.0.113.10`. It cannot open a tunnel.<br/>
 <br/>

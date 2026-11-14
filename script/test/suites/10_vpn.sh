@@ -615,3 +615,100 @@ if [[ "${life_ok}" -eq 1 ]]; then
 else
     t_fail "vpn.life" "trace ${VPN_TRACE}"
 fi
+
+cd_count="$(grep -c -- '--cd' "${vpn_dir}/up.sh" || true)"
+ipv6_count="$(grep -c -- 'route-ipv6' "${vpn_dir}/up.sh" || true)"
+if [[ "${cd_count}" -ge 2 ]]; then
+    t_pass "vpn.cd" "lancement depuis le dossier du profil"
+else
+    t_fail "vpn.cd" "compte ${cd_count}"
+fi
+if [[ "${ipv6_count}" -ge 2 ]]; then
+    t_pass "vpn.pull-filter" "route-ipv6 ignorée"
+else
+    t_fail "vpn.pull-filter" "compte ${ipv6_count}"
+fi
+
+# shellcheck disable=SC1091
+source "${vpn_dir}/up.sh"
+reason_root="${ARTIFACTS}/vpn-reason"
+rm -rf "${reason_root}"
+mkdir -p "${reason_root}/vpn/openvpn/cg-reason" "${reason_root}/vpn/openvpn/cg-auth" "${reason_root}/log/vpn"
+printf '%s\n' "Options error: --ca fails with '/var/tmp/profile/ca.crt'" > "${reason_root}/vpn/openvpn/cg-reason/openvpn.log"
+printf '%s\n' "AUTH_FAILED" > "${reason_root}/vpn/openvpn/cg-auth/openvpn.log"
+saved_reason="${CONFIG_BASE_DIRECTORY:-}"
+saved_install="${INSTALL_DIRECTORY:-}"
+export CONFIG_BASE_DIRECTORY="${reason_root}"
+export INSTALL_DIRECTORY="${reason_root}"
+reason_log="${ARTIFACTS}/vpn-reason-msg.log"
+: > "${reason_log}"
+reason_had_info=0
+if declare -F log_info >/dev/null 2>&1; then
+    reason_had_info=1
+    eval "$(declare -f log_info | sed '1s/^log_info/vpn_saved_log_info/')"
+fi
+log_info() {
+    printf '%s\n' "$*" >> "${reason_log}"
+    return 0
+}
+report_vpn_fail "cg-reason"
+report_vpn_fail "cg-auth"
+reason_ok=1
+grep -q 'vpn.test.fail-reason cg-reason' "${reason_log}" || reason_ok=0
+grep -q 'ca.crt' "${reason_log}" || reason_ok=0
+grep -q '/var/tmp' "${reason_log}" && reason_ok=0
+grep -q 'vpn.import.auth-failed cg-auth' "${reason_log}" || reason_ok=0
+if [[ "${reason_had_info}" -eq 1 ]]; then
+    eval "$(declare -f vpn_saved_log_info | sed '1s/^vpn_saved_log_info/log_info/')"
+    unset -f vpn_saved_log_info
+else
+    unset -f log_info
+fi
+if [[ -n "${saved_reason}" ]]; then
+    export CONFIG_BASE_DIRECTORY="${saved_reason}"
+else
+    unset CONFIG_BASE_DIRECTORY
+fi
+if [[ -n "${saved_install}" ]]; then
+    export INSTALL_DIRECTORY="${saved_install}"
+else
+    unset INSTALL_DIRECTORY
+fi
+if [[ "${reason_ok}" -eq 1 ]]; then
+    t_pass "vpn.fail-reason" "motif OpenVPN, sans chemin absolu"
+    t_pass "vpn.auth-failed" "identifiant refusé"
+else
+    t_fail "vpn.fail-reason" "$(tr '\n' ' ' < "${reason_log}")"
+    t_fail "vpn.auth-failed" "$(tr '\n' ' ' < "${reason_log}")"
+fi
+
+day_root="${ARTIFACTS}/vpn-day"
+rm -rf "${day_root}"
+mkdir -p "${day_root}"
+export INSTALL_DIRECTORY="${day_root}"
+note_vpn_log import "cg-day" ok "openvpn 203.0.113.10"
+note_vpn_log test "cg-day" fail "Options error: --ca fails with ca.crt"
+note_vpn_log watch "cg-day" ok "up"
+day_file="${day_root}/log/vpn/$(date '+%Y-%m-%d').log"
+day_ok=1
+[[ -f "${day_file}" ]] || day_ok=0
+[[ "$(wc -l < "${day_file}" | tr -d ' ')" == "2" ]] || day_ok=0
+[[ "$(stat -c '%a' "${day_file}")" == "600" ]] || day_ok=0
+[[ "$(stat -c '%a' "${day_root}/log/vpn")" == "700" ]] || day_ok=0
+grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{9}[+-][0-9]{4}' "${day_file}" || day_ok=0
+grep -q 'import' "${day_file}" || day_ok=0
+grep -q 'test' "${day_file}" || day_ok=0
+note_vpn_log import "cg-day" fail "BEGIN PRIVATE KEY abcdef"
+grep -q 'PRIVATE' "${day_file}" && day_ok=0
+grep -q 'BEGIN' "${day_file}" && day_ok=0
+grep -q 'auth.txt' "${day_file}" && day_ok=0
+if [[ -n "${saved_install}" ]]; then
+    export INSTALL_DIRECTORY="${saved_install}"
+else
+    unset INSTALL_DIRECTORY
+fi
+if [[ "${day_ok}" -eq 1 ]]; then
+    t_pass "vpn.day-log" "un fichier par jour, horodaté"
+else
+    t_fail "vpn.day-log" "$(tr '\n' ' ' < "${day_file}" 2>/dev/null)"
+fi

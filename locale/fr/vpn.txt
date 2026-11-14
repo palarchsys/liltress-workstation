@@ -189,6 +189,9 @@ Le profil {1} est valide.
 [vpn.test.fail]
 Le profil {1} n'est pas valide.
 
+[vpn.test.fail-reason]
+Le profil {1} n'est pas valide : {2}.
+
 [vpn.test.kept]
 Le profil {1} est valide. Le tunnel courant reste.
 
@@ -213,6 +216,9 @@ Services dépendants relancés.
 [vpn.import.auth-wait]
 Le profil {1} n'a pas deux lignes dans {2}.
 
+[vpn.import.auth-failed]
+Le serveur a refusé l'identifiant de {1}.
+
 [vpn.import.brand]
 La marque {1} n'accepte pas {2}.
 
@@ -229,7 +235,7 @@ Fichier introuvable : {1}.
 {1} n'est pas une archive zip.
 
 [vpn.import.zipdir]
-L'archive contient le dossier {1}. Les fichiers doivent être à la racine.
+L'archive contient le dossier {1}. Un seul dossier est ouvert, et seul auth.txt peut être à côté.
 
 [vpn.import.zipdeep]
 L'archive contient un chemin interdit : {1}.
