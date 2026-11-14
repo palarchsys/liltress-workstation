@@ -12,6 +12,7 @@ Ein späterer Import, während der Modus aus ist, schärft den Killswitch nicht 
 `sudo ./liltress vpn mode on` schärft den Killswitch und öffnet ein gültiges Profil.<br/>
 Ohne gültiges Profil wird dieser Befehl abgelehnt und der Killswitch bleibt aus.<br/>
 `sudo ./liltress vpn mode off` entschärft den Killswitch und stellt das direkte Netz her. Die Profilordner bleiben.<br/>
+Das Profil erscheint unter Einstellungen → Netzwerk. Der Schalter ist der Modus. Der Import ist nicht die Schaltfläche +.<br/>
 <br/>
 `sudo ./liltress vpn switch <Name>` wechselt zu einem anderen gültigen Profil. Der Killswitch bleibt während des Wechsels scharf.<br/>
 Ein fehlgeschlagener Wechsel stellt das direkte Internet nicht her und entfernt kein Profil.<br/>

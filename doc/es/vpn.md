@@ -12,6 +12,7 @@ Una importación posterior, mientras el modo está parado, no vuelve a armar el 
 `sudo ./liltress vpn mode on` arma el killswitch y abre un perfil válido.<br/>
 Sin perfil válido, ese comando se rechaza y el killswitch sigue cortado.<br/>
 `sudo ./liltress vpn mode off` desarma el killswitch y devuelve la red directa. Las carpetas de los perfiles se quedan.<br/>
+El perfil aparece en Configuración → Red. El interruptor es el modo. La importación no es el botón +.<br/>
 <br/>
 `sudo ./liltress vpn switch <nombre>` pasa a otro perfil válido. El killswitch sigue armado durante el cambio.<br/>
 Un cambio fallido no devuelve Internet directo y no retira ningún perfil.<br/>

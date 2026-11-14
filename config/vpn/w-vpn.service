@@ -1,12 +1,13 @@
 # =============================================================================
 # File       : config/vpn/w-vpn.service
-# Updated at : 2026-11-05
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
 [Unit]
 Description=Ouvre le tunnel choisi au demarrage
-After=network-online.target w-vpn-killswitch.service
+After=network-online.target w-vpn-killswitch.service NetworkManager.service
+Wants=NetworkManager.service
 Requires=w-vpn-killswitch.service
 
 [Service]

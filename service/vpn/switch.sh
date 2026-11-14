@@ -7,6 +7,17 @@
 
 fail_vpn_switch() {
     local name="$1" proto endpoint
+    if declare -F vpn_nm_switch_off >/dev/null 2>&1; then
+        vpn_nm_switch_off
+    fi
+    if declare -F vpn_nm_hold_on >/dev/null 2>&1; then
+        vpn_nm_hold_on
+        vpn_nm_set_autoconnect "${name}" false || true
+        if [[ -z "${VPN_NM_DIR:-}" ]] && command -v nmcli >/dev/null 2>&1; then
+            nmcli connection down id "${name}" >/dev/null 2>&1 || true
+        fi
+        vpn_nm_hold_off
+    fi
     proto="$(get_vpn_meta "${name}" proto 2>/dev/null || true)"
     endpoint="$(get_vpn_meta "${name}" endpoint4 2>/dev/null || true)"
     [[ -n "${endpoint}" ]] || endpoint="$(get_vpn_meta "${name}" endpoint6 2>/dev/null || true)"
@@ -50,18 +61,21 @@ run_vpn_switch() {
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.up.same" "${name}"
         return 0
     fi
+    if declare -F vpn_nm_switch_on >/dev/null 2>&1; then
+        vpn_nm_switch_on
+    fi
     if ! apply_vpn_nft "${name}" 0; then
+        if declare -F vpn_nm_switch_off >/dev/null 2>&1; then
+            vpn_nm_switch_off
+        fi
         note_vpn_log switch "${name}" fail "nft"
         log_error "${INSTALL_WATCHER:-BASH}" "vpn.profile.invalid" "${name}"
     fi
     clear_vpn_conntrack "${name}"
-    if [[ -n "${old}" && "${old}" != "${name}" ]]; then
-        remove_vpn_iface "${old}"
-    fi
-    clear_vpn_tunnel_routes
-    apply_vpn_bypass_routes
-    apply_vpn_endpoint_routes "${name}"
     apply_vpn_profile "${name}" || raised=$?
+    if declare -F vpn_nm_switch_off >/dev/null 2>&1; then
+        vpn_nm_switch_off
+    fi
     if (( raised == 2 )); then
         apply_vpn_nft "${name}" 0 || true
         note_vpn_log switch "${name}" fail "passphrase"
@@ -70,14 +84,6 @@ run_vpn_switch() {
     if (( raised != 0 )); then
         fail_vpn_switch "${name}"
     fi
-    apply_vpn_tunnel_routes "${name}" || fail_vpn_switch "${name}"
-    apply_vpn_nft "${name}" 1 || fail_vpn_switch "${name}"
-    if ! wait_vpn_handshake "${name}"; then
-        fail_vpn_switch "${name}"
-    fi
-    refresh_vpn_ipv6 "${name}"
-    apply_vpn_tunnel_routes "${name}" || fail_vpn_switch "${name}"
-    apply_vpn_nft "${name}" 1 || fail_vpn_switch "${name}"
     set_vpn_active "${name}"
     set_vpn_state_active "${name}"
     record_vpn_attempt "${name}" 1

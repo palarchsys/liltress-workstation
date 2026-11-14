@@ -121,6 +121,9 @@ finish_vpn_import() {
     if declare -F run_vpn_test >/dev/null 2>&1; then
         if ! run_vpn_test "${name}"; then
             note_vpn_log import "${name}" fail "handshake ${proto}"
+            if declare -F remove_vpn_nm_connection >/dev/null 2>&1; then
+                remove_vpn_nm_connection "${name}" || true
+            fi
             rm -rf "${dest}"
             if declare -F remove_vpn_state >/dev/null 2>&1; then
                 remove_vpn_state "${name}"

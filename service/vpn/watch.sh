@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/watch.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -28,6 +28,8 @@ source "${VPN_SRC}/killswitch.sh"
 source "${VPN_SRC}/routes.sh"
 # shellcheck disable=SC1091
 source "${VPN_SRC}/import.sh"
+# shellcheck disable=SC1091
+source "${VPN_SRC}/nm.sh"
 # shellcheck disable=SC1091
 source "${VPN_SRC}/up.sh"
 # shellcheck disable=SC1091

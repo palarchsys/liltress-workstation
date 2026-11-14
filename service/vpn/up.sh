@@ -79,55 +79,11 @@ refresh_vpn_ipv6() {
 }
 
 apply_vpn_profile() {
-    local name="$1" proto dir iface runtime stripped address
-    proto="$(get_vpn_meta "${name}" proto)"
-    dir="$(get_vpn_profile_dir "${name}")"
-    iface="$(get_vpn_meta "${name}" iface)"
-    runtime="${dir}/runtime"
-    if [[ "${proto}" == "wireguard" ]]; then
-        check_vpn_module || return 1
-        ip link del "${iface}" >/dev/null 2>&1 || true
-        ip link add dev "${iface}" type wireguard
-        stripped="$(mktemp "${dir}/.setconf.XXXXXX")"
-        strip_vpn_wg "${runtime}" "${stripped}"
-        if ! wg setconf "${iface}" "${stripped}" >/dev/null 2>&1; then
-            rm -f "${stripped}"
-            ip link del "${iface}" >/dev/null 2>&1 || true
-            return 1
-        fi
-        rm -f "${stripped}"
-        while IFS= read -r address; do
-            ip addr replace "${address}" dev "${iface}"
-        done < <(list_vpn_wg_addresses "${runtime}")
-        ip link set "${iface}" up
-        return 0
-    fi
+    local name="$1"
     if check_vpn_encrypted "${name}" && ! check_vpn_passphrase; then
         return 2
     fi
-    : > "${dir}/status"
-    : > "${dir}/openvpn.log"
-    chmod 600 "${dir}/status" "${dir}/openvpn.log"
-    ip link del "${iface}" >/dev/null 2>&1 || true
-    openvpn \
-        --cd "${dir}" \
-        --config "${runtime}" \
-        --dev "${iface}" \
-        --dev-type tun \
-        --route-nopull \
-        --route-noexec \
-        --pull-filter ignore "dhcp-option DNS" \
-        --pull-filter ignore redirect-gateway \
-        --pull-filter ignore route-ipv6 \
-        --connect-timeout "${VPN_HANDSHAKE_TIMEOUT}" \
-        --connect-retry-max 1 \
-        --daemon \
-        --writepid "${dir}/pid" \
-        --log-append "${dir}/openvpn.log" \
-        --verb 3 >/dev/null 2>&1 || {
-            ip link del "${iface}" >/dev/null 2>&1 || true
-            return 1
-        }
+    raise_vpn_link "${name}"
 }
 
 check_vpn_handshake() {
@@ -177,11 +133,33 @@ wait_vpn_handshake() {
 }
 
 check_vpn_tunnel() {
-    local name="$1" iface
+    local name="$1" iface proto
     iface="$(get_vpn_meta "${name}" iface 2>/dev/null || true)"
     [[ -n "${iface}" ]] || return 1
     ip link show dev "${iface}" >/dev/null 2>&1 || return 1
+    proto="$(get_vpn_meta "${name}" proto 2>/dev/null || true)"
+    if [[ "${proto}" == "wireguard" ]]; then
+        check_vpn_handshake "${name}"
+        return
+    fi
+    if declare -F vpn_nm_activated >/dev/null 2>&1 && vpn_nm_activated "${name}"; then
+        return 0
+    fi
     check_vpn_handshake "${name}"
+}
+
+wait_vpn_iface() {
+    local name="$1" iface deadline
+    iface="$(get_vpn_meta "${name}" iface 2>/dev/null || true)"
+    [[ -n "${iface}" ]] || return 1
+    deadline=$((SECONDS + ${VPN_HANDSHAKE_TIMEOUT:-25}))
+    while (( SECONDS <= deadline )); do
+        if ip link show dev "${iface}" >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 1
+    done
+    return 1
 }
 
 arm_vpn_closed() {
@@ -193,18 +171,23 @@ arm_vpn_closed() {
 }
 
 add_vpn_probe_routes() {
-    local name="$1" ep4 ep6 ip
+    local name="$1" ep4 ep6 ip table
     load_vpn_settings
+    if declare -F vpn_route_lookup >/dev/null 2>&1; then
+        table="$(vpn_route_lookup)"
+    else
+        table="main"
+    fi
     clear_vpn_rule_prio 41
     ep4="$(get_vpn_meta "${name}" endpoint4 2>/dev/null || true)"
     ep6="$(get_vpn_meta "${name}" endpoint6 2>/dev/null || true)"
     for ip in ${ep4}; do
         get_vpn_ipv4_parts "${ip}" >/dev/null 2>&1 || continue
-        ip -4 rule add priority 41 to "${ip}/32" lookup main
+        ip -4 rule add priority 41 to "${ip}/32" lookup "${table}"
     done
     for ip in ${ep6}; do
         get_vpn_v6_groups "${ip}" >/dev/null 2>&1 || continue
-        ip -6 rule add priority 41 to "${ip}/128" lookup main
+        ip -6 rule add priority 41 to "${ip}/128" lookup "${table}"
     done
 }
 
@@ -335,10 +318,19 @@ run_vpn_probe() {
         apply_vpn_nft "${active}" 1 || true
         return "${raised}"
     fi
+    if declare -F vpn_nm_unmanage >/dev/null 2>&1; then
+        vpn_nm_unmanage "${iface}"
+    fi
     if ! wait_vpn_probe "${name}" "${iface}"; then
+        if declare -F vpn_nm_unmanage >/dev/null 2>&1; then
+            vpn_nm_unmanage "${iface}"
+        fi
         clear_vpn_probe "${iface}" "${dir}"
         apply_vpn_nft "${active}" 1 || true
         return 1
+    fi
+    if declare -F vpn_nm_unmanage >/dev/null 2>&1; then
+        vpn_nm_unmanage "${iface}"
     fi
     clear_vpn_probe "${iface}" "${dir}"
     apply_vpn_nft "${active}" 1 || true
@@ -383,6 +375,52 @@ report_vpn_fail() {
     note_vpn_log test "${name}" fail ""
 }
 
+prove_vpn_profile() {
+    local name="$1" armed=0 iface="" raised=0 dir
+    dir="$(get_vpn_profile_dir "${name}")"
+    if check_vpn_killswitch; then
+        armed=1
+        apply_vpn_nft "" 0 "${name}" || return 1
+    fi
+    if ! add_vpn_probe_routes "${name}"; then
+        clear_vpn_rule_prio 41
+        if (( armed == 1 )); then
+            apply_vpn_nft "" 0 || true
+        fi
+        return 1
+    fi
+    iface="$(apply_vpn_probe "${name}")" || raised=$?
+    if (( raised != 0 )); then
+        clear_vpn_probe "wgl-probe" "${dir}"
+        clear_vpn_probe "tun-probe" "${dir}"
+        if (( armed == 1 )); then
+            apply_vpn_nft "" 0 || true
+        fi
+        return "${raised}"
+    fi
+    if declare -F vpn_nm_unmanage >/dev/null 2>&1; then
+        vpn_nm_unmanage "${iface}"
+    fi
+    if ! wait_vpn_probe "${name}" "${iface}"; then
+        if declare -F vpn_nm_unmanage >/dev/null 2>&1; then
+            vpn_nm_unmanage "${iface}"
+        fi
+        clear_vpn_probe "${iface}" "${dir}"
+        if (( armed == 1 )); then
+            apply_vpn_nft "" 0 || true
+        fi
+        return 1
+    fi
+    if declare -F vpn_nm_unmanage >/dev/null 2>&1; then
+        vpn_nm_unmanage "${iface}"
+    fi
+    clear_vpn_probe "${iface}" "${dir}"
+    if (( armed == 1 )); then
+        apply_vpn_nft "" 0 || true
+    fi
+    return 0
+}
+
 run_vpn_test() {
     local name="${1:-}" active first=0 raised=0 auth_file
     load_vpn_settings
@@ -397,10 +435,21 @@ run_vpn_test() {
         return 1
     fi
     active="$(get_vpn_active 2>/dev/null || true)"
+    if [[ -n "${active}" && "${active}" == "${name}" ]] && check_vpn_tunnel "${name}"; then
+        record_vpn_attempt "${name}" 1
+        log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.ok" "${name}"
+        note_vpn_log test "${name}" ok "up"
+        return 0
+    fi
     if check_vpn_mode && [[ -n "${active}" && "${active}" != "${name}" ]] && check_vpn_tunnel "${active}"; then
         raised=0
-        run_vpn_probe "${name}" "${active}" || raised=$?
+        prove_vpn_profile "${name}" || raised=$?
         if (( raised == 0 )); then
+            if ! VPN_NM_AUTOCONNECT=0 install_vpn_nm_connection "${name}"; then
+                record_vpn_attempt "${name}" 0
+                report_vpn_fail "${name}"
+                return 1
+            fi
             record_vpn_attempt "${name}" 1
             log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.kept" "${name}"
             note_vpn_log test "${name}" ok "kept"
@@ -410,45 +459,71 @@ run_vpn_test() {
         report_vpn_fail "${name}"
         return 1
     fi
-    if [[ -n "${active}" && "${active}" == "${name}" ]] && check_vpn_tunnel "${name}"; then
-        record_vpn_attempt "${name}" 1
-        log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.ok" "${name}"
-        note_vpn_log test "${name}" ok "up"
-        return 0
-    fi
     if ! check_vpn_had_valid; then
         first=1
     fi
     raised=0
-    run_vpn_profile "${name}" "${VPN_HANDSHAKE_TIMEOUT}" || raised=$?
-    if (( raised == 0 )); then
+    prove_vpn_profile "${name}" || raised=$?
+    if (( raised != 0 )); then
+        record_vpn_attempt "${name}" 0
         if check_vpn_mode; then
-            finish_vpn_open "${name}"
-            log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.ok" "${name}"
-            note_vpn_log test "${name}" ok "open"
-            return 0
+            arm_vpn_lockdown
+        else
+            clear_vpn_network
         fi
-        if (( first == 1 )); then
-            set_vpn_state_mode on
-            finish_vpn_open "${name}"
+        report_vpn_fail "${name}"
+        return 1
+    fi
+    if (( first == 1 )); then
+        set_vpn_state_mode on
+        load_vpn_settings
+        apply_vpn_systemd || true
+        raised=0
+        apply_vpn_profile "${name}" || raised=$?
+        if (( raised != 0 )); then
+            set_vpn_state_mode off
             load_vpn_settings
             apply_vpn_systemd || true
-            log_success "${INSTALL_WATCHER:-BASH}" "vpn.mode.on"
-            note_vpn_log test "${name}" ok "mode"
-            return 0
+            if declare -F remove_vpn_nm_connection >/dev/null 2>&1; then
+                remove_vpn_nm_connection "${name}" || true
+            fi
+            clear_vpn_network
+            record_vpn_attempt "${name}" 0
+            report_vpn_fail "${name}"
+            return 1
         fi
-        record_vpn_attempt "${name}" 1
-        clear_vpn_network
+        finish_vpn_open "${name}"
+        log_success "${INSTALL_WATCHER:-BASH}" "vpn.mode.on"
+        note_vpn_log test "${name}" ok "mode"
+        return 0
+    fi
+    if check_vpn_mode; then
+        raised=0
+        apply_vpn_profile "${name}" || raised=$?
+        if (( raised != 0 )); then
+            if check_vpn_mode; then
+                arm_vpn_lockdown
+            else
+                clear_vpn_network
+            fi
+            record_vpn_attempt "${name}" 0
+            report_vpn_fail "${name}"
+            return 1
+        fi
+        finish_vpn_open "${name}"
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.ok" "${name}"
         note_vpn_log test "${name}" ok "open"
         return 0
     fi
-    record_vpn_attempt "${name}" 0
-    if check_vpn_mode; then
-        arm_vpn_lockdown
-    else
+    if ! VPN_NM_AUTOCONNECT=0 install_vpn_nm_connection "${name}"; then
+        record_vpn_attempt "${name}" 0
         clear_vpn_network
+        report_vpn_fail "${name}"
+        return 1
     fi
-    report_vpn_fail "${name}"
-    return 1
+    record_vpn_attempt "${name}" 1
+    clear_vpn_network
+    log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.ok" "${name}"
+    note_vpn_log test "${name}" ok "open"
+    return 0
 }

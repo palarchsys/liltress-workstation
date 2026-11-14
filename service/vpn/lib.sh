@@ -85,6 +85,9 @@ load_vpn_settings() {
     VPN_SSH_MARK=17820
     VPN_FAILOVER_TRIES=3
     VPN_FAILOVER_TIMEOUT=10
+    VPN_TABLE_DIRECT_ID=17821
+    VPN_TABLE_DIRECT_NAME=w_direct
+    VPN_ROUTE_METRIC=50
     home="$(get_vpn_home)"
     file="${home}/vpn.conf"
     if [[ -f "${file}" ]]; then
@@ -108,6 +111,9 @@ load_vpn_settings() {
     [[ "${VPN_SSH_MARK}" =~ ^[0-9]+$ ]] || VPN_SSH_MARK=17820
     [[ "${VPN_FAILOVER_TRIES}" =~ ^[1-9][0-9]*$ ]] || VPN_FAILOVER_TRIES=3
     [[ "${VPN_FAILOVER_TIMEOUT}" =~ ^[0-9]+$ ]] || VPN_FAILOVER_TIMEOUT=10
+    [[ "${VPN_TABLE_DIRECT_ID}" =~ ^[0-9]+$ ]] || VPN_TABLE_DIRECT_ID=17821
+    [[ "${VPN_TABLE_DIRECT_NAME}" =~ ^[a-z][a-z0-9_-]{0,14}$ ]] || VPN_TABLE_DIRECT_NAME=w_direct
+    [[ "${VPN_ROUTE_METRIC}" =~ ^[0-9]+$ ]] || VPN_ROUTE_METRIC=50
     if declare -F read_vpn_state >/dev/null 2>&1; then
         read_vpn_state
     else

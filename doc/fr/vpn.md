@@ -12,6 +12,7 @@ Un import plus tard, pendant que le mode est arrêté, ne réarme pas le killswi
 `sudo ./liltress vpn mode on` arme le killswitch et ouvre un profil valide.<br/>
 Sans profil valide, cette commande est refusée et le killswitch reste coupé.<br/>
 `sudo ./liltress vpn mode off` désarme le killswitch et rend le réseau direct. Les dossiers des profils restent.<br/>
+Le profil s'affiche dans Paramètres → Réseau. L'interrupteur est le mode. L'import n'est pas le bouton +.<br/>
 <br/>
 `sudo ./liltress vpn switch <nom>` passe à un autre profil valide. Le killswitch reste armé pendant la bascule.<br/>
 Un échec de bascule ne rend pas Internet direct et ne retire aucun profil.<br/>

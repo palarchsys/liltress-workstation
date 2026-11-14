@@ -618,13 +618,13 @@ fi
 
 cd_count="$(grep -c -- '--cd' "${vpn_dir}/up.sh" || true)"
 ipv6_count="$(grep -c -- 'route-ipv6' "${vpn_dir}/up.sh" || true)"
-if [[ "${cd_count}" -ge 2 ]]; then
-    t_pass "vpn.cd" "lancement depuis le dossier du profil"
+if [[ "${cd_count}" -eq 1 ]]; then
+    t_pass "vpn.cd" "la sonde garde --cd"
 else
     t_fail "vpn.cd" "compte ${cd_count}"
 fi
-if [[ "${ipv6_count}" -ge 2 ]]; then
-    t_pass "vpn.pull-filter" "route-ipv6 ignorée"
+if [[ "${ipv6_count}" -eq 1 ]]; then
+    t_pass "vpn.pull-filter" "la sonde ignore route-ipv6"
 else
     t_fail "vpn.pull-filter" "compte ${ipv6_count}"
 fi
@@ -711,4 +711,294 @@ if [[ "${day_ok}" -eq 1 ]]; then
     t_pass "vpn.day-log" "un fichier par jour, horodaté"
 else
     t_fail "vpn.day-log" "$(tr '\n' ' ' < "${day_file}" 2>/dev/null)"
+fi
+
+# shellcheck disable=SC1091
+source "${vpn_dir}/routes.sh"
+ensure_vpn_table() { return 0; }
+iface_root="${ARTIFACTS}/vpn-iface"
+rm -rf "${iface_root}"
+mkdir -p "${iface_root}/vpn/openvpn/cg-tun/bin"
+printf 'proto=openvpn\niface=tun-liltress\nhas_ipv6=0\n' > "${iface_root}/vpn/openvpn/cg-tun/meta"
+cat > "${iface_root}/vpn/openvpn/cg-tun/bin/ip" << 'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${VPN_IP_LOG}"
+case "$1" in
+    link)
+        if [[ -f "${VPN_IP_READY}" ]]; then
+            exit 0
+        fi
+        if [[ "${VPN_IP_ARM:-}" == "1" ]]; then
+            touch "${VPN_IP_READY}"
+        fi
+        printf '%s\n' 'Cannot find device "tun-liltress"' >&2
+        exit 1
+        ;;
+    rule)
+        [[ "$2" == "del" ]] && exit 1
+        exit 0
+        ;;
+    route)
+        if [[ "$2" == "replace" && ! -f "${VPN_IP_READY}" ]]; then
+            printf '%s\n' 'Cannot find device "tun-liltress"' >&2
+            exit 1
+        fi
+        exit 0
+        ;;
+esac
+exit 0
+EOF
+chmod 700 "${iface_root}/vpn/openvpn/cg-tun/bin/ip"
+saved_iface_base="${CONFIG_BASE_DIRECTORY:-}"
+saved_iface_path="${PATH}"
+export CONFIG_BASE_DIRECTORY="${iface_root}"
+export VPN_IP_LOG="${iface_root}/ip.log"
+export VPN_IP_READY="${iface_root}/ready"
+unset VPN_IP_ARM
+: > "${VPN_IP_LOG}"
+export PATH="${iface_root}/vpn/openvpn/cg-tun/bin:${PATH}"
+iface_err="${iface_root}/miss.err"
+: > "${iface_err}"
+iface_ok=1
+if apply_vpn_tunnel_routes cg-tun >/dev/null 2>"${iface_err}"; then
+    :
+else
+    iface_ok=0
+fi
+[[ ! -s "${iface_err}" ]] || iface_ok=0
+grep -q 'route replace' "${VPN_IP_LOG}" && iface_ok=0
+rm -f "${VPN_IP_READY}"
+: > "${VPN_IP_LOG}"
+: > "${iface_err}"
+export VPN_IP_ARM=1
+if wait_vpn_iface cg-tun >/dev/null 2>"${iface_err}"; then
+    :
+else
+    iface_ok=0
+fi
+[[ ! -s "${iface_err}" ]] || iface_ok=0
+if apply_vpn_tunnel_routes cg-tun >/dev/null 2>>"${iface_err}"; then
+    :
+else
+    iface_ok=0
+fi
+[[ ! -s "${iface_err}" ]] || iface_ok=0
+grep -q 'route replace' "${VPN_IP_LOG}" && iface_ok=0
+if awk '
+    /^run_vpn_profile\(\)/ { inside=1 }
+    inside && /^}/ { exit }
+    inside && /openvpn/ { bad=1 }
+    inside && /route replace/ { bad=1 }
+    inside && /apply_vpn_profile/ { seen=1 }
+    END { if (seen && !bad) exit 0; exit 1 }
+' "${vpn_dir}/failover.sh"; then
+    :
+else
+    iface_ok=0
+fi
+grep -q 'wait_vpn_iface' "${vpn_dir}/up.sh" || iface_ok=0
+export PATH="${saved_iface_path}"
+unset VPN_IP_LOG VPN_IP_READY VPN_IP_ARM
+if [[ -n "${saved_iface_base}" ]]; then
+    export CONFIG_BASE_DIRECTORY="${saved_iface_base}"
+else
+    unset CONFIG_BASE_DIRECTORY
+fi
+if [[ "${iface_ok}" -eq 1 ]]; then
+    t_pass "vpn.iface" "route après l'interface, sans texte ip"
+else
+    t_fail "vpn.iface" "$(tr '\n' ' ' < "${iface_err}") $(tr '\n' ' ' < "${iface_root}/ip.log")"
+fi
+
+# shellcheck disable=SC1091
+source "${vpn_dir}/nm.sh"
+nm_root="${ARTIFACTS}/vpn-nm"
+rm -rf "${nm_root}"
+mkdir -p "${nm_root}/vpn/openvpn/cg-nm" "${nm_root}/vpn/wireguard/cg-wg" "${nm_root}/bin"
+saved_nm_base="${CONFIG_BASE_DIRECTORY:-}"
+saved_nm_path="${PATH}"
+saved_nm_install="${INSTALL_DIRECTORY:-}"
+export CONFIG_BASE_DIRECTORY="${nm_root}"
+export VPN_NM_DIR="${nm_root}/nm"
+export INSTALL_DIRECTORY="${nm_root}"
+nm_ok=1
+nm_why=""
+cat > "${nm_root}/vpn/openvpn/cg-nm/runtime" << 'EOF'
+remote 203.0.113.10 1194 udp
+proto udp
+ca ca.crt
+cert client.crt
+key client.key
+auth-user-pass auth.txt
+dev tun-liltress
+remote-cert-tls server
+EOF
+cat > "${nm_root}/vpn/openvpn/cg-nm/meta" << 'EOF'
+proto=openvpn
+endpoint4=203.0.113.10
+port=1194
+transport=udp
+iface=tun-liltress
+has_ipv6=0
+encrypted=0
+brand=cyberghost
+EOF
+printf '%s\n' 'user-one' 's3cret-line' > "${nm_root}/vpn/openvpn/cg-nm/auth.txt"
+nm_out="${nm_root}/stdout"
+nm_err="${nm_root}/stderr"
+if install_vpn_nm_connection cg-nm > "${nm_out}" 2> "${nm_err}"; then
+    :
+else
+    nm_ok=0
+    nm_why="install"
+fi
+nm_file="${VPN_NM_DIR}/liltress-cg-nm.nmconnection"
+nm_ca="$(get_vpn_profile_dir cg-nm)/ca.crt"
+[[ -f "${nm_file}" ]] || { nm_ok=0; nm_why="fichier"; }
+if [[ -f "${nm_file}" ]]; then
+    grep -q '^id=cg-nm$' "${nm_file}" || { nm_ok=0; nm_why="id"; }
+    grep -q '^interface-name=tun-liltress$' "${nm_file}" || { nm_ok=0; nm_why="iface"; }
+    grep -q '^ignore-auto-dns=true$' "${nm_file}" || { nm_ok=0; nm_why="dns"; }
+    grep -F -q "ca=${nm_ca}" "${nm_file}" || { nm_ok=0; nm_why="ca"; }
+    grep -q '^username=user-one$' "${nm_file}" || { nm_ok=0; nm_why="user"; }
+    grep -q '^password-flags=0$' "${nm_file}" || { nm_ok=0; nm_why="flags"; }
+    [[ "$(stat -c '%a' "${nm_file}")" == "600" ]] || { nm_ok=0; nm_why="mode"; }
+fi
+grep -q 's3cret-line' "${nm_out}" && { nm_ok=0; nm_why="stdout"; }
+grep -q 's3cret-line' "${nm_err}" && { nm_ok=0; nm_why="stderr"; }
+wg_mark="$(printf '%s%s' 'Private' 'Key')"
+{
+    printf '[Interface]\n'
+    printf '%s = abcdef\n' "${wg_mark}"
+    printf '%s\n' 'Address = 10.64.0.2/32'
+    printf '%s\n' '[Peer]'
+    printf '%s\n' 'PublicKey = BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB='
+    printf '%s\n' 'Endpoint = 203.0.113.10:51820'
+} > "${nm_root}/vpn/wireguard/cg-wg/runtime"
+cat > "${nm_root}/vpn/wireguard/cg-wg/meta" << 'EOF'
+proto=wireguard
+endpoint4=203.0.113.10
+port=51820
+transport=udp
+iface=wg-liltress
+has_ipv6=0
+encrypted=0
+brand=mullvad
+EOF
+if install_vpn_nm_connection cg-wg > "${nm_out}" 2> "${nm_err}"; then
+    :
+else
+    nm_ok=0
+    nm_why="wg"
+fi
+wg_file="${VPN_NM_DIR}/liltress-cg-wg.nmconnection"
+wg_needle="$(printf '%s%s =' 'Private' 'Key')"
+if [[ -f "${wg_file}" ]]; then
+    grep -q '^private-key=' "${wg_file}" || { nm_ok=0; nm_why="wg-key"; }
+    grep -F -q "${wg_needle}" "${wg_file}" && { nm_ok=0; nm_why="aiguille"; }
+    grep -q '^interface-name=wg-liltress$' "${wg_file}" || { nm_ok=0; nm_why="wg-iface"; }
+else
+    nm_ok=0
+    nm_why="wg-fichier"
+fi
+grep -q 'abcdef' "${nm_out}" && { nm_ok=0; nm_why="wg-stdout"; }
+rm -f "${nm_root}/vpn/direct.ok"
+[[ "$(vpn_route_lookup)" == "main" ]] || { nm_ok=0; nm_why="lookup-main"; }
+printf '1\n' > "${nm_root}/vpn/direct.ok"
+[[ "$(vpn_route_lookup)" == "w_direct" ]] || { nm_ok=0; nm_why="lookup-direct"; }
+cat > "${nm_root}/bin/ip" << 'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${NM_IP_LOG}"
+if [[ "$1" == "rule" && "$2" == "del" ]]; then
+    exit 1
+fi
+exit 0
+EOF
+chmod 700 "${nm_root}/bin/ip"
+export NM_IP_LOG="${nm_root}/ip.log"
+: > "${NM_IP_LOG}"
+export PATH="${nm_root}/bin:${PATH}"
+if apply_vpn_ssh >/dev/null 2>> "${nm_err}"; then
+    :
+else
+    nm_ok=0
+    nm_why="ssh"
+fi
+grep -q 'lookup w_direct' "${NM_IP_LOG}" || { nm_ok=0; nm_why="ssh-table"; }
+grep -q 'priority 45' "${NM_IP_LOG}" || { nm_ok=0; nm_why="ssh-prio"; }
+export PATH="${saved_nm_path}"
+write_vpn_state || { nm_ok=0; nm_why="etat"; }
+set_vpn_state_mode on || { nm_ok=0; nm_why="mode-on"; }
+NM_TRACE=""
+for nm_fn in set_vpn_state_mode clear_vpn_tunnel_routes set_vpn_state_active record_vpn_attempt apply_vpn_nft restart_vpn_services apply_vpn_systemd apply_vpn_endpoint_routes apply_vpn_bypass_routes apply_vpn_ssh remember_vpn_direct_route; do
+    if declare -F "${nm_fn}" >/dev/null 2>&1; then
+        eval "$(declare -f "${nm_fn}" | sed "1s/^${nm_fn}/nm_saved_${nm_fn}/")"
+    fi
+done
+set_vpn_state_mode() {
+    NM_TRACE="${NM_TRACE}${1} "
+    return 0
+}
+clear_vpn_tunnel_routes() { return 0; }
+set_vpn_state_active() { return 0; }
+record_vpn_attempt() { return 0; }
+apply_vpn_nft() { return 0; }
+restart_vpn_services() { return 0; }
+apply_vpn_systemd() { return 0; }
+apply_vpn_endpoint_routes() { return 0; }
+apply_vpn_bypass_routes() { return 0; }
+apply_vpn_ssh() { return 0; }
+NM_REMEMBER=0
+remember_vpn_direct_route() {
+    NM_REMEMBER=1
+    return 0
+}
+unset CONNECTION_FILENAME
+NM_TRACE=""
+handle_vpn_nm_event eth0 vpn-up
+[[ -z "${NM_TRACE}" ]] || { nm_ok=0; nm_why="sans-marque"; }
+printf '%s\n' '[connection]' 'id=other' > "${VPN_NM_DIR}/other.nmconnection"
+export CONNECTION_FILENAME="${VPN_NM_DIR}/other.nmconnection"
+NM_TRACE=""
+handle_vpn_nm_event eth0 vpn-up
+[[ -z "${NM_TRACE}" ]] || { nm_ok=0; nm_why="etranger"; }
+export CONNECTION_FILENAME="${nm_file}"
+vpn_nm_hold_on
+NM_TRACE=""
+handle_vpn_nm_event tun-liltress vpn-up
+[[ -z "${NM_TRACE}" ]] || { nm_ok=0; nm_why="retenu"; }
+vpn_nm_hold_off
+NM_TRACE=""
+handle_vpn_nm_event tun-liltress vpn-up
+[[ "${NM_TRACE}" == *"on"* ]] || { nm_ok=0; nm_why="mode"; }
+NM_REMEMBER=0
+handle_vpn_nm_event eth0 dhcp4-change
+[[ "${NM_REMEMBER}" == "1" ]] || { nm_ok=0; nm_why="dhcp"; }
+NM_REMEMBER=0
+handle_vpn_nm_event tun-liltress dhcp4-change
+[[ "${NM_REMEMBER}" == "0" ]] || { nm_ok=0; nm_why="dhcp-tun"; }
+grep -q 'network-manager-openvpn-gnome' "${vpn_dir}/install.sh" || { nm_ok=0; nm_why="paquet"; }
+for nm_fn in set_vpn_state_mode clear_vpn_tunnel_routes set_vpn_state_active record_vpn_attempt apply_vpn_nft restart_vpn_services apply_vpn_systemd apply_vpn_endpoint_routes apply_vpn_bypass_routes apply_vpn_ssh remember_vpn_direct_route; do
+    if declare -F "nm_saved_${nm_fn}" >/dev/null 2>&1; then
+        eval "$(declare -f "nm_saved_${nm_fn}" | sed "1s/^nm_saved_${nm_fn}/${nm_fn}/")"
+        unset -f "nm_saved_${nm_fn}"
+    fi
+done
+unset -v nm_fn
+export PATH="${saved_nm_path}"
+if [[ -n "${saved_nm_base}" ]]; then
+    export CONFIG_BASE_DIRECTORY="${saved_nm_base}"
+else
+    unset CONFIG_BASE_DIRECTORY
+fi
+if [[ -n "${saved_nm_install}" ]]; then
+    export INSTALL_DIRECTORY="${saved_nm_install}"
+else
+    unset INSTALL_DIRECTORY
+fi
+unset VPN_NM_DIR CONNECTION_FILENAME NM_TRACE NM_REMEMBER NM_IP_LOG
+if [[ "${nm_ok}" -eq 1 ]]; then
+    t_pass "vpn.nm" "fiche NetworkManager, table directe, répartiteur"
+else
+    t_fail "vpn.nm" "${nm_why}"
 fi

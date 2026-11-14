@@ -29,6 +29,8 @@ source "${VPN_SRC}/routes.sh"
 # shellcheck disable=SC1091
 source "${VPN_SRC}/import.sh"
 # shellcheck disable=SC1091
+source "${VPN_SRC}/nm.sh"
+# shellcheck disable=SC1091
 source "${VPN_SRC}/up.sh"
 # shellcheck disable=SC1091
 source "${VPN_SRC}/down.sh"

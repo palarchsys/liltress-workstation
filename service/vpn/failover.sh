@@ -8,6 +8,12 @@
 arm_vpn_lockdown() {
     local name
     load_vpn_settings
+    if declare -F vpn_nm_hold_on >/dev/null 2>&1; then
+        vpn_nm_hold_on
+        vpn_nm_autoconnect_all false || true
+        stop_vpn_nm_all || true
+        vpn_nm_hold_off
+    fi
     name="$(get_vpn_active 2>/dev/null || true)"
     if [[ -n "${name}" ]]; then
         remove_vpn_iface "${name}"
@@ -27,40 +33,13 @@ run_vpn_profile() {
     local saved raised=0
     saved="${VPN_HANDSHAKE_TIMEOUT}"
     VPN_HANDSHAKE_TIMEOUT="${limit}"
-    if check_vpn_encrypted "${name}" && ! check_vpn_passphrase; then
-        VPN_HANDSHAKE_TIMEOUT="${saved}"
-        return 2
-    fi
-    if ! arm_vpn_closed "${name}"; then
-        VPN_HANDSHAKE_TIMEOUT="${saved}"
-        return 1
-    fi
     apply_vpn_profile "${name}" || raised=$?
+    VPN_HANDSHAKE_TIMEOUT="${saved}"
     if (( raised != 0 )); then
-        remove_vpn_iface "${name}"
-        VPN_HANDSHAKE_TIMEOUT="${saved}"
         return "${raised}"
     fi
-    if ! apply_vpn_tunnel_routes "${name}"; then
-        remove_vpn_iface "${name}"
-        VPN_HANDSHAKE_TIMEOUT="${saved}"
-        return 1
-    fi
-    if ! apply_vpn_nft "${name}" 1; then
-        remove_vpn_iface "${name}"
-        VPN_HANDSHAKE_TIMEOUT="${saved}"
-        return 1
-    fi
-    if ! wait_vpn_handshake "${name}"; then
-        remove_vpn_iface "${name}"
-        apply_vpn_nft "${name}" 0 || true
-        VPN_HANDSHAKE_TIMEOUT="${saved}"
-        return 1
-    fi
-    refresh_vpn_ipv6 "${name}"
-    apply_vpn_tunnel_routes "${name}" || true
+    refresh_vpn_ipv6 "${name}" || true
     apply_vpn_nft "${name}" 1 || true
-    VPN_HANDSHAKE_TIMEOUT="${saved}"
     return 0
 }
 
@@ -108,6 +87,9 @@ run_vpn_failover() {
         fi
         return 0
     fi
+    if declare -F vpn_nm_switch_on >/dev/null 2>&1; then
+        vpn_nm_switch_on
+    fi
     note_vpn_log failover "-" start ""
     log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.start"
     for name in "${names[@]}"; do
@@ -121,6 +103,9 @@ run_vpn_failover() {
             run_vpn_profile "${name}" "${VPN_FAILOVER_TIMEOUT}" || raised=$?
             if (( raised == 0 )); then
                 finish_vpn_open "${name}"
+                if declare -F vpn_nm_switch_off >/dev/null 2>&1; then
+                    vpn_nm_switch_off
+                fi
                 note_vpn_log failover "${name}" ok ""
                 log_success "${INSTALL_WATCHER:-BASH}" "vpn.failover.ok" "${name}"
                 return 0
@@ -131,6 +116,9 @@ run_vpn_failover() {
         done
         forget_vpn_profile "${name}" "dead"
     done
+    if declare -F vpn_nm_switch_off >/dev/null 2>&1; then
+        vpn_nm_switch_off
+    fi
     if [[ "$(count_vpn_profiles)" == "0" ]]; then
         send_vpn_alert "-" "-" "-" "failover"
         run_vpn_mode_off
@@ -150,6 +138,9 @@ forget_vpn_profile() {
     [[ -n "${name}" ]] || return 1
     total="$(count_vpn_profiles)"
     remove_vpn_iface "${name}" || true
+    if declare -F remove_vpn_nm_connection >/dev/null 2>&1; then
+        remove_vpn_nm_connection "${name}" || true
+    fi
     rm -rf "$(get_vpn_profile_dir "${name}")"
     if declare -F remove_vpn_state >/dev/null 2>&1; then
         remove_vpn_state "${name}"

@@ -12,6 +12,7 @@ A later import, while mode is off, does not arm the killswitch again.<br/>
 `sudo ./liltress vpn mode on` arms the killswitch and opens a valid profile.<br/>
 With no valid profile, that command is refused and the killswitch stays off.<br/>
 `sudo ./liltress vpn mode off` disarms the killswitch and returns to the direct network. The profile directories stay.<br/>
+The profile appears in Settings → Network. The toggle is the mode. Import is not the + button.<br/>
 <br/>
 `sudo ./liltress vpn switch <name>` moves to another valid profile. The killswitch stays armed during the switch.<br/>
 A failed switch does not restore direct Internet and does not remove a profile.<br/>
