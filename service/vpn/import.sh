@@ -134,9 +134,12 @@ install_vpn_wireguard() {
     local name="$1" src="$2" brand="${3:-}" work private line trimmed section=""
     local peers=0 has_private=0 has_public=0 endpoint_line="" host port
     local ep4="" ep6="" pinned="" chosen="" address v6=0
-    local -a rows=()
+    local -a rows=() lack_fields=()
     check_vpn_import_name "${name}" || return 1
-    [[ -f "${src}" ]] || log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
+    [[ -f "${src}" ]] || {
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "$(basename -- "${src}")"
+        return 1
+    }
     private="$(get_vpn_private_field)"
     work="$(mktemp -d "$(get_vpn_home)/.import.XXXXXX")"
     chmod 700 "${work}"
@@ -158,16 +161,23 @@ install_vpn_wireguard() {
             endpoint_line="$(strip_vpn_text "${trimmed#*=}")"
         fi
     done < "${work}/source"
-    if (( peers != 1 || has_private != 1 || has_public != 1 )) || [[ -z "${endpoint_line}" ]]; then
+    if (( peers != 1 )); then
         rm -rf "${work}"
-        if (( peers != 1 )); then
-            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.peer" "${name}"
-        fi
-        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.peer" "${name}" "${peers}"
+        return 1
+    fi
+    (( has_private == 1 )) || lack_fields+=("$(get_vpn_private_field)")
+    (( has_public == 1 )) || lack_fields+=("PublicKey")
+    [[ -n "${endpoint_line}" ]] || lack_fields+=("Endpoint")
+    if (( ${#lack_fields[@]} )); then
+        rm -rf "${work}"
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "${lack_fields[*]}"
+        return 1
     fi
     read -r host port < <(get_vpn_wg_endpoint "${endpoint_line}") || {
         rm -rf "${work}"
-        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "Endpoint"
+        return 1
     }
     mapfile -t rows < <(get_vpn_host "${host}" || true)
     if (( ${#rows[@]} == 0 )); then
@@ -314,6 +324,28 @@ check_vpn_auth_file() {
     [[ "${count}" -ge 2 ]]
 }
 
+vpn_auth_line_count() {
+    local file="$1" count=0 line
+    [[ -f "${file}" && ! -L "${file}" ]] || {
+        printf '0'
+        return 0
+    }
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+        line="${line%$'\r'}"
+        line="$(strip_vpn_text "${line}")"
+        [[ -n "${line}" ]] || continue
+        count=$((count + 1))
+    done < "${file}"
+    printf '%s' "${count}"
+}
+
+vpn_auth_usable() {
+    local file="$1"
+    [[ -f "${file}" && ! -L "${file}" ]] || return 1
+    grep -q 'REPLACE' "${file}" && return 1
+    [[ "$(vpn_auth_line_count "${file}")" -ge 2 ]]
+}
+
 copy_vpn_material() {
     local key="$1" token="$2" extra="$3" dir="$4" work="$5"
     local path copied
@@ -373,7 +405,10 @@ install_vpn_openvpn() {
     local ep4="" ep6="" pinned="" chosen="" enc=0 extra=0 auth_done=0
     local -a rows=()
     check_vpn_import_name "${name}" || return 1
-    [[ -f "${src}" ]] || log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
+    [[ -f "${src}" ]] || {
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "$(basename -- "${src}")"
+        return 1
+    }
     load_vpn_settings
     dir="$(cd -- "$(dirname -- "${src}")" && pwd)"
     work="$(mktemp -d "$(get_vpn_home)/.import.XXXXXX")"
@@ -431,12 +466,15 @@ install_vpn_openvpn() {
                     continue
                 fi
                 token="$(get_vpn_ovpn_token "${rest}")"
+                if vpn_auth_usable "${dir}/auth.txt"; then
+                    token="auth.txt"
+                fi
                 if ! copy_vpn_auth "${dir}" "${work}" "${token}"; then
                     rm -rf "${work}"
-                    if [[ -n "${token}" ]]; then
-                        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
+                    if [[ -n "${token}" && ! -f "${dir}/${token}" ]]; then
+                        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "$(basename -- "${token}")"
                     else
-                        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.auth"
+                        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.auth" "$(vpn_auth_line_count "${dir}/auth.txt")"
                     fi
                     return 1
                 fi
@@ -452,7 +490,7 @@ install_vpn_openvpn() {
                 tail="$(get_vpn_ovpn_token "${tail}")"
                 if ! copy_vpn_material "${key}" "${token}" "${tail}" "${dir}" "${work}"; then
                     rm -rf "${work}"
-                    log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
+                    log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "$(basename -- "${token}")"
                     return 1
                 fi
                 ;;
@@ -466,19 +504,22 @@ install_vpn_openvpn() {
     done < "${work}/source"
     if [[ -z "${host}" ]]; then
         rm -rf "${work}"
-        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "remote"
+        return 1
     fi
     case "${proto}" in
         udp|udp4|udp6) proto="udp" ;;
         tcp|tcp4|tcp6|tcp-client|tcp-server) proto="tcp" ;;
         *)
             rm -rf "${work}"
-            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "proto"
+            return 1
             ;;
     esac
     [[ "${port}" =~ ^[0-9]+$ ]] || {
         rm -rf "${work}"
-        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}" "port"
+        return 1
     }
     mapfile -t rows < <(get_vpn_host "${host}" || true)
     if (( ${#rows[@]} == 0 )); then
@@ -587,12 +628,22 @@ vpn_brand_cited() {
 }
 
 vpn_brand_names() {
-    local dir="$1" name base ovpn cited
+    local dir="$1" name base ovpn cited miss="" expect="" found=""
     shift
+    local -a missing=()
     local -A allow=()
+    VPN_IMPORT_FAULT=""
     for name in "$@"; do
-        [[ -f "${dir}/${name}" ]] || return 2
-        allow["${name}"]=1
+        expect+="${expect:+ }${name}"
+        if [[ -L "${dir}/${name}" || ( -e "${dir}/${name}" && ! -f "${dir}/${name}" ) ]]; then
+            VPN_IMPORT_FAULT=$'notfile\t'"${name}"
+            return 2
+        fi
+        if [[ -f "${dir}/${name}" ]]; then
+            allow["${name}"]=1
+        else
+            missing+=("${name}")
+        fi
     done
     ovpn=""
     if [[ -f "${dir}/config.ovpn" ]]; then
@@ -606,19 +657,34 @@ vpn_brand_names() {
         done < <(vpn_brand_cited "${ovpn}")
     fi
     for name in "${dir}"/*; do
-        [[ -e "${name}" ]] || continue
+        [[ -e "${name}" || -L "${name}" ]] || continue
         base="$(basename -- "${name}")"
-        [[ -n "${allow[${base}]+x}" ]] || return 2
-        [[ -f "${name}" && ! -L "${name}" ]] || return 2
+        if [[ -L "${name}" || ! -f "${name}" ]]; then
+            VPN_IMPORT_FAULT=$'notfile\t'"${base}"
+            return 2
+        fi
+        found+="${found:+ }${base}"
+        if [[ -z "${allow[${base}]+x}" && ${#missing[@]} -eq 0 ]]; then
+            VPN_IMPORT_FAULT=$'extra\t'"${base}"$'\t'"${expect}"
+            return 2
+        fi
     done
+    if (( ${#missing[@]} )); then
+        miss="${missing[*]}"
+        VPN_IMPORT_FAULT=$'lack\t'"${miss}"$'\t'"${expect}"$'\t'"${found}"
+        return 2
+    fi
     return 0
 }
 
 vpn_brand_plain() {
-    local dir="$1" file
+    local dir="$1" file base
     for file in "${dir}"/*; do
-        [[ -f "${file}" ]] || continue
+        [[ -e "${file}" || -L "${file}" ]] || continue
+        [[ -f "${file}" && ! -L "${file}" ]] || continue
         if grep -q 'REPLACE' "${file}"; then
+            base="$(basename -- "${file}")"
+            VPN_IMPORT_FAULT=$'replace\t'"${base}"
             return 3
         fi
     done
@@ -626,11 +692,16 @@ vpn_brand_plain() {
 }
 
 vpn_brand_openvpn() {
-    local dir="$1"
+    local dir="$1" count
     shift
     vpn_brand_names "${dir}" "$@" || return 2
     vpn_brand_plain "${dir}" || return 3
-    check_vpn_auth_file "${dir}/auth.txt" || return 4
+    count="$(vpn_auth_line_count "${dir}/auth.txt")"
+    if [[ "${count}" -lt 2 ]]; then
+        VPN_IMPORT_FAULT=$'auth\t'"${count}"
+        return 4
+    fi
+    return 0
 }
 
 vpn_brand_wireguard() {
@@ -639,48 +710,224 @@ vpn_brand_wireguard() {
     vpn_brand_plain "${dir}" || return 3
 }
 
-open_vpn_bundle() {
-    local path="$1" dest="$2" name base
-    if [[ -d "${path}" ]]; then
-        for name in "${path}"/*; do
-            [[ -e "${name}" ]] || continue
-            [[ -L "${name}" || ! -f "${name}" ]] && return 1
+log_vpn_import_fault() {
+    local name="$1" kind rest a b c
+    kind="${VPN_IMPORT_FAULT%%$'\t'*}"
+    rest="${VPN_IMPORT_FAULT#*$'\t'}"
+    [[ "${rest}" == "${VPN_IMPORT_FAULT}" ]] && rest=""
+    case "${kind}" in
+        absent)
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.absent" "${rest}" ;;
+        zipfile)
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.zipfile" "${rest}" ;;
+        zipdir)
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.zipdir" "${rest}" ;;
+        zipdeep)
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.zipdeep" "${rest}" ;;
+        zipsize)
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.zipsize" "${rest}" ;;
+        zipcount)
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.zipcount" "${rest}" ;;
+        notfile)
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.notfile" "${rest}" ;;
+        lack)
+            IFS=$'\t' read -r a b c <<< "${rest}"
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.lack" "${a}" "${b}" "${c}" ;;
+        extra)
+            IFS=$'\t' read -r a b <<< "${rest}"
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.extra" "${a}" "${b}" ;;
+        replace)
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.replace" "${rest}" ;;
+        auth)
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.auth" "${rest}" ;;
+        *)
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.shape" "${name}" ;;
+    esac
+    return 1
+}
+
+vpn_import_take_file() {
+    local src="$1" dest="$2" base
+    base="$(basename -- "${src}")"
+    [[ -e "${dest}/${base}" ]] && return 2
+    cp -a "${src}" "${dest}/${base}" || return 1
+    chmod 600 "${dest}/${base}"
+}
+
+open_vpn_dir() {
+    local path="$1" dest="$2" name base sub="" subs=0 other=0 count=0 rc=0
+    local -a roots=()
+    for name in "${path}"/*; do
+        [[ -e "${name}" || -L "${name}" ]] || continue
+        base="$(basename -- "${name}")"
+        if [[ -L "${name}" || ( ! -f "${name}" && ! -d "${name}" ) ]]; then
+            VPN_IMPORT_FAULT=$'notfile\t'"${base}"
+            return 1
+        fi
+        if [[ -d "${name}" ]]; then
+            subs=$((subs + 1))
+            sub="${name}"
+            continue
+        fi
+        roots+=("${name}")
+    done
+    if (( subs > 1 )); then
+        VPN_IMPORT_FAULT=$'zipdir\t'"$(basename -- "${sub}")"
+        return 1
+    fi
+    if (( subs == 1 )); then
+        for name in "${roots[@]+"${roots[@]}"}"; do
             base="$(basename -- "${name}")"
-            cp -a "${name}" "${dest}/${base}" || return 1
+            [[ "${base}" == "auth.txt" ]] || other=1
+        done
+        if (( other == 1 )); then
+            VPN_IMPORT_FAULT=$'zipdir\t'"$(basename -- "${sub}")"
+            return 1
+        fi
+        for name in "${sub}"/*; do
+            [[ -e "${name}" || -L "${name}" ]] || continue
+            base="$(basename -- "${name}")"
+            if [[ -d "${name}" ]]; then
+                VPN_IMPORT_FAULT=$'zipdeep\t'"$(basename -- "${sub}")/${base}"
+                return 1
+            fi
+            if [[ -L "${name}" || ! -f "${name}" ]]; then
+                VPN_IMPORT_FAULT=$'notfile\t'"${base}"
+                return 1
+            fi
+            count=$((count + 1))
+        done
+        count=$((count + ${#roots[@]}))
+        if (( count == 0 )); then
+            VPN_IMPORT_FAULT=$'zipdir\t'"$(basename -- "${sub}")"
+            return 1
+        fi
+        if (( count > 12 )); then
+            VPN_IMPORT_FAULT=$'zipcount\t'"${count}"
+            return 1
+        fi
+        for name in "${roots[@]+"${roots[@]}"}"; do
+            vpn_import_take_file "${name}" "${dest}" || rc=$?
+            if (( rc != 0 )); then
+                VPN_IMPORT_FAULT=$'zipdir\t'"$(basename -- "${sub}")"
+                return 1
+            fi
+        done
+        for name in "${sub}"/*; do
+            [[ -f "${name}" && ! -L "${name}" ]] || continue
+            vpn_import_take_file "${name}" "${dest}" || rc=$?
+            if (( rc != 0 )); then
+                VPN_IMPORT_FAULT=$'zipdir\t'"$(basename -- "${sub}")"
+                return 1
+            fi
         done
         return 0
     fi
-    [[ -f "${path}" ]] || return 1
-    python3 - "${path}" "${dest}" << 'PY'
+    if (( ${#roots[@]} == 0 )); then
+        VPN_IMPORT_FAULT=$'zipcount\t0'
+        return 1
+    fi
+    if (( ${#roots[@]} > 12 )); then
+        VPN_IMPORT_FAULT=$'zipcount\t'"${#roots[@]}"
+        return 1
+    fi
+    for name in "${roots[@]}"; do
+        vpn_import_take_file "${name}" "${dest}" || return 1
+    done
+    return 0
+}
+
+open_vpn_bundle() {
+    local path="$1" dest="$2" fault=""
+    VPN_IMPORT_FAULT=""
+    if [[ -d "${path}" ]]; then
+        open_vpn_dir "${path}" "${dest}"
+        return
+    fi
+    [[ -f "${path}" ]] || {
+        VPN_IMPORT_FAULT=$'absent\t'"${path}"
+        return 1
+    }
+    fault="$(python3 - "${path}" "${dest}" << 'PY'
 import os
 import sys
 import zipfile
 
 src, dest = sys.argv[1], sys.argv[2]
+
+def fail(kind, detail):
+    sys.stdout.write(kind + "\t" + detail + "\n")
+    sys.exit(1)
+
 try:
     archive = zipfile.ZipFile(src)
 except zipfile.BadZipFile:
-    sys.exit(1)
-found = []
+    fail("zipfile", os.path.basename(src))
+
+files = []
+dirs = set()
 for info in archive.infolist():
     raw = info.filename.replace("\\", "/").strip("/")
     if not raw:
         continue
-    if raw.startswith("/") or ".." in raw.split("/"):
-        sys.exit(1)
-    if "/" in raw:
-        sys.exit(1)
+    parts = raw.split("/")
+    if ".." in parts or len(parts) > 2:
+        fail("zipdeep", raw)
+    mode = info.external_attr >> 16
+    if mode and (mode & 0o170000) == 0o120000:
+        fail("notfile", parts[-1])
+    if info.is_dir():
+        if len(parts) == 1:
+            dirs.add(parts[0])
+        continue
     if info.file_size > 1048576:
-        sys.exit(1)
-    found.append((info, raw))
-if not found or len(found) > 12:
-    sys.exit(1)
-for info, base in found:
+        fail("zipsize", parts[-1])
+    files.append((info, parts))
+
+if len(files) > 12:
+    fail("zipcount", str(len(files)))
+
+root_files = []
+nested = []
+for info, parts in files:
+    if len(parts) == 1:
+        root_files.append((info, parts[0]))
+    else:
+        dirs.add(parts[0])
+        nested.append((info, parts[0], parts[1]))
+
+def write(info, base, folder):
     target = os.path.join(dest, base)
+    if os.path.lexists(target):
+        fail("zipdir", folder or base)
     with archive.open(info) as incoming, open(target, "wb") as outgoing:
         outgoing.write(incoming.read())
     os.chmod(target, 0o600)
+
+if not dirs:
+    if not root_files:
+        fail("zipcount", "0")
+    for info, base in root_files:
+        write(info, base, "")
+    sys.exit(0)
+
+if len(dirs) > 1:
+    fail("zipdir", sorted(dirs)[0])
+
+folder = next(iter(dirs))
+other = [base for _info, base in root_files if base != "auth.txt"]
+if other or (not nested and not root_files):
+    fail("zipdir", folder)
+
+for info, base in root_files:
+    write(info, base, folder)
+for info, _folder, base in nested:
+    write(info, base, folder)
 PY
+)" || {
+        VPN_IMPORT_FAULT="${fault}"
+        return 1
+    }
 }
 
 install_vpn_bundle() {
@@ -688,14 +935,14 @@ install_vpn_bundle() {
     local dest src rc=0 stage_file
     check_vpn_import_name "${name}" || return 1
     if [[ ! -e "${path}" ]]; then
-        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.missing" "${name}"
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.absent" "${path}"
         return 1
     fi
     dest="$(mktemp -d "$(get_vpn_home)/.bundle.XXXXXX")"
     chmod 700 "${dest}"
     if ! open_vpn_bundle "${path}" "${dest}"; then
         rm -rf "${dest}"
-        log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.shape" "${name}"
+        log_vpn_import_fault "${name}"
         return 1
     fi
     if ! declare -F "vpn_brand_${brand}" >/dev/null 2>&1; then
@@ -706,12 +953,11 @@ install_vpn_bundle() {
     "vpn_brand_${brand}" "${proto}" "${dest}" || rc=$?
     if (( rc != 0 )); then
         rm -rf "${dest}"
-        case "${rc}" in
-            1) log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.brand" "${brand}" "${proto}" ;;
-            3) log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.replace" "${name}" ;;
-            4) log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.auth" ;;
-            *) log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.shape" "${name}" ;;
-        esac
+        if (( rc == 1 )); then
+            log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.brand" "${brand}" "${proto}"
+            return 1
+        fi
+        log_vpn_import_fault "${name}"
         return 1
     fi
     case "${proto}" in

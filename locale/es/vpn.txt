@@ -52,7 +52,7 @@ El perfil {1} ya existe.
 Nombre de perfil inválido {1}.
 
 [vpn.import.missing]
-Al perfil {1} le falta un campo obligatorio.
+Al perfil {1} le falta {2}.
 
 [vpn.import.dns]
 El nombre {1} no se resolvió.
@@ -61,10 +61,10 @@ El nombre {1} no se resolvió.
 Los demás remote se ignoran. Se conserva {1}.
 
 [vpn.import.auth]
-auth.txt necesita dos líneas: el nombre, luego el secreto.
+Líneas útiles en auth.txt: {1}. Hacen falta 2.
 
 [vpn.import.peer]
-El perfil {1} debe tener un solo par.
+El perfil {1} tiene {2} par. Hace falta uno.
 
 [vpn.up.same]
 El túnel {1} ya está abierto.
@@ -221,6 +221,33 @@ La carpeta {1} no tiene los archivos de esta marca.
 
 [vpn.import.replace]
 La palabra REPLACE sigue presente en {1}.
+
+[vpn.import.absent]
+Archivo no encontrado: {1}.
+
+[vpn.import.zipfile]
+{1} no es un archivo zip.
+
+[vpn.import.zipdir]
+El archivo contiene la carpeta {1}. Los archivos deben estar en la raíz.
+
+[vpn.import.zipdeep]
+El archivo contiene una ruta prohibida: {1}.
+
+[vpn.import.zipsize]
+{1} supera 1 MB.
+
+[vpn.import.zipcount]
+El archivo contiene {1} archivos. El máximo es 12.
+
+[vpn.import.notfile]
+{1} no es un archivo regular.
+
+[vpn.import.lack]
+Falta {1}. Esperados: {2}. Presentes: {3}.
+
+[vpn.import.extra]
+Archivo inesperado {1}. Esperados: {2}.
 
 [vpn.failover.drop]
 El perfil {1} ya no responde. Se retira.

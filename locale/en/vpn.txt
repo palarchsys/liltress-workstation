@@ -52,7 +52,7 @@ Profile {1} already exists.
 Invalid profile name {1}.
 
 [vpn.import.missing]
-Profile {1} is missing a required field.
+Profile {1} does not have {2}.
 
 [vpn.import.dns]
 Name {1} did not resolve.
@@ -61,10 +61,10 @@ Name {1} did not resolve.
 Extra remotes ignored. Kept {1}.
 
 [vpn.import.auth]
-auth.txt needs two lines: the name, then the secret.
+Useful line count in auth.txt: {1}. Two lines are required.
 
 [vpn.import.peer]
-Profile {1} must contain one peer.
+Profile {1} has {2} peer. One is required.
 
 [vpn.up.same]
 Tunnel {1} is already up.
@@ -221,6 +221,33 @@ Folder {1} does not have this brand's files.
 
 [vpn.import.replace]
 The word REPLACE is still present in {1}.
+
+[vpn.import.absent]
+File not found: {1}.
+
+[vpn.import.zipfile]
+{1} is not a zip archive.
+
+[vpn.import.zipdir]
+The archive contains folder {1}. Files must sit at the root.
+
+[vpn.import.zipdeep]
+The archive contains a forbidden path: {1}.
+
+[vpn.import.zipsize]
+{1} is larger than 1 MB.
+
+[vpn.import.zipcount]
+The archive contains {1} files. The maximum is 12.
+
+[vpn.import.notfile]
+{1} is not a regular file.
+
+[vpn.import.lack]
+Missing {1}. Expected: {2}. Present: {3}.
+
+[vpn.import.extra]
+Unexpected file {1}. Expected: {2}.
 
 [vpn.failover.drop]
 Profile {1} no longer answers. It is removed.

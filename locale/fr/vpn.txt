@@ -52,7 +52,7 @@ Le profil {1} existe déjà.
 Nom de profil invalide {1}.
 
 [vpn.import.missing]
-Le profil {1} n'a pas un champ obligatoire.
+Le profil {1} n'a pas {2}.
 
 [vpn.import.dns]
 Le nom {1} n'a pas été résolu.
@@ -61,10 +61,10 @@ Le nom {1} n'a pas été résolu.
 Les autres remote sont ignorés. Conservé : {1}.
 
 [vpn.import.auth]
-auth.txt contient deux lignes : le nom, puis le secret.
+Nombre de lignes utiles dans auth.txt : {1}. Il en faut 2.
 
 [vpn.import.peer]
-Le profil {1} doit contenir un seul pair.
+Le profil {1} a {2} pair. Il en faut un.
 
 [vpn.up.same]
 Le tunnel {1} est déjà ouvert.
@@ -221,6 +221,33 @@ Le dossier {1} n'a pas les fichiers de cette marque.
 
 [vpn.import.replace]
 Le mot REPLACE est encore présent dans {1}.
+
+[vpn.import.absent]
+Fichier introuvable : {1}.
+
+[vpn.import.zipfile]
+{1} n'est pas une archive zip.
+
+[vpn.import.zipdir]
+L'archive contient le dossier {1}. Les fichiers doivent être à la racine.
+
+[vpn.import.zipdeep]
+L'archive contient un chemin interdit : {1}.
+
+[vpn.import.zipsize]
+{1} dépasse 1 Mo.
+
+[vpn.import.zipcount]
+L'archive contient {1} fichiers. Le maximum est 12.
+
+[vpn.import.notfile]
+{1} n'est pas un fichier régulier.
+
+[vpn.import.lack]
+Il manque {1}. Attendus : {2}. Présents : {3}.
+
+[vpn.import.extra]
+Fichier inattendu {1}. Attendus : {2}.
 
 [vpn.failover.drop]
 Le profil {1} ne répond plus. Il est retiré.

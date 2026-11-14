@@ -345,7 +345,7 @@ import zipfile
 path = sys.argv[1]
 with zipfile.ZipFile(path, "w") as archive:
     archive.writestr("config.ovpn", "remote 203.0.113.10 1194\nauth-user-pass\nREPLACE\n")
-    archive.writestr("auth.txt", "REPLACE\nREPLACE\n")
+    archive.writestr("auth.txt", "alice\nbob\n")
 PY
 brand_ok=1
 if ! install_vpn_bundle openvpn cyberghost cg-brand "${brand_cg}"; then
@@ -392,6 +392,138 @@ if [[ "${brand_ok}" -eq 1 ]]; then
     t_pass "vpn.brand" "marque, refus, REPLACE"
 else
     t_fail "vpn.brand" "contrôle de marque"
+fi
+
+export VPN_IMPORT_STAGE_ONLY=1
+vpn_fault_log="${ARTIFACTS}/vpn-fault.log"
+: > "${vpn_fault_log}"
+vpn_had_log_error=0
+if declare -F log_error >/dev/null 2>&1; then
+    vpn_had_log_error=1
+    eval "$(declare -f log_error | sed '1s/^log_error/vpn_saved_log_error/')"
+fi
+log_error() {
+    printf '%s\n' "$*" >> "${vpn_fault_log}"
+    return 0
+}
+wrap_zip="${ARTIFACTS}/vpn-wrap.zip"
+root_zip="${ARTIFACTS}/vpn-auth-root.zip"
+short_zip="${ARTIFACTS}/vpn-auth-short.zip"
+two_zip="${ARTIFACTS}/vpn-two-dir.zip"
+python3 - "${wrap_zip}" "${root_zip}" "${short_zip}" "${two_zip}" << 'PY'
+import sys
+import zipfile
+wrap, root, short, two = sys.argv[1:]
+ovpn = """client
+remote 203.0.113.10 443
+proto udp
+auth-user-pass password.txt
+redirect-gateway def1
+ca ca.crt
+cert client.crt
+key client.key
+"""
+
+def add(archive, prefix, auth):
+    archive.writestr(prefix + "openvpn.ovpn", ovpn)
+    archive.writestr(prefix + "ca.crt", "ca-body\n")
+    archive.writestr(prefix + "client.crt", "cert-body\n")
+    archive.writestr(prefix + "client.key", "key-body\n")
+    if auth is not None:
+        archive.writestr(prefix + "auth.txt", auth)
+
+with zipfile.ZipFile(wrap, "w") as archive:
+    add(archive, "cgwrap/", "alice\nbob\n")
+with zipfile.ZipFile(root, "w") as archive:
+    add(archive, "cgroot/", None)
+    archive.writestr("auth.txt", "alice\nbob\n")
+with zipfile.ZipFile(short, "w") as archive:
+    add(archive, "cgshort/", "alice\n")
+with zipfile.ZipFile(two, "w") as archive:
+    archive.writestr("one/openvpn.ovpn", "remote 203.0.113.10 1194\n")
+    archive.writestr("two/auth.txt", "alice\nbob\n")
+PY
+brand_extra="${ARTIFACTS}/vpn-brand-extra"
+brand_nokey="${ARTIFACTS}/vpn-brand-nokey"
+rm -rf "${brand_extra}" "${brand_nokey}"
+mkdir -p "${brand_extra}" "${brand_nokey}"
+cp -a "${brand_cg}/openvpn.ovpn" "${brand_cg}/ca.crt" "${brand_cg}/client.crt" "${brand_cg}/client.key" "${brand_cg}/auth.txt" "${brand_extra}/"
+printf 'note\n' > "${brand_extra}/readme.txt"
+{
+    printf '%s\n' '[Interface]'
+    printf '%s%s = %s\n' 'Private' 'Key' 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa='
+    printf '%s\n' 'Address = 10.66.0.2/32'
+    printf '%s\n' '[Peer]'
+    printf '%s\n' 'Endpoint = 203.0.113.20:51820'
+    printf '%s\n' 'AllowedIPs = 0.0.0.0/0'
+} > "${brand_nokey}/config.conf"
+detail_ok=1
+if ! install_vpn_bundle openvpn cyberghost cg-wrap "${wrap_zip}"; then
+    detail_ok=0
+fi
+grep -q 'auth-user-pass auth.txt' "${VPN_STAGE_DIR}/runtime" || detail_ok=0
+grep -q 'redirect-gateway' "${VPN_STAGE_DIR}/runtime" && detail_ok=0
+grep -q 'password.txt' "${VPN_STAGE_DIR}/runtime" && detail_ok=0
+[[ -f "${VPN_STAGE_DIR}/ca.crt" && -f "${VPN_STAGE_DIR}/client.key" ]] || detail_ok=0
+grep -q 'brand=cyberghost' "${VPN_STAGE_DIR}/meta" || detail_ok=0
+[[ -d "${import_root}/vpn/openvpn/cg-wrap" ]] && detail_ok=0
+if ! install_vpn_bundle openvpn cyberghost cg-root "${root_zip}"; then
+    detail_ok=0
+fi
+grep -q 'auth-user-pass auth.txt' "${VPN_STAGE_DIR}/runtime" || detail_ok=0
+[[ -d "${import_root}/vpn/openvpn/cg-root" ]] && detail_ok=0
+: > "${vpn_fault_log}"
+if ( install_vpn_bundle openvpn cyberghost cg-short "${short_zip}" ); then
+    detail_ok=0
+fi
+grep -q 'vpn.import.auth 1' "${vpn_fault_log}" || detail_ok=0
+[[ -d "${import_root}/vpn/openvpn/cg-short" ]] && detail_ok=0
+: > "${vpn_fault_log}"
+if ( install_vpn_bundle openvpn cyberghost cg-gone /no/such/vpn-archive.zip ); then
+    detail_ok=0
+fi
+grep -q 'vpn.import.absent' "${vpn_fault_log}" || detail_ok=0
+grep -q '/no/such/vpn-archive.zip' "${vpn_fault_log}" || detail_ok=0
+: > "${vpn_fault_log}"
+if ( install_vpn_bundle openvpn cyberghost cg-gap "${brand_gap}" ); then
+    detail_ok=0
+fi
+grep -q 'vpn.import.lack' "${vpn_fault_log}" || detail_ok=0
+grep -q 'client.key' "${vpn_fault_log}" || detail_ok=0
+: > "${vpn_fault_log}"
+if ( install_vpn_bundle openvpn cyberghost cg-extra "${brand_extra}" ); then
+    detail_ok=0
+fi
+grep -q 'vpn.import.extra' "${vpn_fault_log}" || detail_ok=0
+grep -q 'readme.txt' "${vpn_fault_log}" || detail_ok=0
+: > "${vpn_fault_log}"
+if ( install_vpn_bundle openvpn nordvpn nord-file "${brand_zip}" ); then
+    detail_ok=0
+fi
+grep -q 'vpn.import.replace' "${vpn_fault_log}" || detail_ok=0
+grep -q 'config.ovpn' "${vpn_fault_log}" || detail_ok=0
+: > "${vpn_fault_log}"
+if ( install_vpn_bundle wireguard mullvad mu-nokey "${brand_nokey}" ); then
+    detail_ok=0
+fi
+grep -q 'vpn.import.missing' "${vpn_fault_log}" || detail_ok=0
+grep -q 'PublicKey' "${vpn_fault_log}" || detail_ok=0
+[[ -d "${import_root}/vpn/wireguard/mu-nokey" ]] && detail_ok=0
+: > "${vpn_fault_log}"
+if ( install_vpn_bundle openvpn cyberghost cg-two "${two_zip}" ); then
+    detail_ok=0
+fi
+grep -q 'vpn.import.zipdir' "${vpn_fault_log}" || detail_ok=0
+if [[ "${vpn_had_log_error}" -eq 1 ]]; then
+    eval "$(declare -f vpn_saved_log_error | sed '1s/^vpn_saved_log_error/log_error/')"
+    unset -f vpn_saved_log_error
+else
+    unset -f log_error
+fi
+if [[ "${detail_ok}" -eq 1 ]]; then
+    t_pass "vpn.import.detail" "motif nommé, auth.txt adapté"
+else
+    t_fail "vpn.import.detail" "$(tr '\n' ' ' < "${vpn_fault_log}")"
 fi
 
 unset VPN_IMPORT_STAGE_ONLY
