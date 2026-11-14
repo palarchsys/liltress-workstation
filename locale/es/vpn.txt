@@ -192,6 +192,9 @@ El perfil {1} no es válido.
 [vpn.test.fail-reason]
 El perfil {1} no es válido: {2}.
 
+[vpn.nm.fail]
+NetworkManager rechazó el perfil {1}.
+
 [vpn.test.kept]
 El perfil {1} es válido. El túnel actual sigue.
 

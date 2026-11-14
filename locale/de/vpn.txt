@@ -192,6 +192,9 @@ Profil {1} ist nicht gültig.
 [vpn.test.fail-reason]
 Profil {1} ist nicht gültig: {2}.
 
+[vpn.nm.fail]
+NetworkManager hat das Profil {1} abgelehnt.
+
 [vpn.test.kept]
 Profil {1} ist gültig. Der aktuelle Tunnel bleibt.
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/08_mail.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -9,6 +9,15 @@ t_section "modèle éditable"
 MONO="$(cd -- "${T_ROOT}/.." && pwd)"
 mail_sh="${MONO}/share/core/mail/mail.sh"
 tpl="${T_ROOT}/template/mail.html"
+
+deliver="${MONO}/share/core/watchdog/deliver.sh"
+if ! grep -F -q 'mail --help 2>&1 | grep' "${deliver}" \
+   && grep -F -q "bash -c 'mail --help'" "${deliver}" \
+   && grep -F -q -- '--content-type' "${deliver}"; then
+    t_pass "mail.help" "l'aide de mail est lue en entier"
+else
+    t_fail "mail.help" "mail --help est encore coupé par grep"
+fi
 
 if grep -q '^MAIL_TEMPLATE="mail.html"$' "${T_ROOT}/config/global.conf" \
    && ! grep -q 'install_mail_templates' "${T_ROOT}/service/cron/configure.sh" \

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/deliver.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-14
 # Creator    : palarchsys
 # =============================================================================
 
@@ -235,7 +235,9 @@ ${detail}"
     fi
     local mail_type=()
     local mail_attach=()
-    if mail --help 2>&1 | grep -q -- '--content-type'; then
+    local mail_help=""
+    mail_help="$(bash -c 'mail --help' 2>&1 || true)"
+    if printf '%s\n' "${mail_help}" | grep -q -- '--content-type'; then
         mail_type+=(--content-type="text/html; charset=UTF-8")
     else
         mail_type+=(-a "Content-Type: text/html; charset=UTF-8")

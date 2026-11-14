@@ -48,10 +48,13 @@ vpn_route_lookup() {
 }
 
 clear_vpn_rule_prio() {
-    local prio="$1" guard=0
-    while (( guard < 64 )); do
-        ip rule del priority "${prio}" >/dev/null 2>&1 || return 0
-        guard=$((guard + 1))
+    local prio="$1" family guard
+    for family in -4 -6; do
+        guard=0
+        while (( guard < 64 )); do
+            ip "${family}" rule del priority "${prio}" >/dev/null 2>&1 || break
+            guard=$((guard + 1))
+        done
     done
 }
 

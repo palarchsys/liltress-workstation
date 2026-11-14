@@ -295,7 +295,7 @@ vpn_nm_render_openvpn() {
         fi
         printf '\n'
         printf '%s\n' '[user]'
-        printf 'data=liltress.profile=%s\n' "${name}"
+        printf 'liltress.profile=%s\n' "${name}"
     } > "${path}"
     chmod 600 "${path}"
 }
@@ -424,7 +424,7 @@ vpn_nm_render_wireguard() {
         fi
         printf '\n'
         printf '%s\n' '[user]'
-        printf 'data=liltress.profile=%s\n' "${name}"
+        printf 'liltress.profile=%s\n' "${name}"
     } > "${path}"
     chmod 600 "${path}"
 }
@@ -621,9 +621,11 @@ vpn_nm_set_active() {
 
 raise_vpn_link() {
     local name="$1" rc=0
+    VPN_NM_FAULT=""
     vpn_nm_hold_on
     if ! VPN_NM_AUTOCONNECT=1 install_vpn_nm_connection "${name}"; then
         rc=1
+        VPN_NM_FAULT="load"
     elif ! stop_vpn_nm_others "${name}"; then
         rc=1
     elif ! remember_vpn_direct_route; then
@@ -638,8 +640,10 @@ raise_vpn_link() {
         rc=1
     elif ! vpn_nm_up "${name}"; then
         rc=1
+        VPN_NM_FAULT="up"
     elif ! wait_vpn_nm "${name}"; then
         rc=1
+        VPN_NM_FAULT="up"
     fi
     if (( rc == 0 )); then
         clear_vpn_tunnel_routes || true

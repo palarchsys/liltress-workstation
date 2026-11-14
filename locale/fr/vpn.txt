@@ -192,6 +192,9 @@ Le profil {1} n'est pas valide.
 [vpn.test.fail-reason]
 Le profil {1} n'est pas valide : {2}.
 
+[vpn.nm.fail]
+NetworkManager a refusé le profil {1}.
+
 [vpn.test.kept]
 Le profil {1} est valide. Le tunnel courant reste.
 

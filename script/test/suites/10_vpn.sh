@@ -658,6 +658,14 @@ grep -q 'vpn.test.fail-reason cg-reason' "${reason_log}" || reason_ok=0
 grep -q 'ca.crt' "${reason_log}" || reason_ok=0
 grep -q '/var/tmp' "${reason_log}" && reason_ok=0
 grep -q 'vpn.import.auth-failed cg-auth' "${reason_log}" || reason_ok=0
+mkdir -p "${reason_root}/vpn/openvpn/cg-nmfail"
+printf '%s\n' 'Initialization Sequence Completed' > "${reason_root}/vpn/openvpn/cg-nmfail/probe.log"
+VPN_NM_FAULT="load"
+report_vpn_fail "cg-nmfail"
+nm_msg_ok=1
+grep -q 'vpn.nm.fail cg-nmfail' "${reason_log}" || nm_msg_ok=0
+grep -q 'vpn.test.fail cg-nmfail' "${reason_log}" && nm_msg_ok=0
+unset VPN_NM_FAULT
 if [[ "${reason_had_info}" -eq 1 ]]; then
     eval "$(declare -f vpn_saved_log_info | sed '1s/^vpn_saved_log_info/log_info/')"
     unset -f vpn_saved_log_info
@@ -680,6 +688,11 @@ if [[ "${reason_ok}" -eq 1 ]]; then
 else
     t_fail "vpn.fail-reason" "$(tr '\n' ' ' < "${reason_log}")"
     t_fail "vpn.auth-failed" "$(tr '\n' ' ' < "${reason_log}")"
+fi
+if [[ "${nm_msg_ok}" -eq 1 ]]; then
+    t_pass "vpn.nm.fail" "refus NetworkManager, poignée de main réussie"
+else
+    t_fail "vpn.nm.fail" "$(tr '\n' ' ' < "${reason_log}")"
 fi
 
 day_root="${ARTIFACTS}/vpn-day"
@@ -862,6 +875,9 @@ if [[ -f "${nm_file}" ]]; then
     grep -F -q "ca=${nm_ca}" "${nm_file}" || { nm_ok=0; nm_why="ca"; }
     grep -q '^username=user-one$' "${nm_file}" || { nm_ok=0; nm_why="user"; }
     grep -q '^password-flags=0$' "${nm_file}" || { nm_ok=0; nm_why="flags"; }
+    grep -qx 'liltress.profile=cg-nm' "${nm_file}" || { nm_ok=0; nm_why="marque"; }
+    grep -q '^data=' "${nm_file}" && { nm_ok=0; nm_why="data"; }
+    [[ "$(vpn_nm_profile_mark "${nm_file}")" == "cg-nm" ]] || { nm_ok=0; nm_why="lecture"; }
     [[ "$(stat -c '%a' "${nm_file}")" == "600" ]] || { nm_ok=0; nm_why="mode"; }
 fi
 grep -q 's3cret-line' "${nm_out}" && { nm_ok=0; nm_why="stdout"; }
@@ -897,6 +913,8 @@ if [[ -f "${wg_file}" ]]; then
     grep -q '^private-key=' "${wg_file}" || { nm_ok=0; nm_why="wg-key"; }
     grep -F -q "${wg_needle}" "${wg_file}" && { nm_ok=0; nm_why="aiguille"; }
     grep -q '^interface-name=wg-liltress$' "${wg_file}" || { nm_ok=0; nm_why="wg-iface"; }
+    grep -qx 'liltress.profile=cg-wg' "${wg_file}" || { nm_ok=0; nm_why="wg-marque"; }
+    grep -q '^data=' "${wg_file}" && { nm_ok=0; nm_why="wg-data"; }
 else
     nm_ok=0
     nm_why="wg-fichier"
@@ -909,6 +927,9 @@ printf '1\n' > "${nm_root}/vpn/direct.ok"
 cat > "${nm_root}/bin/ip" << 'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "${NM_IP_LOG}"
+if [[ "$1" == "-4" || "$1" == "-6" ]] && [[ "$2" == "rule" && "$3" == "del" ]]; then
+    exit 1
+fi
 if [[ "$1" == "rule" && "$2" == "del" ]]; then
     exit 1
 fi
@@ -926,6 +947,8 @@ else
 fi
 grep -q 'lookup w_direct' "${NM_IP_LOG}" || { nm_ok=0; nm_why="ssh-table"; }
 grep -q 'priority 45' "${NM_IP_LOG}" || { nm_ok=0; nm_why="ssh-prio"; }
+grep -qx -- '-4 rule del priority 45' "${NM_IP_LOG}" || { nm_ok=0; nm_why="del4"; }
+grep -qx -- '-6 rule del priority 45' "${NM_IP_LOG}" || { nm_ok=0; nm_why="del6"; }
 export PATH="${saved_nm_path}"
 write_vpn_state || { nm_ok=0; nm_why="etat"; }
 set_vpn_state_mode on || { nm_ok=0; nm_why="mode-on"; }

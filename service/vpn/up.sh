@@ -355,6 +355,11 @@ vpn_fault_line() {
 
 report_vpn_fail() {
     local name="$1" dir line file
+    if [[ "${VPN_NM_FAULT:-}" == "load" || "${VPN_NM_FAULT:-}" == "up" ]]; then
+        log_info "${INSTALL_WATCHER:-BASH}" "vpn.nm.fail" "${name}"
+        note_vpn_log test "${name}" fail "networkmanager ${VPN_NM_FAULT}"
+        return 0
+    fi
     dir="$(get_vpn_profile_dir "${name}")"
     for file in "${dir}/openvpn.log" "${dir}/probe.log"; do
         [[ -f "${file}" ]] || continue
@@ -423,6 +428,7 @@ prove_vpn_profile() {
 
 run_vpn_test() {
     local name="${1:-}" active first=0 raised=0 auth_file
+    VPN_NM_FAULT=""
     load_vpn_settings
     check_vpn_name "${name}" || log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.bad-name" "${name}"
     [[ -f "$(get_vpn_profile_dir "${name}")/runtime" ]] || log_error "${INSTALL_WATCHER:-BASH}" "vpn.profile.invalid" "${name}"
@@ -446,6 +452,7 @@ run_vpn_test() {
         prove_vpn_profile "${name}" || raised=$?
         if (( raised == 0 )); then
             if ! VPN_NM_AUTOCONNECT=0 install_vpn_nm_connection "${name}"; then
+                VPN_NM_FAULT="load"
                 record_vpn_attempt "${name}" 0
                 report_vpn_fail "${name}"
                 return 1
@@ -516,6 +523,7 @@ run_vpn_test() {
         return 0
     fi
     if ! VPN_NM_AUTOCONNECT=0 install_vpn_nm_connection "${name}"; then
+        VPN_NM_FAULT="load"
         record_vpn_attempt "${name}" 0
         clear_vpn_network
         report_vpn_fail "${name}"

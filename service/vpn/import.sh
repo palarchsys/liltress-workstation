@@ -120,7 +120,12 @@ finish_vpn_import() {
     mv "${work}" "${dest}"
     if declare -F run_vpn_test >/dev/null 2>&1; then
         if ! run_vpn_test "${name}"; then
-            note_vpn_log import "${name}" fail "handshake ${proto}"
+            if [[ "${VPN_NM_FAULT:-}" == "load" || "${VPN_NM_FAULT:-}" == "up" ]]; then
+                note_vpn_log import "${name}" fail "networkmanager ${VPN_NM_FAULT} ${proto}"
+            else
+                note_vpn_log import "${name}" fail "handshake ${proto}"
+            fi
+            VPN_NM_FAULT=""
             if declare -F remove_vpn_nm_connection >/dev/null 2>&1; then
                 remove_vpn_nm_connection "${name}" || true
             fi

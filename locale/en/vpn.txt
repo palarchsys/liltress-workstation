@@ -192,6 +192,9 @@ Profile {1} is not valid.
 [vpn.test.fail-reason]
 Profile {1} is not valid: {2}.
 
+[vpn.nm.fail]
+NetworkManager refused profile {1}.
+
 [vpn.test.kept]
 Profile {1} is valid. The current tunnel stays.
 
