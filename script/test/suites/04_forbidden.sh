@@ -52,6 +52,29 @@ if grep -qF 'interface: 127.0.0.1' "${resolver}" \
 else
     t_fail "require.unbound-ipv4" "Unbound écoute encore ::1"
 fi
+dns_sh="${T_ROOT}/service/unbound/dns.sh"
+cfg_sh="${T_ROOT}/service/unbound/configure.sh"
+run_sh="${T_ROOT}/script/run.sh"
+crowd_sh="${MONO}/share/service/crowdsec/install.sh"
+dns_ok=1
+grep -q '^clear_dns_override()' "${dns_sh}" || dns_ok=0
+grep -q '^apply_unbound_dns()' "${dns_sh}" || dns_ok=0
+grep -q 'clear_dns_override' "${run_sh}" || dns_ok=0
+awk '
+    /ready=0/ { seen = 1 }
+    seen && /clear_dns_override/ { cleared = 1 }
+    seen && /apply_unbound_dns/ { applied = 1 }
+    END { exit !(cleared && applied) }
+' "${cfg_sh}" || dns_ok=0
+grep -q 'ipv4.dns 127.0.0.1' "${cfg_sh}" && dns_ok=0
+grep -q '/dev/tcp/127.0.0.1/53' "${T_ROOT}/service/unbound/nm-dispatcher.sh" || dns_ok=0
+grep -q 'rm -f "${CROWDSEC_KEY}"' "${crowd_sh}" && dns_ok=0
+grep -q 'packagecloud.io' "${crowd_sh}" || dns_ok=0
+if [[ "${dns_ok}" -eq 1 ]]; then
+    t_pass "require.dns-after-unbound" "DNS local seulement si Unbound écoute"
+else
+    t_fail "require.dns-after-unbound" "le DNS 127.0.0.1 précède Unbound"
+fi
 ipv6_hits="$(t_get_forbidden_hit 'disable_ipv6[[:space:]]*=' \
     | grep -v 'system/sysctl/configure.sh:' \
     | grep -v '/script/test/' || true)"

@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/configure.txt
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -760,6 +760,12 @@ Unbound konfiguriert (Auflösung auf der Arbeitsplatz, Wurzeln aktuell)
 
 [configure.unbound-is-not-ready-after-the-start-of-the-serv]
 Unbound ist nicht bereit nach der Start des Dienst
+
+[configure.return-to-the-network-dns]
+Rückkehr zum DNS des Netzes.
+
+[configure.network-dns-restored]
+Das DNS des Netzes ist wiederhergestellt.
 
 [configure.update-of-the-initramfs-modules-blacklist]
 Aktualisierung des initramfs (Module blacklist)

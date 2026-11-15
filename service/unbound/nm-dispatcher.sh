@@ -28,6 +28,9 @@ if command -v nmcli >/dev/null 2>&1; then
         esac
     fi
 fi
+if ! timeout 1 bash -c ':</dev/tcp/127.0.0.1/53' >/dev/null 2>&1; then
+    exit 0
+fi
 if command -v resolvectl >/dev/null 2>&1; then
     resolvectl dns "${interface}" 127.0.0.1 >/dev/null 2>&1 \
         || true

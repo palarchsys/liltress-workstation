@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/run.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -46,6 +46,10 @@ printf '\n' >&2
 init_install_log
 record_account_snapshot
 trap install_exit EXIT
+
+# shellcheck disable=SC1091
+source "${INSTALL_DIRECTORY}/service/unbound/dns.sh"
+clear_dns_override
 
 run_install_action() {
     local name="$1"

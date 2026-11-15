@@ -9,11 +9,9 @@ INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
 
-# shellcheck disable=SC2155
-readonly DIR_SCRIPT_PATH="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-
 source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
+source "${INSTALL_DIRECTORY}/service/unbound/dns.sh"
 require_root
 
 log_info         "${INSTALL_WATCHER}" "configure.configuration-of-unbound"
@@ -33,10 +31,6 @@ fi
 
 check_out="$(unbound-checkconf 2>&1)" || log_error        "${INSTALL_WATCHER}" "configure.unbound-checkconf-refuses-the-configuration" "${check_out}"
 
-ensure_directory /etc/systemd/resolved.conf.d 755
-grep -v '^#' "$(locate_config_file unbound/resolved.conf)" > /etc/systemd/resolved.conf.d/90-liltress-workstation.conf
-chmod 644 /etc/systemd/resolved.conf.d/90-liltress-workstation.conf
-
 ensure_directory /etc/systemd/system/systemd-resolved.service.d 755
 grep -v '^#' "$(locate_config_file unbound/resolved-service.conf)" > /etc/systemd/system/systemd-resolved.service.d/90-liltress-workstation.conf
 chmod 644 /etc/systemd/system/systemd-resolved.service.d/90-liltress-workstation.conf
@@ -48,47 +42,11 @@ chmod 644 /etc/systemd/system/unbound.service.d/90-liltress-workstation.conf
 install -m 644 "$(locate_config_file unbound/root-hints.service)" /etc/systemd/system/w-unbound-root-hints.service
 install -m 644 "$(locate_config_file unbound/root-hints.path)" /etc/systemd/system/w-unbound-root-hints.path
 
-ensure_directory /etc/NetworkManager/conf.d 755
-grep -v '^#' "$(locate_config_file unbound/networkmanager.conf)" > /etc/NetworkManager/conf.d/90-liltress-workstation-dns.conf
-chmod 644 /etc/NetworkManager/conf.d/90-liltress-workstation-dns.conf
-
-install -d -m 755 /etc/NetworkManager/dispatcher.d
-install -m 755 "${DIR_SCRIPT_PATH}/nm-dispatcher.sh" \
-    /etc/NetworkManager/dispatcher.d/10-liltress-workstation-dns
-
-if command -v nmcli >/dev/null 2>&1; then
-    while IFS=: read -r uuid ctype; do
-        [[ -n "${uuid}" ]] || continue
-        case "${ctype}" in
-            802-3-ethernet|802-11-wireless|gsm|cdma)
-                run_optional     "${INSTALL_WATCHER}" "configure.unbound.error.3" nmcli connection modify "${uuid}" \
-                    ipv4.ignore-auto-dns yes \
-                    ipv6.ignore-auto-dns yes \
-                    ipv4.dns 127.0.0.1
-                ;;
-        esac
-    done < <(nmcli -t -f UUID,TYPE connection show 2>/dev/null || true)
-fi
-
 run_optional     "${INSTALL_WATCHER}" "configure.unbound.error.4" systemctl disable --now unbound-resolvconf.service
 run_silent       "${INSTALL_WATCHER}" "configure.unbound.error.5" systemctl daemon-reload
 run_silent       "${INSTALL_WATCHER}" "configure.unbound.error.6" systemctl enable unbound.service
 run_silent       "${INSTALL_WATCHER}" "configure.unbound.error.7" systemctl restart unbound.service
 run_silent       "${INSTALL_WATCHER}" "configure.unbound.error.8" systemctl enable --now w-unbound-root-hints.path
-run_silent       "${INSTALL_WATCHER}" "configure.unbound.error.9" systemctl restart systemd-resolved.service
-run_optional     "${INSTALL_WATCHER}" "configure.unbound.error.10" systemctl reload NetworkManager
-
-if command -v nmcli >/dev/null 2>&1; then
-    while IFS=: read -r dev dtype; do
-        [[ -n "${dev}" ]] || continue
-        case "${dtype}" in
-            ethernet|wifi|gsm)
-                run_optional     "${INSTALL_WATCHER}" "configure.unbound.error.11" resolvectl dns "${dev}" 127.0.0.1
-                ;;
-        esac
-    done < <(nmcli -t -f DEVICE,TYPE device status 2>/dev/null || true)
-fi
-run_optional     "${INSTALL_WATCHER}" "configure.unbound.error.12" resolvectl flush-caches
 
 ready=0
 for _ in 1 2 3 4 5 6 7 8 9 10; do
@@ -99,8 +57,10 @@ for _ in 1 2 3 4 5 6 7 8 9 10; do
     sleep 1
 done
 if [[ "${ready}" -ne 1 ]]; then
+    clear_dns_override
     log_error        "${INSTALL_WATCHER}" "configure.unbound-is-not-ready-after-the-start-of-the-serv"
 fi
+apply_unbound_dns
 
 resolved=0
 query_out=""

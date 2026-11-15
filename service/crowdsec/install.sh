@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/crowdsec/install.sh
-# Updated at : 2026-11-07
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -17,9 +17,13 @@ log_info         "${INSTALL_WATCHER}" "install.record-of-the-repository-crowdsec
 ensure_directory /etc/apt/keyrings 755
 CROWDSEC_KEY="/etc/apt/keyrings/crowdsec_crowdsec-archive-keyring.gpg"
 CROWDSEC_LIST="/etc/apt/sources.list.d/crowdsec_crowdsec.list"
-rm -f "${CROWDSEC_KEY}"
-curl -fsSL https://packagecloud.io/crowdsec/crowdsec/gpgkey | gpg --batch --yes --dearmor -o "${CROWDSEC_KEY}"
-chmod 644 "${CROWDSEC_KEY}"
+key_tmp="$(mktemp)"
+if ! curl -fsSL https://packagecloud.io/crowdsec/crowdsec/gpgkey | gpg --batch --yes --dearmor -o "${key_tmp}"; then
+    rm -f "${key_tmp}"
+    log_error        "${INSTALL_WATCHER}" "install.crowdsec.error" "packagecloud.io"
+fi
+install -m 644 "${key_tmp}" "${CROWDSEC_KEY}"
+rm -f "${key_tmp}"
 chown root:root "${CROWDSEC_KEY}"
 sed "s|__KEY__|${CROWDSEC_KEY}|g" "$(locate_config_file crowdsec/package.list)" \
     | grep -v '^#' > "${CROWDSEC_LIST}"
