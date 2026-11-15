@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # File       : service/unbound/nm-dispatcher.sh
-# Updated at : 2026-10-05
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -29,8 +29,7 @@ if command -v nmcli >/dev/null 2>&1; then
     fi
 fi
 if command -v resolvectl >/dev/null 2>&1; then
-    resolvectl dns "${interface}" 127.0.0.1 ::1 >/dev/null 2>&1 \
-        || resolvectl dns "${interface}" 127.0.0.1 >/dev/null 2>&1 \
+    resolvectl dns "${interface}" 127.0.0.1 >/dev/null 2>&1 \
         || true
 fi
 exit 0

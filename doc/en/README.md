@@ -99,7 +99,7 @@ The installation places the packages and services below.
 | clamav                                          | On-access scan and boot scan.                                                                                            |
 | crowdsec                                        | Local security decisions.                                                                                                |
 | debsums                                         | Checksums of packaged files.                                                                                             |
-| unbound                                         | Local DNS resolver on `127.0.0.1` and `::1`, port 53.                                                                    |
+| unbound                                         | Local DNS resolver on `127.0.0.1`, port 53.                                                                              |
 | wireguard-tools, openvpn, conntrack             | One WireGuard or OpenVPN tunnel. It stays off until a profile is validated.                                              |
 | apparmor                                        | Distribution profiles. `service/apparmor/userns.sh` removes an hfu profile that is not shipped.                          |
 | aide                                            | File integrity database `/var/lib/aide/aide.db`.                                                                         |

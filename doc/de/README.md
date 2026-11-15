@@ -99,7 +99,7 @@ Die Installation setzt die folgenden Pakete und Dienste.
 | clamav                                          | Prüfung beim Zugriff und Prüfung beim Start.                                                                                                       |
 | crowdsec                                        | Lokale Sicherheitsentscheidungen.                                                                                                                  |
 | debsums                                         | Prüfsummen der Paketdateien.                                                                                                                       |
-| unbound                                         | Lokaler DNS-Resolver auf `127.0.0.1` und `::1`, Port 53.                                                                                           |
+| unbound                                         | Lokaler DNS-Resolver auf `127.0.0.1`, Port 53.                                                                                                 |
 | wireguard-tools, openvpn, conntrack             | Ein WireGuard- oder OpenVPN-Tunnel. Er bleibt aus, bis ein Profil bestätigt ist.                                         |
 | apparmor                                        | Distributionsprofile. `service/apparmor/userns.sh` entfernt ein w-Profil, das nicht geliefert wird.                                              |
 | aide                                            | Integritätsbasis `/var/lib/aide/aide.db`.                                                                                                          |

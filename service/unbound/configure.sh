@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/unbound/configure.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -64,8 +64,7 @@ if command -v nmcli >/dev/null 2>&1; then
                 run_optional     "${INSTALL_WATCHER}" "configure.unbound.error.3" nmcli connection modify "${uuid}" \
                     ipv4.ignore-auto-dns yes \
                     ipv6.ignore-auto-dns yes \
-                    ipv4.dns 127.0.0.1 \
-                    ipv6.dns ::1
+                    ipv4.dns 127.0.0.1
                 ;;
         esac
     done < <(nmcli -t -f UUID,TYPE connection show 2>/dev/null || true)
@@ -84,7 +83,7 @@ if command -v nmcli >/dev/null 2>&1; then
         [[ -n "${dev}" ]] || continue
         case "${dtype}" in
             ethernet|wifi|gsm)
-                run_optional     "${INSTALL_WATCHER}" "configure.unbound.error.11" resolvectl dns "${dev}" 127.0.0.1 ::1
+                run_optional     "${INSTALL_WATCHER}" "configure.unbound.error.11" resolvectl dns "${dev}" 127.0.0.1
                 ;;
         esac
     done < <(nmcli -t -f DEVICE,TYPE device status 2>/dev/null || true)

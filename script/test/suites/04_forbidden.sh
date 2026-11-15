@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/04_forbidden.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -38,6 +38,19 @@ if grep -qF 'net.ipv6.conf.all.disable_ipv6 = 1' "${sysctl_file}" \
     t_pass "require.ipv6-off" "sysctl et UFW coupent IPv6"
 else
     t_fail "require.ipv6-off" "IPv6 poste non coupé par défaut"
+fi
+resolver="${T_ROOT}/config/unbound/resolver.conf"
+resolved="${T_ROOT}/config/unbound/resolved.conf"
+if grep -qF 'interface: 127.0.0.1' "${resolver}" \
+    && ! grep -qF 'interface: ::1' "${resolver}" \
+    && grep -qF 'do-ip6: no' "${resolver}" \
+    && grep -qF 'DNS=127.0.0.1' "${resolved}" \
+    && ! grep -qF 'DNS=::1' "${resolved}" \
+    && ! grep -qF '::1' "${T_ROOT}/service/unbound/configure.sh" \
+    && ! grep -qF '::1' "${T_ROOT}/service/unbound/nm-dispatcher.sh"; then
+    t_pass "require.unbound-ipv4" "Unbound écoute 127.0.0.1"
+else
+    t_fail "require.unbound-ipv4" "Unbound écoute encore ::1"
 fi
 ipv6_hits="$(t_get_forbidden_hit 'disable_ipv6[[:space:]]*=' \
     | grep -v 'system/sysctl/configure.sh:' \

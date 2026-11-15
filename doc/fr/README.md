@@ -99,7 +99,7 @@ L'installation pose les paquets et les services ci-dessous.
 | clamav | Analyse à l'accès et analyse au démarrage. |
 | crowdsec | Décisions de sécurité locales. |
 | debsums | Sommes de contrôle des fichiers des paquets. |
-| unbound | Résolveur DNS local sur `127.0.0.1` et `::1`, port 53. |
+| unbound | Résolveur DNS local sur `127.0.0.1`, port 53. |
 | wireguard-tools, openvpn, conntrack | Un tunnel WireGuard ou OpenVPN. Il reste coupé tant qu'aucun profil n'est validé. |
 | apparmor | Profils de la distribution. `service/apparmor/userns.sh` retire un profil hfu qui n'est pas livré. |
 | aide | Base d'intégrité `/var/lib/aide/aide.db`. |
