@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/aide/refresh-db.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -43,20 +43,48 @@ if [[ ! -f /etc/aide/aide.conf ]]; then
 fi
 printf '%s\n' "$(get_text log.the-calculation-of-the-fingerprints-can-take-sev)"
 
-rm -f /var/lib/aide/aide.db.new /var/lib/aide/aide.db.new.gz
+# Two refreshes share this directory. One starts by unlinking database_out
+# while the other aide still has that path open, then the report names a file
+# that is already gone. The lock covers the removal, the init and the install.
+# A waiter keeps the database the holder just installed.
+aide_dir="/var/lib/aide"
+lock_path="${aide_dir}/.refresh.lock"
+stamp_path="${aide_dir}/.refresh.stamp"
+waited=0
+wait_start=0
+if command -v flock >/dev/null 2>&1; then
+    mkdir -p -- "${aide_dir}"
+    exec 8>>"${lock_path}"
+    wait_start="$(date +%s)"
+    if ! flock -n 8; then
+        waited=1
+        flock 8
+    fi
+fi
+if [[ "${waited}" -eq 1 && -f "${stamp_path}" ]]; then
+    stamp_value="$(tr -d '[:space:]' < "${stamp_path}")"
+    if [[ "${stamp_value}" =~ ^[0-9]+$ && "${stamp_value}" -ge "${wait_start}" ]]; then
+        printf '%s\n' "$(get_text log.baseline-help-saved)"
+        exit 0
+    fi
+fi
+
+rm -f "${aide_dir}/aide.db.new" "${aide_dir}/aide.db.new.gz"
 set +e
 aide --config=/etc/aide/aide.conf --init
 aide_rc=$?
 set -e
-if [[ -f /var/lib/aide/aide.db.new.gz ]]; then
-    mv -f /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
-    ln -sfn /var/lib/aide/aide.db.gz /var/lib/aide/aide.db
-elif [[ -f /var/lib/aide/aide.db.new ]]; then
-    mv -f /var/lib/aide/aide.db.new /var/lib/aide/aide.db
+if [[ -f "${aide_dir}/aide.db.new.gz" ]]; then
+    mv -f "${aide_dir}/aide.db.new.gz" "${aide_dir}/aide.db.gz"
+    ln -sfn "${aide_dir}/aide.db.gz" "${aide_dir}/aide.db"
+elif [[ -f "${aide_dir}/aide.db.new" ]]; then
+    mv -f "${aide_dir}/aide.db.new" "${aide_dir}/aide.db"
 else
     printf '%s\n' "$(get_text log.base-help-not-generated-help-db-new-not-found-de "${aide_rc}")" >&2
     exit 1
 fi
+printf '%s\n' "$(date +%s)" > "${stamp_path}"
+chmod 600 "${stamp_path}" 2>/dev/null || true
 if [[ "${aide_rc}" -ne 0 ]]; then
     printf '%s\n' "$(get_text log.help-init-a-returned-an-error-detail "${aide_rc}")"
 fi

@@ -39,11 +39,39 @@ vpn_nm_stamp_on() {
 }
 
 vpn_nm_hold_on() {
-    vpn_nm_stamp_on "$(vpn_nm_hold_path)"
+    local file count old
+    file="$(vpn_nm_hold_path)"
+    mkdir -p "$(dirname -- "${file}")"
+    if [[ -f "${file}" ]]; then
+        count="$(tr -d '[:space:]' < "${file}")"
+        [[ "${count}" =~ ^[0-9]+$ ]] || count=0
+        count=$((count + 1))
+    else
+        count=1
+    fi
+    old="$(umask)"
+    umask 077
+    printf '%s\n' "${count}" > "${file}"
+    umask "${old}"
+    chmod 600 "${file}"
 }
 
 vpn_nm_hold_off() {
-    rm -f "$(vpn_nm_hold_path)"
+    local file count old
+    file="$(vpn_nm_hold_path)"
+    [[ -f "${file}" ]] || return 0
+    count="$(tr -d '[:space:]' < "${file}")"
+    [[ "${count}" =~ ^[0-9]+$ ]] || count=1
+    if [[ "${count}" -le 1 ]]; then
+        rm -f -- "${file}"
+        return 0
+    fi
+    count=$((count - 1))
+    old="$(umask)"
+    umask 077
+    printf '%s\n' "${count}" > "${file}"
+    umask "${old}"
+    chmod 600 "${file}"
 }
 
 vpn_nm_held() {

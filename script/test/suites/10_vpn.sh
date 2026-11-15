@@ -993,6 +993,20 @@ NM_TRACE=""
 handle_vpn_nm_event tun-liltress vpn-up
 [[ -z "${NM_TRACE}" ]] || { nm_ok=0; nm_why="retenu"; }
 vpn_nm_hold_off
+vpn_nm_hold_on
+vpn_nm_hold_on
+vpn_nm_hold_off
+if vpn_nm_held; then
+    :
+else
+    nm_ok=0
+    nm_why="compte"
+fi
+vpn_nm_hold_off
+if vpn_nm_held; then
+    nm_ok=0
+    nm_why="compte-fin"
+fi
 NM_TRACE=""
 handle_vpn_nm_event tun-liltress vpn-up
 [[ "${NM_TRACE}" == *"on"* ]] || { nm_ok=0; nm_why="mode"; }
@@ -1078,6 +1092,41 @@ if [[ "${hook_ok}" -eq 1 ]]; then
     t_pass "vpn.integrity" "recalcul après retrait, pas sur un essai en échec"
 else
     t_fail "vpn.integrity" "import ${import_hits} retrait ${forget_hits} veille ${watch_hits}"
+fi
+
+race_ok=1
+race_dir="${ARTIFACTS}/aide-race"
+rm -rf "${race_dir}"
+mkdir -p "${race_dir}/bin" "${race_dir}/db"
+printf 'out\n' > "${race_dir}/aide.conf"
+cat > "${race_dir}/bin/aide" << EOF
+#!/usr/bin/env bash
+printf '1\n' >> "${race_dir}/calls"
+sleep 2
+printf 'db\n' > "${race_dir}/db/aide.db.new"
+exit 0
+EOF
+chmod 755 "${race_dir}/bin/aide"
+sed \
+    -e "s#/var/lib/aide#${race_dir}/db#g" \
+    -e "s#/etc/aide/aide.conf#${race_dir}/aide.conf#g" \
+    -e 's/\[\[ "${EUID}" -ne 0 \]\]/false/' \
+    "${T_ROOT}/service/aide/refresh-db.sh" > "${race_dir}/refresh-db.sh"
+race_path="${race_dir}/bin:${PATH}"
+PATH="${race_path}" bash "${race_dir}/refresh-db.sh" >"${race_dir}/out-a" 2>"${race_dir}/err-a" &
+race_pid_a=$!
+PATH="${race_path}" bash "${race_dir}/refresh-db.sh" >"${race_dir}/out-b" 2>"${race_dir}/err-b" &
+race_pid_b=$!
+wait "${race_pid_a}" || race_ok=0
+wait "${race_pid_b}" || race_ok=0
+[[ -f "${race_dir}/db/aide.db" ]] || race_ok=0
+grep -qx 'db' "${race_dir}/db/aide.db" 2>/dev/null || race_ok=0
+race_calls="$(wc -l < "${race_dir}/calls" 2>/dev/null | tr -d '[:space:]')"
+[[ "${race_calls}" == "1" ]] || race_ok=0
+if [[ "${race_ok}" -eq 1 ]]; then
+    t_pass "vpn.aide.refresh" "deux recalculs, une base, un seul aide"
+else
+    t_fail "vpn.aide.refresh" "appels ${race_calls:-0}"
 fi
 
 # shellcheck disable=SC1091

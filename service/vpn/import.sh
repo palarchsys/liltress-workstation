@@ -118,8 +118,14 @@ finish_vpn_import() {
     chmod 700 "${work}"
     find "${work}" -type f -exec chmod 600 {} +
     mv "${work}" "${dest}"
+    if declare -F vpn_nm_hold_on >/dev/null 2>&1; then
+        vpn_nm_hold_on
+    fi
     if declare -F run_vpn_test >/dev/null 2>&1; then
         if ! run_vpn_test "${name}"; then
+            if declare -F vpn_nm_hold_off >/dev/null 2>&1; then
+                vpn_nm_hold_off
+            fi
             if [[ "${VPN_NM_FAULT:-}" == "load" || "${VPN_NM_FAULT:-}" == "up" ]]; then
                 note_vpn_log import "${name}" fail "networkmanager ${VPN_NM_FAULT} ${proto}"
             else
@@ -140,7 +146,16 @@ finish_vpn_import() {
     if declare -F log_success >/dev/null 2>&1; then
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.import.ok" "${name}" "${endpoint}"
     fi
-    refresh_vpn_integrity
+    refresh_rc=0
+    (
+        refresh_vpn_integrity
+    ) || refresh_rc=$?
+    if declare -F vpn_nm_hold_off >/dev/null 2>&1; then
+        vpn_nm_hold_off
+    fi
+    if [[ "${refresh_rc}" -ne 0 ]]; then
+        exit "${refresh_rc}"
+    fi
 }
 
 install_vpn_wireguard() {
