@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/state.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -45,15 +45,21 @@ run_vpn_state() {
 }
 
 read_vpn_state() {
-    local line
+    local line rest
     VPN_MODE=off
     VPN_ACTIVE=
+    VPN_DEFAULT=
     line="$(run_vpn_state read "$(get_vpn_state_path)" 2>/dev/null || true)"
     VPN_MODE="${line%%$'\n'*}"
+    rest=""
     if [[ "${line}" == *$'\n'* ]]; then
-        VPN_ACTIVE="${line#*$'\n'}"
+        rest="${line#*$'\n'}"
     fi
-    VPN_ACTIVE="${VPN_ACTIVE//$'\n'/}"
+    VPN_ACTIVE="${rest%%$'\n'*}"
+    if [[ "${rest}" == *$'\n'* ]]; then
+        VPN_DEFAULT="${rest#*$'\n'}"
+    fi
+    VPN_DEFAULT="${VPN_DEFAULT%%$'\n'*}"
     [[ "${VPN_MODE}" == "on" ]] || VPN_MODE=off
 }
 
@@ -111,6 +117,16 @@ set_vpn_state_mode() {
 
 set_vpn_state_active() {
     run_vpn_state active "$(get_vpn_state_path)" "$1"
+}
+
+get_vpn_state_default() {
+    local line
+    line="$(run_vpn_state read "$(get_vpn_state_path)" 2>/dev/null || true)"
+    printf '%s\n' "$(printf '%s\n' "${line}" | sed -n '3p')"
+}
+
+set_vpn_state_default() {
+    run_vpn_state default "$(get_vpn_state_path)" "${1:-}"
 }
 
 refresh_vpn_state() {

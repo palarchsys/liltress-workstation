@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/up.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -483,11 +483,13 @@ run_vpn_test() {
     fi
     if (( first == 1 )); then
         set_vpn_state_mode on
+        set_vpn_state_default "${name}"
         load_vpn_settings
         apply_vpn_systemd || true
         raised=0
         apply_vpn_profile "${name}" || raised=$?
         if (( raised != 0 )); then
+            set_vpn_state_default ""
             set_vpn_state_mode off
             load_vpn_settings
             apply_vpn_systemd || true

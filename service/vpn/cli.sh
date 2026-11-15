@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/cli.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -48,7 +48,8 @@ show_vpn_usage() {
 }
 
 remove_vpn_profile() {
-    local name="${1:-}" active total
+    local name="${1:-}" active total was_active=0
+    local -a successors=()
     [[ -n "${name}" ]] || show_vpn_usage
     if ! check_vpn_name "${name}"; then
         note_vpn_log rm "${name}" fail "bad-name"
@@ -58,13 +59,79 @@ remove_vpn_profile() {
         note_vpn_log rm "${name}" fail "missing"
         log_error "${INSTALL_WATCHER}" "vpn.rm.missing" "${name}"
     fi
+    load_vpn_settings
     active="$(get_vpn_active 2>/dev/null || true)"
     total="$(count_vpn_profiles)"
-    if [[ "${active}" == "${name}" && "${total}" != "1" ]]; then
+    if [[ "${active}" == "${name}" && "${total}" != "1" && "${VPN_DEFAULT:-}" != "${name}" ]]; then
         note_vpn_log rm "${name}" fail "active"
         log_error "${INSTALL_WATCHER}" "vpn.rm.active" "${name}"
     fi
+    if [[ "${VPN_DEFAULT:-}" == "${name}" && "${total}" != "1" ]]; then
+        mapfile -t successors < <(list_vpn_successors "${name}")
+        if [[ "${active}" == "${name}" ]]; then
+            was_active=1
+        fi
+        VPN_DEFER_INTEGRITY=1
+        forget_vpn_profile "${name}" "rm"
+        VPN_DEFER_INTEGRITY=0
+        run_vpn_successor "${was_active}" "${successors[@]}" || true
+        refresh_vpn_integrity
+        return 0
+    fi
     forget_vpn_profile "${name}" "rm"
+}
+
+show_vpn_default() {
+    load_vpn_settings
+    if [[ -n "${VPN_DEFAULT:-}" ]]; then
+        printf '%s\n' "$(get_text vpn.status.default "${VPN_DEFAULT}")"
+        return 0
+    fi
+    printf '%s\n' "$(get_text vpn.status.default-none)"
+}
+
+set_vpn_default() {
+    local name="${1:-}"
+    [[ -n "${name}" ]] || show_vpn_usage
+    if ! check_vpn_name "${name}"; then
+        note_vpn_log default "${name}" fail "bad-name"
+        log_error "${INSTALL_WATCHER}" "vpn.import.bad-name" "${name}"
+    fi
+    if [[ ! -f "$(get_vpn_profile_dir "${name}")/meta" ]]; then
+        note_vpn_log default "${name}" fail "missing"
+        log_error "${INSTALL_WATCHER}" "vpn.default.missing" "${name}"
+    fi
+    if ! check_vpn_profile_valid "${name}"; then
+        note_vpn_log default "${name}" fail "invalid"
+        log_error "${INSTALL_WATCHER}" "vpn.default.invalid" "${name}"
+    fi
+    set_vpn_state_default "${name}"
+    load_vpn_settings
+    apply_vpn_systemd || {
+        note_vpn_log default "${name}" fail "install"
+        log_error "${INSTALL_WATCHER}" "vpn.install.fail"
+    }
+    if declare -F vpn_nm_apply_autoconnect >/dev/null 2>&1; then
+        vpn_nm_apply_autoconnect || true
+    fi
+    refresh_vpn_integrity
+    note_vpn_log default "${name}" ok ""
+    log_success "${INSTALL_WATCHER}" "vpn.default.set" "${name}"
+}
+
+clear_vpn_default() {
+    local previous
+    load_vpn_settings
+    previous="${VPN_DEFAULT:-}"
+    set_vpn_state_default ""
+    load_vpn_settings
+    apply_vpn_systemd || true
+    if declare -F vpn_nm_apply_autoconnect >/dev/null 2>&1; then
+        vpn_nm_apply_autoconnect || true
+    fi
+    refresh_vpn_integrity
+    note_vpn_log default "${previous:-"-"}" ok "off"
+    log_success "${INSTALL_WATCHER}" "vpn.default.cleared"
 }
 
 show_vpn_status() {
@@ -72,6 +139,11 @@ show_vpn_status() {
     load_vpn_settings
     mode="${VPN_MODE:-off}"
     printf '%s\n' "$(get_text vpn.status.mode "${mode}")"
+    if [[ -n "${VPN_DEFAULT:-}" ]]; then
+        printf '%s\n' "$(get_text vpn.status.default "${VPN_DEFAULT}")"
+    else
+        printf '%s\n' "$(get_text vpn.status.default-none)"
+    fi
     if check_vpn_killswitch; then
         armed=1
         printf '%s\n' "$(get_text vpn.status.armed)"
@@ -171,13 +243,18 @@ run_vpn_bypass_reload() {
             apply_vpn_nft "" 0
         fi
     fi
+    refresh_vpn_integrity
     log_success "${INSTALL_WATCHER}" "vpn.bypass.reloaded"
 }
 
 arm_vpn_boot() {
     load_vpn_settings
-    if ! check_vpn_mode; then
+    if ! check_vpn_boot_on; then
+        set_vpn_state_mode off
+        load_vpn_settings
+        apply_vpn_systemd || true
         clear_vpn_network
+        refresh_vpn_integrity
         log_info "${INSTALL_WATCHER}" "vpn.direct.ok"
         exit 0
     fi
@@ -207,7 +284,10 @@ case "${cmd}" in
         ;;
     test)
         [[ $# -eq 1 ]] || show_vpn_usage
-        run_vpn_test "$1"
+        test_rc=0
+        run_vpn_test "$1" || test_rc=$?
+        refresh_vpn_integrity
+        exit "${test_rc}"
         ;;
     switch)
         [[ $# -eq 1 ]] || show_vpn_usage
@@ -220,6 +300,17 @@ case "${cmd}" in
             off) run_vpn_mode_off ;;
             *) show_vpn_usage ;;
         esac
+        ;;
+    default)
+        if [[ $# -eq 0 ]]; then
+            show_vpn_default
+        elif [[ $# -eq 1 && "$1" == "off" ]]; then
+            clear_vpn_default
+        elif [[ $# -eq 1 ]]; then
+            set_vpn_default "$1"
+        else
+            show_vpn_usage
+        fi
         ;;
     rm)
         [[ $# -eq 1 ]] || show_vpn_usage
@@ -243,11 +334,21 @@ case "${cmd}" in
         ;;
     boot-up)
         load_vpn_settings
-        if ! check_vpn_mode; then
+        if ! check_vpn_boot_on; then
+            set_vpn_state_mode off
+            load_vpn_settings
+            apply_vpn_systemd || true
             clear_vpn_network
+            refresh_vpn_integrity
             exit 0
         fi
+        if check_vpn_tunnel "${VPN_BOOT_PROFILE}"; then
+            exit 0
+        fi
+        VPN_DEFER_INTEGRITY=1
         run_vpn_failover
+        VPN_DEFER_INTEGRITY=0
+        refresh_vpn_integrity
         exit 0
         ;;
     *)

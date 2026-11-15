@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/import.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -140,7 +140,7 @@ finish_vpn_import() {
     if declare -F log_success >/dev/null 2>&1; then
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.import.ok" "${name}" "${endpoint}"
     fi
-    bash "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/refresh-integrity.sh"
+    refresh_vpn_integrity
 }
 
 install_vpn_wireguard() {
@@ -642,6 +642,7 @@ refresh_vpn_endpoint() {
     fi
     note_vpn_log refresh "${name}" ok "${pinned}"
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.refresh.ok" "${name}" "${pinned}"
+    refresh_vpn_integrity
 }
 
 vpn_brand_cited() {

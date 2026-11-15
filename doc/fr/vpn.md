@@ -5,23 +5,28 @@
 Le poste s'installe sans VPN. Le réseau reste direct.<br/>
 L'import est `sudo ./liltress vpn import openvpn <marque> <nom> <archive ou dossier>` ou `sudo ./liltress vpn import wireguard <marque> <nom> <archive ou dossier>`.<br/>
 La marque est obligatoire. Un fichier sans marque est refusé.<br/>
-Le premier profil valide arme le killswitch.<br/>
+Le premier profil valide devient le VPN de démarrage et arme le killswitch.<br/>
 Un dossier invalide n'est pas ajouté. S'il est le premier, le killswitch reste coupé.<br/>
-Un import plus tard, pendant que le mode est arrêté, ne réarme pas le killswitch.<br/>
+Un import plus tard, pendant que le mode est arrêté, ne remplace pas le VPN de démarrage et ne réarme pas le killswitch.<br/>
+<br/>
+Au démarrage, un VPN de démarrage valide arme le killswitch, puis ouvre ce profil.<br/>
+`sudo ./liltress vpn default` affiche ce profil, ou aucun.<br/>
+`sudo ./liltress vpn default <nom>` le choisit s'il est valide. La session en cours ne change pas.<br/>
+`sudo ./liltress vpn default off` retire ce choix. Le tunnel ouvert reste.<br/>
 <br/>
 `sudo ./liltress vpn mode on` arme le killswitch et ouvre un profil valide.<br/>
 Sans profil valide, cette commande est refusée et le killswitch reste coupé.<br/>
-`sudo ./liltress vpn mode off` désarme le killswitch et rend le réseau direct. Les dossiers des profils restent.<br/>
+`sudo ./liltress vpn mode off` désarme le killswitch et rend le réseau direct. Le VPN de démarrage reste pour le prochain démarrage. Les dossiers des profils restent.<br/>
 Le profil s'affiche dans Paramètres → Réseau. L'interrupteur est le mode. L'import n'est pas le bouton +.<br/>
 <br/>
-`sudo ./liltress vpn switch <nom>` passe à un autre profil valide. Le killswitch reste armé pendant la bascule.<br/>
+`sudo ./liltress vpn switch <nom>` passe à un autre profil valide. Le killswitch reste armé pendant la bascule. Le VPN de démarrage ne change pas.<br/>
 Un échec de bascule ne rend pas Internet direct et ne retire aucun profil.<br/>
 <br/>
 Un profil qui a déjà répondu, puis qui échoue trois essais de dix secondes, est retiré.<br/>
 Quand ce retrait enlève le dernier profil, le réseau redevient direct et le killswitch est désarmé.<br/>
 Le courrier d'alerte part avant ce désarmement.<br/>
-`sudo ./liltress vpn rm <nom>` retire un profil. Le retrait du dernier désarme le killswitch.<br/>
-Un profil actif reste tant qu'un autre profil existe.<br/>
+`sudo ./liltress vpn rm <nom>` retire un profil. Le retrait du VPN de démarrage essaie le profil suivant de la liste, après vérification. Le retrait du dernier retire le VPN de démarrage et désarme le killswitch.<br/>
+Un profil actif qui n'est pas le VPN de démarrage reste tant qu'un autre profil existe.<br/>
 Un échec de `sudo ./liltress vpn test <nom>` laisse le dossier.<br/>
 <br/>
 Chaque VPN WireGuard est un dossier `/opt/liltress-workstation/vpn/wireguard/<nom>/`.<br/>
@@ -38,7 +43,7 @@ L'exemple est `[192.168.1.0/24, 200.200.200.0/24]`.<br/>
 Unbound est relancé après un changement de mode ou une bascule.<br/>
 L'IPv6 global est bloqué lorsque le tunnel n'a pas d'IPv6.<br/>
 Une plage publique écrite dans le fichier sort en clair.<br/>
-Après le retrait du dernier profil, le prochain profil valide arme de nouveau le killswitch.
+Après le retrait du dernier profil, le prochain profil valide redevient le VPN de démarrage et arme le killswitch.
 
 ## 📋 Formes d'import
 

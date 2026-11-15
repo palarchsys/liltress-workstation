@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/es/vpn.txt
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -16,6 +16,9 @@ Uso: liltress vpn <orden>
   switch <nombre>
   mode on
   mode off
+  default
+  default <nombre>
+  default off
   rm <nombre>
   bypass
   bypass reload
@@ -281,3 +284,27 @@ La base rkhunter no se reescribió.
 
 [vpn.integrity.stamp]
 El sello de integridad no se reescribió.
+
+[vpn.default.set]
+El perfil de arranque es {1}.
+
+[vpn.default.cleared]
+Perfil de arranque retirado.
+
+[vpn.default.invalid]
+El perfil {1} no es válido.
+
+[vpn.default.missing]
+El perfil {1} no está.
+
+[vpn.default.promoted]
+El perfil de arranque pasa a {1}.
+
+[vpn.default.promote-none]
+Ningún perfil siguiente es válido.
+
+[vpn.status.default]
+Perfil de arranque {1}.
+
+[vpn.status.default-none]
+Ningún perfil de arranque.

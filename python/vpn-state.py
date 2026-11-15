@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/vpn-state.py
-# Updated at : 2026-11-12
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,7 +18,7 @@ def now():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def blank():
-    return {"mode": "off", "active": "", "profiles": []}
+    return {"mode": "off", "active": "", "default": "", "profiles": []}
 
 def load():
     try:
@@ -34,6 +34,9 @@ def load():
     active = raw.get("active")
     if not isinstance(active, str):
         active = ""
+    default = raw.get("default")
+    if not isinstance(default, str):
+        default = ""
     profiles = raw.get("profiles")
     clean = []
     if isinstance(profiles, list):
@@ -57,7 +60,7 @@ def load():
                 "observed_at": text("observed_at"),
                 "tested_at": text("tested_at"),
             })
-    return {"mode": mode, "active": active, "profiles": clean}, True
+    return {"mode": mode, "active": active, "default": default, "profiles": clean}, True
 
 def save(data):
     parent = os.path.dirname(path)
@@ -92,6 +95,7 @@ if cmd == "read":
         data = blank()
     print(data["mode"])
     print(data["active"])
+    print(data["default"])
 elif cmd == "init":
     if not os.path.exists(path):
         save(blank())
@@ -100,6 +104,9 @@ elif cmd == "mode":
     save(data)
 elif cmd == "active":
     data["active"] = args[0] if args else ""
+    save(data)
+elif cmd == "default":
+    data["default"] = args[0] if args else ""
     save(data)
 elif cmd == "attempt":
     name, proto, flag = args
@@ -136,6 +143,10 @@ elif cmd == "candidates":
     if active in names:
         names.remove(active)
         names.insert(0, active)
+    chosen = data["default"]
+    if chosen in names:
+        names.remove(chosen)
+        names.insert(0, chosen)
     for name in names:
         print(name)
 elif cmd == "show":
@@ -158,12 +169,16 @@ elif cmd == "drop-missing":
     data["profiles"] = [item for item in data["profiles"] if item["name"] in keep]
     if data["active"] not in keep:
         data["active"] = ""
+    if data["default"] not in keep:
+        data["default"] = ""
     save(data)
 elif cmd == "remove":
     name = args[0]
     data["profiles"] = [item for item in data["profiles"] if item["name"] != name]
     if data["active"] == name:
         data["active"] = ""
+    if data["default"] == name:
+        data["default"] = ""
     save(data)
 else:
     sys.exit(2)

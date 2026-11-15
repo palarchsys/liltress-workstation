@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/en/vpn.txt
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -16,6 +16,9 @@ Usage: liltress vpn <command>
   switch <name>
   mode on
   mode off
+  default
+  default <name>
+  default off
   rm <name>
   bypass
   bypass reload
@@ -281,3 +284,27 @@ The rkhunter baseline was not rewritten.
 
 [vpn.integrity.stamp]
 The integrity stamp was not rewritten.
+
+[vpn.default.set]
+Startup profile is {1}.
+
+[vpn.default.cleared]
+Startup profile cleared.
+
+[vpn.default.invalid]
+Profile {1} is not valid.
+
+[vpn.default.missing]
+Profile {1} is missing.
+
+[vpn.default.promoted]
+Startup profile is now {1}.
+
+[vpn.default.promote-none]
+No next profile is valid.
+
+[vpn.status.default]
+Startup profile {1}.
+
+[vpn.status.default-none]
+No startup profile.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/nm.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -63,16 +63,36 @@ vpn_nm_switching() {
 }
 
 vpn_nm_wants_auto() {
-    local name="$1" active
+    local name="$1" active chosen
     if [[ "${VPN_NM_AUTOCONNECT:-}" == "0" ]]; then
         return 1
     fi
-    if [[ "${VPN_NM_AUTOCONNECT:-}" == "1" ]]; then
-        return 0
+    if declare -F load_vpn_settings >/dev/null 2>&1; then
+        load_vpn_settings
     fi
-    check_vpn_mode || return 1
+    chosen="${VPN_BOOT_PROFILE:-}"
+    [[ -n "${chosen}" && "${chosen}" == "${name}" ]] || return 1
     active="$(get_vpn_active 2>/dev/null || true)"
     [[ -z "${active}" || "${active}" == "${name}" ]]
+}
+
+vpn_nm_apply_autoconnect() {
+    local name active chosen want
+    if declare -F load_vpn_settings >/dev/null 2>&1; then
+        load_vpn_settings
+    fi
+    chosen="${VPN_BOOT_PROFILE:-}"
+    active="$(get_vpn_active 2>/dev/null || true)"
+    while IFS= read -r name; do
+        [[ -n "${name}" ]] || continue
+        want="false"
+        if [[ -n "${chosen}" && "${name}" == "${chosen}" ]]; then
+            if [[ -z "${active}" || "${active}" == "${name}" ]]; then
+                want="true"
+            fi
+        fi
+        vpn_nm_set_autoconnect "${name}" "${want}" || true
+    done < <(vpn_nm_each)
 }
 
 vpn_nm_token() {
@@ -519,18 +539,6 @@ vpn_nm_autoconnect_all() {
     done < <(vpn_nm_each)
 }
 
-vpn_nm_prefer() {
-    local name="$1" other
-    while IFS= read -r other; do
-        [[ -n "${other}" ]] || continue
-        if [[ "${other}" == "${name}" ]]; then
-            vpn_nm_set_autoconnect "${other}" true || true
-        else
-            vpn_nm_set_autoconnect "${other}" false || true
-        fi
-    done < <(vpn_nm_each)
-}
-
 stop_vpn_nm_others() {
     local keep="$1" name
     command -v nmcli >/dev/null 2>&1 || return 0
@@ -623,7 +631,7 @@ raise_vpn_link() {
     local name="$1" rc=0
     VPN_NM_FAULT=""
     vpn_nm_hold_on
-    if ! VPN_NM_AUTOCONNECT=1 install_vpn_nm_connection "${name}"; then
+    if ! install_vpn_nm_connection "${name}"; then
         rc=1
         VPN_NM_FAULT="load"
     elif ! stop_vpn_nm_others "${name}"; then
@@ -648,7 +656,7 @@ raise_vpn_link() {
     if (( rc == 0 )); then
         clear_vpn_tunnel_routes || true
         apply_vpn_nft "${name}" 1 || rc=1
-        vpn_nm_prefer "${name}" || true
+        vpn_nm_apply_autoconnect || true
     else
         vpn_nm_set_autoconnect "${name}" false || true
         if [[ -z "${VPN_NM_DIR:-}" ]] && command -v nmcli >/dev/null 2>&1; then
@@ -693,6 +701,9 @@ quiet_vpn_down() {
     restart_vpn_services || true
     note_vpn_log mode-off "-" ok "nm"
     vpn_nm_hold_off
+    if declare -F refresh_vpn_integrity >/dev/null 2>&1; then
+        refresh_vpn_integrity || true
+    fi
 }
 
 handle_vpn_nm_event() {
@@ -726,6 +737,9 @@ handle_vpn_nm_event() {
             apply_vpn_nft "${profile}" 1 || true
             restart_vpn_services || true
             note_vpn_log mode-on "${profile}" ok "nm"
+            if declare -F refresh_vpn_integrity >/dev/null 2>&1; then
+                refresh_vpn_integrity || true
+            fi
             ;;
         vpn-down)
             if vpn_nm_switching || vpn_nm_any_up; then

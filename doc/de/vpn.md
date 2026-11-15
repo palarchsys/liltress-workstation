@@ -5,23 +5,28 @@
 Die Installation des Rechners startet ohne VPN. Das Netz bleibt direkt.<br/>
 Der Import ist `sudo ./liltress vpn import openvpn <Marke> <Name> <Archiv oder Ordner>` oder `sudo ./liltress vpn import wireguard <Marke> <Name> <Archiv oder Ordner>`.<br/>
 Die Marke ist Pflicht. Eine Datei ohne Marke wird abgelehnt.<br/>
-Das erste gültige Profil schärft den Killswitch.<br/>
+Das erste gültige Profil wird zum Start-VPN und schärft den Killswitch.<br/>
 Ein ungültiger Ordner wird nicht hinzugefügt. Ist er der erste, bleibt der Killswitch aus.<br/>
-Ein späterer Import, während der Modus aus ist, schärft den Killswitch nicht erneut.<br/>
+Ein späterer Import, während der Modus aus ist, ersetzt das Start-VPN nicht und schärft den Killswitch nicht erneut.<br/>
+<br/>
+Beim Start schärft ein gültiges Start-VPN den Killswitch und öffnet dann dieses Profil.<br/>
+`sudo ./liltress vpn default` zeigt dieses Profil oder keines.<br/>
+`sudo ./liltress vpn default <Name>` wählt es, wenn es gültig ist. Die laufende Sitzung bleibt.<br/>
+`sudo ./liltress vpn default off` nimmt diese Wahl zurück. Ein offener Tunnel bleibt offen.<br/>
 <br/>
 `sudo ./liltress vpn mode on` schärft den Killswitch und öffnet ein gültiges Profil.<br/>
 Ohne gültiges Profil wird dieser Befehl abgelehnt und der Killswitch bleibt aus.<br/>
-`sudo ./liltress vpn mode off` entschärft den Killswitch und stellt das direkte Netz her. Die Profilordner bleiben.<br/>
+`sudo ./liltress vpn mode off` entschärft den Killswitch und stellt das direkte Netz her. Das Start-VPN bleibt für den nächsten Start. Die Profilordner bleiben.<br/>
 Das Profil erscheint unter Einstellungen → Netzwerk. Der Schalter ist der Modus. Der Import ist nicht die Schaltfläche +.<br/>
 <br/>
-`sudo ./liltress vpn switch <Name>` wechselt zu einem anderen gültigen Profil. Der Killswitch bleibt während des Wechsels scharf.<br/>
+`sudo ./liltress vpn switch <Name>` wechselt zu einem anderen gültigen Profil. Der Killswitch bleibt während des Wechsels scharf. Das Start-VPN ändert sich nicht.<br/>
 Ein fehlgeschlagener Wechsel stellt das direkte Internet nicht her und entfernt kein Profil.<br/>
 <br/>
 Ein Profil, das schon geantwortet hat und dann drei Versuche von zehn Sekunden verfehlt, wird entfernt.<br/>
 Nimmt diese Entfernung das letzte Profil, wird das Netz direkt und der Killswitch wird entschärft.<br/>
 Die Alarmmail geht vor dieser Entschärfung hinaus.<br/>
-`sudo ./liltress vpn rm <Name>` entfernt ein Profil. Das Entfernen des letzten entschärft den Killswitch.<br/>
-Ein aktives Profil bleibt, solange ein anderes Profil existiert.<br/>
+`sudo ./liltress vpn rm <Name>` entfernt ein Profil. Das Entfernen des Start-VPN prüft das nächste Profil der Liste. Das Entfernen des letzten löscht das Start-VPN und entschärft den Killswitch.<br/>
+Ein aktives Profil, das nicht das Start-VPN ist, bleibt, solange ein anderes Profil existiert.<br/>
 Ein Fehlschlag von `sudo ./liltress vpn test <Name>` lässt den Ordner stehen.<br/>
 <br/>
 Jedes WireGuard-VPN ist ein Ordner `/opt/liltress-workstation/vpn/wireguard/<Name>/`.<br/>
@@ -38,7 +43,7 @@ Das Beispiel ist `[192.168.1.0/24, 200.200.200.0/24]`.<br/>
 Unbound wird nach einem Moduswechsel oder einer Umschaltung neu gestartet.<br/>
 Globales IPv6 wird blockiert, wenn der Tunnel kein IPv6 hat.<br/>
 Ein öffentlicher Bereich in der Datei geht im Klartext hinaus.<br/>
-Nach dem Entfernen des letzten Profils schärft das nächste gültige Profil den Killswitch wieder.
+Nach dem Entfernen des letzten Profils wird das nächste gültige Profil wieder zum Start-VPN und schärft den Killswitch.
 
 ## 📋 Importformen
 

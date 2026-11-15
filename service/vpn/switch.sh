@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/switch.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -27,6 +27,12 @@ fail_vpn_switch() {
     clear_vpn_active
     send_vpn_alert "${name}" "${proto}" "${endpoint%% *}" "switch"
     restart_vpn_services
+    if declare -F vpn_nm_apply_autoconnect >/dev/null 2>&1; then
+        vpn_nm_apply_autoconnect || true
+    fi
+    if declare -F refresh_vpn_integrity >/dev/null 2>&1; then
+        refresh_vpn_integrity || true
+    fi
     note_vpn_log switch "${name}" fail "${proto}"
     log_error "${INSTALL_WATCHER:-BASH}" "vpn.switch.fail" "${name}"
 }
@@ -88,6 +94,12 @@ run_vpn_switch() {
     set_vpn_state_active "${name}"
     record_vpn_attempt "${name}" 1
     restart_vpn_services
+    if declare -F vpn_nm_apply_autoconnect >/dev/null 2>&1; then
+        vpn_nm_apply_autoconnect || true
+    fi
+    if declare -F refresh_vpn_integrity >/dev/null 2>&1; then
+        refresh_vpn_integrity || true
+    fi
     note_vpn_log switch "${name}" ok ""
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.switch.ok" "${name}"
 }

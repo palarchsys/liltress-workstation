@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/10_vpn.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -183,6 +183,7 @@ grep -q 'VPN_FAILOVER_TRIES=3' "${cfg_dir}/vpn.conf" || mode_ok=0
 grep -q 'VPN_FAILOVER_TIMEOUT=10' "${cfg_dir}/vpn.conf" || mode_ok=0
 grep -q 'TimeoutStartSec=300' "${cfg_dir}/w-vpn.service" || mode_ok=0
 grep -q 'w-vpn-watch.timer' "${vpn_dir}/configure.sh" || mode_ok=0
+grep -q 'default)' "${vpn_dir}/cli.sh" || mode_ok=0
 if grep -E '^[[:space:]]+up\)' "${vpn_dir}/cli.sh" || grep -E '^[[:space:]]+down\)' "${vpn_dir}/cli.sh" || grep -E '^[[:space:]]+boot\)' "${vpn_dir}/cli.sh"; then
     mode_ok=0
 fi
@@ -1028,13 +1029,16 @@ else
 fi
 
 hook_ok=1
-import_hits="$(grep -c 'refresh-integrity.sh' "${vpn_dir}/import.sh" || true)"
-forget_hits="$(grep -c 'refresh-integrity.sh' "${vpn_dir}/failover.sh" || true)"
-[[ "${import_hits}" == "1" ]] || hook_ok=0
+import_hits="$(grep -c 'refresh_vpn_integrity' "${vpn_dir}/import.sh" || true)"
+forget_hits="$(awk '/^forget_vpn_profile\(\)/,/^}/' "${vpn_dir}/failover.sh" | grep -c 'refresh_vpn_integrity' || true)"
+watch_hits="$(awk '/^run_vpn_watch\(\)/,/^}/' "${vpn_dir}/failover.sh" | grep -c 'refresh_vpn_integrity' || true)"
+[[ "${import_hits}" == "2" ]] || hook_ok=0
 [[ "${forget_hits}" == "3" ]] || hook_ok=0
+[[ "${watch_hits}" == "0" ]] || hook_ok=0
+grep -q 'refresh-integrity.sh' "${vpn_dir}/lib.sh" || hook_ok=0
 stage_line="$(grep -n 'VPN_IMPORT_STAGE_ONLY' "${vpn_dir}/import.sh" | head -n 1 | cut -d: -f1)"
 ok_line="$(grep -n 'vpn.import.ok' "${vpn_dir}/import.sh" | head -n 1 | cut -d: -f1)"
-hook_line="$(grep -n 'refresh-integrity.sh' "${vpn_dir}/import.sh" | head -n 1 | cut -d: -f1)"
+hook_line="$(grep -n 'refresh_vpn_integrity' "${vpn_dir}/import.sh" | head -n 1 | cut -d: -f1)"
 [[ -n "${stage_line}" && -n "${ok_line}" && -n "${hook_line}" ]] || hook_ok=0
 [[ "${stage_line}" -lt "${ok_line}" && "${ok_line}" -lt "${hook_line}" ]] || hook_ok=0
 if [[ "${EUID}" -ne 0 && ! -f /etc/aide/aide.conf ]]; then
@@ -1073,5 +1077,175 @@ fi
 if [[ "${hook_ok}" -eq 1 ]]; then
     t_pass "vpn.integrity" "recalcul après retrait, pas sur un essai en échec"
 else
-    t_fail "vpn.integrity" "import ${import_hits} retrait ${forget_hits}"
+    t_fail "vpn.integrity" "import ${import_hits} retrait ${forget_hits} veille ${watch_hits}"
+fi
+
+# shellcheck disable=SC1091
+source "${vpn_dir}/lib.sh"
+# shellcheck disable=SC1091
+source "${vpn_dir}/state.sh"
+# shellcheck disable=SC1091
+source "${vpn_dir}/failover.sh"
+apply_vpn_systemd() { return 0; }
+clear_vpn_network() { return 0; }
+restart_vpn_services() { return 0; }
+vpn_nm_apply_autoconnect() { return 0; }
+finish_vpn_open() { return 0; }
+arm_vpn_lockdown() {
+    LOCK_TRACE="${LOCK_TRACE}lock"
+    return 0
+}
+export VPN_SKIP_INTEGRITY=1
+export VPN_DEFER_INTEGRITY=0
+
+default_root="${ARTIFACTS}/vpn-default-root"
+rm -rf "${default_root}"
+mkdir -p "${default_root}/vpn/wireguard/office" "${default_root}/vpn/wireguard/home"
+printf 'proto=wireguard\n' > "${default_root}/vpn/wireguard/office/meta"
+printf 'proto=wireguard\n' > "${default_root}/vpn/wireguard/home/meta"
+saved_default_base="${CONFIG_BASE_DIRECTORY:-}"
+export CONFIG_BASE_DIRECTORY="${default_root}"
+default_ok=1
+write_vpn_state || default_ok=0
+set_vpn_state_default "ghost" || default_ok=0
+load_vpn_settings
+[[ "${VPN_DEFAULT}" == "ghost" ]] || default_ok=0
+[[ "${VPN_ON_BOOT}" == "0" ]] || default_ok=0
+[[ -z "${VPN_BOOT_PROFILE}" ]] || default_ok=0
+check_vpn_boot_on && default_ok=0
+record_vpn_attempt office 1 || default_ok=0
+set_vpn_state_default office || default_ok=0
+load_vpn_settings
+[[ "${VPN_DEFAULT}" == "office" ]] || default_ok=0
+[[ "${VPN_ON_BOOT}" == "1" ]] || default_ok=0
+[[ "${VPN_BOOT_PROFILE}" == "office" ]] || default_ok=0
+check_vpn_boot_on || default_ok=0
+[[ "$(get_vpn_state_default)" == "office" ]] || default_ok=0
+set_vpn_state_mode off || default_ok=0
+load_vpn_settings
+[[ "${VPN_MODE}" == "off" ]] || default_ok=0
+[[ "${VPN_DEFAULT}" == "office" ]] || default_ok=0
+[[ "${VPN_ON_BOOT}" == "1" ]] || default_ok=0
+python3 - "${default_root}/vpn/vpn.json" << 'PY' || default_ok=0
+import json
+import sys
+path = sys.argv[1]
+raw = {
+    "mode": "on",
+    "active": "home",
+    "profiles": [
+        {
+            "name": "home",
+            "proto": "wireguard",
+            "valid": True,
+            "validated_at": "2026-11-15T00:00:01Z",
+            "observed_at": "2026-11-15T00:00:01Z",
+            "tested_at": "2026-11-15T00:00:01Z",
+        },
+        {
+            "name": "office",
+            "proto": "wireguard",
+            "valid": True,
+            "validated_at": "2026-11-15T00:00:03Z",
+            "observed_at": "2026-11-15T00:00:03Z",
+            "tested_at": "2026-11-15T00:00:03Z",
+        },
+    ],
+}
+with open(path, "w", encoding="utf-8") as handle:
+    json.dump(raw, handle)
+PY
+load_vpn_settings
+[[ "${VPN_MODE}" == "on" ]] || default_ok=0
+[[ -z "${VPN_DEFAULT}" ]] || default_ok=0
+[[ "${VPN_ON_BOOT}" == "0" ]] || default_ok=0
+set_vpn_state_default office || default_ok=0
+set_vpn_state_active home || default_ok=0
+order="$(list_vpn_failover_names)"
+[[ "$(printf '%s\n' "${order}" | sed -n '1p')" == "office" ]] || default_ok=0
+[[ "$(printf '%s\n' "${order}" | sed -n '2p')" == "home" ]] || default_ok=0
+remove_vpn_state office || default_ok=0
+[[ -z "$(get_vpn_state_default)" ]] || default_ok=0
+if [[ -n "${saved_default_base}" ]]; then
+    export CONFIG_BASE_DIRECTORY="${saved_default_base}"
+else
+    unset CONFIG_BASE_DIRECTORY
+fi
+if [[ "${default_ok}" -eq 1 ]]; then
+    t_pass "vpn.default" "profil de démarrage, ordre, registre ancien"
+else
+    t_fail "vpn.default" "mode ${VPN_MODE:-} défaut ${VPN_DEFAULT:-} boot ${VPN_ON_BOOT:-} ordre ${order:-}"
+fi
+
+successor_root="${ARTIFACTS}/vpn-successor-root"
+rm -rf "${successor_root}"
+mkdir -p \
+    "${successor_root}/vpn/wireguard/alpha" \
+    "${successor_root}/vpn/wireguard/gamma" \
+    "${successor_root}/vpn/openvpn/beta"
+printf 'proto=wireguard\n' > "${successor_root}/vpn/wireguard/alpha/meta"
+printf 'proto=wireguard\n' > "${successor_root}/vpn/wireguard/gamma/meta"
+printf 'proto=openvpn\n' > "${successor_root}/vpn/openvpn/beta/meta"
+saved_successor_base="${CONFIG_BASE_DIRECTORY:-}"
+export CONFIG_BASE_DIRECTORY="${successor_root}"
+successor_ok=1
+names="$(list_vpn_names)"
+[[ "${names}" == $'alpha\ngamma\nbeta' ]] || successor_ok=0
+after_alpha="$(list_vpn_successors alpha)"
+[[ "${after_alpha}" == $'gamma\nbeta' ]] || successor_ok=0
+after_gamma="$(list_vpn_successors gamma)"
+[[ "${after_gamma}" == $'beta\nalpha' ]] || successor_ok=0
+after_beta="$(list_vpn_successors beta)"
+[[ "${after_beta}" == $'alpha\ngamma' ]] || successor_ok=0
+write_vpn_state || successor_ok=0
+set_vpn_state_default alpha || successor_ok=0
+set_vpn_state_mode off || successor_ok=0
+prove_vpn_profile() {
+    [[ "$1" != "gamma" ]]
+}
+apply_vpn_profile() { return 0; }
+LOCK_TRACE=""
+run_vpn_successor 0 gamma beta || successor_ok=0
+load_vpn_settings
+[[ "${VPN_DEFAULT}" == "beta" ]] || successor_ok=0
+[[ "${VPN_MODE}" == "off" ]] || successor_ok=0
+[[ -d "${successor_root}/vpn/wireguard/gamma" ]] || successor_ok=0
+prove_vpn_profile() { return 1; }
+successor_rc=0
+run_vpn_successor 0 gamma beta || successor_rc=$?
+[[ "${successor_rc}" -eq 1 ]] || successor_ok=0
+[[ -z "$(get_vpn_state_default)" ]] || successor_ok=0
+[[ -d "${successor_root}/vpn/wireguard/gamma" ]] || successor_ok=0
+[[ -d "${successor_root}/vpn/openvpn/beta" ]] || successor_ok=0
+set_vpn_state_default alpha || successor_ok=0
+set_vpn_state_mode on || successor_ok=0
+apply_vpn_profile() { return 1; }
+LOCK_TRACE=""
+successor_rc=0
+run_vpn_successor 1 gamma beta || successor_rc=$?
+[[ "${successor_rc}" -eq 1 ]] || successor_ok=0
+[[ -z "$(get_vpn_state_default)" ]] || successor_ok=0
+[[ "${LOCK_TRACE}" == "lock" ]] || successor_ok=0
+[[ -d "${successor_root}/vpn/wireguard/gamma" ]] || successor_ok=0
+if [[ -n "${saved_successor_base}" ]]; then
+    export CONFIG_BASE_DIRECTORY="${saved_successor_base}"
+else
+    unset CONFIG_BASE_DIRECTORY
+fi
+if [[ "${successor_ok}" -eq 1 ]]; then
+    t_pass "vpn.successor" "liste, promotion, échec conservé"
+else
+    t_fail "vpn.successor" "noms ${names:-} après ${after_alpha:-} défaut ${VPN_DEFAULT:-} verrou ${LOCK_TRACE:-}"
+fi
+
+aide_ok=1
+grep -qF '!__HF_BASE__/vpn/[^/]+/[^/]+/handshake$' "${T_ROOT}/config/aide/aide.conf" || aide_ok=0
+grep -qF '!__HF_BASE__/vpn/[^/]+/[^/]+/status$' "${T_ROOT}/config/aide/aide.conf" || aide_ok=0
+if grep -q '/vpn/' "${T_ROOT}/config/integrity/paths.list"; then
+    aide_ok=0
+fi
+if [[ "${aide_ok}" -eq 1 ]]; then
+    t_pass "vpn.aide" "poignée hors base, chemins inchangés"
+else
+    t_fail "vpn.aide" "exclusion ou chemin"
 fi

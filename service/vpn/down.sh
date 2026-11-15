@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/down.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -10,9 +10,6 @@ clear_vpn_network() {
     load_vpn_settings
     if declare -F vpn_nm_held >/dev/null 2>&1 && ! vpn_nm_held; then
         vpn_nm_hold_on
-        if ! check_vpn_mode; then
-            vpn_nm_autoconnect_all false || true
-        fi
         stop_vpn_nm_all || true
         vpn_nm_hold_off
     fi
@@ -31,6 +28,9 @@ clear_vpn_network() {
         clear_vpn_active
     else
         rm -f "$(get_vpn_home)/active"
+    fi
+    if declare -F vpn_nm_apply_autoconnect >/dev/null 2>&1; then
+        vpn_nm_apply_autoconnect || true
     fi
 }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/lib.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,6 +13,16 @@ get_vpn_root() {
     local here
     here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     cd -- "${here}/../.." && pwd
+}
+
+refresh_vpn_integrity() {
+    local script
+    if [[ "${VPN_DEFER_INTEGRITY:-0}" == "1" ]]; then
+        return 0
+    fi
+    script="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/refresh-integrity.sh"
+    [[ -f "${script}" ]] || return 0
+    bash "${script}"
 }
 
 note_vpn_log() {
@@ -51,6 +61,51 @@ note_vpn_log() {
 get_vpn_home() {
     local base="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
     printf '%s/vpn\n' "${base}"
+}
+
+list_vpn_names() {
+    local home dir name kind
+    local -a found=()
+    home="$(get_vpn_home)"
+    [[ -d "${home}" ]] || return 0
+    shopt -s nullglob
+    for kind in wireguard openvpn profiles; do
+        found=()
+        for dir in "${home}/${kind}"/*/; do
+            [[ -d "${dir}" ]] || continue
+            name="$(basename -- "${dir}")"
+            check_vpn_name "${name}" || continue
+            [[ -f "${dir}meta" ]] || continue
+            found+=("${name}")
+        done
+        if (( ${#found[@]} > 0 )); then
+            printf '%s\n' "${found[@]}" | LC_ALL=C sort
+        fi
+    done
+    shopt -u nullglob
+}
+
+list_vpn_successors() {
+    local removed="$1" name started=0
+    local -a names=() after=() before=()
+    mapfile -t names < <(list_vpn_names)
+    for name in "${names[@]}"; do
+        if [[ "${name}" == "${removed}" ]]; then
+            started=1
+            continue
+        fi
+        if (( started == 1 )); then
+            after+=("${name}")
+        else
+            before+=("${name}")
+        fi
+    done
+    if (( ${#after[@]} > 0 )); then
+        printf '%s\n' "${after[@]}"
+    fi
+    if (( ${#before[@]} > 0 )); then
+        printf '%s\n' "${before[@]}"
+    fi
 }
 
 count_vpn_profiles() {
@@ -119,13 +174,16 @@ load_vpn_settings() {
     else
         VPN_MODE=off
         VPN_ACTIVE=
+        VPN_DEFAULT=
     fi
-    if [[ "${VPN_MODE}" == "on" ]]; then
-        VPN_ON_BOOT=1
-    else
-        VPN_ON_BOOT=0
+    VPN_ON_BOOT=0
+    VPN_BOOT_PROFILE=
+    if [[ -n "${VPN_DEFAULT:-}" ]] && declare -F check_vpn_profile_valid >/dev/null 2>&1; then
+        if check_vpn_profile_valid "${VPN_DEFAULT}"; then
+            VPN_ON_BOOT=1
+            VPN_BOOT_PROFILE="${VPN_DEFAULT}"
+        fi
     fi
-    VPN_BOOT_PROFILE="${VPN_ACTIVE}"
 }
 
 check_vpn_name() {
@@ -524,7 +582,7 @@ check_vpn_mode() {
 }
 
 check_vpn_boot_on() {
-    check_vpn_mode
+    [[ -n "${VPN_BOOT_PROFILE:-}" ]]
 }
 
 check_vpn_passphrase() {
@@ -558,26 +616,33 @@ send_vpn_alert() {
 }
 
 apply_vpn_systemd() {
-    local drop="/etc/systemd/system/w-boot-chain.service.d/vpn.conf"
+    local drop="/etc/systemd/system/w-boot-chain.service.d/vpn.conf" body current
     load_vpn_settings
     if [[ "${VPN_ON_BOOT}" == "1" ]]; then
         systemctl enable w-vpn-killswitch.service >/dev/null 2>&1 || return 1
         systemctl enable w-vpn.service >/dev/null 2>&1 || return 1
-        systemctl enable --now w-vpn-watch.timer >/dev/null 2>&1 || return 1
         install -d -m 755 /etc/systemd/system/w-boot-chain.service.d
-        if [[ -f "${drop}" ]] && declare -F copy_backup >/dev/null 2>&1; then
-            copy_backup "${drop}"
+        body="$(printf '%s\n' '[Unit]' 'After=w-vpn.service')"
+        current=""
+        if [[ -f "${drop}" ]]; then
+            current="$(cat "${drop}")"
         fi
-        cat > "${drop}" << 'EOF'
-[Unit]
-After=w-vpn.service
-EOF
-        chmod 644 "${drop}"
+        if [[ "${current}" != "${body}" ]]; then
+            if [[ -f "${drop}" ]] && declare -F copy_backup >/dev/null 2>&1; then
+                copy_backup "${drop}"
+            fi
+            printf '%s\n' "${body}" > "${drop}"
+            chmod 644 "${drop}"
+        fi
     else
         systemctl disable w-vpn-killswitch.service >/dev/null 2>&1 || true
         systemctl disable w-vpn.service >/dev/null 2>&1 || true
-        systemctl disable --now w-vpn-watch.timer >/dev/null 2>&1 || true
         rm -f "${drop}"
+    fi
+    if check_vpn_mode; then
+        systemctl enable --now w-vpn-watch.timer >/dev/null 2>&1 || return 1
+    else
+        systemctl disable --now w-vpn-watch.timer >/dev/null 2>&1 || true
     fi
     systemctl daemon-reload >/dev/null 2>&1 || true
 }

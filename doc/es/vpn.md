@@ -5,23 +5,28 @@
 La instalación del puesto empieza sin VPN. La red sigue directa.<br/>
 La importación es `sudo ./liltress vpn import openvpn <marca> <nombre> <archivo o carpeta>` o `sudo ./liltress vpn import wireguard <marca> <nombre> <archivo o carpeta>`.<br/>
 La marca es obligatoria. Un archivo sin marca se rechaza.<br/>
-El primer perfil válido arma el killswitch.<br/>
+El primer perfil válido pasa a ser el VPN de arranque y arma el killswitch.<br/>
 Una carpeta inválida no se añade. Si es la primera, el killswitch sigue cortado.<br/>
-Una importación posterior, mientras el modo está parado, no vuelve a armar el killswitch.<br/>
+Una importación posterior, mientras el modo está parado, no sustituye el VPN de arranque y no vuelve a armar el killswitch.<br/>
+<br/>
+En el arranque, un VPN de arranque válido arma el killswitch y después abre ese perfil.<br/>
+`sudo ./liltress vpn default` muestra ese perfil, o ninguno.<br/>
+`sudo ./liltress vpn default <nombre>` lo elige si es válido. La sesión en curso no cambia.<br/>
+`sudo ./liltress vpn default off` retira esa elección. Un túnel abierto sigue abierto.<br/>
 <br/>
 `sudo ./liltress vpn mode on` arma el killswitch y abre un perfil válido.<br/>
 Sin perfil válido, ese comando se rechaza y el killswitch sigue cortado.<br/>
-`sudo ./liltress vpn mode off` desarma el killswitch y devuelve la red directa. Las carpetas de los perfiles se quedan.<br/>
+`sudo ./liltress vpn mode off` desarma el killswitch y devuelve la red directa. El VPN de arranque se queda para el próximo arranque. Las carpetas de los perfiles se quedan.<br/>
 El perfil aparece en Configuración → Red. El interruptor es el modo. La importación no es el botón +.<br/>
 <br/>
-`sudo ./liltress vpn switch <nombre>` pasa a otro perfil válido. El killswitch sigue armado durante el cambio.<br/>
+`sudo ./liltress vpn switch <nombre>` pasa a otro perfil válido. El killswitch sigue armado durante el cambio. El VPN de arranque no cambia.<br/>
 Un cambio fallido no devuelve Internet directo y no retira ningún perfil.<br/>
 <br/>
 Un perfil que ya respondió, y luego falla tres intentos de diez segundos, se retira.<br/>
 Cuando ese retiro quita el último perfil, la red vuelve a ser directa y el killswitch se desarma.<br/>
 El correo de alerta sale antes de ese desarme.<br/>
-`sudo ./liltress vpn rm <nombre>` retira un perfil. Retirar el último desarma el killswitch.<br/>
-Un perfil activo se queda mientras existe otro perfil.<br/>
+`sudo ./liltress vpn rm <nombre>` retira un perfil. Retirar el VPN de arranque prueba el perfil siguiente de la lista. Retirar el último quita el VPN de arranque y desarma el killswitch.<br/>
+Un perfil activo que no es el VPN de arranque se queda mientras existe otro perfil.<br/>
 Un fallo de `sudo ./liltress vpn test <nombre>` deja la carpeta.<br/>
 <br/>
 Cada VPN WireGuard es una carpeta `/opt/liltress-workstation/vpn/wireguard/<nombre>/`.<br/>
@@ -38,7 +43,7 @@ El ejemplo es `[192.168.1.0/24, 200.200.200.0/24]`.<br/>
 Unbound se reinicia tras un cambio de modo o un cambio de perfil.<br/>
 El IPv6 global se bloquea cuando el túnel no tiene IPv6.<br/>
 Un rango público escrito en el archivo sale en claro.<br/>
-Tras retirar el último perfil, el siguiente perfil válido arma de nuevo el killswitch.
+Tras retirar el último perfil, el siguiente perfil válido vuelve a ser el VPN de arranque y arma el killswitch.
 
 ## 📋 Formas de importación
 
