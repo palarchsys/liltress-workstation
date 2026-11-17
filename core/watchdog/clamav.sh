@@ -1,32 +1,58 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/clamav.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
 
+# -----------------------------------------------------------------------------
+# Purpose    : Scan files in batches and describe a crash.
+# -----------------------------------------------------------------------------
+
+
+# The caller owns shown_python and reads it after this call.
+show_python_directory() {
+    local candidate="$1"
+    shown_python=0
+    [[ -n "${candidate}" && -d "${candidate}" ]] || return 0
+    (cd -- "${candidate}" && pwd -P)
+    shown_python=1
+    return 0
+}
+
+# The shared directory is printed as given, without resolving links.
+show_share_python() {
+    local dir="$1"
+    shown_python=0
+    if [[ ! -d "${dir}/share/python" ]]; then
+        return 0
+    fi
+    printf '%s\n' "${dir}/share/python"
+    shown_python=1
+    return 0
+}
+
 locate_python_dir() {
-    local dir hops=0 candidate
+    local dir="" hops=0 candidate="" shown_python=0
     for candidate in \
         "${CONFIG_BASE_DIRECTORY:-}/python" \
         "${BASE:-}/python" \
         "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"
-    do
-        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
-            (cd -- "${candidate}" && pwd -P)
+        "${INSTALL_DIRECTORY:-}/../share/python"; do
+        show_python_directory "${candidate}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
     done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -d "${dir}/share/python" ]]; then
-            printf '%s\n' "${dir}/share/python"
+        show_share_python "${dir}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
-        if [[ -d "${dir}/python" ]]; then
-            (cd -- "${dir}/python" && pwd -P)
+        show_python_directory "${dir}/python"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
         dir="$(dirname -- "${dir}")"
@@ -35,7 +61,6 @@ locate_python_dir() {
     printf '%s\n' "dossier python introuvable" >&2
     return 1
 }
-
 
 get_clamav_kind() {
     python3 "$(locate_python_dir)/clamav-kind.py" "${1:-}"
@@ -49,25 +74,14 @@ invoke_clamav() {
     fi
 }
 
-scan_clamav_batch() {
-    local status=0 signal=0 streak=0 path errexit=0 tool="clamscan"
-    [[ "$#" -gt 0 ]] || return 0
+# The caller owns CLAM_STOP. Two crashes in a row stop the rest of the batch.
+scan_clamav_paths() {
+    local errexit="$1"
+    local status=0 signal=0 streak=0 path="" tool="clamscan"
+    shift
     if [[ "${CLAM_MODE:-scan}" == "daemon" ]]; then
         tool="clamdscan"
     fi
-    case $- in
-        *e*) errexit=1 ;;
-    esac
-    set +e
-    invoke_clamav "$@"
-    status=$?
-    if [[ "${errexit}" -eq 1 ]]; then
-        set -e
-    fi
-    if [[ "${status}" -lt 128 ]]; then
-        return 0
-    fi
-    streak=0
     for path in "$@"; do
         set +e
         invoke_clamav "${path}"
@@ -91,21 +105,48 @@ scan_clamav_batch() {
     return 0
 }
 
+scan_clamav_batch() {
+    local status=0 errexit=0
+    [[ "$#" -gt 0 ]] || return 0
+    case $- in
+        *e*) errexit=1 ;;
+    esac
+    set +e
+    invoke_clamav "$@"
+    status=$?
+    if [[ "${errexit}" -eq 1 ]]; then
+        set -e
+    fi
+    if [[ "${status}" -lt 128 ]]; then
+        return 0
+    fi
+    scan_clamav_paths "${errexit}" "$@"
+    return 0
+}
+
+# The caller owns batch and CLAM_STOP. A full batch is scanned at once.
+take_clamav_batch() {
+    local path="$1"
+    local batch_max="$2"
+    [[ -n "${path}" ]] || return 0
+    batch+=("${path}")
+    if [[ "${#batch[@]}" -eq "${batch_max}" ]]; then
+        scan_clamav_batch "${batch[@]}" || true
+        batch=()
+        [[ "${CLAM_STOP}" == 1 ]] && return 1
+    fi
+    return 0
+}
+
 list_clamav_scan() {
     local file_list="$1"
-    local path batch_max
+    local path="" batch_max=""
     local -a batch=()
     batch_max="${CLAM_BATCH:-80}"
     CLAM_STOP=0
     while IFS= read -r -d '' path || [[ -n "${path}" ]]; do
-        [[ -n "${path}" ]] || continue
-        batch+=("${path}")
-        if [[ "${#batch[@]}" -eq "${batch_max}" ]]; then
-            scan_clamav_batch "${batch[@]}" || true
-            batch=()
-            [[ "${CLAM_STOP}" == 1 ]] && break
-        fi
-    done < "${file_list}"
+        take_clamav_batch "${path}" "${batch_max}" || break
+    done <"${file_list}"
     if [[ "${#batch[@]}" -gt 0 && "${CLAM_STOP}" != 1 ]]; then
         scan_clamav_batch "${batch[@]}" || true
     fi

@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/01_bash_syntax.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : bash -n, the cartouche, and the quality gate.
+# -----------------------------------------------------------------------------
+
 
 t_check_cartouche() {
     local file="$1"
@@ -53,3 +59,15 @@ done < <(find "${find_paths[@]}" \
     -not -path '*/test/output/*' \
     -not -path '*/log/test/*' \
     -not -path '*/node_modules/*' | sort)
+
+t_section "qualité"
+quality_script="$(cd -- "${T_ROOT}/.." && pwd)/scripts/check-quality.sh"
+if [[ -f "${quality_script}" ]]; then
+    if bash "${quality_script}"; then
+        t_pass "syntax.quality" "check-quality"
+    else
+        t_fail "syntax.quality" "check-quality"
+    fi
+else
+    t_skip "syntax.quality" "scripts/check-quality.sh absent"
+fi

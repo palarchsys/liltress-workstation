@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/verify/workstation.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Check the workstation after setup and store the outcome.
+# Note       : The outcome file keeps each success and each fault.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -28,10 +35,18 @@ report_pass() {
     else
         note_bash success "$*"
     fi
-    echo "$(get_text log.ok-4 "$*")" >> "${REPORT}"
+    echo "$(get_text log.ok-4 "$*")" >>"${REPORT}"
 }
-report_fail()   { FAIL=$((FAIL+1));  note_bash fault "$*"; echo "- FAIL  $*" >> "${REPORT}"; }
-report_warn()   { WARNN=$((WARNN+1)); log_warn "${INSTALL_WATCHER}" "verify.workstation.warn" "WARN  $*";   echo "- WARN  $*" >> "${REPORT}"; }
+report_fail() {
+    FAIL=$((FAIL + 1))
+    note_bash fault "$*"
+    echo "- FAIL  $*" >>"${REPORT}"
+}
+report_warn() {
+    WARNN=$((WARNN + 1))
+    log_warn "${INSTALL_WATCHER}" "verify.workstation.warn" "WARN  $*"
+    echo "- WARN  $*" >>"${REPORT}"
+}
 
 mkdir -p "$(dirname "${REPORT}")"
 {
@@ -41,7 +56,7 @@ mkdir -p "$(dirname "${REPORT}")"
     echo "$(get_text log.user "${CURRENT_USER}")"
     echo "$(get_text log.os-2 "${OS_PRETTY}")"
     echo
-} > "${REPORT}"
+} >"${REPORT}"
 
 root_hash="$(awk -F: '$1=="root"{print $2}' /etc/shadow)"
 user_hash="$(awk -F: -v u="${CURRENT_USER}" '$1==u{print $2}' /etc/shadow)"
@@ -69,7 +84,7 @@ if drift="$(check_account_drift 2>&1)"; then
     report_pass "comptes humains (uid, groupes, home, shell, hash) inchangés"
 else
     report_fail "un compte créé à l'installation Ubuntu a été modifié"
-    printf '%s\n' "${drift}" >> "${REPORT}"
+    printf '%s\n' "${drift}" >>"${REPORT}"
 fi
 
 for b in gcc g++ cc make; do
@@ -118,7 +133,7 @@ else
     report_fail "UFW outgoing n'est pas allow"
 fi
 ufw_rules="$(LANG=C LC_ALL=C LANGUAGE=C ufw status 2>/dev/null || true)"
-if grep -qF 'SSH LAN' <<< "${ufw_rules}" || grep -qF 'SSH (limit)' <<< "${ufw_rules}"; then
+if grep -qF 'SSH LAN' <<<"${ufw_rules}" || grep -qF 'SSH (limit)' <<<"${ufw_rules}"; then
     report_pass "SSH limité aux préfixes connectés"
 else
     report_fail "règle SSH absente"
@@ -148,8 +163,8 @@ if [[ "${ipv6_all}" == "1" && "${ipv6_default}" == "1" ]]; then
 else
     report_fail "IPv6 encore actif"
 fi
-if [[ -n "$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || true)" \
-    && "$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || echo 1)" == "0" ]]; then
+if [[ -n "$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || true)" &&
+"$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || echo 1)" == "0" ]]; then
     report_fail "unprivileged_userns_clone=0"
 else
     report_pass "user namespaces non désactivés par sysctl"
@@ -193,7 +208,7 @@ if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
     fi
     postfix_listen="$(postconf -h inet_interfaces 2>/dev/null | tr -d '[:space:]' || true)"
     case "${postfix_listen}" in
-        loopback-only|localhost|127.0.0.1|"[::1]")
+        loopback-only | localhost | 127.0.0.1 | "[::1]")
             report_pass "Postfix écoute seulement localhost"
             ;;
         *)
@@ -225,34 +240,25 @@ if systemctl is-enabled --quiet w-boot-chain.timer 2>/dev/null; then
 else
     report_fail "timer de la chaîne de démarrage absent"
 fi
-if systemctl is-enabled --quiet w-idle-scan.timer 2>/dev/null; then
-    report_pass "passe différée des chemins exclus"
-else
-    report_fail "timer de passe différée absent"
-fi
 if systemctl is-enabled --quiet w-reboot-notice.timer 2>/dev/null; then
     report_pass "avis de redémarrage planifié"
 else
     report_fail "timer d'avis de redémarrage absent"
 fi
 if systemctl is-enabled --quiet w-periodic-scan.timer 2>/dev/null; then
-    report_pass "analyse ClamAV toutes les 2 h"
+    report_pass "chaîne périodique toutes les 1 h"
 else
-    report_fail "timer d'analyse ClamAV périodique absent"
-fi
-if systemctl is-enabled --quiet w-hourly-scan.timer 2>/dev/null; then
-    report_pass "passe horaire AIDE, rkhunter, chkrootkit et debsums"
-else
-    report_fail "timer de passe horaire absent"
+    report_fail "timer de la chaîne périodique absent"
 fi
 boot_bin="${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/boot-scan.sh"
 if [[ -f "${boot_bin}" ]] \
-    && grep -q 'integrity.sh' "${boot_bin}" \
-    && grep -q 'behavior.sh' "${boot_bin}" \
-    && grep -q 'egress-watch.sh' "${boot_bin}"; then
-    report_pass "intégrité, audit et journal sortant dans la chaîne de démarrage"
+    && grep -q 'chain-periodic.sh' "${boot_bin}" \
+    && grep -q 'arm-onaccess.sh' "${boot_bin}" \
+    && grep -q 'arm-periodic-scan.sh' "${boot_bin}" \
+    && grep -q 'reboot-notice.sh' "${boot_bin}"; then
+    report_pass "chaîne, accès, période et avis dans le démarrage"
 else
-    report_fail "chaîne de démarrage sans intégrité, audit ou journal sortant"
+    report_fail "chaîne de démarrage incomplète"
 fi
 clam_conf="/etc/clamav/clamd.conf"
 if [[ -f "${clam_conf}" ]] \
@@ -315,7 +321,7 @@ fi
 if command -v cscli >/dev/null 2>&1; then
     crowd_list="$(cscli collections list 2>/dev/null || true)"
     for crowd_name in crowdsecurity/linux crowdsecurity/sshd crowdsecurity/postfix; do
-        if grep -Fq "${crowd_name}" <<< "${crowd_list}"; then
+        if grep -Fq "${crowd_name}" <<<"${crowd_list}"; then
             report_pass "collection ${crowd_name}"
         else
             report_fail "collection ${crowd_name} absente"
@@ -387,7 +393,7 @@ elif check_ubuntu_pro; then
         while IFS=$'\t' read -r svc_name svc_status svc_detail; do
             seen="${seen} ${svc_name}"
             case "${svc_status}" in
-                enabled|active)
+                enabled | active)
                     report_pass "${svc_name} activé"
                     ;;
                 warning)
@@ -454,8 +460,7 @@ vpn_state="$(get_vpn_verify_state || true)"
 vpn_kind="${vpn_state%% *}"
 vpn_name="${vpn_state#* }"
 case "${vpn_kind}" in
-    off)
-        ;;
+    off) ;;
     ok)
         report_pass "$(get_text vpn.verify.ok "${vpn_name}")"
         ;;
@@ -474,12 +479,12 @@ esac
     echo "$(get_text log.ok-5 "${PASS}")"
     echo "$(get_text log.warn-2 "${WARNN}")"
     echo "$(get_text log.fail-2 "${FAIL}")"
-} >> "${REPORT}"
+} >>"${REPORT}"
 
 chmod 644 "${REPORT}" 2>/dev/null || true
 mkdir -p "${INSTALL_LOG_DIR:-.}"
 status_file="${INSTALL_LOG_DIR:-.}/verify-status"
-cat > "${status_file}" << EOF
+cat >"${status_file}" <<EOF
 PASS=${PASS}
 WARN=${WARNN}
 FAIL=${FAIL}

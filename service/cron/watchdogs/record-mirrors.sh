@@ -1,13 +1,42 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/record-mirrors.sh
-# Updated at : 2026-10-28
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
+
+# -----------------------------------------------------------------------------
+# Purpose    : Store a digest of the mirror file. Another mode compares it.
+# Note       : The stamp mode is 600.
+# -----------------------------------------------------------------------------
+
+
 set -euo pipefail
 
-BASE="${BASE:-/opt/liltress-workstation}"
+load_mirror_base() {
+    local here="" dir="" hops=0
+    here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    if [[ -r "${here}/watchdog.conf" ]]; then
+        # shellcheck disable=SC1091
+        source "${here}/watchdog.conf"
+    fi
+    dir="${here}"
+    while [[ -z "${BASE:-}" && -z "${CONFIG_BASE_DIRECTORY:-}" && "${hops}" -lt 8 && "${dir}" != "/" ]]; do
+        if [[ -f "${dir}/config/global.conf" ]]; then
+            # shellcheck disable=SC1091
+            source "${dir}/config/global.conf"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+}
+
+load_mirror_base
+if [[ -z "${BASE:-}" ]]; then
+    BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+fi
 file="/var/lib/rkhunter/db/mirrors.dat"
 stamp="${BASE}/cron/rkhunter-mirrors.sha256"
 mode="${1:-save}"
@@ -33,5 +62,5 @@ if [[ "${mode}" != "save" ]]; then
 fi
 
 umask 077
-printf '%s\n' "${current}" > "${stamp}"
+printf '%s\n' "${current}" >"${stamp}"
 chmod 600 "${stamp}"

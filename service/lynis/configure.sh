@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/lynis/configure.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Write the desktop audit profile.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -12,9 +18,9 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
-log_info         "${INSTALL_WATCHER}" "configure.install-of-the-profile-lynis-workstation-of-work"
+log_info "${INSTALL_WATCHER}" "configure.install-of-the-profile-lynis-workstation-of-work"
 mkdir -p /etc/lynis
-tee /etc/lynis/custom.prf > /dev/null << 'EOF'
+tee /etc/lynis/custom.prf >/dev/null <<'EOF'
 machine-role=workstation
 skip-test=HRDN-7222
 skip-test=FILE-6310
@@ -35,4 +41,4 @@ skip-test=TOOL-5002
 skip-test=LOGG-2154
 EOF
 chmod 644 /etc/lynis/custom.prf
-log_success      "${INSTALL_WATCHER}" "configure.custom-prf-lynis-installed"
+log_success "${INSTALL_WATCHER}" "configure.custom-prf-lynis-installed"

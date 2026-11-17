@@ -1,32 +1,60 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-skip-lib.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
 
+# -----------------------------------------------------------------------------
+# Purpose    : Resolve the paths kept out of the on-access scanner.
+# Note       : A marked home line wins over the paths in the file.
+# Note       : One home directory is accepted.
+# -----------------------------------------------------------------------------
+
+
+# The caller owns shown_python and reads it after this call.
+show_python_directory() {
+    local candidate="$1"
+    shown_python=0
+    [[ -n "${candidate}" && -d "${candidate}" ]] || return 0
+    (cd -- "${candidate}" && pwd -P)
+    shown_python=1
+    return 0
+}
+
+# The shared directory is printed as given, without resolving links.
+show_share_python() {
+    local dir="$1"
+    shown_python=0
+    if [[ ! -d "${dir}/share/python" ]]; then
+        return 0
+    fi
+    printf '%s\n' "${dir}/share/python"
+    shown_python=1
+    return 0
+}
+
 locate_python_dir() {
-    local dir hops=0 candidate
+    local dir="" hops=0 candidate="" shown_python=0
     for candidate in \
         "${CONFIG_BASE_DIRECTORY:-}/python" \
         "${BASE:-}/python" \
         "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"
-    do
-        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
-            (cd -- "${candidate}" && pwd -P)
+        "${INSTALL_DIRECTORY:-}/../share/python"; do
+        show_python_directory "${candidate}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
     done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -d "${dir}/share/python" ]]; then
-            printf '%s\n' "${dir}/share/python"
+        show_share_python "${dir}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
-        if [[ -d "${dir}/python" ]]; then
-            (cd -- "${dir}/python" && pwd -P)
+        show_python_directory "${dir}/python"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
         dir="$(dirname -- "${dir}")"
@@ -49,23 +77,31 @@ check_scan_skip_forbidden() {
     fi
 }
 
-get_scan_skip_home() {
-    local line trimmed home homes=""
-    if [[ "${SCAN_SKIP_HOME:-}" =~ ^/home/[^/]+$ ]]; then
-        printf '%s\n' "${SCAN_SKIP_HOME}"
-        return 0
-    fi
-    [[ -f "${SCAN_SKIP_FILE}" ]] || return 1
+# A comment can name one home directory.
+read_scan_skip_marked_home() {
+    local line
     while IFS= read -r line || [[ -n "${line}" ]]; do
         if [[ "${line}" =~ ^[[:space:]]*#[[:space:]]*home=(/home/[^/]+)[[:space:]]*$ ]]; then
             printf '%s\n' "${BASH_REMATCH[1]}"
             return 0
         fi
-    done < "${SCAN_SKIP_FILE}"
+    done <"${SCAN_SKIP_FILE}"
+    return 1
+}
+
+# A blank line or a comment is not a path.
+skip_scan_skip_note() {
+    local trimmed="$1"
+    [[ -z "${trimmed}" || "${trimmed}" == \#* ]]
+}
+
+# Paths that share one home directory name that directory.
+read_scan_skip_path_home() {
+    local line trimmed home homes=""
     while IFS= read -r line || [[ -n "${line}" ]]; do
         trimmed="${line#"${line%%[![:space:]]*}"}"
         trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
-        [[ -z "${trimmed}" || "${trimmed}" == \#* ]] && continue
+        skip_scan_skip_note "${trimmed}" && continue
         if [[ "${trimmed}" =~ ^(/home/[^/]+)/ ]]; then
             home="${BASH_REMATCH[1]}"
             case "${homes}" in
@@ -73,30 +109,52 @@ get_scan_skip_home() {
                 *) homes="${homes}|${home}|" ;;
             esac
         fi
-    done < "${SCAN_SKIP_FILE}"
+    done <"${SCAN_SKIP_FILE}"
     homes="${homes#|}"
     homes="${homes%|}"
     [[ -n "${homes}" && "${homes}" != *"|"* ]] || return 1
     printf '%s\n' "${homes}"
 }
 
-check_scan_skip_path() {
-    local norm bad home=""
-    norm="$(render_scan_skip_path "$1")" || return 1
-    home="$(get_scan_skip_home || true)"
-    if [[ "${norm}" == /var/jeux || "${norm}" == /var/jeux/* ]]; then
-        :
-    elif [[ -n "${home}" && "${norm}" == "${home}/"* ]]; then
-        :
-    else
-        return 1
+get_scan_skip_home() {
+    if [[ "${SCAN_SKIP_HOME:-}" =~ ^/home/[^/]+$ ]]; then
+        printf '%s\n' "${SCAN_SKIP_HOME}"
+        return 0
     fi
+    [[ -f "${SCAN_SKIP_FILE}" ]] || return 1
+    read_scan_skip_marked_home && return 0
+    read_scan_skip_path_home
+}
+
+# One home directory is accepted.
+check_scan_skip_root() {
+    local norm="$1"
+    local home="$2"
+    if [[ -n "${home}" && "${norm}" == "${home}/"* ]]; then
+        return 0
+    fi
+    return 1
+}
+
+# A forbidden path and its parent are refused.
+check_scan_skip_blocked() {
+    local norm="$1"
+    local bad
     while IFS= read -r bad; do
         [[ -z "${bad}" ]] && continue
         [[ "${norm}" == "${bad}" ]] && return 1
         [[ "${bad}" == "${norm}/"* ]] && return 1
     done < <(check_scan_skip_forbidden)
     [[ "${norm}" =~ ^/home/[^/]+$ ]] && return 1
+    return 0
+}
+
+check_scan_skip_path() {
+    local norm home=""
+    norm="$(render_scan_skip_path "$1")" || return 1
+    home="$(get_scan_skip_home || true)"
+    check_scan_skip_root "${norm}" "${home}" || return 1
+    check_scan_skip_blocked "${norm}" || return 1
     printf '%s\n' "${norm}"
 }
 
@@ -116,25 +174,47 @@ collect_scan_skip_path() {
         else
             SCAN_SKIP_BAD+=("${line}")
         fi
-    done < "${SCAN_SKIP_FILE}"
+    done <"${SCAN_SKIP_FILE}"
+}
+
+# The shared engine file is loaded when it is present.
+source_scan_skip_fs() {
+    local here="$1"
+    local candidate
+    for candidate in \
+        "${INSTALL_DIRECTORY:-}/core/host/fs.sh" \
+        "${here}/../../../core/host/fs.sh" \
+        "${here}/../../../../share/core/host/fs.sh" \
+        "${here}/../../core/host/fs.sh" \
+        "${BASE}/core/host/fs.sh"; do
+        [[ -n "${candidate}" && -f "${candidate}" ]] || continue
+        # shellcheck disable=SC1090
+        source "${candidate}"
+        break
+    done
+}
+
+# The first existing list is printed.
+find_scan_skip_candidate() {
+    local here="$1"
+    local candidate
+    for candidate in \
+        "${INSTALL_DIRECTORY:-}/config/clamav/scan-skip.paths" \
+        "${here}/../../../config/clamav/scan-skip.paths" \
+        "${here}/../../config/clamav/scan-skip.paths" \
+        "${BASE}/config/clamav/scan-skip.paths"; do
+        [[ -n "${candidate}" && -f "${candidate}" ]] || continue
+        printf '%s\n' "${candidate}"
+        return 0
+    done
+    return 1
 }
 
 locate_scan_skip_file() {
-    local here candidate found
+    local here found
     here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     if ! declare -F locate_config_file >/dev/null 2>&1; then
-        for candidate in \
-            "${INSTALL_DIRECTORY:-}/core/host/fs.sh" \
-            "${here}/../../../core/host/fs.sh" \
-            "${here}/../../../../share/core/host/fs.sh" \
-            "${here}/../../core/host/fs.sh" \
-            "${BASE}/core/host/fs.sh"
-        do
-            [[ -n "${candidate}" && -f "${candidate}" ]] || continue
-            # shellcheck disable=SC1090
-            source "${candidate}"
-            break
-        done
+        source_scan_skip_fs "${here}"
     fi
     if declare -F locate_config_file >/dev/null 2>&1; then
         if found="$(locate_config_file clamav/scan-skip.paths)"; then
@@ -142,16 +222,9 @@ locate_scan_skip_file() {
             return 0
         fi
     fi
-    for candidate in \
-        "${INSTALL_DIRECTORY:-}/config/clamav/scan-skip.paths" \
-        "${here}/../../../config/clamav/scan-skip.paths" \
-        "${here}/../../config/clamav/scan-skip.paths" \
-        "${BASE}/config/clamav/scan-skip.paths"
-    do
-        [[ -n "${candidate}" && -f "${candidate}" ]] || continue
-        printf '%s\n' "${candidate}"
+    if find_scan_skip_candidate "${here}"; then
         return 0
-    done
+    fi
     if [[ -n "${INSTALL_DIRECTORY:-}" ]]; then
         printf '%s\n' "${INSTALL_DIRECTORY}/config/clamav/scan-skip.paths"
         return 0
@@ -159,37 +232,60 @@ locate_scan_skip_file() {
     printf '%s\n' "${BASE}/config/clamav/scan-skip.paths"
 }
 
-ensure_scan_skip_file() {
-    local home="$1"
-    local template legacy dest base
-    template="$(locate_scan_skip_file)"
-    legacy="${BASE}/cron/scan-skip.paths"
-    dest="${template}"
+# A list outside the two known roots is stored under the product.
+choose_scan_skip_dest() {
+    local dest="$1"
     if [[ "${dest}" != "${BASE}/"* ]]; then
         if [[ -z "${CONFIG_BASE_DIRECTORY:-}" || "${dest}" != "${CONFIG_BASE_DIRECTORY}/"* ]]; then
-            dest="${BASE}/config/clamav/scan-skip.paths"
+            printf '%s\n' "${BASE}/config/clamav/scan-skip.paths"
+            return 0
         fi
     fi
+    printf '%s\n' "${dest}"
+}
+
+# An older list is copied into place.
+copy_scan_skip_legacy() {
+    local legacy="$1"
+    local dest="$2"
+    install -d -m 755 "$(dirname "${dest}")"
+    cp -a "${legacy}" "${dest}"
+    chmod 644 "${dest}"
+    chown root:root "${dest}"
+}
+
+# The markers in the template are replaced.
+render_scan_skip_template() {
+    local template="$1"
+    local dest="$2"
+    local home="$3"
+    local base
+    base="${BASE}"
+    install -d -m 755 "$(dirname "${dest}")"
+    sed -e "s|__HOME__|${home}|g" -e "s|__HFU_BASE__|${base}|g" "${template}" >"${dest}.new"
+    cat "${dest}.new" >"${dest}"
+    rm -f "${dest}.new"
+    chmod 644 "${dest}"
+    chown root:root "${dest}"
+}
+
+ensure_scan_skip_file() {
+    local home="$1"
+    local template legacy dest
+    template="$(locate_scan_skip_file)"
+    legacy="${BASE}/cron/scan-skip.paths"
+    dest="$(choose_scan_skip_dest "${template}")"
     SCAN_SKIP_FILE="${dest}"
     if [[ -f "${dest}" ]] && ! grep -q '__HOME__' "${dest}"; then
         return 0
     fi
     if [[ -f "${legacy}" ]]; then
-        install -d -m 755 "$(dirname "${dest}")"
-        cp -a "${legacy}" "${dest}"
-        chmod 644 "${dest}"
-        chown root:root "${dest}"
+        copy_scan_skip_legacy "${legacy}" "${dest}"
         return 0
     fi
     [[ "${home}" =~ ^/home/[^/]+$ && -d "${home}" ]] || return 1
     [[ -f "${template}" ]] || return 1
-    base="${BASE}"
-    install -d -m 755 "$(dirname "${dest}")"
-    sed -e "s|__HOME__|${home}|g" -e "s|__HFU_BASE__|${base}|g" "${template}" > "${dest}.new"
-    cat "${dest}.new" > "${dest}"
-    rm -f "${dest}.new"
-    chmod 644 "${dest}"
-    chown root:root "${dest}"
+    render_scan_skip_template "${template}" "${dest}" "${home}"
 }
 
 SCAN_SKIP_FILE="$(locate_scan_skip_file)"

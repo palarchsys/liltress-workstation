@@ -1,32 +1,58 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/mail/mail.sh
-# Updated at : 2026-11-13
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
 
+# -----------------------------------------------------------------------------
+# Purpose    : Find the alert template and build the message.
+# -----------------------------------------------------------------------------
+
+
+# The caller owns shown_python and reads it after this call.
+show_python_directory() {
+    local candidate="$1"
+    shown_python=0
+    [[ -n "${candidate}" && -d "${candidate}" ]] || return 0
+    (cd -- "${candidate}" && pwd -P)
+    shown_python=1
+    return 0
+}
+
+# The shared directory is printed as given, without resolving links.
+show_share_python() {
+    local dir="$1"
+    shown_python=0
+    if [[ ! -d "${dir}/share/python" ]]; then
+        return 0
+    fi
+    printf '%s\n' "${dir}/share/python"
+    shown_python=1
+    return 0
+}
+
 locate_python_dir() {
-    local dir hops=0 candidate
+    local dir="" hops=0 candidate="" shown_python=0
     for candidate in \
         "${CONFIG_BASE_DIRECTORY:-}/python" \
         "${BASE:-}/python" \
         "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"
-    do
-        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
-            (cd -- "${candidate}" && pwd -P)
+        "${INSTALL_DIRECTORY:-}/../share/python"; do
+        show_python_directory "${candidate}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
     done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -d "${dir}/share/python" ]]; then
-            printf '%s\n' "${dir}/share/python"
+        show_share_python "${dir}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
-        if [[ -d "${dir}/python" ]]; then
-            (cd -- "${dir}/python" && pwd -P)
+        show_python_directory "${dir}/python"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
         dir="$(dirname -- "${dir}")"
@@ -55,7 +81,7 @@ get_mail_name() {
     fi
     for conf in "${confs[@]}"; do
         [[ -f "${conf}" ]] || continue
-        line="$(awk -F= '/^MAIL_TEMPLATE=/{gsub(/"/,"",$2); gsub(/[[:space:]]/,"",$2); print $2; exit}' "${conf}")"
+        line=$(awk -F= '/^MAIL_TEMPLATE=/{gsub(/"/,"",$2); gsub(/[[:space:]]/,"",$2); print $2; exit}' "${conf}")
         if [[ -n "${line}" ]]; then
             printf '%s\n' "${line}"
             return 0
@@ -93,26 +119,25 @@ locate_mail_template() {
     return 1
 }
 
-render_mail() {
-    local template="$1"
+# The phrase catalog is loaded from the first file that exists.
+source_mail_log() {
     local mail_here="" mail_candidate=""
-    local mail_module="" mail_redacted="" mail_redacted_key="" mail_unreadable="" mail_no_pre=""
-    [[ -f "${template}" ]] || return 1
-    if ! declare -F get_text >/dev/null 2>&1; then
-        mail_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-        for mail_candidate in \
-            "${mail_here}/log.sh" \
-            "${PRODUCT_ROOT:-}/core/log/log.sh" \
-            "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
-            "${INSTALL_DIRECTORY:-}/core/log/log.sh"
-        do
-            if [[ -n "${mail_candidate}" && -f "${mail_candidate}" ]]; then
-                # shellcheck disable=SC1090
-                source "${mail_candidate}"
-                break
-            fi
-        done
-    fi
+    mail_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    for mail_candidate in \
+        "${mail_here}/log.sh" \
+        "${PRODUCT_ROOT:-}/core/log/log.sh" \
+        "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
+        "${INSTALL_DIRECTORY:-}/core/log/log.sh"; do
+        if [[ -n "${mail_candidate}" && -f "${mail_candidate}" ]]; then
+            # shellcheck disable=SC1090
+            source "${mail_candidate}"
+            break
+        fi
+    done
+}
+
+# Phrase labels stay on the caller. A missing reader keeps the English lines.
+apply_mail_labels() {
     if declare -F get_text >/dev/null 2>&1; then
         load_text "${LANGUAGE:-en}"
         mail_module="$(get_text mail.module)"
@@ -124,30 +149,41 @@ render_mail() {
         mail_redacted_key="$(get_text mail.redacted-key)"
         mail_unreadable="$(get_text mail.template-unreadable)"
         mail_no_pre="$(get_text mail.template-no-pre)"
-    else
-        mail_module="Module:"
-        mail_read="The journal is at the top. Each finding then shows the command, a normal example, and a worrying example."
-        mail_seen="Journal"
-        mail_check="How to read the finding"
-        mail_next="What to do next"
-        mail_redacted="[redacted]"
-        mail_redacted_key="[private key redacted]"
-        mail_unreadable="unreadable template: {1}"
-        mail_no_pre="template without a pre tag"
+        return 0
     fi
+    mail_module="Module:"
+    mail_read="The journal is at the top. Each finding then shows the command, a normal example, and a worrying example."
+    mail_seen="Journal"
+    mail_check="How to read the finding"
+    mail_next="What to do next"
+    mail_redacted="[redacted]"
+    mail_redacted_key="[private key redacted]"
+    mail_unreadable="unreadable template: {1}"
+    mail_no_pre="template without a pre tag"
+}
+
+render_mail() {
+    local template="$1"
+    local mail_module="" mail_redacted="" mail_redacted_key="" mail_unreadable="" mail_no_pre=""
+    [[ -f "${template}" ]] || return 1
+    if ! declare -F get_text >/dev/null 2>&1; then
+        source_mail_log
+    fi
+    apply_mail_labels
+    # shellcheck disable=SC2154
     MAIL_TEMPLATE_FILE="${template}" \
-    MAIL_REDACT="${MAIL_REDACT:-0}" \
-    MAIL_LANG="${LANGUAGE:-en}" \
-    MAIL_MODULE="${mail_module}" \
-    MAIL_READ="${mail_read}" \
-    MAIL_SEEN="${mail_seen}" \
-    MAIL_CHECK="${mail_check}" \
-    MAIL_NEXT="${mail_next}" \
-    TEXT_REDACTED="${mail_redacted}" \
-    TEXT_REDACTED_KEY="${mail_redacted_key}" \
-    TEXT_TEMPLATE_UNREADABLE="${mail_unreadable}" \
-    TEXT_TEMPLATE_NO_PRE="${mail_no_pre}" \
-    python3 "$(locate_python_dir)/mail-render.py"
+        MAIL_REDACT="${MAIL_REDACT:-0}" \
+        MAIL_LANG="${LANGUAGE:-en}" \
+        MAIL_MODULE="${mail_module}" \
+        MAIL_READ="${mail_read}" \
+        MAIL_SEEN="${mail_seen}" \
+        MAIL_CHECK="${mail_check}" \
+        MAIL_NEXT="${mail_next}" \
+        TEXT_REDACTED="${mail_redacted}" \
+        TEXT_REDACTED_KEY="${mail_redacted_key}" \
+        TEXT_TEMPLATE_UNREADABLE="${mail_unreadable}" \
+        TEXT_TEMPLATE_NO_PRE="${mail_no_pre}" \
+        python3 "$(locate_python_dir)/mail-render.py"
 }
 
 apply_postfix() {
@@ -162,20 +198,11 @@ apply_postfix() {
         value="${value//__PROJECT_NAME__/${PROJECT_NAME}}"
         value="${value//__SASL_TYPE__/${sasl_type}}"
         postconf -e "${key} = ${value}"
-    done < "$(locate_config_file postfix/main.keys)"
+    done <"$(locate_config_file postfix/main.keys)"
 }
 
-send_install_mail() {
-    local detail="" cred_file="" tpl=""
-    local about=""
-    if ! declare -F get_text >/dev/null 2>&1; then
-        # shellcheck disable=SC1091
-        source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
-        # shellcheck disable=SC1091
-        source "${INSTALL_DIRECTORY}/config/global.conf"
-    fi
-    DATE="$(date '+%Y-%m-%d %H:%M:%S')"
-    HOSTNAME="${HOSTNAME:-$(hostname -s 2>/dev/null || hostname)}"
+# The caller owns about.
+load_mail_about() {
     case "${MODULE_NAME:-}" in
         Aide) about="$(get_text log.integrity-of-the-files-watched-by-help-help-chec)" ;;
         Chkrootkit) about="$(get_text watchdog.about.chkrootkit)" ;;
@@ -194,6 +221,32 @@ send_install_mail() {
         "Nginx htpasswd") about="$(get_text log.password-of-the-zone-of-administration-nginx)" ;;
         *) about="$(get_text watchdog.about.module "${MODULE_NAME:-$(get_text watchdog.module.unknown)}")" ;;
     esac
+}
+
+# Alerts stay off, so the message is kept in the credential file.
+record_mail_credentials() {
+    local cred_file="/root/liltress-credentials.txt"
+    umask 077
+    {
+        printf '\n----- %s — %s -----\n' "${DATE}" "${MODULE_NAME:-message}"
+        printf '%s\n' "${MAIL_CONTENT}"
+    } >>"${cred_file}"
+    chmod 600 "${cred_file}"
+    printf "$(get_text log.credentials-saved-in-s-n)" "${cred_file}"
+}
+
+send_install_mail() {
+    local detail="" tpl=""
+    local about=""
+    if ! declare -F get_text >/dev/null 2>&1; then
+        # shellcheck disable=SC1091
+        source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
+        # shellcheck disable=SC1091
+        source "${INSTALL_DIRECTORY}/config/global.conf"
+    fi
+    DATE="$(date '+%Y-%m-%d %H:%M:%S')"
+    HOSTNAME="${HOSTNAME:-$(hostname -s 2>/dev/null || hostname)}"
+    load_mail_about
     detail="$(printf '%s' "${CONTENT:-}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
     if [[ -z "${detail}" ]]; then
         echo "$(get_text watchdog.mail-not-sent-empty-body "${MODULE_NAME:-?}")" >&2
@@ -212,14 +265,7 @@ ${detail}"
         return 0
     fi
     if [[ "${MAIL_ALERTS:-0}" != "1" ]]; then
-        cred_file="/root/liltress-credentials.txt"
-        umask 077
-        {
-            printf '\n----- %s — %s -----\n' "${DATE}" "${MODULE_NAME:-message}"
-            printf '%s\n' "${MAIL_CONTENT}"
-        } >> "${cred_file}"
-        chmod 600 "${cred_file}"
-        printf "$(get_text log.credentials-saved-in-s-n)" "${cred_file}"
+        record_mail_credentials
         return 0
     fi
     echo "${MAIL_CONTENT}" | mail -s "${OBJECT}" \

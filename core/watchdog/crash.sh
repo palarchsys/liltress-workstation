@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/crash.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Build the sentence used when a probe stops before the end.
+# Note       : The journal path is included when one is open.
+# -----------------------------------------------------------------------------
 
 
 signal_phrase() {

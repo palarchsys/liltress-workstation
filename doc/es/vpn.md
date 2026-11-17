@@ -3,7 +3,7 @@
 ## 📋 Tunnel
 
 La instalación del puesto empieza sin VPN. La red sigue directa.<br/>
-La importación es `sudo ./liltress vpn import openvpn <marca> <nombre> <archivo o carpeta>` o `sudo ./liltress vpn import wireguard <marca> <nombre> <archivo o carpeta>`.<br/>
+La importación es `sudo ./liltress vpn import openvpn <marca> <nombre> <carpeta o archivo>` o `sudo ./liltress vpn import wireguard <marca> <nombre> <carpeta o archivo>`.<br/>
 La marca es obligatoria. Un archivo sin marca se rechaza.<br/>
 El primer perfil válido pasa a ser el VPN de arranque y arma el killswitch.<br/>
 Una carpeta inválida no se añade. Si es la primera, el killswitch sigue cortado.<br/>
@@ -47,9 +47,9 @@ Tras retirar el último perfil, el siguiente perfil válido vuelve a ser el VPN 
 
 ## 📋 Formas de importación
 
-El archivo o la carpeta contiene exactamente los nombres de archivo de la marca.<br/>
+La carpeta o el archivo contiene exactamente los nombres de archivo de la marca.<br/>
 Un archivo de más, un archivo que falta, o el archivo del otro protocolo se rechaza.<br/>
-Se abre una sola carpeta al inicio del archivo. auth.txt puede estar a su lado.<br/>
+Se abre una sola carpeta. auth.txt puede estar a su lado.<br/>
 El diario del día es `log/vpn/YYYY-MM-DD.log`.<br/>
 Si la palabra REPLACE sigue presente, la importación se detiene antes de la prueba.<br/>
 El ejemplo usa `203.0.113.10`. No puede abrir un túnel.<br/>
@@ -68,8 +68,8 @@ Nord entrega un archivo `.ovpn`. Los certificados están dentro del archivo.<br/
 `auth.txt`: el nombre de servicio, luego la contraseña de servicio. El correo de la cuenta se rechaza.<br/>
 WireGuard y NordLynx se rechazan.<br/>
 Sustituya REPLACE en `config.ovpn` y en las dos líneas de `auth.txt`.<br/>
-El ejemplo es [nordvpn.zip](../examples/nordvpn.zip).<br/>
-`sudo ./liltress vpn import openvpn nordvpn nord-fr /chemin/nordvpn.zip`
+El ejemplo es [nordvpn](../examples/nordvpn).<br/>
+`sudo ./liltress vpn import openvpn nordvpn nord-fr /chemin/nordvpn`
 
 ## ▪️ ExpressVPN
 
@@ -78,8 +78,8 @@ ExpressVPN entrega un archivo `.ovpn` de la página de configuración manual. Lo
 `auth.txt`: el nombre y la contraseña que muestra esa página.<br/>
 WireGuard y Lightway se rechazan.<br/>
 Sustituya REPLACE en `config.ovpn` y en las dos líneas de `auth.txt`.<br/>
-El ejemplo es [expressvpn.zip](../examples/expressvpn.zip).<br/>
-`sudo ./liltress vpn import openvpn expressvpn express-fr /chemin/expressvpn.zip`
+El ejemplo es [expressvpn](../examples/expressvpn).<br/>
+`sudo ./liltress vpn import openvpn expressvpn express-fr /chemin/expressvpn`
 
 ## ▪️ Surfshark
 
@@ -87,11 +87,11 @@ OpenVPN o WireGuard.<br/>
 OpenVPN: `config.ovpn`, certificados dentro del archivo o nombrados al lado, y `auth.txt` con el nombre y el secreto generados. El correo del sitio se rechaza.<br/>
 WireGuard: solo `config.conf`, tras generar el par de claves. Sin `auth.txt`.<br/>
 El archivo del otro protocolo se rechaza.<br/>
-Sustituya REPLACE en cada archivo del archivo elegido.<br/>
-El ejemplo OpenVPN es [surfshark-openvpn.zip](../examples/surfshark-openvpn.zip).<br/>
-El ejemplo WireGuard es [surfshark-wireguard.zip](../examples/surfshark-wireguard.zip).<br/>
-`sudo ./liltress vpn import openvpn surfshark surf-fr /chemin/surfshark-openvpn.zip`<br/>
-`sudo ./liltress vpn import wireguard surfshark surf-fr /chemin/surfshark-wireguard.zip`
+Sustituya REPLACE en cada archivo de la carpeta, o en el archivo WireGuard.<br/>
+El ejemplo OpenVPN es [surfshark-openvpn](../examples/surfshark-openvpn).<br/>
+El ejemplo WireGuard es [surfshark-wireguard.conf](../examples/surfshark-wireguard.conf).<br/>
+`sudo ./liltress vpn import openvpn surfshark surf-fr /chemin/surfshark-openvpn`<br/>
+`sudo ./liltress vpn import wireguard surfshark surf-fr /chemin/surfshark-wireguard.conf`
 
 ## ▪️ Proton VPN
 
@@ -99,11 +99,11 @@ OpenVPN o WireGuard.<br/>
 OpenVPN: `config.ovpn` para Linux, certificados dentro del archivo, y `auth.txt` con el nombre OpenVPN y luego el secreto OpenVPN. La contraseña del buzón se rechaza.<br/>
 WireGuard: solo `config.conf`. Sin `auth.txt`.<br/>
 El archivo del otro protocolo se rechaza.<br/>
-Sustituya REPLACE en cada archivo del archivo elegido.<br/>
-El ejemplo OpenVPN es [protonvpn-openvpn.zip](../examples/protonvpn-openvpn.zip).<br/>
-El ejemplo WireGuard es [protonvpn-wireguard.zip](../examples/protonvpn-wireguard.zip).<br/>
-`sudo ./liltress vpn import openvpn protonvpn proton-fr /chemin/protonvpn-openvpn.zip`<br/>
-`sudo ./liltress vpn import wireguard protonvpn proton-fr /chemin/protonvpn-wireguard.zip`
+Sustituya REPLACE en cada archivo de la carpeta, o en el archivo WireGuard.<br/>
+El ejemplo OpenVPN es [protonvpn-openvpn](../examples/protonvpn-openvpn).<br/>
+El ejemplo WireGuard es [protonvpn-wireguard.conf](../examples/protonvpn-wireguard.conf).<br/>
+`sudo ./liltress vpn import openvpn protonvpn proton-fr /chemin/protonvpn-openvpn`<br/>
+`sudo ./liltress vpn import wireguard protonvpn proton-fr /chemin/protonvpn-wireguard.conf`
 
 ## ▪️ CyberGhost
 
@@ -113,8 +113,8 @@ La carpeta contiene `openvpn.ovpn`, `ca.crt`, `client.crt`, `client.key` y `auth
 `auth.txt`: el nombre generado, luego la contraseña generada. El acceso de la cuenta se rechaza.<br/>
 WireGuard se rechaza. Si falta uno de los tres certificados, se rechaza.<br/>
 Sustituya REPLACE en `openvpn.ovpn`, en cada certificado y en las dos líneas de `auth.txt`.<br/>
-El ejemplo es [cyberghost.zip](../examples/cyberghost.zip).<br/>
-`sudo ./liltress vpn import openvpn cyberghost cyberghost-fr /chemin/cyberghost.zip`
+El ejemplo es [cyberghost](../examples/cyberghost).<br/>
+`sudo ./liltress vpn import openvpn cyberghost cyberghost-fr /chemin/cyberghost`
 
 ## ▪️ Private Internet Access
 
@@ -125,18 +125,18 @@ Si `config.ovpn` nombra `ca` o `crl-verify`, esos archivos están en la carpeta 
 El ejemplo tiene los certificados dentro de `config.ovpn`.<br/>
 WireGuard se rechaza. Un nombre SOCKS se rechaza.<br/>
 Sustituya REPLACE en `config.ovpn` y en las dos líneas de `auth.txt`.<br/>
-El ejemplo es [pia.zip](../examples/pia.zip).<br/>
-`sudo ./liltress vpn import openvpn pia pia-fr /chemin/pia.zip`
+El ejemplo es [pia](../examples/pia).<br/>
+`sudo ./liltress vpn import openvpn pia pia-fr /chemin/pia`
 
 ## ▪️ Mullvad
 
 Solo WireGuard.<br/>
-La carpeta contiene `config.conf`. Sin `auth.txt`.<br/>
+La importación recibe el archivo y lo copia como `config.conf`. Sin `auth.txt`.<br/>
 El número de cuenta sirve para obtener el archivo en Mullvad. La importación pide `config.conf`.<br/>
 OpenVPN se rechaza.<br/>
 Sustituya REPLACE en las líneas PrivateKey, Address, PublicKey, Endpoint y AllowedIPs.<br/>
-El ejemplo es [mullvad.zip](../examples/mullvad.zip).<br/>
-`sudo ./liltress vpn import wireguard mullvad mullvad-se /chemin/mullvad.zip`
+El ejemplo es [mullvad.conf](../examples/mullvad.conf).<br/>
+`sudo ./liltress vpn import wireguard mullvad mullvad-se /chemin/mullvad.conf`
 
 ## ▪️ PureVPN
 
@@ -145,11 +145,11 @@ OpenVPN: `config.ovpn`, los archivos `ca`, `cert` y `key` si están nombrados, y
 WireGuard: solo `config.conf`. Sin `auth.txt`.<br/>
 Un archivo WireGuard no activado en treinta minutos falla la prueba. El perfil no se publica.<br/>
 El archivo del otro protocolo se rechaza.<br/>
-Sustituya REPLACE en cada archivo del archivo elegido.<br/>
-El ejemplo OpenVPN es [purevpn-openvpn.zip](../examples/purevpn-openvpn.zip).<br/>
-El ejemplo WireGuard es [purevpn-wireguard.zip](../examples/purevpn-wireguard.zip).<br/>
-`sudo ./liltress vpn import openvpn purevpn pure-fr /chemin/purevpn-openvpn.zip`<br/>
-`sudo ./liltress vpn import wireguard purevpn pure-fr /chemin/purevpn-wireguard.zip`
+Sustituya REPLACE en cada archivo de la carpeta, o en el archivo WireGuard.<br/>
+El ejemplo OpenVPN es [purevpn-openvpn](../examples/purevpn-openvpn).<br/>
+El ejemplo WireGuard es [purevpn-wireguard.conf](../examples/purevpn-wireguard.conf).<br/>
+`sudo ./liltress vpn import openvpn purevpn pure-fr /chemin/purevpn-openvpn`<br/>
+`sudo ./liltress vpn import wireguard purevpn pure-fr /chemin/purevpn-wireguard.conf`
 
 ## ▪️ IPVanish
 
@@ -158,8 +158,8 @@ La carpeta contiene `config.ovpn` y `auth.txt`. Los certificados están dentro d
 `auth.txt`: el nombre de la cuenta, luego la contraseña de la cuenta.<br/>
 WireGuard se rechaza.<br/>
 Sustituya REPLACE en `config.ovpn` y en las dos líneas de `auth.txt`.<br/>
-El ejemplo es [ipvanish.zip](../examples/ipvanish.zip).<br/>
-`sudo ./liltress vpn import openvpn ipvanish ipvanish-fr /chemin/ipvanish.zip`
+El ejemplo es [ipvanish](../examples/ipvanish).<br/>
+`sudo ./liltress vpn import openvpn ipvanish ipvanish-fr /chemin/ipvanish`
 
 ## ▪️ Windscribe
 
@@ -169,8 +169,17 @@ OpenVPN: `config.ovpn` y `auth.txt`. `tls-auth` está dentro del archivo, o al l
 WireGuard: solo `config.conf`, con el lugar, el puerto y el par de claves. Sin `auth.txt`.<br/>
 IKEv2 se rechaza.<br/>
 El generador WireGuard es una opción de pago en Windscribe.<br/>
-Sustituya REPLACE en cada archivo del archivo elegido.<br/>
-El ejemplo OpenVPN es [windscribe-openvpn.zip](../examples/windscribe-openvpn.zip).<br/>
-El ejemplo WireGuard es [windscribe-wireguard.zip](../examples/windscribe-wireguard.zip).<br/>
-`sudo ./liltress vpn import openvpn windscribe windscribe-fr /chemin/windscribe-openvpn.zip`<br/>
-`sudo ./liltress vpn import wireguard windscribe windscribe-fr /chemin/windscribe-wireguard.zip`
+Sustituya REPLACE en cada archivo de la carpeta, o en el archivo WireGuard.<br/>
+El ejemplo OpenVPN es [windscribe-openvpn](../examples/windscribe-openvpn).<br/>
+El ejemplo WireGuard es [windscribe-wireguard.conf](../examples/windscribe-wireguard.conf).<br/>
+`sudo ./liltress vpn import openvpn windscribe windscribe-fr /chemin/windscribe-openvpn`<br/>
+`sudo ./liltress vpn import wireguard windscribe windscribe-fr /chemin/windscribe-wireguard.conf`
+
+## ▪️ Perso
+
+Solo WireGuard. El archivo viene de la página wg-easy del servidor.<br/>
+La importación recibe ese archivo y lo copia como `config.conf`. Sin `auth.txt`.<br/>
+OpenVPN se rechaza. Un archivo comprimido se rechaza.<br/>
+El ejemplo es [perso.conf](../examples/perso.conf).<br/>
+`Endpoint` es `203.0.113.10:51820`. `Address` es `10.8.0.2/24`.<br/>
+`sudo ./liltress vpn import wireguard perso poste-1 /chemin/perso.conf`

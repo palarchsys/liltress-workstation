@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/config/config-validators.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Check configuration values and store the alert switch.
+# -----------------------------------------------------------------------------
+
 
 check_email() {
     [[ "$1" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]]
@@ -12,7 +18,7 @@ check_email() {
 check_port() {
     local min="$2" max="$3"
     [[ "$1" =~ ^[0-9]+$ ]] || return 1
-    (( 10#$1 >= min && 10#$1 <= max )) || return 1
+    ((10#$1 >= min && 10#$1 <= max)) || return 1
     return 0
 }
 
@@ -51,7 +57,7 @@ check_drive_probe() {
     command -v rclone >/dev/null 2>&1 || return 1
     probe="$(mktemp)"
     err="$(mktemp)"
-    printf '%s\n' "liltress" > "${probe}"
+    printf '%s\n' "liltress" >"${probe}"
     if RCLONE_CONFIG="${config}" rclone mkdir "${remote}:${path}" >"${err}" 2>&1 \
         && RCLONE_CONFIG="${config}" rclone copyto "${probe}" "${remote}:${path}/liltress-probe.txt" >"${err}" 2>&1 \
         && RCLONE_CONFIG="${config}" rclone deletefile "${remote}:${path}/liltress-probe.txt" >"${err}" 2>&1; then
@@ -95,17 +101,21 @@ emit_config() {
     return 1
 }
 
+# Only 0 and 1 are accepted.
+read_mail_alerts_value() {
+    local value="${MAIL_ALERTS:-0}"
+    [[ "${value}" =~ ^[01]$ ]] || return 1
+    printf '%s\n' "${value}"
+}
+
 # Replaces the MAIL_ALERTS line in an existing global.conf.
 # The other lines stay. A missing line is inserted before the user.conf source.
-write_mail_alerts() {
+render_mail_alerts() {
     local dest="$1"
-    local value="${MAIL_ALERTS:-0}"
-    local tmp=""
+    local value="$2"
     local line=""
     local found=0
     local -a body=()
-    [[ "${value}" =~ ^[01]$ ]] || return 1
-    [[ -f "${dest}" ]] || return 1
     while IFS= read -r line || [[ -n "${line}" ]]; do
         if [[ "${line}" == MAIL_ALERTS=* ]]; then
             body+=("MAIL_ALERTS=${value}")
@@ -118,12 +128,21 @@ write_mail_alerts() {
             found=1
         fi
         body+=("${line}")
-    done < "${dest}"
+    done <"${dest}"
     if [[ "${found}" -eq 0 ]]; then
         body+=("MAIL_ALERTS=${value}")
     fi
+    printf '%s\n' "${body[@]}"
+}
+
+write_mail_alerts() {
+    local dest="$1"
+    local value=""
+    local tmp=""
+    value="$(read_mail_alerts_value)" || return 1
+    [[ -f "${dest}" ]] || return 1
     tmp="$(mktemp)"
-    printf '%s\n' "${body[@]}" > "${tmp}"
-    cat "${tmp}" > "${dest}"
+    render_mail_alerts "${dest}" "${value}" >"${tmp}"
+    cat "${tmp}" >"${dest}"
     rm -f "${tmp}"
 }

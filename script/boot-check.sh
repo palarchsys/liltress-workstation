@@ -1,32 +1,59 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/boot-check.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
 
+# -----------------------------------------------------------------------------
+# Purpose    : Record the boot chain and the service quotas.
+# Note       : An unprivileged start stops before the chain.
+# -----------------------------------------------------------------------------
+
+
+# The caller owns shown_python and reads it after this call.
+show_python_directory() {
+    local candidate="$1"
+    shown_python=0
+    [[ -n "${candidate}" && -d "${candidate}" ]] || return 0
+    (cd -- "${candidate}" && pwd -P)
+    shown_python=1
+    return 0
+}
+
+# The shared directory is printed as given, without resolving links.
+show_share_python() {
+    local dir="$1"
+    shown_python=0
+    if [[ ! -d "${dir}/share/python" ]]; then
+        return 0
+    fi
+    printf '%s\n' "${dir}/share/python"
+    shown_python=1
+    return 0
+}
+
 locate_python_dir() {
-    local dir hops=0 candidate
+    local dir="" hops=0 candidate="" shown_python=0
     for candidate in \
         "${CONFIG_BASE_DIRECTORY:-}/python" \
         "${BASE:-}/python" \
         "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"
-    do
-        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
-            (cd -- "${candidate}" && pwd -P)
+        "${INSTALL_DIRECTORY:-}/../share/python"; do
+        show_python_directory "${candidate}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
     done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -d "${dir}/share/python" ]]; then
-            printf '%s\n' "${dir}/share/python"
+        show_share_python "${dir}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
-        if [[ -d "${dir}/python" ]]; then
-            (cd -- "${dir}/python" && pwd -P)
+        show_python_directory "${dir}/python"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
         dir="$(dirname -- "${dir}")"
@@ -84,8 +111,7 @@ nice_want=19
 global_conf=""
 for candidate in \
     "${BASE}/config/global.conf" \
-    "${BASE}/config/global.conf"
-do
+    "${BASE}/config/global.conf"; do
     if [[ -f "${candidate}" ]]; then
         global_conf="${candidate}"
         break
@@ -153,7 +179,7 @@ else
 fi
 
 printf '\n===== minuteries =====\n'
-for timer in w-boot-chain w-idle-scan w-reboot-notice w-hourly-scan; do
+for timer in w-boot-chain w-periodic-scan w-reboot-notice; do
     enabled="$(systemctl is-enabled "${timer}.timer" 2>/dev/null || echo absent)"
     active="$(systemctl is-active "${timer}.timer" 2>/dev/null || echo absent)"
     if [[ "${enabled}" == "enabled" && "${active}" == "active" ]]; then
@@ -167,15 +193,14 @@ if [[ -f /etc/systemd/system/w-boot-scan.timer ]]; then
 else
     record_boot_mark OK "w-boot-scan.timer absent"
 fi
-if grep -q '^OnBootSec=' /etc/systemd/system/w-idle-scan.timer 2>/dev/null \
-    || grep -q '^OnBootSec=' /etc/systemd/system/w-reboot-notice.timer 2>/dev/null; then
-    record_boot_mark ECART "une minuterie répétée a encore OnBootSec"
+if grep -q '^OnBootSec=' /etc/systemd/system/w-reboot-notice.timer 2>/dev/null; then
+    record_boot_mark ECART "l'avis de redémarrage a un délai fixe au démarrage"
 else
-    record_boot_mark OK "les répétitions n'ont pas de délai fixe au démarrage"
+    record_boot_mark OK "l'avis de redémarrage n'a pas de délai fixe au démarrage"
 fi
 
 printf '\n===== plafond CPU =====\n'
-for unit in w-boot-scan w-idle-scan w-reboot-notice w-hourly-scan; do
+for unit in w-boot-scan w-periodic-scan w-reboot-notice; do
     unit_file="/etc/systemd/system/${unit}.service"
     file_quota="$(grep -E '^CPUQuota=' "${unit_file}" 2>/dev/null | cut -d= -f2-)"
     file_nice="$(grep -E '^Nice=' "${unit_file}" 2>/dev/null | cut -d= -f2-)"
@@ -183,8 +208,8 @@ for unit in w-boot-scan w-idle-scan w-reboot-notice w-hourly-scan; do
     show_quota="$(systemctl show -p CPUQuotaPerSecUSec --value "${unit}.service")"
     got_ms="$(get_millisecond "${show_quota}")"
     show_io="$(systemctl show -p IOSchedulingClass --value "${unit}.service")"
-    if [[ "${file_quota}" == "${want_pct}%" && "${file_nice}" == "${nice_want}" && "${file_io}" == "idle" \
-        && "${got_ms}" == "${want_ms}" && ( "${show_io}" == "idle" || "${show_io}" == "3" ) ]]; then
+    if [[ "${file_quota}" == "${want_pct}%" && "${file_nice}" == "${nice_want}" && "${file_io}" == "idle" &&
+        "${got_ms}" == "${want_ms}" && ("${show_io}" == "idle" || "${show_io}" == "3") ]]; then
         record_boot_mark OK "${unit} CPUQuota=${file_quota} effectif=${show_quota}"
     else
         record_boot_mark ECART "${unit} fichier=${file_quota:-absent} effectif=${show_quota:-absent} attendu=${want_pct}%"
@@ -269,7 +294,7 @@ check_boot_unit() {
 }
 
 check_boot_unit w-boot-scan.service
-check_boot_unit w-idle-scan.service
+check_boot_unit w-periodic-scan.service
 check_boot_unit w-reboot-notice.service
 
 printf "$(get_text log.n-journals-since-this-start-n)"
@@ -285,7 +310,7 @@ get_latest_log() {
     printf '%s\n' "${found}"
 }
 
-for name in aide integrity rkhunter behavior chkrootkit clamav debsums egress idle-scan reboot-notice; do
+for name in aide rkhunter chkrootkit debsums clamav auditd integrity egress reboot-notice; do
     log_file="$(get_latest_log "${name}")"
     if [[ -z "${log_file}" ]]; then
         if [[ "${chain_state}" == "active" || "${chain_state}" == "activating" ]]; then

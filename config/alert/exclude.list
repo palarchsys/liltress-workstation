@@ -4,6 +4,7 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
 # -----------------------------------------------------------------------------
 # Purpose    : Paths both products ignore when a watchdog classifies a change.
 # Note       : One path or one prefix per line. A directory prefix ends with a slash.

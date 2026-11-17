@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/run.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Launch the workstation hardening from the prepared configuration.
+# Note       : An unprepared configuration stops before any change.
+# -----------------------------------------------------------------------------
+
 
 # shellcheck disable=SC2155
 
@@ -51,6 +58,57 @@ trap install_exit EXIT
 source "${INSTALL_DIRECTORY}/service/unbound/dns.sh"
 clear_dns_override
 
+# The message uses the alert template and the project name.
+send_test_mail() {
+    if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
+        if [[ -z "${WATCHDOG_MAIL:-}" ]]; then
+            log_error "${INSTALL_WATCHER}" "log.g-watchdog-mail-is-empty-l-e-mail-of-end-of-inst"
+        fi
+        log_info "${INSTALL_WATCHER}" "log.send-of-the-e-mail-of-test-to" "${WATCHDOG_MAIL}"
+        mail_host="$(hostname -s 2>/dev/null || hostname)"
+        mail_date="$(date '+%Y-%m-%d %H:%M:%S')"
+        export TITLE="$(get_text mail.install.test.title)"
+        export MODULE_NAME="${TITLE}"
+        export PROJECT_NAME
+        export WATCHDOG_MAIL
+        export HOSTNAME="${mail_host}"
+        export DATE="${mail_date}"
+        export MAIL_SUBTITLE="${PROJECT_NAME} • ${mail_host} • ${mail_date}"
+        export MAIL_FOOTER="${PROJECT_NAME}"
+        export MAIL_BLOCK_SERVICES="$(get_text mail.install.test.block)"
+        export MAIL_SERVICES="$(get_text mail.install.test.body)"
+        export CONTENT="${MAIL_SERVICES}"
+        export MAIL_FILES=""
+        export MAIL_ACTIONS=""
+        export MAIL_IGNORE=""
+        export MAIL_TEMPLATE_FILE="${INSTALL_DIRECTORY}/service/cron/watchdogs/mail-alert.html"
+        if ! bash "${INSTALL_DIRECTORY}/service/cron/watchdogs/send.sh"; then
+            log_error "${INSTALL_WATCHER}" "log.l-e-mail-of-test-toward-was-not-accepted-by-post" "${WATCHDOG_MAIL}"
+        fi
+        log_success "${INSTALL_WATCHER}" "log.e-mail-of-test-sent-to" "${WATCHDOG_MAIL}"
+    else
+        log_info "${INSTALL_WATCHER}" "log.alerts-e-mail-off-no-message-of-end-not-is-sent"
+    fi
+}
+
+# A pending kernel or service change requests a reboot.
+show_reboot_notice() {
+    set_step_hidden "$(get_text run.close.done)"
+    show_closing_note "$(get_text log.journals-title)" "$(show_path "${INSTALL_LOG_DIR}")"
+    show_closing_note "$(get_text log.lynis-launch)" "$(get_text log.lynis-command)"
+    reboot_needed=0
+    [[ -f /var/run/reboot-required ]] && reboot_needed=1
+    if command -v needrestart >/dev/null 2>&1; then
+        nr_out="$(needrestart -b -r l 2>/dev/null || true)"
+        if printf '%s\n' "${nr_out}" | grep -qE '^NEEDRESTART-KSTA: [2-9]|^NEEDRESTART-SVC:|^NEEDRESTART-SESS:'; then
+            reboot_needed=1
+        fi
+    fi
+    if [[ "${reboot_needed}" -eq 1 ]]; then
+        log_info "${INSTALL_WATCHER}" "log.a-reboot-is-recommended-kernel-libc"
+    fi
+}
+
 run_install_action() {
     local name="$1"
     case "${name}" in
@@ -68,51 +126,10 @@ run_install_action() {
             log_success "${INSTALL_WATCHER}" "log.fixes-of-security-installed"
             ;;
         test-mail)
-            if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
-                if [[ -z "${WATCHDOG_MAIL:-}" ]]; then
-                    log_error "${INSTALL_WATCHER}" "log.g-watchdog-mail-is-empty-l-e-mail-of-end-of-inst"
-                fi
-                log_info "${INSTALL_WATCHER}" "log.send-of-the-e-mail-of-test-to" "${WATCHDOG_MAIL}"
-                mail_host="$(hostname -s 2>/dev/null || hostname)"
-                mail_date="$(date '+%Y-%m-%d %H:%M:%S')"
-                export TITLE="$(get_text mail.install.test.title)"
-                export MODULE_NAME="${TITLE}"
-                export PROJECT_NAME
-                export WATCHDOG_MAIL
-                export HOSTNAME="${mail_host}"
-                export DATE="${mail_date}"
-                export MAIL_SUBTITLE="${PROJECT_NAME} • ${mail_host} • ${mail_date}"
-                export MAIL_FOOTER="${PROJECT_NAME}"
-                export MAIL_BLOCK_SERVICES="$(get_text mail.install.test.block)"
-                export MAIL_SERVICES="$(get_text mail.install.test.body)"
-                export CONTENT="${MAIL_SERVICES}"
-                export MAIL_FILES=""
-                export MAIL_ACTIONS=""
-                export MAIL_IGNORE=""
-                export MAIL_TEMPLATE_FILE="${INSTALL_DIRECTORY}/service/cron/watchdogs/mail-alert.html"
-                if ! bash "${INSTALL_DIRECTORY}/service/cron/watchdogs/send.sh"; then
-                    log_error "${INSTALL_WATCHER}" "log.l-e-mail-of-test-toward-was-not-accepted-by-post" "${WATCHDOG_MAIL}"
-                fi
-                log_success "${INSTALL_WATCHER}" "log.e-mail-of-test-sent-to" "${WATCHDOG_MAIL}"
-            else
-                log_info "${INSTALL_WATCHER}" "log.alerts-e-mail-off-no-message-of-end-not-is-sent"
-            fi
+            send_test_mail
             ;;
         reboot-notice)
-            set_step_hidden "$(get_text run.close.done)"
-            show_closing_note "$(get_text log.journals-title)" "$(show_path "${INSTALL_LOG_DIR}")"
-            show_closing_note "$(get_text log.lynis-launch)" "$(get_text log.lynis-command)"
-            reboot_needed=0
-            [[ -f /var/run/reboot-required ]] && reboot_needed=1
-            if command -v needrestart >/dev/null 2>&1; then
-                nr_out="$(needrestart -b -r l 2>/dev/null || true)"
-                if printf '%s\n' "${nr_out}" | grep -qE '^NEEDRESTART-KSTA: [2-9]|^NEEDRESTART-SVC:|^NEEDRESTART-SESS:'; then
-                    reboot_needed=1
-                fi
-            fi
-            if [[ "${reboot_needed}" -eq 1 ]]; then
-                log_info "${INSTALL_WATCHER}" "log.a-reboot-is-recommended-kernel-libc"
-            fi
+            show_reboot_notice
             ;;
         *)
             log_error "${INSTALL_WATCHER}" "run.script.error.6" "${name}"

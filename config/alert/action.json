@@ -1005,12 +1005,9 @@
           ],
           "paths": [
             "/etc/systemd/system/timers.target.wants/w-boot-chain.timer",
-            "/etc/systemd/system/timers.target.wants/w-hourly-scan.timer",
-            "/etc/systemd/system/timers.target.wants/w-idle-scan.timer",
             "/etc/systemd/system/timers.target.wants/w-periodic-scan.timer",
             "/etc/systemd/system/timers.target.wants/w-reboot-notice.timer",
             "/etc/systemd/system/timers.target.wants/s-boot-chain.timer",
-            "/etc/systemd/system/timers.target.wants/s-hourly-scan.timer",
             "/etc/systemd/system/timers.target.wants/s-periodic-scan.timer",
             "/etc/systemd/system/timers.target.wants/s-reboot-notice.timer"
           ]
@@ -2121,6 +2118,23 @@
             "mail",
             "zip"
           ]
+        },
+        {
+          "id": "audit.event",
+          "hold": 1,
+          "explained-by": [
+            "exclude"
+          ],
+          "explained": [],
+          "real": [
+            "mail",
+            "zip"
+          ],
+          "repair-failed": [
+            "fail",
+            "mail",
+            "zip"
+          ]
         }
       ],
       "quarantine": "never"
@@ -2238,56 +2252,9 @@
       ]
     },
     {
-      "name": "idle-scan",
-      "phase": "malware",
-      "cases": [
-        {
-          "id": "idle-scan.game",
-          "actions": []
-        },
-        {
-          "id": "idle-scan.clamscan-absent",
-          "actions": []
-        },
-        {
-          "id": "idle-scan.no-file",
-          "actions": []
-        },
-        {
-          "id": "idle-scan.clean",
-          "actions": []
-        },
-        {
-          "id": "idle-scan.virus",
-          "hold": 1,
-          "explained-by": [
-            "exclude",
-            "repaired"
-          ],
-          "explained": [],
-          "real": [
-            "quarantine",
-            "reinstall",
-            "mail",
-            "zip"
-          ],
-          "repair-failed": [
-            "quarantine",
-            "fail",
-            "mail",
-            "zip"
-          ]
-        }
-      ]
-    },
-    {
       "name": "reboot-notice",
       "phase": "evergreen",
       "cases": [
-        {
-          "id": "reboot-notice.game",
-          "actions": []
-        },
         {
           "id": "reboot-notice.not-required",
           "actions": []

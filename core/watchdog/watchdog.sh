@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/watchdog.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Open the journal, then each watchdog part.
+# -----------------------------------------------------------------------------
+
 
 if ! declare -F get_text >/dev/null 2>&1; then
     text_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,8 +19,7 @@ if ! declare -F get_text >/dev/null 2>&1; then
         "${BASE:-}/core/log/log.sh" \
         "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
         "${PRODUCT_ROOT:-}/core/log/log.sh" \
-        "${PRODUCT_ROOT:-}/../share/core/log/log.sh"
-    do
+        "${PRODUCT_ROOT:-}/../share/core/log/log.sh"; do
         if [[ -n "${text_candidate}" && -f "${text_candidate}" ]]; then
             # shellcheck disable=SC1090
             source "${text_candidate}"
@@ -30,8 +35,7 @@ load_watchdog_parts() {
     for watchdog_part in \
         base.sh crash.sh limit.sh excerpt.sh clamav.sh debsums.sh \
         quarantine.sh egress.sh advice.sh deliver.sh \
-        decide.sh remedy.sh pack.sh report.sh
-    do
+        decide.sh remedy.sh pack.sh report.sh; do
         if [[ -f "${watchdog_dir}/${watchdog_part}" ]]; then
             # shellcheck disable=SC1090
             source "${watchdog_dir}/${watchdog_part}"

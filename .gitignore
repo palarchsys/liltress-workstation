@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : .gitignore
-# Updated at : 2026-11-14
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
@@ -70,6 +70,34 @@ verify-report-*.tsv
 /service/cron/enable.sh
 /service/cron/watchdogs/chain.sh
 /service/cron/watchdogs/mail-alert.html
+/script/scan-skip.sh
+/service/cron/watchdogs/apply-scan-skip.sh
+/service/cron/watchdogs/arm-onaccess.sh
+/service/cron/watchdogs/arm-periodic-scan.sh
+/service/cron/watchdogs/boot-scan.sh
+/service/cron/watchdogs/chain-periodic.sh
+/service/cron/watchdogs/chain-refresh-db.sh
+/service/cron/watchdogs/chain-scan-integrity.sh
+/service/cron/watchdogs/clamav-event.sh
+/service/cron/watchdogs/clamav-response.sh
+/service/cron/watchdogs/common.sh
+/service/cron/watchdogs/reboot-notice.sh
+/service/cron/watchdogs/record-mirrors.sh
+/service/cron/watchdogs/refresh-chkrootkit-db.sh
+/service/cron/watchdogs/refresh-clamav-db.sh
+/service/cron/watchdogs/refresh-debsums-db.sh
+/service/cron/watchdogs/refresh-rkhunter-db.sh
+/service/cron/watchdogs/scan-aide.sh
+/service/cron/watchdogs/scan-auditd.sh
+/service/cron/watchdogs/scan-chkrootkit.sh
+/service/cron/watchdogs/scan-clamav.sh
+/service/cron/watchdogs/scan-debsums.sh
+/service/cron/watchdogs/scan-egress.sh
+/service/cron/watchdogs/scan-fingerprint.sh
+/service/cron/watchdogs/scan-rkhunter.sh
+/service/cron/watchdogs/scan-skip-lib.sh
+/service/cron/watchdogs/scan-usbguard.sh
+/service/cron/watchdogs/send.sh
 /config/alert/exclude.list
 /config/alert/action.json
 /config/auditd/enable.rules

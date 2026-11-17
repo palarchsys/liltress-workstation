@@ -1,30 +1,42 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/run/launch.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
-load_launch_text() {
+
+# -----------------------------------------------------------------------------
+# Purpose    : Dispatch a product command to the matching script.
+# -----------------------------------------------------------------------------
+
+
+# Sources the first log engine that exists.
+source_launch_log() {
     local root="$1"
     local launch_here="" launch_candidate=""
+    launch_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    for launch_candidate in \
+        "${launch_here}/../log/log.sh" \
+        "${root}/core/log/log.sh" \
+        "${root}/core/log/log.sh"; do
+        if [[ -n "${launch_candidate}" && -f "${launch_candidate}" ]]; then
+            # shellcheck disable=SC1090
+            source "${launch_candidate}"
+            return 0
+        fi
+    done
+    return 0
+}
+
+load_launch_text() {
+    local root="$1"
     if [[ -z "${PRODUCT_ROOT:-}" ]]; then
         PRODUCT_ROOT="${root}"
         export PRODUCT_ROOT
     fi
     if ! declare -F get_text >/dev/null 2>&1; then
-        launch_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-        for launch_candidate in \
-            "${launch_here}/../log/log.sh" \
-            "${root}/core/log/log.sh" \
-            "${root}/core/log/log.sh"
-        do
-            if [[ -n "${launch_candidate}" && -f "${launch_candidate}" ]]; then
-                # shellcheck disable=SC1090
-                source "${launch_candidate}"
-                break
-            fi
-        done
+        source_launch_log "${root}"
     fi
     if declare -F read_language_file >/dev/null 2>&1 \
         && [[ -f "${root}/config/global.conf" ]]; then
@@ -124,7 +136,7 @@ launch_verify() {
         chkrootkit)
             launch_exec "${root}" "${root}/script/verify/chkrootkit-fp.sh" "$@"
             ;;
-        matrix|livekit|wireguard)
+        matrix | livekit | wireguard)
             profile="$(printf '%s' "${sub}" | tr '[:lower:]' '[:upper:]')"
             launch_exec "${root}" "${root}/script/verify/${sub}.sh" "${root}" "${profile}"
             ;;
@@ -134,11 +146,11 @@ launch_verify() {
     esac
 }
 
-launch_maintain() {
+# Known scan tools replace this process. An unknown name returns 1.
+launch_maintain_scan() {
     local root="$1"
-    shift
-    local sub="${1:-}"
-    shift || true
+    local sub="$2"
+    shift 2
     case "${sub}" in
         aide)
             if [[ -f "${root}/service/aide/refresh-db.sh" ]]; then
@@ -158,6 +170,18 @@ launch_maintain() {
         scan-skip)
             launch_exec "${root}" "${root}/script/scan-skip.sh" "$@"
             ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# Host tools replace this process. An unknown name returns 1.
+launch_maintain_host() {
+    local root="$1"
+    local sub="$2"
+    shift 2
+    case "${sub}" in
         mirrors)
             launch_exec "${root}" "${root}/service/cron/watchdogs/record-mirrors.sh" "$@"
             ;;
@@ -174,55 +198,121 @@ launch_maintain() {
             launch_exec "${root}" "${root}/core/mail/mail-test.sh" "$@"
             ;;
         *)
-            launch_unknown "${root}" "maintain ${sub}"
+            return 1
             ;;
     esac
+}
+
+launch_maintain() {
+    local root="$1"
+    shift
+    local sub="${1:-}"
+    shift || true
+    launch_maintain_scan "${root}" "${sub}" "$@" && return 0
+    launch_maintain_host "${root}" "${sub}" "$@" && return 0
+    launch_unknown "${root}" "maintain ${sub}"
 }
 
 launch_watchdog() {
     local root="$1"
     local name="${2:-}"
+    local script=""
     shift 2 || true
     if [[ ! "${name}" =~ ^[A-Za-z0-9._-]+$ ]]; then
         launch_unknown "${root}" "${name}"
     fi
-    launch_exec "${root}" "${root}/service/cron/watchdogs/${name}.sh" "$@"
+    case "${name}" in
+        chain) script="chain-periodic.sh" ;;
+        aide | rkhunter | chkrootkit | clamav | debsums | auditd) script="scan-${name}.sh" ;;
+        *) script="${name}.sh" ;;
+    esac
+    launch_exec "${root}" "${root}/service/cron/watchdogs/${script}" "$@"
+}
+
+# Root stays. Another account is sent through sudo, except help and a repository clone.
+require_launch_root() {
+    local root="$1"
+    local cmd="$2"
+    shift 2
+    [[ "${EUID}" -eq 0 ]] && return 0
+    case "${cmd}" in
+        help | -h | --help) return 0 ;;
+        install)
+            if [[ "${1:-}" != "clone" ]]; then
+                exec sudo -- "${root}/liltress" "${cmd}" "$@"
+            fi
+            return 0
+            ;;
+        *)
+            exec sudo -- "${root}/liltress" "${cmd}" "$@"
+            ;;
+    esac
+}
+
+# extra stays visible to the caller.
+show_launch_help() {
+    local root="$1"
+    printf '%s\n' "$(get_text launch.usage "${root}")"
+    extra=""
+    if [[ -f "${root}/script/verify/workstation.sh" ]]; then
+        extra="$(get_text launch.usage.extra.workstation)"
+        if [[ "${extra}" == "launch.usage.extra.workstation" ]]; then
+            extra=""
+        fi
+    elif [[ -f "${root}/script/verify/matrix.sh" ]]; then
+        extra="$(get_text launch.usage.extra.server)"
+        if [[ "${extra}" == "launch.usage.extra.server" ]]; then
+            extra=""
+        fi
+    fi
+    if [[ -n "${extra}" ]]; then
+        printf '\n%s\n' "${extra}"
+    fi
+}
+
+# Known script names replace this process. The caller owns launch_known.
+launch_script() {
+    local root="$1"
+    local cmd="$2"
+    shift 2
+    launch_known=0
+    case "${cmd}" in
+        configure)
+            launch_known=1
+            exec bash "${root}/script/configure.sh" "$@"
+            ;;
+        check)
+            launch_known=1
+            exec bash "${root}/script/configure.sh" --check "$@"
+            ;;
+        run)
+            launch_known=1
+            exec bash "${root}/script/run.sh" "$@"
+            ;;
+        lynis)
+            launch_known=1
+            exec bash "${root}/core/run/lynis.sh" "${root}" "$@"
+            ;;
+        logs)
+            launch_known=1
+            exec bash "${root}/script/log-collect.sh" "$@"
+            ;;
+    esac
+    return 0
 }
 
 run_launch() {
     local root="$1"
     local cmd="${2:-help}"
+    local launch_known=0
     shift 2 || true
-    if [[ "${EUID}" -ne 0 ]]; then
-        case "${cmd}" in
-            help|-h|--help) ;;
-            install)
-                if [[ "${1:-}" != "clone" ]]; then
-                    exec sudo -- "${root}/liltress" "${cmd}" "$@"
-                fi
-                ;;
-            *)
-                exec sudo -- "${root}/liltress" "${cmd}" "$@"
-                ;;
-        esac
-    fi
+    require_launch_root "${root}" "${cmd}" "$@"
     load_launch_text "${root}"
+    launch_script "${root}" "${cmd}" "$@"
+    if [[ "${launch_known}" -eq 1 ]]; then
+        return 0
+    fi
     case "${cmd}" in
-        configure)
-            exec bash "${root}/script/configure.sh" "$@"
-            ;;
-        check)
-            exec bash "${root}/script/configure.sh" --check "$@"
-            ;;
-        run)
-            exec bash "${root}/script/run.sh" "$@"
-            ;;
-        lynis)
-            exec bash "${root}/core/run/lynis.sh" "${root}" "$@"
-            ;;
-        logs)
-            exec bash "${root}/script/log-collect.sh" "$@"
-            ;;
         vpn)
             if [[ -f "${root}/service/vpn/cli.sh" ]]; then
                 exec bash "${root}/service/vpn/cli.sh" "$@"
@@ -235,29 +325,14 @@ run_launch() {
         maintain)
             launch_maintain "${root}" "$@"
             ;;
-        timer|cron)
+        timer | cron)
             launch_watchdog "${root}" "$@"
             ;;
         install)
             launch_install "${root}" "$@"
             ;;
-        help|-h|--help)
-            printf '%s\n' "$(get_text launch.usage "${root}")"
-            extra=""
-            if [[ -f "${root}/script/verify/workstation.sh" ]]; then
-                extra="$(get_text launch.usage.extra.workstation)"
-                if [[ "${extra}" == "launch.usage.extra.workstation" ]]; then
-                    extra=""
-                fi
-            elif [[ -f "${root}/script/verify/matrix.sh" ]]; then
-                extra="$(get_text launch.usage.extra.server)"
-                if [[ "${extra}" == "launch.usage.extra.server" ]]; then
-                    extra=""
-                fi
-            fi
-            if [[ -n "${extra}" ]]; then
-                printf '\n%s\n' "${extra}"
-            fi
+        help | -h | --help)
+            show_launch_help "${root}"
             ;;
         *)
             launch_unknown "${root}" "${cmd}"

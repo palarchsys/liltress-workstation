@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/vpn.txt
-# Updated at : 2026-11-15
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
@@ -10,8 +10,8 @@ Aufruf: liltress vpn <Befehl>
 
   status
   list
-  import openvpn <Marke> <Name> <Archiv oder Ordner>
-  import wireguard <Marke> <Name> <Archiv oder Ordner>
+  import openvpn <Marke> <Name> <Ordner oder Datei>
+  import wireguard <Marke> <Name> <Ordner oder Datei>
   test <Name>
   switch <Name>
   mode on
@@ -238,19 +238,19 @@ Das Wort REPLACE steht noch in {1}.
 Datei nicht gefunden: {1}.
 
 [vpn.import.zipfile]
-{1} ist kein Zip-Archiv.
+{1} ist ein Archiv. Den Ordner oder die Datei angeben.
 
 [vpn.import.zipdir]
-Das Archiv enthält den Ordner {1}. Nur ein Ordner wird geöffnet, und nur auth.txt darf daneben liegen.
+Der Ordner {1} wird abgelehnt. Nur ein Ordner wird geöffnet, und nur auth.txt darf daneben liegen.
 
 [vpn.import.zipdeep]
-Das Archiv enthält einen verbotenen Pfad: {1}.
+Der Ordner enthält einen verbotenen Pfad: {1}.
 
 [vpn.import.zipsize]
 {1} ist größer als 1 MB.
 
 [vpn.import.zipcount]
-Das Archiv enthält {1} Dateien. Das Maximum ist 12.
+Der Ordner enthält {1} Dateien. Das Maximum ist 12.
 
 [vpn.import.notfile]
 {1} ist keine reguläre Datei.

@@ -207,12 +207,14 @@ Los demás archivos de la pasada se analizan.<br/>
 Dos fallos seguidos detienen la pasada ClamAV.<br/>
 El correo dice entonces que los archivos restantes no fueron leídos.
 
-## ▪️ Análisis ClamAV diferido
+## ▪️ Análisis ClamAV periódico
 
+La cadena periódica lanza este análisis cada 1 h.<br/>
+El mismo análisis corre también una vez en la cadena de arranque.<br/>
 El mensaje contiene el resumen y el extracto del diario.<br/>
 Cuando un archivo fue movido, el correo añade una orden de restauración por archivo.<br/>
 La orden es la misma que la del correo al acceso.<br/>
-Una firma y una ruta ya registradas en `/opt/liltress-workstation/cron/scan-skip.seen` no vuelven a enviar correo.<br/>
+El recorrido incluye las rutas excluidas del acceso.<br/>
 <br/>
 Un proceso `clamscan` detenido por una señal envía un correo.<br/>
 El correo nombra la señal y cada archivo no leído.<br/>
@@ -220,8 +222,7 @@ Los demás archivos de la pasada se analizan.<br/>
 Dos fallos seguidos detienen la pasada ClamAV.<br/>
 El correo dice entonces que los archivos restantes no fueron leídos.<br/>
 <br/>
-El sello permanece en su lugar.<br/>
-La forma del diario es `/opt/liltress-workstation/cron/security_logs/idle-scan-YYYYMMDD-HHMMSS.log`.
+La forma del diario es `/opt/liltress-workstation/cron/security_logs/clamav-YYYYMMDD-HHMMSS.log`.
 
 ## ▪️ rkhunter
 
@@ -250,7 +251,6 @@ El mensaje es `Un redémarrage est utile. La machine n'a pas été redémarrée.
 Este correo no añade un bloque de orden.<br/>
 El mismo conjunto de paquetes no vuelve a enviar correo.<br/>
 <br/>
-Un juego en curso omite el correo y deja la huella sin cambio.<br/>
 El script no reinicia la máquina.<br/>
 La forma del diario es `/opt/liltress-workstation/cron/security_logs/reboot-notice-YYYYMMDD-HHMMSS.log`.
 
@@ -282,7 +282,7 @@ El instalador rechaza arrancar cuando el control no pasa.
 sudo "./liltress" verify alerts
 ```
 
-Comprueba el temporizador de la cadena, el temporizador diferido, ClamAV al acceso y la ruta del correo.<br/>
+Comprueba el temporizador de la cadena de arranque, el temporizador periódico, ClamAV al acceso y la ruta del correo.<br/>
 Sin `--no-send`, una sonda sale cuando las alertas están activadas.<br/>
 El asunto termina por `Contrôle`.<br/>
 La línea de éxito es `Résultat : OK`.

@@ -1,22 +1,41 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/pro-status.py
-# Updated at : 2026-11-12
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Print the Ubuntu Pro services the verify report keeps.
+# -----------------------------------------------------------------------------
+
 
 import json
 import sys
 
-data = json.load(sys.stdin)
-wanted = ("esm-infra", "esm-apps", "livepatch")
-for svc in data.get("services") or []:
-    name = svc.get("name")
-    if name not in wanted:
-        continue
-    detail = svc.get("status_details") or ""
-    warning = svc.get("warning") or {}
+WANTED = ("esm-infra", "esm-apps", "livepatch")
+
+
+def detail_of(service):
+    # The warning is the sentence an operator can act on. The raw detail is the fallback.
+    detail = service.get("status_details") or ""
+    warning = service.get("warning") or {}
     if isinstance(warning, dict) and warning.get("message"):
         detail = warning["message"]
-    detail = detail.replace("\t", " ").replace("\n", " ")
-    print("%s\t%s\t%s" % (name, svc.get("status") or "", detail))
+    return detail.replace("\t", " ").replace("\n", " ")
+
+
+def rows_of(payload):
+    rows = []
+    for service in payload.get("services") or []:
+        name = service.get("name")
+        if name not in WANTED:
+            continue
+        status = service.get("status") or ""
+        rows.append("%s\t%s\t%s" % (name, status, detail_of(service)))
+    return rows
+
+
+for row in rows_of(json.load(sys.stdin)):
+    print(row)

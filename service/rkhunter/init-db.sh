@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/rkhunter/init-db.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Build the rootkit-hunter baseline when it is missing or a rebuild is requested.
+# Note       : Update codes 0 and 2 are accepted.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -23,11 +30,11 @@ rk_out=""
 rk_rc=0
 rk_out=$(rkhunter --update --nocolors 2>&1) || rk_rc=$?
 case "${rk_rc}" in
-    0|2) ;;
-    *) log_warn "${INSTALL_WATCHER}" "log.rkhunter-update-rc-continued" "${rk_rc}" "${rk_out}";;
+    0 | 2) ;;
+    *) log_warn "${INSTALL_WATCHER}" "log.rkhunter-update-rc-continued" "${rk_rc}" "${rk_out}" ;;
 esac
 
-if [[ ( "${rk_rc}" -eq 0 || "${rk_rc}" -eq 2 ) && -x "${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/record-mirrors.sh" ]]; then
+if [[ ("${rk_rc}" -eq 0 || "${rk_rc}" -eq 2) && -x "${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/record-mirrors.sh" ]]; then
     BASE="${CONFIG_BASE_DIRECTORY}" bash "${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/record-mirrors.sh" save || true
 fi
 

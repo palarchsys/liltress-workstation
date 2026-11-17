@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/check/verify.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Keep a heading and the three counters of a probe.
+# -----------------------------------------------------------------------------
+
 
 report_section() {
     printf '\n===== %s =====\n' "$1"
@@ -29,7 +35,7 @@ check_unit_word() {
     active="$(systemctl is-active "${unit}" 2>/dev/null || true)"
     case "${active}" in
         active) printf "$(get_text log.ok-2)" ;;
-        inactive|failed|activating|deactivating) printf "$(get_text log.inactive)" ;;
+        inactive | failed | activating | deactivating) printf "$(get_text log.inactive)" ;;
         *) printf "$(get_text log.absent)" ;;
     esac
 }

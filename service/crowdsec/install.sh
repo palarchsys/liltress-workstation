@@ -5,6 +5,12 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
+# -----------------------------------------------------------------------------
+# Purpose    : Install CrowdSec from its package repository.
+# -----------------------------------------------------------------------------
+
+
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
 export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -13,32 +19,32 @@ source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_info         "${INSTALL_WATCHER}" "install.record-of-the-repository-crowdsec"
+log_info "${INSTALL_WATCHER}" "install.record-of-the-repository-crowdsec"
 ensure_directory /etc/apt/keyrings 755
 CROWDSEC_KEY="/etc/apt/keyrings/crowdsec_crowdsec-archive-keyring.gpg"
 CROWDSEC_LIST="/etc/apt/sources.list.d/crowdsec_crowdsec.list"
 key_tmp="$(mktemp)"
 if ! curl -fsSL https://packagecloud.io/crowdsec/crowdsec/gpgkey | gpg --batch --yes --dearmor -o "${key_tmp}"; then
     rm -f "${key_tmp}"
-    log_error        "${INSTALL_WATCHER}" "install.crowdsec.error" "packagecloud.io"
+    log_error "${INSTALL_WATCHER}" "install.crowdsec.error" "packagecloud.io"
 fi
 install -m 644 "${key_tmp}" "${CROWDSEC_KEY}"
 rm -f "${key_tmp}"
 chown root:root "${CROWDSEC_KEY}"
 sed "s|__KEY__|${CROWDSEC_KEY}|g" "$(locate_config_file crowdsec/package.list)" \
-    | grep -v '^#' > "${CROWDSEC_LIST}"
+    | grep -v '^#' >"${CROWDSEC_LIST}"
 chmod 644 "${CROWDSEC_LIST}"
 
-grep -v '^#' "$(locate_config_file crowdsec/preferences.conf)" > /etc/apt/preferences.d/crowdsec
+grep -v '^#' "$(locate_config_file crowdsec/preferences.conf)" >/etc/apt/preferences.d/crowdsec
 chmod 644 /etc/apt/preferences.d/crowdsec
-run_silent_apt   "${INSTALL_WATCHER}" "update" "install.crowdsec.error"
-log_success      "${INSTALL_WATCHER}" "install.repository-crowdsec-saved"
+run_silent_apt "${INSTALL_WATCHER}" "update" "install.crowdsec.error"
+log_success "${INSTALL_WATCHER}" "install.repository-crowdsec-saved"
 
-log_info         "${INSTALL_WATCHER}" "install.installation-of-crowdsec"
-run_silent_apt   "${INSTALL_WATCHER}" "install -y crowdsec crowdsec-firewall-bouncer-nftables" "install.crowdsec.error"
+log_info "${INSTALL_WATCHER}" "install.installation-of-crowdsec"
+run_silent_apt "${INSTALL_WATCHER}" "install -y crowdsec crowdsec-firewall-bouncer-nftables" "install.crowdsec.error"
 cs_ver="$(dpkg-query -W -f '${Version}' crowdsec 2>/dev/null || true)"
 if [[ "${cs_ver}" == 1.4.* ]]; then
-    log_error        "${INSTALL_WATCHER}" "install.crowdsec-comes-of-the-repository-ubuntu-no-packa" "${cs_ver}"
+    log_error "${INSTALL_WATCHER}" "install.crowdsec-comes-of-the-repository-ubuntu-no-packa" "${cs_ver}"
 fi
-run_silent       "${INSTALL_WATCHER}" "install.crowdsec.error" systemctl daemon-reload
-log_success      "${INSTALL_WATCHER}" "install.crowdsec-installed" "${cs_ver}"
+run_silent "${INSTALL_WATCHER}" "install.crowdsec.error" systemctl daemon-reload
+log_success "${INSTALL_WATCHER}" "install.crowdsec-installed" "${cs_ver}"

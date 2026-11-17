@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/refresh-integrity.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Refresh the integrity databases after a tunnel change.
+# Note       : A stamp records that this visit ran.
+# -----------------------------------------------------------------------------
+
 
 set -euo pipefail
 
@@ -12,7 +19,7 @@ if [[ "${VPN_SKIP_INTEGRITY:-0}" == "1" ]]; then
 fi
 
 if [[ -n "${VPN_INTEGRITY_MARK:-}" ]]; then
-    printf 'ran\n' >> "${VPN_INTEGRITY_MARK}"
+    printf 'ran\n' >>"${VPN_INTEGRITY_MARK}"
 fi
 
 if [[ "${EUID}" -ne 0 ]]; then
@@ -62,9 +69,9 @@ else
     while read -r path; do
         [[ -n "${path}" && "${path}" != \#* && -f "${path}" ]] || continue
         sha256sum -- "${path}"
-    done < "${list}" | sort > "${current}"
+    done <"${list}" | sort >"${current}"
     mkdir -p -- "$(dirname -- "${stamp}")"
-    if ! cat "${current}" > "${stamp}"; then
+    if ! cat "${current}" >"${stamp}"; then
         log_error "${INSTALL_WATCHER}" "vpn.integrity.stamp"
     fi
     chmod 600 "${stamp}"

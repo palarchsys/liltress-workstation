@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/sudoers/apply.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Build the sudoers file from the command catalog.
+# Note       : An explicit output path skips the root demand.
+# -----------------------------------------------------------------------------
+
 
 set -euo pipefail
 
@@ -66,7 +73,8 @@ while IFS= read -r command || [[ -n "${command}" ]]; do
     fi
     set +f
     specs+=("${spec}")
-done < <(python3 - "${catalog}" << 'PY'
+done < <(
+    python3 - "${catalog}" <<'PY'
 import csv
 import sys
 path = sys.argv[1]
@@ -100,7 +108,7 @@ out="${SUDOERS_OUT:-/etc/sudoers.d/liltress-commands}"
         index=$((index + 1))
     done
     printf '\n'
-} > "${out}"
+} >"${out}"
 
 chmod 440 "${out}"
 if [[ -z "${SUDOERS_OUT:-}" ]]; then

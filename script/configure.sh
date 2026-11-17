@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/configure.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Ask the workstation settings and record them.
+# Note       : An interrupted entry stops the command.
+# Note       : Mail alerts stay off when the answer is N|n|non.
+# -----------------------------------------------------------------------------
+
 
 set -euo pipefail
 INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
@@ -25,7 +33,7 @@ read_secret() {
     local secret_target="$1"
     local char="" buf=""
     while true; do
-        IFS= read -r -s -n 1 char || log_error        "${INSTALL_WATCHER}" "configure.input-interrupted"
+        IFS= read -r -s -n 1 char || log_error "${INSTALL_WATCHER}" "configure.input-interrupted"
         if [[ -z "${char}" || "${char}" == $'\n' ]]; then
             printf '\n' >&2
             break
@@ -62,9 +70,58 @@ write_secret_line() {
     read_secret "${dest}"
 }
 
+# A secret entry is typed twice. An empty entry keeps the saved text.
+read_prompt_pair() {
+    local label="$1"
+    local fallback="$2"
+    local secret="" confirm=""
+    write_secret_line "${label}" secret
+    secret="${secret// /}"
+    if [[ -z "${secret}" && -n "${fallback}" ]]; then
+        value="${fallback}"
+        return 0
+    fi
+    write_secret_line "Confirmation" confirm
+    confirm="${confirm// /}"
+    if [[ "${secret}" != "${confirm}" ]]; then
+        echo "" >&2
+        log_warn "${INSTALL_WATCHER}" "configure.the-two-entries-differ"
+        return 1
+    fi
+    value="${secret}"
+    return 0
+}
+
+# Spaces at the ends are removed. An empty entry keeps the saved text.
+read_prompt_line() {
+    local label="$1"
+    local fallback="$2"
+    print_field "${label}"
+    IFS= read -r value || log_error "${INSTALL_WATCHER}" "configure.input-interrupted"
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
+    if [[ -z "${value}" && -n "${fallback}" ]]; then
+        value="${fallback}"
+    fi
+}
+
+# Each kind accepts one shape.
+check_prompt_value() {
+    local kind="$1"
+    local entry="$2"
+    case "${kind}" in
+        pro_token) check_pro_token "${entry}" ;;
+        email) check_email "${entry}" ;;
+        secret) check_app_password "${entry}" ;;
+        smtp) check_smtp "${entry}" ;;
+        bool01) [[ "${entry}" =~ ^[01]$ ]] ;;
+        *) return 1 ;;
+    esac
+}
+
 prompt() {
     local field_name="$1" field_label="$2" field_example="$3" field_default="$4" field_kind="$5" field_hint="$6"
-    local value="" confirm="" attempt current=""
+    local value="" attempt current=""
     current="${!field_name:-}"
     [[ -n "${current}" ]] && field_default="${current}"
     for attempt in 1 2 3; do
@@ -72,44 +129,18 @@ prompt() {
             echo "" >&2
         fi
         if [[ "${field_kind}" == "pro_token" || "${field_kind}" == "secret" ]]; then
-            write_secret_line "${field_label}" value
-            value="${value// /}"
-            if [[ -z "${value}" && -n "${field_default}" ]]; then
-                value="${field_default}"
-            else
-                write_secret_line "Confirmation" confirm
-                confirm="${confirm// /}"
-                if [[ "${value}" != "${confirm}" ]]; then
-                    echo "" >&2
-                    log_warn         "${INSTALL_WATCHER}" "configure.the-two-entries-differ"
-                    continue
-                fi
-            fi
+            read_prompt_pair "${field_label}" "${field_default}" || continue
         else
-            print_field "${field_label}"
-            IFS= read -r value || log_error        "${INSTALL_WATCHER}" "configure.input-interrupted"
-            value="${value#"${value%%[![:space:]]*}"}"
-            value="${value%"${value##*[![:space:]]}"}"
-            if [[ -z "${value}" && -n "${field_default}" ]]; then
-                value="${field_default}"
-            fi
+            read_prompt_line "${field_label}" "${field_default}"
         fi
-        local ok=0
-        case "${field_kind}" in
-            pro_token) check_pro_token "${value}" && ok=1 ;;
-            email) check_email "${value}" && ok=1 ;;
-            secret) check_app_password "${value}" && ok=1 ;;
-            smtp) check_smtp "${value}" && ok=1 ;;
-            bool01) [[ "${value}" =~ ^[01]$ ]] && ok=1 ;;
-        esac
-        if [[ "${ok}" == "1" ]]; then
+        if check_prompt_value "${field_kind}" "${value}"; then
             printf -v "${field_name}" '%s' "${value}"
             return 0
         fi
         echo ""
-        log_warn         "${INSTALL_WATCHER}" "configure.script.warn.2" "${field_hint}"
+        log_warn "${INSTALL_WATCHER}" "configure.script.warn.2" "${field_hint}"
     done
-    log_error        "${INSTALL_WATCHER}" "configure.three-attempts-without-an-accepted-answer-exampl" "${field_label}" "${field_example}"
+    log_error "${INSTALL_WATCHER}" "configure.three-attempts-without-an-accepted-answer-exampl" "${field_label}" "${field_example}"
 }
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
@@ -120,9 +151,9 @@ fi
 
 if [[ "${1:-}" == "--check" ]]; then
     read_language_file "${DIR_SCRIPT}/config/global.conf"
-    log_info         "${INSTALL_WATCHER}" "configure.configuration-check"
+    log_info "${INSTALL_WATCHER}" "configure.configuration-check"
     if require_prepared_config "${DIR_SCRIPT}"; then
-        log_success      "${INSTALL_WATCHER}" "configure.configuration-conforms"
+        log_success "${INSTALL_WATCHER}" "configure.configuration-conforms"
         exit 0
     fi
     exit 1
@@ -136,7 +167,7 @@ fi
 
 if [[ ! -t 0 ]]; then
     if [[ ! -r /dev/tty ]]; then
-        log_error        "${INSTALL_WATCHER}" "configure.no-terminal-for-the-questions-run-sudo-bash-lilt" "${DIR_SCRIPT}"
+        log_error "${INSTALL_WATCHER}" "configure.no-terminal-for-the-questions-run-sudo-bash-lilt" "${DIR_SCRIPT}"
     fi
     exec </dev/tty
 fi
@@ -188,22 +219,22 @@ show_title_box "${PROJECT_NAME}"
 
 set_step_visible "$(get_text configure.script.title)"
 open_step_tree "$(get_text configure.script.title)"
-log_info         "${INSTALL_WATCHER}" "configure.ubuntu-pro-token-url"
-log_info         "${INSTALL_WATCHER}" "configure.letters-and-digits-without-spaces"
+log_info "${INSTALL_WATCHER}" "configure.ubuntu-pro-token-url"
+log_info "${INSTALL_WATCHER}" "configure.letters-and-digits-without-spaces"
 prompt UBUNTU_PRO_TOKEN \
     "Jeton Ubuntu Pro" \
     "C1abcdefghij1234567890" \
     "" \
     pro_token \
     "Lettres et chiffres seulement, entre 6 et 100, sans espace."
-log_success      "${INSTALL_WATCHER}" "configure.ubuntu-pro-accepted"
+log_success "${INSTALL_WATCHER}" "configure.ubuntu-pro-accepted"
 close_step_tree
 
 check_smtp_probe() {
     local out="" rc=0 safe=""
     if ! command -v swaks >/dev/null 2>&1; then
-        log_info         "${INSTALL_WATCHER}" "configure.installation-of-swaks-for-the-attempt-of-send"
-        run_silent_apt   "${INSTALL_WATCHER}" "install -y swaks" "configure.script.error.5"
+        log_info "${INSTALL_WATCHER}" "configure.installation-of-swaks-for-the-attempt-of-send"
+        run_silent_apt "${INSTALL_WATCHER}" "install -y swaks" "configure.script.error.5"
     fi
     out="$(swaks \
         --to "${POSTFIX_MAIL_ADDRESS}" \
@@ -220,22 +251,22 @@ check_smtp_probe() {
         return 0
     fi
     echo ""
-    log_warn         "${INSTALL_WATCHER}" "configure.the-data-email-are-not-good"
+    log_warn "${INSTALL_WATCHER}" "configure.the-data-email-are-not-good"
     printf '%s\n' "${safe}" | tail -n 12 >&2
     return 1
 }
 
 set_step_visible "$(get_text configure.enable-the-alerts-by-emails-y-n)"
 open_step_tree "$(get_text configure.enable-the-alerts-by-emails-y-n)"
-log_info         "${INSTALL_WATCHER}" "configure.enable-the-alerts-by-emails-y-n"
+log_info "${INSTALL_WATCHER}" "configure.enable-the-alerts-by-emails-y-n"
 while true; do
     print_field "Activer"
-    IFS= read -r mail_choice || log_error        "${INSTALL_WATCHER}" "configure.input-interrupted"
+    IFS= read -r mail_choice || log_error "${INSTALL_WATCHER}" "configure.input-interrupted"
     case "${mail_choice}" in
-        Y|y)
+        Y | y)
             clear_mail
 
-            log_info         "${INSTALL_WATCHER}" "configure.form-host-port-for-example-smtp-mail-outlook-com"
+            log_info "${INSTALL_WATCHER}" "configure.form-host-port-for-example-smtp-mail-outlook-com"
             prompt POSTFIX_MAIL_SMTP \
                 "$(get_text configure.server)" \
                 "smtp-mail.outlook.com:587" \
@@ -243,7 +274,7 @@ while true; do
                 smtp \
                 "$(get_text configure.enter-the-server-and-the-port-without-brackets-e)"
 
-            log_info         "${INSTALL_WATCHER}" "configure.address-email-serving-of-login"
+            log_info "${INSTALL_WATCHER}" "configure.address-email-serving-of-login"
             prompt POSTFIX_SMTP_LOGIN \
                 "$(get_text configure.login)" \
                 "$(get_text configure.toi-exemple-com)" \
@@ -251,7 +282,7 @@ while true; do
                 email \
                 "$(get_text configure.enter-the-address-email-of-the-account-smtp)"
 
-            log_info         "${INSTALL_WATCHER}" "configure.spaces-removed-the-line-following-confirms"
+            log_info "${INSTALL_WATCHER}" "configure.spaces-removed-the-line-following-confirms"
             prompt POSTFIX_MAIL_PASSWORD \
                 "$(get_text configure.password)" \
                 "mot-de-passe-application" \
@@ -259,7 +290,7 @@ while true; do
                 secret \
                 "$(get_text configure.password-of-application-at-least-8-characters-wi)"
 
-            log_info         "${INSTALL_WATCHER}" "configure.the-alerts-leave-toward-this-same-address"
+            log_info "${INSTALL_WATCHER}" "configure.the-alerts-leave-toward-this-same-address"
             prompt POSTFIX_MAIL_ADDRESS \
                 "$(get_text configure.from)" \
                 "$(get_text configure.toi-exemple-com)" \
@@ -268,24 +299,24 @@ while true; do
                 "$(get_text configure.enter-the-address-email-sender)"
             WATCHDOG_MAIL="${POSTFIX_MAIL_ADDRESS}"
 
-            log_info         "${INSTALL_WATCHER}" "configure.attempt-of-send-swaks-checks-server-login-passwo"
+            log_info "${INSTALL_WATCHER}" "configure.attempt-of-send-swaks-checks-server-login-passwo"
             if check_smtp_probe; then
                 MAIL_ALERTS=1
-                log_success      "${INSTALL_WATCHER}" "configure.attempt-of-send-accepted"
+                log_success "${INSTALL_WATCHER}" "configure.attempt-of-send-accepted"
                 break
             fi
             clear_mail
-            log_info         "${INSTALL_WATCHER}" "configure.return-to-the-choice-of-the-alerts"
+            log_info "${INSTALL_WATCHER}" "configure.return-to-the-choice-of-the-alerts"
             ;;
-        N|n|non)
-            log_info         "${INSTALL_WATCHER}" "configure.cutoff-of-the-alerts-email"
+        N | n | non)
+            log_info "${INSTALL_WATCHER}" "configure.cutoff-of-the-alerts-email"
             clear_mail
             MAIL_ALERTS=0
-            log_success      "${INSTALL_WATCHER}" "configure.alerts-email-off-the-checks-will-start-without-s-2"
+            log_success "${INSTALL_WATCHER}" "configure.alerts-email-off-the-checks-will-start-without-s-2"
             break
             ;;
         *)
-            log_warn         "${INSTALL_WATCHER}" "log.answer-y-or-n"
+            log_warn "${INSTALL_WATCHER}" "log.answer-y-or-n"
             ;;
     esac
 done
@@ -293,17 +324,17 @@ close_step_tree
 
 set_step_visible "$(get_text configure.record-of-the-configuration)"
 open_step_tree "$(get_text configure.record-of-the-configuration)"
-log_info         "${INSTALL_WATCHER}" "configure.record-of-the-configuration"
+log_info "${INSTALL_WATCHER}" "configure.record-of-the-configuration"
 mkdir -p "${DIR_SCRIPT}/config"
 write_user_config "${DIR_SCRIPT}/config/user.conf"
 write_secret_config "${DIR_SCRIPT}/config/secrets.conf"
 write_mail_alerts "${DIR_SCRIPT}/config/global.conf"
 
 if ! require_prepared_config "${DIR_SCRIPT}"; then
-    log_error        "${INSTALL_WATCHER}" "configure.the-files-written-pass-not-the-check"
+    log_error "${INSTALL_WATCHER}" "configure.the-files-written-pass-not-the-check"
 fi
 
-log_success      "${INSTALL_WATCHER}" "configure.configuration-saved"
+log_success "${INSTALL_WATCHER}" "configure.configuration-saved"
 close_step_tree
 show_section_close
 exec bash "${DIR_SCRIPT}/script/run.sh"

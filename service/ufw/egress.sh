@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ufw/egress.sh
-# Updated at : 2026-11-13
+# Updated at : 2026-11-16
 # Creator    : palarchsys
 # =============================================================================
+
+
 # -----------------------------------------------------------------------------
+# Purpose    : Install the outbound journal table.
 # Note       : The log table is installed on every configure.
 # Note       : The outbound policy stays allow.
 # -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -17,17 +21,18 @@ source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 # shellcheck disable=SC1091
+# shellcheck source=../../config/ufw/egress.conf
 source "$(locate_config_file ufw/egress.conf)"
 
 mkdir -p -- "${CONFIG_BASE_DIRECTORY}/cron"
 umask 077
-cat > "${CONFIG_BASE_DIRECTORY}/cron/egress.conf" << EOF
+cat >"${CONFIG_BASE_DIRECTORY}/cron/egress.conf" <<EOF
 NET_ISOLATE_SEC=${NET_ISOLATE_SEC}
 EOF
 umask 022
 chmod 600 "${CONFIG_BASE_DIRECTORY}/cron/egress.conf"
 
-cat > "${CONFIG_BASE_DIRECTORY}/cron/egress-table.sh" << 'EOF'
+cat >"${CONFIG_BASE_DIRECTORY}/cron/egress-table.sh" <<'EOF'
 #!/bin/bash
 set -euo pipefail
 command -v nft >/dev/null 2>&1 || exit 0
@@ -49,7 +54,7 @@ nft add rule inet w_egress output meta l4proto udp th dport 161 meta pkttype '{ 
 nft add rule inet w_egress output meta l4proto '{ tcp, udp }' limit rate 30/minute log prefix 'w-egress '
 EOF
 chmod 755 "${CONFIG_BASE_DIRECTORY}/cron/egress-table.sh"
-cat > /etc/systemd/system/w-egress-table.service << EOF
+cat >/etc/systemd/system/w-egress-table.service <<EOF
 [Unit]
 Description=Pose le journal des flux sortants
 After=ufw.service

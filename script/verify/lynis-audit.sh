@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/verify/lynis-audit.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Quick audit. A low score stops the step.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -18,7 +24,7 @@ if ! command -v lynis >/dev/null 2>&1; then
 fi
 
 log_info "${INSTALL_WATCHER}" "log.audit-lynis-quick"
-lynis audit system --quick --no-colors --auditor liltress-workstation-verify > "${INSTALL_LOG_DIR:-/tmp}/lynis-verify.txt" 2>&1 || true
+lynis audit system --quick --no-colors --auditor liltress-workstation-verify >"${INSTALL_LOG_DIR:-/tmp}/lynis-verify.txt" 2>&1 || true
 score="$(awk -F= '/hardening_index=/{print $2}' /var/log/lynis-report.dat 2>/dev/null | tail -1)"
 if [[ ! "${score}" =~ ^[0-9]+$ ]]; then
     log_error "${INSTALL_WATCHER}" "verify.workstation.info.5" "score Lynis illisible"

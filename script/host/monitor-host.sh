@@ -4,6 +4,8 @@
 # Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
+
+
 # -----------------------------------------------------------------------------
 # Purpose    : Print the host name, the OS id and whether the install directory exists.
 # Note       : The script does not change the machine. The directory comes from global.conf.

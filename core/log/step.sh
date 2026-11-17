@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/step.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Draw the step tree and clip a long path.
+# -----------------------------------------------------------------------------
 
 
 cut_text() {
     local text="$1"
     local max="${2:-74}"
     local n="${#text}"
-    if (( max < 2 || n <= max )); then
+    if ((max < 2 || n <= max)); then
         printf '%s' "${text}"
         return 0
     fi
@@ -21,7 +26,7 @@ repeat_char() {
     local char="$1"
     local count="$2"
     local out="" i=0
-    while (( i < count )); do
+    while ((i < count)); do
         out+="${char}"
         i=$((i + 1))
     done
@@ -34,7 +39,7 @@ show_title_box() {
     local top mid bot pad
     top="╭$(repeat_char "─" 92)╮"
     pad=$((90 - ${#title}))
-    (( pad < 0 )) && pad=0
+    ((pad < 0)) && pad=0
     mid="│  ${title}$(repeat_char " " "${pad}")│"
     bot="╰$(repeat_char "─" 92)╯"
     set_color_yellow "${top}"
@@ -46,7 +51,7 @@ show_section_open() {
     local title dashes line
     title="$(cut_text "$1" 70)"
     dashes=$((89 - ${#title}))
-    (( dashes < 1 )) && dashes=1
+    ((dashes < 1)) && dashes=1
     line="╭─ ${title} $(repeat_char "─" "${dashes}")╮"
     set_color_yellow "${line}"
     set_color_yellow "│"
@@ -75,10 +80,10 @@ paint_note() {
     fi
     text="$(cut_text "${text}" "${max}")"
     case "${kind}" in
-        info|debug) printf '\e[34m•\e[0m %s' "${text}" ;;
-        success)    printf '\e[32m✓\e[0m %s' "${text}" ;;
-        warn)       printf '\e[38;5;208m⚠\e[0m %s' "${text}" ;;
-        *)          printf '\e[31m✗\e[0m %s' "${text}" ;;
+        info | debug) printf '\e[34m•\e[0m %s' "${text}" ;;
+        success) printf '\e[32m✓\e[0m %s' "${text}" ;;
+        warn) printf '\e[38;5;208m⚠\e[0m %s' "${text}" ;;
+        *) printf '\e[31m✗\e[0m %s' "${text}" ;;
     esac
 }
 
@@ -140,14 +145,6 @@ show_closing_note() {
     printf '\n' >&2
 }
 
-show_closing_command() {
-    local title="$1"
-    local command="$2"
-    printf '  ┌ \e[33m%s\e[0m\n' "$(cut_text "${title}" 74)" >&2
-    printf '  └── \e[34m•\e[0m %s\n' "${command}" >&2
-    printf '\n' >&2
-}
-
 note_bash() {
     local kind="$1"
     local text="$2"
@@ -172,8 +169,8 @@ get_fit_width() {
     local text="$1"
     local max="${2:-62}"
     local n="${#text}"
-    if (( max < 4 || n <= max )); then
-        if (( n > max && max > 0 )); then
+    if ((max < 4 || n <= max)); then
+        if ((n > max && max > 0)); then
             printf '%s' "${text:0:max}"
             return 0
         fi
@@ -186,10 +183,10 @@ get_fit_width() {
 show_path() {
     local p="$1"
     case "$p" in
-        /var/log|/var/log/*)
+        /var/log | /var/log/*)
             printf '%s' "$p"
             ;;
-        */log|*/log/*)
+        */log | */log/*)
             printf '%s' "log${p#*/log}"
             ;;
         *)

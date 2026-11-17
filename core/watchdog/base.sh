@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/base.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Resolve the product root and one runtime path.
+# Note       : A base under /opt uses the var lib directory when that directory can be used.
+# -----------------------------------------------------------------------------
 
 
 get_product_base() {
@@ -21,10 +27,10 @@ watchdog_runtime_file() {
     local name="$2"
     local dir=""
     case "${base}" in
-        /opt/liltress-workstation|/opt/liltress-workstation/*)
+        /opt/liltress-workstation | /opt/liltress-workstation/*)
             dir="/var/lib/liltress-workstation/watchdog"
             ;;
-        /opt/liltress-server|/opt/liltress-server/*|/opt/liltress|/opt/liltress/*)
+        /opt/liltress-server | /opt/liltress-server/* | /opt/liltress | /opt/liltress/*)
             dir="/var/lib/liltress-server/watchdog"
             ;;
     esac

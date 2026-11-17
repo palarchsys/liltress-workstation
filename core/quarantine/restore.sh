@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/quarantine/restore.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
 # -----------------------------------------------------------------------------
 # Purpose    : Put one recorded file back at its original path.
 # Note       : The registry line is the only accepted origin.
 # -----------------------------------------------------------------------------
+
 
 set -euo pipefail
 
@@ -18,8 +21,7 @@ for candidate in \
     "${script_dir}/../core/log/log.sh" \
     "${CONFIG_BASE_DIRECTORY:-}/core/log/log.sh" \
     "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
-    "${INSTALL_DIRECTORY:-}/core/log/log.sh"
-do
+    "${INSTALL_DIRECTORY:-}/core/log/log.sh"; do
     if [[ -n "${candidate}" && -f "${candidate}" ]]; then
         # shellcheck disable=SC1090
         source "${candidate}"
@@ -56,7 +58,7 @@ if [[ ! "${id}" =~ ^[0-9]{8}-[0-9]{6}-[0-9]+- ]]; then
     exit 1
 fi
 case "${id}" in
-    */*|*\\*)
+    */* | *\\*)
         printf '%s\n' "$(get_text quarantine.identifier-rejected)" >&2
         exit 1
         ;;
@@ -66,8 +68,7 @@ if ! declare -F watchdog_runtime_file >/dev/null 2>&1; then
     for candidate in \
         "${script_dir}/../core/watchdog/base.sh" \
         "${base}/core/watchdog/base.sh" \
-        "${base}/core/watchdog/base.sh"
-    do
+        "${base}/core/watchdog/base.sh"; do
         if [[ -f "${candidate}" ]]; then
             # shellcheck disable=SC1090
             source "${candidate}"
@@ -91,7 +92,7 @@ if [[ -z "${line}" ]]; then
     exit 1
 fi
 
-IFS=$'\t' read -r found_id _moment _source origin stored _signature <<< "${line}"
+IFS=$'\t' read -r found_id _moment _source origin stored _signature <<<"${line}"
 if [[ "${found_id}" != "${id}" || -z "${origin}" || -z "${stored}" ]]; then
     printf '%s\n' "$(get_text quarantine.identifier-absent-of-the-registre)" >&2
     exit 1

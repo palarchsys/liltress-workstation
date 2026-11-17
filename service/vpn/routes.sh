@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/routes.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Maintain the VPN policy routes on this host.
+# Note       : The direct table is used when direct.ok is present.
+# -----------------------------------------------------------------------------
+
 
 ensure_vpn_table() {
     local file="/etc/iproute2/rt_tables.d/liltress-vpn.conf" want current
@@ -17,7 +24,7 @@ ensure_vpn_table() {
             copy_backup "${file}"
         fi
     fi
-    printf '%s' "${want}" > "${file}"
+    printf '%s' "${want}" >"${file}"
     chmod 644 "${file}"
 }
 
@@ -51,7 +58,7 @@ clear_vpn_rule_prio() {
     local prio="$1" family guard
     for family in -4 -6; do
         guard=0
-        while (( guard < 64 )); do
+        while ((guard < 64)); do
             ip "${family}" rule del priority "${prio}" >/dev/null 2>&1 || break
             guard=$((guard + 1))
         done
@@ -143,10 +150,8 @@ clear_vpn_routes() {
     clear_vpn_rule_prio "${VPN_RULE_PRIO_BYPASS_FROM}"
 }
 
-remember_vpn_direct_route() {
-    local line dev via v6dev="" v6via="" found=0 stamp
-    load_vpn_settings
-    ensure_vpn_table || return 1
+# Take the first default that is not a tunnel device.
+read_vpn_direct_ipv4() {
     while IFS= read -r line; do
         dev="$(vpn_route_field "${line}" dev 2>/dev/null || true)"
         [[ -n "${dev}" ]] || continue
@@ -155,13 +160,20 @@ remember_vpn_direct_route() {
         found=1
         break
     done < <(ip -4 route show default 2>/dev/null)
-    (( found == 1 )) || return 1
+}
+
+# Store that default in the direct table.
+apply_vpn_direct_ipv4() {
     ip route flush table "${VPN_TABLE_DIRECT_ID}" >/dev/null 2>&1 || true
     if [[ -n "${via}" ]]; then
-        ip route replace default via "${via}" dev "${dev}" table "${VPN_TABLE_DIRECT_ID}" >/dev/null 2>&1 || return 1
+        ip route replace default via "${via}" dev "${dev}" table "${VPN_TABLE_DIRECT_ID}" >/dev/null 2>&1
     else
-        ip route replace default dev "${dev}" table "${VPN_TABLE_DIRECT_ID}" >/dev/null 2>&1 || return 1
+        ip route replace default dev "${dev}" table "${VPN_TABLE_DIRECT_ID}" >/dev/null 2>&1
     fi
+}
+
+# An address-family six default is optional.
+read_vpn_direct_ipv6() {
     v6dev=""
     while IFS= read -r line; do
         v6dev="$(vpn_route_field "${line}" dev 2>/dev/null || true)"
@@ -173,6 +185,10 @@ remember_vpn_direct_route() {
         v6via="$(vpn_route_field "${line}" via 2>/dev/null || true)"
         break
     done < <(ip -6 route show default 2>/dev/null)
+}
+
+# Keep the address-family six default when one was found.
+apply_vpn_direct_ipv6() {
     ip -6 route flush table "${VPN_TABLE_DIRECT_ID}" >/dev/null 2>&1 || true
     if [[ -n "${v6dev}" ]]; then
         if [[ -n "${v6via}" ]]; then
@@ -181,8 +197,19 @@ remember_vpn_direct_route() {
             ip -6 route replace default dev "${v6dev}" table "${VPN_TABLE_DIRECT_ID}" >/dev/null 2>&1 || true
         fi
     fi
+}
+
+remember_vpn_direct_route() {
+    local line dev via v6dev="" v6via="" found=0 stamp
+    load_vpn_settings
+    ensure_vpn_table || return 1
+    read_vpn_direct_ipv4
+    ((found == 1)) || return 1
+    apply_vpn_direct_ipv4 || return 1
+    read_vpn_direct_ipv6
+    apply_vpn_direct_ipv6
     stamp="$(get_vpn_home)/direct.ok"
-    printf '1\n' > "${stamp}"
+    printf '1\n' >"${stamp}"
     chmod 600 "${stamp}"
 }
 

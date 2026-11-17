@@ -1,52 +1,82 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/scan-skip-apply.py
-# Updated at : 2026-11-12
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Replace the workstation scan-skip block in one ClamAV configuration.
+# Note       : An empty path is ignored. A repeated path stays once, in first-seen order.
+# -----------------------------------------------------------------------------
+
 
 import re
 import sys
 from pathlib import Path
 
-conf = Path(sys.argv[1])
-dest = Path(sys.argv[2])
-count = int(sys.argv[3])
-fixed = sys.argv[4:4 + count]
-paths = sys.argv[4 + count:]
-seen = []
-for path in list(fixed) + list(paths):
-    if path and path not in seen:
-        seen.append(path)
-paths = seen
-text = conf.read_text(errors="replace")
-begin = "# BEGIN Liltress Workstation scan-skip"
-end = "# END Liltress Workstation scan-skip"
-old_begin = "# BEGIN High-Fortress User scan-skip"
-old_end = "# END High-Fortress User scan-skip"
-out = []
-skipping = False
-for line in text.splitlines():
-    stripped = line.strip()
-    if stripped in (begin, old_begin):
-        skipping = True
-        continue
-    if skipping:
-        if stripped in (end, old_end):
-            skipping = False
-        continue
-    if line.startswith("OnAccessExcludePath "):
-        continue
-    out.append(line)
-while out and out[-1] == "":
-    out.pop()
-block = [begin]
-for path in paths:
-    block.append("OnAccessExcludePath ^" + re.escape(path) + "$")
-block.append(end)
-out.append("")
-out.extend(block)
-new = "\n".join(out) + "\n"
-old = text if text.endswith("\n") else text + "\n"
-dest.write_text(new)
-print("changed" if new != old else "same")
+BEGIN = "# BEGIN Liltress Workstation scan-skip"
+END = "# END Liltress Workstation scan-skip"
+OLD_BEGIN = "# BEGIN High-Fortress User scan-skip"
+OLD_END = "# END High-Fortress User scan-skip"
+
+
+def unique_paths(fixed, extras):
+    seen = []
+    for path in list(fixed) + list(extras):
+        if path and path not in seen:
+            seen.append(path)
+    return seen
+
+
+def trim_blank(lines):
+    while lines and lines[-1] == "":
+        lines.pop()
+    return lines
+
+
+def drop_old(text):
+    # The previous block and a loose OnAccessExcludePath line are removed.
+    out = []
+    skipping = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped in (BEGIN, OLD_BEGIN):
+            skipping = True
+            continue
+        if skipping:
+            if stripped in (END, OLD_END):
+                skipping = False
+            continue
+        if line.startswith("OnAccessExcludePath "):
+            continue
+        out.append(line)
+    return trim_blank(out)
+
+
+def skip_block(paths):
+    block = [BEGIN]
+    for path in paths:
+        block.append("OnAccessExcludePath ^" + re.escape(path) + "$")
+    block.append(END)
+    return block
+
+
+def apply_scan_skip():
+    conf = Path(sys.argv[1])
+    dest = Path(sys.argv[2])
+    count = int(sys.argv[3])
+    fixed = sys.argv[4 : 4 + count]
+    extras = sys.argv[4 + count :]
+    text = conf.read_text(errors="replace")
+    out = drop_old(text)
+    out.append("")
+    out.extend(skip_block(unique_paths(fixed, extras)))
+    new = "\n".join(out) + "\n"
+    old = text if text.endswith("\n") else text + "\n"
+    dest.write_text(new)
+    print("changed" if new != old else "same")
+
+
+apply_scan_skip()

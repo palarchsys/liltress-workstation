@@ -207,12 +207,14 @@ Les autres fichiers de la passe sont analysés.<br/>
 Deux plantages de suite arrêtent la passe ClamAV.<br/>
 Le courrier dit alors que les fichiers restants n'ont pas été lus.
 
-## ▪️ Analyse ClamAV différée
+## ▪️ Analyse ClamAV périodique
 
+La chaîne périodique lance cette analyse toutes les 1 h.<br/>
+La même analyse part aussi une fois dans la chaîne de démarrage.<br/>
 Le message contient le résumé et l'extrait du journal.<br/>
 Lorsqu'un fichier a été déplacé, le courrier ajoute une commande de restauration par fichier.<br/>
 La commande est la même que celle du courrier à l'accès.<br/>
-Une signature et un chemin déjà enregistrés dans `/opt/liltress-workstation/cron/scan-skip.seen` ne renvoient pas de courrier.<br/>
+Le parcours inclut les chemins exclus de l'accès.<br/>
 <br/>
 Un processus `clamscan` arrêté par un signal envoie un courrier.<br/>
 Le courrier nomme le signal et chaque fichier non lu.<br/>
@@ -220,8 +222,7 @@ Les autres fichiers de la passe sont analysés.<br/>
 Deux plantages de suite arrêtent la passe ClamAV.<br/>
 Le courrier dit alors que les fichiers restants n'ont pas été lus.<br/>
 <br/>
-Le tampon reste en place.<br/>
-La forme du journal est `/opt/liltress-workstation/cron/security_logs/idle-scan-YYYYMMDD-HHMMSS.log`.
+La forme du journal est `/opt/liltress-workstation/cron/security_logs/clamav-YYYYMMDD-HHMMSS.log`.
 
 ## ▪️ rkhunter
 
@@ -250,7 +251,6 @@ Le message est `Un redémarrage est utile. La machine n'a pas été redémarrée
 Ce courrier n'ajoute pas de bloc de commande.<br/>
 Le même ensemble de paquets ne renvoie pas de courrier.<br/>
 <br/>
-Un jeu en cours saute le courrier et laisse l'empreinte inchangée.<br/>
 Le script ne redémarre pas la machine.<br/>
 La forme du journal est `/opt/liltress-workstation/cron/security_logs/reboot-notice-YYYYMMDD-HHMMSS.log`.
 
@@ -282,7 +282,7 @@ L'installeur refuse de démarrer lorsque le contrôle ne passe pas.
 sudo "./liltress" verify alerts
 ```
 
-Contrôle le timer de la chaîne, le timer différé, ClamAV à l'accès, et le chemin du courrier.<br/>
+Contrôle le timer de démarrage, le timer périodique, ClamAV à l'accès, et le chemin du courrier.<br/>
 Sans `--no-send`, une sonde part lorsque les alertes sont activées.<br/>
 Le sujet se termine par `Contrôle`.<br/>
 La ligne de succès est `Résultat : OK`.

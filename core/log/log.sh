@@ -1,29 +1,45 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/log.sh
-# Updated at : 2026-11-13
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
-load_log_bootstrap() {
-    local log_dir="" bootstrap_file="" bootstrap_candidate="" hops=0
-    log_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    if [[ -f "${log_dir}/../boot/bootstrap.sh" ]]; then
-        bootstrap_file="${log_dir}/../boot/bootstrap.sh"
-    fi
-    bootstrap_candidate="${log_dir}"
+
+# -----------------------------------------------------------------------------
+# Purpose    : Load the journal and open the step that is already named.
+# -----------------------------------------------------------------------------
+
+
+# The caller owns bootstrap_file. The walk stops at the first file.
+locate_log_bootstrap() {
+    local bootstrap_candidate="$1"
+    local hops=0
     while [[ -z "${bootstrap_file}" && -n "${bootstrap_candidate}" && "${bootstrap_candidate}" != "/" && "${hops}" -lt 16 ]]; do
         if [[ -f "${bootstrap_candidate}/core/boot/bootstrap.sh" ]]; then
             bootstrap_file="${bootstrap_candidate}/core/boot/bootstrap.sh"
-            break
+            return 0
         fi
         if [[ -f "${bootstrap_candidate}/share/core/boot/bootstrap.sh" ]]; then
             bootstrap_file="${bootstrap_candidate}/share/core/boot/bootstrap.sh"
-            break
+            return 0
         fi
         bootstrap_candidate="$(dirname -- "${bootstrap_candidate}")"
         hops=$((hops + 1))
     done
+    return 0
+}
+
+load_log_bootstrap() {
+    local log_dir=""
+    local bootstrap_file=""
+    log_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    if [[ -f "${log_dir}/../boot/bootstrap.sh" ]]; then
+        bootstrap_file="${log_dir}/../boot/bootstrap.sh"
+    fi
+    if [[ -z "${bootstrap_file}" ]]; then
+        locate_log_bootstrap "${log_dir}"
+    fi
     if [[ -z "${bootstrap_file}" ]]; then
         printf 'bootstrap.sh introuvable depuis %s\n' "${log_dir}" >&2
         exit 1

@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/project-tree.sh
-# Updated at : 2026-11-13
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Create the secured project directories, then the host name on a server.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -13,18 +19,18 @@ source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-log_info         "${INSTALL_WATCHER}" "install.creation-tree-secured-of-the-project"
+log_info "${INSTALL_WATCHER}" "install.creation-tree-secured-of-the-project"
 ensure_directory "${CONFIG_BASE_DIRECTORY}" 755
 ensure_directory "${SECRET_DIRECTORY}" 700
 set_tree_modes || log_error "${INSTALL_WATCHER}" "configure.secrets-conf-mode" "600"
 if ! check_workstation; then
     ensure_directory "${DOCKER_BASE_DIRECTORY}" 755
 fi
-log_success      "${INSTALL_WATCHER}" "install.directories-project-ready"
+log_success "${INSTALL_WATCHER}" "install.directories-project-ready"
 
 if ! check_workstation; then
     set_main_hostname
-    log_info         "${INSTALL_WATCHER}" "install.configuration-of-the-hostname"
+    log_info "${INSTALL_WATCHER}" "install.configuration-of-the-hostname"
     hostnamectl set-hostname "${MAIN_HOSTNAME}"
-    log_success      "${INSTALL_WATCHER}" "install.hostname-configured"
+    log_success "${INSTALL_WATCHER}" "install.hostname-configured"
 fi

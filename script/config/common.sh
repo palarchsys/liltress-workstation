@@ -4,6 +4,8 @@
 # Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
+
+
 # -----------------------------------------------------------------------------
 # Purpose    : Shared refusals and mail-field reset for both products.
 # Note       : The server questionnaire clears MAIL_ALERTS itself.

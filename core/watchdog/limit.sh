@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/limit.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Start one command with a low processor and disk priority.
+# Note       : The command status is kept.
+# -----------------------------------------------------------------------------
 
 
 get_cpu_quota_percent() {
@@ -21,9 +27,37 @@ get_cpu_quota_percent() {
     printf '%s\n' "$((limit * n))"
 }
 
-run_limited() {
-    local status=0 pid=0 lim=0 errexit=0
+# The caller owns status. A low priority is used when the tools exist.
+run_limited_nice() {
+    local pid=0 lim=0
     local -a cmd=()
+    if command -v nice >/dev/null 2>&1; then
+        cmd+=(nice -n "${WATCHDOG_LIMIT_NICE:-19}")
+    fi
+    if command -v ionice >/dev/null 2>&1; then
+        cmd+=(ionice -c "${WATCHDOG_LIMIT_IO_NICE:-3}")
+    fi
+    if [[ "${#cmd[@]}" -eq 0 ]]; then
+        "$@" &
+    else
+        "${cmd[@]}" "$@" &
+    fi
+    pid=$!
+    if command -v cpulimit >/dev/null 2>&1; then
+        cpulimit -p "${pid}" -l "$(get_cpu_quota_percent)" -z >/dev/null 2>&1 &
+        lim=$!
+    fi
+    wait "${pid}"
+    status=$?
+    if [[ "${lim}" -ne 0 ]]; then
+        kill "${lim}" 2>/dev/null
+        wait "${lim}" 2>/dev/null
+    fi
+    return "${status}"
+}
+
+run_limited() {
+    local status=0 errexit=0
     case $- in
         *e*) errexit=1 ;;
     esac
@@ -32,28 +66,8 @@ run_limited() {
         "$@"
         status=$?
     else
-        if command -v nice >/dev/null 2>&1; then
-            cmd+=(nice -n "${WATCHDOG_LIMIT_NICE:-19}")
-        fi
-        if command -v ionice >/dev/null 2>&1; then
-            cmd+=(ionice -c "${WATCHDOG_LIMIT_IO_NICE:-3}")
-        fi
-        if [[ "${#cmd[@]}" -eq 0 ]]; then
-            "$@" &
-        else
-            "${cmd[@]}" "$@" &
-        fi
-        pid=$!
-        if command -v cpulimit >/dev/null 2>&1; then
-            cpulimit -p "${pid}" -l "$(get_cpu_quota_percent)" -z >/dev/null 2>&1 &
-            lim=$!
-        fi
-        wait "${pid}"
+        run_limited_nice "$@"
         status=$?
-        if [[ "${lim}" -ne 0 ]]; then
-            kill "${lim}" 2>/dev/null
-            wait "${lim}" 2>/dev/null
-        fi
     fi
     if [[ "${errexit}" -eq 1 ]]; then
         set -e

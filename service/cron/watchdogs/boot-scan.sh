@@ -1,20 +1,18 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/boot-scan.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
-set -euo pipefail
-BASE="${BASE:-/opt/liltress-workstation}"
-HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck disable=SC1091
-source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
-LOG_FILE="${LOG_DIR}/boot-scan-${STAMP}.log"
-ALERT_FILE="${ALERT_DIR}/boot-scan-${STAMP}.txt"
-: > "${LOG_FILE}"
 
-run_check() {
+# -----------------------------------------------------------------------------
+# Purpose    : Run the periodic chain, then arm access and the next pass.
+# Note       : The reboot notice is last. It is not a scan.
+# -----------------------------------------------------------------------------
+
+
+run_boot_link() {
     local script="$1"
     local label="$2"
     local status=0
@@ -26,10 +24,35 @@ run_check() {
     status=$?
     set -e
     if [[ "${status}" -ne 0 ]]; then
-        log_alert "$(get_crash_sentence "${label}" "${status}")"
+        log_alert "$(get_crash_sentence "${label}" "${status}")" || true
     fi
 }
 
+run_boot_scan() {
+    run_boot_link chain-periodic.sh "chaîne"
+    run_boot_link arm-onaccess.sh "accès"
+    run_boot_link arm-periodic-scan.sh "période"
+    run_boot_link reboot-notice.sh "avis de redémarrage"
+}
+
+set -euo pipefail
+HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -r "${HERE}/watchdog.conf" ]]; then
+    # shellcheck disable=SC1091
+    source "${HERE}/watchdog.conf"
+fi
+# shellcheck disable=SC1091
+source "${HERE}/common.sh"
+if [[ -z "${BASE:-}" ]]; then
+    BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+fi
+STAMP="${STAMP:-$(date +%Y%m%d-%H%M%S)}"
+LOG_DIR="${LOG_DIR:-${BASE}/cron/security_logs}"
+ALERT_DIR="${ALERT_DIR:-${BASE}/cron/alerts}"
+mkdir -p -- "${LOG_DIR}" "${ALERT_DIR}"
+LOG_FILE="${LOG_DIR}/boot-scan-${STAMP}.log"
+ALERT_FILE="${ALERT_DIR}/boot-scan-${STAMP}.txt"
+: >"${LOG_FILE}"
 if [[ -f "${BASE}/cron/mail.conf" ]]; then
     set -a
     # shellcheck disable=SC1091
@@ -37,19 +60,8 @@ if [[ -f "${BASE}/cron/mail.conf" ]]; then
     set +a
 fi
 export BASE
-if [[ -x "${HERE}/chain.sh" ]]; then
-    set +e
-    bash "${HERE}/chain.sh"
-    chain_status=$?
-    set -e
-    if [[ "${chain_status}" -ne 0 ]]; then
-        log_alert "$(get_crash_sentence "chaîne" "${chain_status}")"
-    fi
+if [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
+    export CONFIG_BASE_DIRECTORY
 fi
-run_check apply-scan-skip.sh "préparation des exclusions"
-run_check integrity.sh "intégrité"
-run_check behavior.sh "audit"
-if [[ -x "${BASE}/cron/egress-table.sh" ]]; then
-    bash "${BASE}/cron/egress-table.sh" || true
-fi
-run_check egress-watch.sh "journal sortant"
+run_boot_scan
+exit 0

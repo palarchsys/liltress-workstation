@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/02_file_graph.sh
-# Updated at : 2026-11-13
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Confirm the workstation file graph and the daily control order.
+# -----------------------------------------------------------------------------
+
 
 
 locate_python_dir() {
@@ -146,10 +152,10 @@ else
 fi
 
 t_section "debsums et mirrors.dat"
-rk="${T_ROOT}/service/cron/watchdogs/rkhunter.sh"
-check_line="$(grep -n 'record-mirrors.sh" check' "${rk}" | head -1 | cut -d: -f1)"
+rk="${T_ROOT}/service/cron/watchdogs/refresh-rkhunter-db.sh"
+check_line="$(grep -n 'bash "${mirrors}" check' "${rk}" | head -1 | cut -d: -f1)"
 update_line="$(grep -n 'rkhunter --update' "${rk}" | head -1 | cut -d: -f1)"
-save_line="$(grep -n 'record-mirrors.sh" save' "${rk}" | head -1 | cut -d: -f1)"
+save_line="$(grep -n 'bash "${mirrors}" save' "${rk}" | head -1 | cut -d: -f1)"
 if [[ -x "${T_ROOT}/service/cron/watchdogs/record-mirrors.sh" ]] \
    && [[ -n "${check_line}" && -n "${update_line}" && -n "${save_line}" ]] \
    && [[ "${check_line}" -lt "${update_line}" && "${update_line}" -lt "${save_line}" ]] \
@@ -180,17 +186,16 @@ skip_lib="${T_ROOT}/service/cron/watchdogs/scan-skip-lib.sh"
 skip_tpl="${T_ROOT}/config/clamav/scan-skip.paths"
 skip_apply="${T_ROOT}/service/cron/watchdogs/apply-scan-skip.sh"
 skip_cmd="${T_ROOT}/script/scan-skip.sh"
-skip_idle="${T_ROOT}/service/cron/watchdogs/idle-scan.sh"
 skip_boot="${T_ROOT}/service/cron/watchdogs/boot-scan.sh"
-skip_clam="${T_ROOT}/service/cron/watchdogs/clamav.sh"
-if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_cmd}" && -f "${skip_idle}" ]] \
-   && grep -q '/var/jeux' "${skip_tpl}" \
+skip_clam="${T_ROOT}/service/cron/watchdogs/scan-clamav.sh"
+if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_cmd}" && -f "${skip_clam}" ]] \
+   && ! grep -q '/var/jeux' "${skip_tpl}" \
    && grep -q '__HOME__/.cache' "${skip_tpl}" \
    && grep -q '__HOME__/snap' "${skip_tpl}" \
    && grep -q '__HOME__' "${skip_tpl}" \
    && grep -qF "printf '%s\\n' / /home /opt /tmp /etc /usr /var /boot /root" "${skip_lib}" \
    && grep -q '# home=' "${skip_tpl}" \
-   && grep -qF '/var/jeux/*' "${skip_lib}" \
+   && ! grep -qF '/var/jeux' "${skip_lib}" \
    && grep -q 'BEGIN Liltress Workstation scan-skip' "${T_ROOT}/../share/python/scan-skip-apply.py" \
    && grep -q 'OnAccessExcludePath' "${skip_apply}" \
    && grep -q 'systemctl restart clamav-daemon' "${skip_apply}" \
@@ -198,12 +203,8 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && ! grep -q 'systemctl reload' "${skip_apply}" \
    && grep -q 'SCAN_SKIP_HOME' "${T_ROOT}/service/clamav/configure.sh" \
    && grep -q 'SCAN_SKIP_HOME' "${T_ROOT}/service/cron/configure.sh" \
-   && awk '
-        /chain\.sh/ { if (!chain) chain = NR }
-        /apply-scan-skip\.sh/ { if (chain && !apply) apply = NR }
-        END { exit !(chain && apply && apply > chain) }
-      ' "${skip_boot}" \
-   && ! grep -q 'clamdscan' "${skip_clam}" \
+   && ! grep -q 'apply-scan-skip.sh' "${skip_boot}" \
+   && grep -q 'clamdscan --ping' "${skip_clam}" \
    && grep -q 'list_clamav_scan' "${skip_clam}" \
    && grep -q 'report_clamav' "${skip_clam}" \
    && grep -q 'clamscan --infected --no-summary' "${T_ROOT}/../share/core/watchdog/clamav.sh" \
@@ -215,39 +216,35 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -q 'log.sudo-bash-bin-scan-skip-sh-add-chemin' "${skip_cmd}" \
    && grep -q 'scan-skip.sh del' "${T_ROOT}/../share/locale/fr/log.txt" \
    && grep -q 'log.sudo-bash-bin-scan-skip-sh-del-chemin' "${skip_cmd}" \
-   && grep -q 'pgrep -x' "${skip_idle}" \
-   && grep -q 'list_clamav_scan' "${skip_idle}" \
-   && grep -q 'report_clamav' "${skip_idle}" \
    && ! grep -q 'interrompu, aucun virus' "${skip_clam}" \
-   && ! grep -q 'interrompu, aucun virus' "${skip_idle}" \
    && grep -q 'get_crash_sentence' "${skip_boot}" \
-   && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/aide.sh" \
-   && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
-   && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/chkrootkit.sh" \
-   && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
+   && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/scan-aide.sh" \
+   && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/scan-rkhunter.sh" \
+   && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/scan-chkrootkit.sh" \
+   && grep -q 'get_crash_sentence' "${T_ROOT}/service/cron/watchdogs/scan-debsums.sh" \
    && grep -q 'clamscan : infection(s)' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'AIDE: changements détectés' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'rkhunter warnings' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'chkrootkit a produit une sortie' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
-   && grep -q 'reset_debsums_log' "${T_ROOT}/service/cron/watchdogs/debsums.sh" \
+   && grep -q 'reset_debsums_log' "${T_ROOT}/service/cron/watchdogs/scan-debsums.sh" \
    && grep -q '"apt-get", "clean"' "${T_ROOT}/../share/python/debsums-reset.py" \
    && grep -q 'Dir::Cache::archives' "${T_ROOT}/../share/python/debsums-reset.py" \
    && grep -q '"install", "--reinstall", "-y", "--", pkg' "${T_ROOT}/../share/python/debsums-reset.py" \
    && grep -q '/var/cache/apt/archives' "${T_ROOT}/../share/python/debsums-reset.py" \
-   && grep -q 'RKHUNTER_REFRESH=1' "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
+   && grep -q 'RKHUNTER_REFRESH=1' "${T_ROOT}/service/cron/watchdogs/scan-rkhunter.sh" \
    && grep -q 'service/rkhunter/refresh-db.sh' "${T_ROOT}/../share/core/watchdog/remedy.sh" \
    && test -f "${T_ROOT}/service/rkhunter/refresh-db.sh" \
    && ! grep -q 'bin/rkhunter-refresh-db.sh' "${T_ROOT}/service/rkhunter/configure.sh" \
    && grep -q 'get_text watchdog.clamav-in' "${T_ROOT}/service/cron/watchdogs/clamav-event.sh" \
    && grep -q 'ClamAV :' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'get_clamav_kind' "${skip_clam}" \
-   && grep -q 'get_clamav_kind' "${skip_idle}" \
    && grep -q 'ALLOWDEVFILE=/dev/log' "${T_ROOT}/config/rkhunter/rkhunter.conf.local" \
-   && grep -qF "'/dev/log'" "${T_ROOT}/service/cron/watchdogs/rkhunter.sh" \
-   && grep -q 'w-idle-scan.timer' "${T_ROOT}/service/cron/configure.sh" \
+   && grep -qF "'/dev/log'" "${T_ROOT}/service/cron/watchdogs/scan-rkhunter.sh" \
+   && grep -q 'systemctl disable --now w-idle-scan.timer' "${T_ROOT}/service/cron/configure.sh" \
+   && [[ ! -e "${T_ROOT}/config/cron/w-idle-scan.timer" ]] \
    && grep -q 'Liltress Workstation onaccess' "${T_ROOT}/config/clamav/onaccess.conf" \
    && ! grep -q 'OnAccessExcludePath' "${T_ROOT}/service/clamav/configure.sh"; then
-    t_pass "graph.scan-skip" "fichier de chemins, commande et passe différée"
+    t_pass "graph.scan-skip" "fichier de chemins et exclusion d'accès"
 else
     t_fail "graph.scan-skip" "les exclusions passent par scan-skip.paths"
 fi
@@ -282,18 +279,16 @@ got="$(PATH="${work}:${PATH}" WATCHDOG_CPU_LIMIT=20 bash -c 'source "$1" && get_
 [[ "${got}" == "80" ]]
 grep -qF 'get_cpu_quota_percent' "${root}/service/cron/configure.sh"
 grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-boot-scan.service"
-grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-idle-scan.service"
 grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-reboot-notice.service"
 grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-periodic-scan.service"
-grep -qF 'CPUQuota=${cpu_quota}%' "${root}/config/cron/w-hourly-scan.service"
 ! grep -qF 'CPUQuota=${WATCHDOG_CPU_LIMIT}%' \
     "${root}/service/cron/configure.sh" \
     "${root}/config/cron/w-boot-scan.service" \
-    "${root}/config/cron/w-idle-scan.service" \
     "${root}/config/cron/w-reboot-notice.service" \
     "${root}/config/cron/w-boot-chain.service" \
-    "${root}/config/cron/w-periodic-scan.service" \
-    "${root}/config/cron/w-hourly-scan.service"
+    "${root}/config/cron/w-periodic-scan.service"
+[[ ! -e "${root}/config/cron/w-idle-scan.service" ]]
+[[ ! -e "${root}/config/cron/w-hourly-scan.service" ]]
 CPU
 if [[ "${cpu_rc}" -eq 0 ]]; then
     t_pass "graph.cpu.quota" "20 % de la machine, CPUQuota multiplié par le nombre de CPU"
@@ -309,56 +304,49 @@ root="$1"
 conf="${root}/service/cron/configure.sh"
 chain="${root}/config/cron/w-boot-chain.service"
 boot_timer="${root}/config/cron/w-boot-chain.timer"
-idle_timer="${root}/config/cron/w-idle-scan.timer"
 reboot_timer="${root}/config/cron/w-reboot-notice.timer"
 units="${root}/config/cron"
 grep -qF 'ExecStart=-${systemctl_bin} start --wait w-boot-scan.service' "${chain}"
-grep -qF 'ExecStart=-${systemctl_bin} start --wait w-idle-scan.service' "${chain}"
-grep -qF 'ExecStart=-${systemctl_bin} start --wait w-reboot-notice.service' "${chain}"
+! grep -q 'w-idle-scan.service' "${chain}"
+! grep -q 'w-hourly-scan.service' "${chain}"
 grep -q 'is-failed --quiet' "${chain}"
 grep -q 'core/log/log.sh' "${root}/script/boot-check.sh"
 timers="${root}/config/cron/timers.conf"
 grep -q 'OnBootSec=${BOOT_ON_BOOT_SEC}' "${boot_timer}"
 grep -q 'BOOT_ON_BOOT_SEC=0' "${timers}"
-grep -q 'OnUnitActiveSec=${IDLE_EVERY}' "${idle_timer}"
-grep -q 'IDLE_EVERY=1h' "${timers}"
 grep -q 'OnUnitActiveSec=${REBOOT_EVERY}' "${reboot_timer}"
 grep -q 'REBOOT_EVERY=6h' "${timers}"
 grep -q 'Persistent=${TIMER_PERSISTENT}' "${boot_timer}"
-grep -q 'Persistent=${TIMER_PERSISTENT}' "${idle_timer}"
 grep -q 'Persistent=${TIMER_PERSISTENT}' "${reboot_timer}"
 grep -q 'TIMER_PERSISTENT=false' "${timers}"
+grep -q 'PERIODIC_EVERY=1h' "${timers}"
+grep -q 'PERIODIC_ON_BOOT_SEC=1h' "${timers}"
+! grep -q 'HOURLY_' "${timers}"
+! grep -q 'IDLE_' "${timers}"
 grep -q 'w-boot-chain.timer' "${conf}"
 test -f "${root}/script/boot-check.sh"
 grep -q 'systemctl disable --now w-boot-scan.timer' "${conf}"
+grep -q 'systemctl disable --now w-idle-scan.timer' "${conf}"
+grep -q 'systemctl disable --now w-hourly-scan.timer' "${conf}"
 ! grep -q 'OnBootSec=2min' "${conf}" "${timers}" "${units}"/*.service "${units}"/*.timer
 ! grep -q 'OnBootSec=15min' "${conf}" "${timers}" "${units}"/*.service "${units}"/*.timer
 ! grep -q 'OnBootSec=20min' "${conf}" "${timers}" "${units}"/*.service "${units}"/*.timer
 ! grep -q 'Persistent=true' "${conf}" "${timers}" "${units}"/*.service "${units}"/*.timer
 grep -q 'w-boot-chain.timer' "${root}/script/verify/alerts.sh"
 grep -q 'w-boot-chain.timer' "${root}/script/verify/workstation.sh"
-grep -q 'PERIODIC_EVERY=2h' "${timers}"
 grep -q 'OnBootSec=${PERIODIC_ON_BOOT_SEC}' "${root}/config/cron/w-periodic-scan.timer"
 grep -q 'OnUnitActiveSec=${PERIODIC_EVERY}' "${root}/config/cron/w-periodic-scan.timer"
 grep -q 'Persistent=${TIMER_PERSISTENT}' "${root}/config/cron/w-periodic-scan.timer"
 grep -q 'w-periodic-scan.timer' "${conf}"
 grep -q 'w-periodic-scan.timer' "${root}/script/verify/alerts.sh"
 grep -q 'w-periodic-scan.timer' "${root}/script/verify/workstation.sh"
-grep -q 'HOURLY_EVERY=1h' "${timers}"
-grep -q 'HOURLY_ON_BOOT_SEC=1h' "${timers}"
-grep -q 'OnBootSec=${HOURLY_ON_BOOT_SEC}' "${root}/config/cron/w-hourly-scan.timer"
-grep -q 'OnUnitActiveSec=${HOURLY_EVERY}' "${root}/config/cron/w-hourly-scan.timer"
-grep -q 'Persistent=${TIMER_PERSISTENT}' "${root}/config/cron/w-hourly-scan.timer"
-grep -q 'w-hourly-scan.timer' "${conf}"
-grep -q 'w-hourly-scan.timer' "${root}/script/verify/alerts.sh"
-grep -q 'w-hourly-scan.timer' "${root}/script/verify/workstation.sh"
-awk '
-    /aide.sh/ { if (!a) a = NR }
-    /rkhunter.sh/ { if (a && !b) b = NR }
-    /chkrootkit.sh/ { if (b && !c) c = NR }
-    /debsums.sh/ { if (c && !d) d = NR }
-    END { exit (a && b && c && d && a < b && b < c && c < d) ? 0 : 1 }
-' "${root}/service/cron/watchdogs/hourly-scan.sh"
+! grep -q 'w-hourly-scan.timer' "${root}/script/verify/alerts.sh"
+! grep -q 'w-idle-scan.timer' "${root}/script/verify/alerts.sh"
+! grep -q 'w-hourly-scan.timer' "${root}/script/verify/workstation.sh"
+! grep -q 'w-idle-scan.timer' "${root}/script/verify/workstation.sh"
+grep -q 'tools=(auditd rkhunter chkrootkit debsums aide)' "${root}/service/cron/watchdogs/chain-scan-integrity.sh"
+[[ ! -e "${root}/config/cron/w-hourly-scan.timer" ]]
+[[ ! -e "${root}/config/cron/w-idle-scan.timer" ]]
 grep -q 'boot-check.sh' "${root}/script/verify/boot.sh"
 test -f "${root}/script/boot-check.sh"
 grep -q '39f53479d3a045ac8e11786248231fbf' "${root}/script/boot-check.sh"
@@ -375,11 +363,10 @@ fi
 logs_ok=1
 common="${T_ROOT}/service/cron/watchdogs/common.sh"
 server_boot="${T_ROOT}/../server/service/cron/watchdogs/boot-scan.sh"
-shared_chain="${T_ROOT}/../share/service/cron/watchdogs/chain.sh"
+shared_chain="${T_ROOT}/../share/service/cron/watchdogs/chain-scan-integrity.sh"
 grep -q 'LOG_DIR="${BASE}/cron/security_logs"' "${common}" || logs_ok=0
 grep -q 'ALERT_DIR="${BASE}/cron/alerts"' "${common}" || logs_ok=0
-grep -q 'LOG_DIR="${CONFIG_BASE_DIRECTORY}/cron/security_logs"' "${server_boot}" || logs_ok=0
-grep -q 'ALERT_DIR="${CONFIG_BASE_DIRECTORY}/cron/alerts"' "${server_boot}" || logs_ok=0
+grep -q 'LOG_DIR="${LOG_DIR:-${BASE}/cron/security_logs}"' "${server_boot}" || logs_ok=0
 grep -q 'cron/security_logs' "${shared_chain}" || logs_ok=0
 if grep -q '/var/lib/liltress-workstation/watchdog' "${common}"; then
     logs_ok=0
@@ -491,7 +478,9 @@ grep -q '^AllowTcpForwarding no$' "${ssh_drop}" || daily_ok=0
 grep -q '^AllowAgentForwarding no$' "${ssh_drop}" || daily_ok=0
 grep -q '^PasswordAuthentication yes$' "${ssh_drop}" || daily_ok=0
 grep -q 'timestamp_timeout=5' "${T_ROOT}/system/pam/configure.sh" || daily_ok=0
-grep -q 'pgrep -x' "${reboot}" || daily_ok=0
+if grep -q 'pgrep' "${reboot}"; then
+    daily_ok=0
+fi
 if grep -qE 'systemctl reboot|shutdown' "${reboot}"; then
     daily_ok=0
 fi
@@ -733,32 +722,26 @@ grep -q 'add_onaccess_directory /opt' "${root}/service/clamav/configure.sh"
 grep -q 'ONACCESS_FIXED_EXCLUDE' "${root}/service/cron/watchdogs/apply-scan-skip.sh"
 grep -q 're.escape' "${root}/../share/python/scan-skip-apply.py"
 grep -q 'BASE}/src' "${root}/service/cron/watchdogs/apply-scan-skip.sh"
-grep -qF 'sub(/^\^/' "${root}/service/cron/watchdogs/clamav.sh"
-grep -q 'mktemp -p /run/liltress-workstation' "${root}/service/cron/watchdogs/clamav.sh"
-grep -q 'CLAMAV_EVENT_KIND=idle' "${root}/service/cron/watchdogs/idle-scan.sh"
-grep -q 'CLAMAV_EVENT_MAIL=0' "${root}/service/cron/watchdogs/idle-scan.sh"
-grep -q 'clamav-response.sh' "${root}/service/cron/watchdogs/idle-scan.sh"
-grep -q 'idle) kind_label="passe différée"' "${root}/service/cron/watchdogs/clamav-response.sh"
+! grep -qF 'sub(/^\^/' "${root}/service/cron/watchdogs/scan-clamav.sh"
+grep -q 'mktemp -p "${run_dir}"' "${root}/service/cron/watchdogs/scan-clamav.sh"
+grep -q '/run/liltress-workstation' "${root}/service/cron/watchdogs/scan-clamav.sh"
+grep -q 'periodic) kind_label="scan périodique"' "${root}/service/cron/watchdogs/clamav-response.sh"
+grep -q 'kind_label="accès"' "${root}/service/cron/watchdogs/clamav-response.sh"
+! grep -q 'passe différée' "${root}/service/cron/watchdogs/clamav-response.sh"
 grep -q 'infections déjà signalées' "${root}/../share/locale/fr/watchdog.txt"
-awk '
-    /== "infected"/ { inf = NR }
-    /CLAMAV_EVENT_KIND=idle/ { if (!call) call = NR; last = NR }
-    /infections-already-signal-es/ { known = NR }
-    END { exit !(inf && call && known && inf < call && last < known) }
-' "${root}/service/cron/watchdogs/idle-scan.sh"
-grep -q 'CLAM_MODE=daemon' "${root}/service/cron/watchdogs/clamav.sh"
-grep -q 'flock -n 9' "${root}/service/cron/watchdogs/clamav.sh"
-! grep -q 'clamdscan' "${root}/service/cron/watchdogs/clamav.sh"
+grep -q 'CLAM_MODE=daemon' "${root}/service/cron/watchdogs/scan-clamav.sh"
+grep -q 'flock -n 9' "${root}/service/cron/watchdogs/scan-clamav.sh"
+grep -q 'clamdscan --ping' "${root}/service/cron/watchdogs/scan-clamav.sh"
 grep -q 'detect-and-apply.sh' "${root}/service/apparmor/configure.sh"
 grep -q 'detect-and-apply.sh' "${root}/service/apparmor/userns.sh"
 test -x "${root}/service/apparmor/detect-and-apply.sh"
 grep -q 'service/apparmor/detect-and-apply.sh' "${root}/../share/core/host/fs.sh"
 grep -q 'CROWDSEC_BAN_DURATION=48h' "${root}/config/crowdsec/ban.conf"
-grep -q 'run_check integrity.sh' "${root}/service/cron/watchdogs/boot-scan.sh"
-grep -q 'run_check behavior.sh' "${root}/service/cron/watchdogs/boot-scan.sh"
-grep -q 'run_check egress-watch.sh' "${root}/service/cron/watchdogs/boot-scan.sh"
-! grep -q 'BEHAVIOR_WATCH' "${root}/service/cron/watchdogs/behavior.sh"
-! grep -q 'EGRESS_LOG' "${root}/service/cron/watchdogs/egress-watch.sh"
+grep -q 'run_boot_link chain-periodic.sh' "${root}/service/cron/watchdogs/boot-scan.sh"
+grep -q 'run_boot_link arm-onaccess.sh' "${root}/service/cron/watchdogs/boot-scan.sh"
+grep -q 'run_boot_link arm-periodic-scan.sh' "${root}/service/cron/watchdogs/boot-scan.sh"
+grep -q 'run_boot_link reboot-notice.sh' "${root}/service/cron/watchdogs/boot-scan.sh"
+! grep -q 'EGRESS_LOG' "${root}/service/cron/watchdogs/scan-egress.sh"
 ! grep -q 'EGRESS_LOG' "${root}/service/ufw/egress.sh"
 ! grep -q 'EGRESS_LOG' "${root}/config/ufw/egress.conf"
 grep -q 'nft add table inet w_egress' "${root}/service/ufw/egress.sh"
@@ -773,7 +756,7 @@ grep -q 'w-egress-table.service' "${root}/service/ufw/egress.sh"
 test -f "${root}/config/integrity/paths.list"
 ! grep -q 'cron/bin/' "${root}/service/cron/configure.sh"
 ! grep -q 'install_mail_templates' "${root}/service/cron/configure.sh"
-test -f "${root}/service/cron/watchdogs/integrity.sh"
+test -f "${root}/service/cron/watchdogs/scan-fingerprint.sh"
 grep -Fq 'source "${INSTALL_DIRECTORY}/config/global.conf"' "${root}/service/cron/configure.sh"
 ! grep -q 'NET_ISOLATE=' "${root}/config/ufw/egress.conf"
 ! grep -q 'NET_ISOLATE:-' "${root}/service/cron/watchdogs/clamav-response.sh"
@@ -793,20 +776,20 @@ grep -q 'systemctl disable --now w-behavior.timer' "${root}/service/cron/configu
 grep -q 'systemctl disable --now w-egress-watch.timer' "${root}/service/cron/configure.sh"
 grep -q -- '-S connect' "${root}/config/auditd/tail.rules"
 grep -q -- '-k w-egress' "${root}/config/auditd/tail.rules"
-grep -q 'ausearch' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'check_egress_routine' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'strip_egress_routine' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'list_egress_suspects' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q 'flow_hold' "${root}/service/cron/watchdogs/egress-watch.sh"
-grep -q '@v4 reject' "${root}/service/cron/watchdogs/egress-watch.sh"
+grep -q 'ausearch' "${root}/service/cron/watchdogs/scan-egress.sh"
+grep -q 'check_egress_routine' "${root}/service/cron/watchdogs/scan-egress.sh"
+grep -q 'strip_egress_routine' "${root}/service/cron/watchdogs/scan-egress.sh"
+grep -q 'list_egress_suspects' "${root}/service/cron/watchdogs/scan-egress.sh"
+grep -q 'flow_hold' "${root}/service/cron/watchdogs/scan-egress.sh"
+grep -q '@v4 reject' "${root}/service/cron/watchdogs/scan-egress.sh"
 grep -q 'flux sortant suspect bloqué' "${root}/../share/locale/fr/watchdog.txt"
-grep -q 'quarantine.registry' "${root}/service/cron/watchdogs/egress-watch.sh"
-! grep -q 'w_isolate' "${root}/service/cron/watchdogs/egress-watch.sh"
-! grep -q 'flux sortants hors des ports 53, 80 et 443' "${root}/service/cron/watchdogs/egress-watch.sh"
+grep -q 'quarantine.registry' "${root}/service/cron/watchdogs/scan-egress.sh"
+! grep -q 'w_isolate' "${root}/service/cron/watchdogs/scan-egress.sh"
+! grep -q 'flux sortants hors des ports 53, 80 et 443' "${root}/service/cron/watchdogs/scan-egress.sh"
 grep -q 'record_quarantine_origin' "${root}/../share/core/watchdog/quarantine.sh"
 grep -q 'core/quarantine/restore.sh' "${root}/../share/core/watchdog/quarantine.sh"
-grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/rkhunter.sh"
-grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/chkrootkit.sh"
+grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/scan-rkhunter.sh"
+grep -q 'record_quarantine_log' "${root}/service/cron/watchdogs/scan-chkrootkit.sh"
 grep -q 'non mis en quarantaine' "${root}/../share/locale/fr/watchdog.txt"
 ! grep -q 'display:flex' "${root}/template/mail.html"
 ! grep -q 'width:840px' "${root}/template/mail.html"
@@ -853,12 +836,12 @@ if grep -qF 'chmod "${log_mode}" "${root}/cron"' "${fs}" \
    && grep -qF 'chmod 640' "${logs}" \
    && ! grep -qF 'chmod 755' "${logs}" \
    && ! grep -qF 'chmod 644' "${logs}" \
-   && ! grep -qF 'install -d -m 750' "${T_ROOT}/service/cron/watchdogs/integrity.sh" \
-   && ! grep -qF 'install -d -m 750' "${T_ROOT}/service/cron/watchdogs/behavior.sh" \
-   && ! grep -qF 'install -d -m 750' "${T_ROOT}/service/cron/watchdogs/egress-watch.sh" \
+   && ! grep -qF 'install -d -m 750' "${T_ROOT}/service/cron/watchdogs/scan-fingerprint.sh" \
+   && ! grep -qF 'install -d -m 750' "${T_ROOT}/service/cron/watchdogs/scan-auditd.sh" \
+   && ! grep -qF 'install -d -m 750' "${T_ROOT}/service/cron/watchdogs/scan-egress.sh" \
    && ! grep -qF 'install -d -m 750' "${T_ROOT}/service/ufw/egress.sh" \
-   && ! grep -qF 'install -d -m 750' "${T_ROOT}/../server/service/cron/watchdogs/integrity.sh" \
-   && ! grep -qF 'install -d -m 750' "${T_ROOT}/../server/service/cron/watchdogs/behavior.sh" \
+   && ! grep -qF 'install -d -m 750' "${T_ROOT}/../server/service/cron/watchdogs/scan-fingerprint.sh" \
+   && ! grep -qF 'install -d -m 750' "${T_ROOT}/../server/service/cron/watchdogs/scan-auditd.sh" \
    && grep -qF 'set_tree_modes' "${T_ROOT}/service/aide/init-db.sh" \
    && grep -qF 'set_tree_modes' "${T_ROOT}/../server/service/aide/init-db.sh"; then
     t_pass "graph.modes" "cron suit le compte cron, log reste fermé"

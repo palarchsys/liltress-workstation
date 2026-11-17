@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/journald/configure.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Make the system journal persistent, with a size cap.
+# Note       : The volatile unit file is deleted.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -12,9 +19,9 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
-log_info         "${INSTALL_WATCHER}" "configure.configuration-of-journald"
+log_info "${INSTALL_WATCHER}" "configure.configuration-of-journald"
 ensure_directory /etc/systemd/journald.conf.d 755
-tee /etc/systemd/journald.conf.d/persistent.conf > /dev/null << EOF
+tee /etc/systemd/journald.conf.d/persistent.conf >/dev/null <<EOF
 [Journal]
 Storage=persistent
 SystemMaxUse=512M
@@ -22,5 +29,5 @@ RuntimeMaxUse=64M
 ForwardToSyslog=no
 EOF
 rm -f /etc/systemd/journald.conf.d/volatile.conf
-run_silent       "${INSTALL_WATCHER}" "configure.journald.error" systemctl restart systemd-journald
-log_success      "${INSTALL_WATCHER}" "configure.journald-made-persistent"
+run_silent "${INSTALL_WATCHER}" "configure.journald.error" systemctl restart systemd-journald
+log_success "${INSTALL_WATCHER}" "configure.journald-made-persistent"

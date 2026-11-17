@@ -1,14 +1,43 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/clamav-event.sh
-# Updated at : 2026-10-31
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
+
+# -----------------------------------------------------------------------------
+# Purpose    : Raise an alert when an on-access virus event arrives.
+# -----------------------------------------------------------------------------
+
+
+read_logger_tag() {
+    local tag="${BASE:-liltress}"
+    tag="${tag##*/}"
+    if [[ -z "${tag}" ]]; then
+        tag="liltress"
+    fi
+    printf '%s\n' "${tag}"
+}
+
 set -euo pipefail
-BASE="${BASE:-/opt/liltress-workstation}"
+HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -r "${HERE}/watchdog.conf" ]]; then
+    # shellcheck disable=SC1091
+    source "${HERE}/watchdog.conf"
+fi
+if [[ -z "${BASE:-}" && -z "${CONFIG_BASE_DIRECTORY:-}" && -n "${CONFIG_BASE_DIRECTORY+x}" ]]; then
+    exit 0
+fi
 # shellcheck disable=SC1091
-source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
+source "${HERE}/common.sh"
+if [[ -z "${BASE:-}" ]]; then
+    BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+fi
+STAMP="${STAMP:-$(date +%Y%m%d-%H%M%S)}"
+LOG_DIR="${LOG_DIR:-${BASE}/cron/security_logs}"
+ALERT_DIR="${ALERT_DIR:-${BASE}/cron/alerts}"
+mkdir -p -- "${LOG_DIR}" "${ALERT_DIR}"
 file="${CLAM_VIRUSEVENT_FILENAME:-inconnu}"
 virus="${CLAM_VIRUSEVENT_VIRUSNAME:-inconnu}"
 base="$(basename -- "${file}")"
@@ -28,7 +57,7 @@ export CLAMAV_EVENT_MAIL=1
 export CLAMAV_RESPONSE_STAMP="${STAMP}"
 response="${BASE}/service/cron/watchdogs/clamav-response.sh"
 if [[ ! -x "${response}" ]]; then
-    response="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/clamav-response.sh"
+    response="${HERE}/clamav-response.sh"
 fi
 bash "${response}" || true
 if [[ -f "${LOG_DIR}/clamav-response-${STAMP}.path" ]]; then
@@ -36,5 +65,5 @@ if [[ -f "${LOG_DIR}/clamav-response-${STAMP}.path" ]]; then
     export CLAMAV_QUARANTINE
 fi
 arm_crash_mail "ClamAV accès"
-logger -t liltress-workstation -p auth.warning "ClamAV ${virus} origine=${file} quarantaine=${CLAMAV_QUARANTINE:-inconnue}"
+logger -t "$(read_logger_tag)" -p auth.warning "ClamAV ${virus} origine=${file} quarantaine=${CLAMAV_QUARANTINE:-inconnue}"
 log_alert "$(get_text watchdog.clamav-in "${virus}" "${file}")"

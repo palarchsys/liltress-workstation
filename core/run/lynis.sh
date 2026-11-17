@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/run/lynis.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Run one system audit and keep the written files under the product journal.
+# -----------------------------------------------------------------------------
+
 
 set -euo pipefail
 # shellcheck disable=SC1091
@@ -35,9 +41,14 @@ cp -a /var/log/lynis.log "${out}/lynis.log" 2>/dev/null || true
 cp -a /var/log/lynis-report.dat "${out}/lynis-report.dat" 2>/dev/null || true
 chmod 640 /var/log/lynis.log /var/log/lynis-report.dat 2>/dev/null || true
 {
-    echo "$(get_text log.hostname)"; hostname; uname -a
-    echo "$(get_text log.score)"; grep -E "hardening_index|lynis_tests_done" /var/log/lynis-report.dat || true
-    echo "$(get_text log.warnings)"; grep -E "^warning\[\]=" /var/log/lynis-report.dat || true
-    echo "$(get_text log.suggestions)"; grep -E "^suggestion\[\]=" /var/log/lynis-report.dat || true
-} > "${out}/summary.txt"
+    echo "$(get_text log.hostname)"
+    hostname
+    uname -a
+    echo "$(get_text log.score)"
+    grep -E "hardening_index|lynis_tests_done" /var/log/lynis-report.dat || true
+    echo "$(get_text log.warnings)"
+    grep -E "^warning\[\]=" /var/log/lynis-report.dat || true
+    echo "$(get_text log.suggestions)"
+    grep -E "^suggestion\[\]=" /var/log/lynis-report.dat || true
+} >"${out}/summary.txt"
 printf 'Rapport : %s\n' "$(show_path "${out}")"

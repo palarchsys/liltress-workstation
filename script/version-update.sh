@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/version-update.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
 
 # -----------------------------------------------------------------------------
 # Purpose    : Show the installed version, then update the published clone.
 # Note       : The workshop tree keeps its links. This script refuses to pull there.
 # -----------------------------------------------------------------------------
 
+
 set -euo pipefail
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 if [[ -f "${root}/VERSION" ]]; then
-    printf '%s\n' "$(tr -d '[:space:]' < "${root}/VERSION")"
+    printf '%s\n' "$(tr -d '[:space:]' <"${root}/VERSION")"
 fi
 if [[ -L "${root}/core" ]]; then
     printf '%s\n' "atelier: le pull reste réservé au clone publié sous /opt" >&2
@@ -47,5 +49,5 @@ if [[ -x "${root}/liltress" ]]; then
 fi
 mark_prepared_config --skip-worktree
 if [[ -f "${root}/VERSION" ]]; then
-    printf '%s\n' "$(tr -d '[:space:]' < "${root}/VERSION")"
+    printf '%s\n' "$(tr -d '[:space:]' <"${root}/VERSION")"
 fi

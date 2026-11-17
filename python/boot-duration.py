@@ -1,17 +1,30 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/boot-duration.py
-# Updated at : 2026-11-12
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
+
+# -----------------------------------------------------------------------------
+# Purpose    : Convert one systemd time span into whole milliseconds.
+# Note       : The word infinity and any other unit count as zero.
+# -----------------------------------------------------------------------------
+
+
 import sys
-s = sys.argv[1].strip()
-if s.endswith("ms"):
-    print(int(round(float(s[:-2]))))
-elif s.endswith("us"):
-    print(int(round(float(s[:-2]) / 1000.0)))
-elif s.endswith("s") and s != "infinity":
-    print(int(round(float(s[:-1]) * 1000.0)))
-else:
-    print(0)
+
+
+def milliseconds_of(span):
+    # systemd writes ms, us, or s. Anything else is not a duration.
+    text = span.strip()
+    if text.endswith("ms"):
+        return int(round(float(text[:-2])))
+    if text.endswith("us"):
+        return int(round(float(text[:-2]) / 1000.0))
+    if text.endswith("s") and text != "infinity":
+        return int(round(float(text[:-1]) * 1000.0))
+    return 0
+
+
+print(milliseconds_of(sys.argv[1]))

@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/auditd/configure.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Write the audit rules of the machine and the desktop account.
+# Note       : A virtual profile is kept only on a virtual machine.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -14,7 +21,7 @@ source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_current_user
 
-log_info         "${INSTALL_WATCHER}" "configure.configuration-of-auditd"
+log_info "${INSTALL_WATCHER}" "configure.configuration-of-auditd"
 
 install -d -m 750 /etc/audit/rules.d
 rm -f /etc/audit/rules.d/"${PROJECT_SLUG}".rules
@@ -24,7 +31,7 @@ write_audit_watch() {
     [[ -d "${path}" ]] || field="path"
     printf '%s\n' "-a always,exit -F arch=b64 -F ${field}=${path} -F perm=wa -F key=${key}"
 }
-grep -v '^#' "$(locate_config_file auditd/prelude.rules)" > /etc/audit/rules.d/00-liltress-workstation.rules
+grep -v '^#' "$(locate_config_file auditd/prelude.rules)" >/etc/audit/rules.d/00-liltress-workstation.rules
 
 write_audit_list() {
     local profile path key
@@ -37,7 +44,7 @@ write_audit_list() {
         esac
         path="${path//__HF_BASE__/${CONFIG_BASE_DIRECTORY}}"
         write_audit_watch "${path}" "${key}"
-    done < "$(locate_config_file auditd/watches.list)"
+    done <"$(locate_config_file auditd/watches.list)"
 }
 {
     write_audit_list
@@ -47,22 +54,21 @@ write_audit_list() {
         "${CURRENT_HOME}/.profile" \
         "${CURRENT_HOME}/.bash_profile" \
         "${CURRENT_HOME}/.config/autostart" \
-        "${CURRENT_HOME}/.config/systemd/user"
-    do
+        "${CURRENT_HOME}/.config/systemd/user"; do
         [[ -e "${account_path}" ]] || continue
         write_audit_watch "${account_path}" account
     done
     grep -v '^#' "$(locate_config_file auditd/tail.rules)"
-} > /etc/audit/rules.d/50-liltress-workstation.rules
-grep -v '^#' "$(locate_config_file auditd/enable.rules)" > /etc/audit/rules.d/99-liltress-workstation.rules
+} >/etc/audit/rules.d/50-liltress-workstation.rules
+grep -v '^#' "$(locate_config_file auditd/enable.rules)" >/etc/audit/rules.d/99-liltress-workstation.rules
 chmod 640 /etc/audit/rules.d/00-liltress-workstation.rules \
     /etc/audit/rules.d/50-liltress-workstation.rules \
     /etc/audit/rules.d/99-liltress-workstation.rules
 
-run_silent       "${INSTALL_WATCHER}" "configure.auditd.error" systemctl enable auditd
+run_silent "${INSTALL_WATCHER}" "configure.auditd.error" systemctl enable auditd
 if ! systemctl is-active --quiet auditd; then
-    run_silent       "${INSTALL_WATCHER}" "configure.auditd.error" systemctl start auditd
+    run_silent "${INSTALL_WATCHER}" "configure.auditd.error" systemctl start auditd
 fi
 
-run_silent       "${INSTALL_WATCHER}" "configure.auditd.error" augenrules --load
-log_success      "${INSTALL_WATCHER}" "configure.auditd-enabled-2"
+run_silent "${INSTALL_WATCHER}" "configure.auditd.error" augenrules --load
+log_success "${INSTALL_WATCHER}" "configure.auditd-enabled-2"

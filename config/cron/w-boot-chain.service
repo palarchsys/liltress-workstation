@@ -1,17 +1,15 @@
 # =============================================================================
 # File       : config/cron/w-boot-chain.service
-# Updated at : 2026-11-06
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
 [Unit]
-Description=Enchaîne la passe, l'analyse différée et l'avis de redémarrage
+Description=Lance la passe de démarrage
 After=multi-user.target
 DefaultDependencies=no
 
 [Service]
 Type=oneshot
 ExecStart=-${systemctl_bin} start --wait w-boot-scan.service
-ExecStart=-${systemctl_bin} start --wait w-idle-scan.service
-ExecStart=-${systemctl_bin} start --wait w-reboot-notice.service
-ExecStart=/bin/sh -c 'failed=0; for unit in w-boot-scan.service w-idle-scan.service w-reboot-notice.service; do ${systemctl_bin} is-failed --quiet "$$unit" && failed=1; done; exit "$$failed"'
+ExecStart=/bin/sh -c '${systemctl_bin} is-failed --quiet w-boot-scan.service && exit 1 || exit 0'

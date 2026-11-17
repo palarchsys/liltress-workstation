@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/mail/mail-test.sh
-# Updated at : 2026-11-13
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
 # -----------------------------------------------------------------------------
 # Purpose    : Send one sample alert so the width and the height can be seen.
 # Note       : The recipient stays in the installed configuration.
 # -----------------------------------------------------------------------------
+
 
 set -euo pipefail
 
@@ -19,8 +22,7 @@ for candidate in \
     "${script_dir}/../core/log/log.sh" \
     "${CONFIG_BASE_DIRECTORY:-}/core/log/log.sh" \
     "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
-    "${INSTALL_DIRECTORY:-}/core/log/log.sh"
-do
+    "${INSTALL_DIRECTORY:-}/core/log/log.sh"; do
     if [[ -n "${candidate}" && -f "${candidate}" ]]; then
         # shellcheck disable=SC1090
         source "${candidate}"
@@ -28,8 +30,17 @@ do
     fi
 done
 
-send_mail_test() {
-    local script_dir base send_sh wide err_file
+# The recipient can live in the secret file.
+load_mail_test_secrets() {
+    if [[ -z "${WATCHDOG_MAIL:-}" && -r "${base}/config/secrets.conf" ]]; then
+        # shellcheck disable=SC1091
+        source "${base}/config/secrets.conf"
+    fi
+}
+
+# The caller owns base.
+load_mail_test_config() {
+    local script_dir=""
     if ! declare -F get_text >/dev/null 2>&1; then
         printf '%s\n' "get_text absent" >&2
         exit 1
@@ -53,16 +64,17 @@ send_mail_test() {
     fi
     # shellcheck disable=SC1091
     source "${base}/config/global.conf"
-    if [[ -z "${WATCHDOG_MAIL:-}" && -r "${base}/config/secrets.conf" ]]; then
-        # shellcheck disable=SC1091
-        source "${base}/config/secrets.conf"
-    fi
+    load_mail_test_secrets
     export CONFIG_BASE_DIRECTORY="${base}"
     if [[ -z "${PROJECT_NAME:-}" ]]; then
         PROJECT_NAME="Liltress"
     fi
     export PROJECT_NAME
-    send_sh="${base}/service/cron/watchdogs/send.sh"
+}
+
+require_mail_test_ready() {
+    local base="$1"
+    local send_sh="${base}/service/cron/watchdogs/send.sh"
     if [[ ! -f "${send_sh}" ]]; then
         printf '%s\n' "$(get_text mail.send-not-found)" >&2
         exit 1
@@ -83,12 +95,18 @@ send_mail_test() {
         printf '%s\n' "$(get_text mail.template-absent)" >&2
         exit 1
     fi
+}
+
+# One sample line is longer than the 800px floor.
+deliver_mail_test() {
+    local base="$1"
+    local send_sh="${base}/service/cron/watchdogs/send.sh"
+    local wide="" err_file=""
     export MAIL_TEMPLATE="${MAIL_TEMPLATE:-mail.html}"
     export MAIL_ALERTS
     export WATCHDOG_MAIL
     export TITLE="$(get_text mail.test.title)"
     export MODULE_NAME="$(get_text mail.test.module)"
-    # One sample line is longer than the 800px floor.
     wide="$(printf 'X%.0s' {1..180})"
     export CONTENT="$(get_text mail.test.line-short)
 $(get_text mail.test.line-wide "${wide}")
@@ -108,6 +126,13 @@ $(get_text mail.test.line-short)"
     fi
     rm -f "${err_file}"
     printf '%s\n' "$(get_text mail.message-of-attempt-sent)"
+}
+
+send_mail_test() {
+    local base=""
+    load_mail_test_config
+    require_mail_test_ready "${base}"
+    deliver_mail_test "${base}"
 }
 
 if [[ "$(basename -- "${script_dir}")" == "bin" ]]; then

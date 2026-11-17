@@ -1,13 +1,39 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/boot/bootstrap.sh
-# Updated at : 2026-11-13
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
+
+# -----------------------------------------------------------------------------
+# Purpose    : Load one shared engine file from the first directory that has it.
+# -----------------------------------------------------------------------------
+
+
+# The caller owns seen and sourced_core.
+source_core_file() {
+    local root="$1"
+    local name="$2"
+    local candidate=""
+    [[ -n "${root}" && -d "${root}" ]] || return 0
+    candidate="$(cd -- "${root}" && pwd)" || return 0
+    if [[ "${seen}" == *"|${candidate}|"* ]]; then
+        return 0
+    fi
+    seen+="${candidate}|"
+    if [[ -f "${candidate}/${name}" ]]; then
+        # shellcheck disable=SC1090
+        source "${candidate}/${name}"
+        sourced_core=1
+    fi
+    return 0
+}
+
 source_core() {
     local name="$1"
-    local here="" core_root="" root="" candidate="" seen="|"
+    local here="" core_root="" root="" seen="|"
+    local sourced_core=0
     local -a roots=()
     here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     core_root="$(cd -- "${here}/.." && pwd)"
@@ -19,13 +45,8 @@ source_core() {
         roots+=("${INSTALL_DIRECTORY}/core" "${INSTALL_DIRECTORY}/../share/core")
     fi
     for root in "${roots[@]}"; do
-        [[ -n "${root}" && -d "${root}" ]] || continue
-        candidate="$(cd -- "${root}" && pwd)" || continue
-        [[ "${seen}" == *"|${candidate}|"* ]] && continue
-        seen+="${candidate}|"
-        if [[ -f "${candidate}/${name}" ]]; then
-            # shellcheck disable=SC1090
-            source "${candidate}/${name}"
+        source_core_file "${root}" "${name}"
+        if [[ "${sourced_core}" -eq 1 ]]; then
             return 0
         fi
     done

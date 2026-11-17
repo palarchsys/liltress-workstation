@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/sysctl/configure.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Apply the workstation network and memory settings.
+# Note       : IPv6 is off and user namespaces stay available.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -15,13 +22,13 @@ require_root
 # shellcheck disable=SC2155
 readonly DIR_SCRIPT_PATH="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
-log_info         "${INSTALL_WATCHER}" "configure.ipv6-disabled-user-namespaces-active"
+log_info "${INSTALL_WATCHER}" "configure.ipv6-disabled-user-namespaces-active"
 
 ip_forward=1
 rp_filter=2
-log_info         "${INSTALL_WATCHER}" "configure.application-of-the-sysctl-ip-forward-1-rp-filter"
+log_info "${INSTALL_WATCHER}" "configure.application-of-the-sysctl-ip-forward-1-rp-filter"
 
-tee /etc/sysctl.d/90-liltress-workstation.conf > /dev/null << EOF
+tee /etc/sysctl.d/90-liltress-workstation.conf >/dev/null <<EOF
 
 net.ipv4.conf.all.log_martians = 1
 net.ipv4.conf.default.log_martians = 1
@@ -73,11 +80,11 @@ EOF
 cp -f /etc/sysctl.d/90-liltress-workstation.conf /etc/sysctl.d/99-zzz-liltress-workstation.conf
 chmod 644 /etc/sysctl.d/90-liltress-workstation.conf /etc/sysctl.d/99-zzz-liltress-workstation.conf
 sed "s|__HF_BASE__|${CONFIG_BASE_DIRECTORY}|g" "$(locate_config_file system/sysctl.service)" \
-    > /etc/systemd/system/liltress-workstation-sysctl.service
+    >/etc/systemd/system/liltress-workstation-sysctl.service
 
 rm -f /etc/systemd/system/docker.service.wants/liltress-workstation-sysctl.service
 rm -f /etc/systemd/system/libvirtd.service.wants/liltress-workstation-sysctl.service
-run_silent       "${INSTALL_WATCHER}" "configure.sysctl.error" systemctl daemon-reload
-run_silent       "${INSTALL_WATCHER}" "configure.sysctl.error" systemctl enable --now liltress-workstation-sysctl.service
-run_silent       "${INSTALL_WATCHER}" "configure.sysctl.error" sysctl --system
-log_success      "${INSTALL_WATCHER}" "configure.sysctl-applied"
+run_silent "${INSTALL_WATCHER}" "configure.sysctl.error" systemctl daemon-reload
+run_silent "${INSTALL_WATCHER}" "configure.sysctl.error" systemctl enable --now liltress-workstation-sysctl.service
+run_silent "${INSTALL_WATCHER}" "configure.sysctl.error" sysctl --system
+log_success "${INSTALL_WATCHER}" "configure.sysctl-applied"

@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/launch.txt
-# Updated at : 2026-11-14
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
@@ -47,3 +47,4 @@ Prüfung:
   sudo "./liltress" verify matrix
   sudo "./liltress" verify livekit
   sudo "./liltress" verify wireguard
+  sudo "./liltress" maintain scan-skip list|add|del

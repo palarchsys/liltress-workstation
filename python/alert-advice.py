@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/alert-advice.py
-# Updated at : 2026-11-12
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
-"""Render the false-positive advice for one AIDE, chkrootkit or rkhunter log."""
+
+# -----------------------------------------------------------------------------
+# Purpose    : Render advice text about one integrity or malware log.
+# Note       : A crash summary stays empty. The catalog still has to be readable.
+# -----------------------------------------------------------------------------
+
 
 import os
 import re
@@ -14,6 +19,32 @@ import sys
 
 KEY_RE = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z0-9-]+)+$")
 RECORD_RE = re.compile(r"^\[([a-z][a-z0-9-]*(?:\.[a-z0-9-]+)+)\]$")
+
+
+def store_text(data, key, value):
+    if not key:
+        return
+    text = "\n".join(value)
+    while text.endswith("\n"):
+        text = text[:-1]
+    data[key] = text
+
+
+def load_text_file(path, data):
+    key = ""
+    value = []
+    with open(path, encoding="utf-8", errors="replace") as handle:
+        for raw in handle:
+            line = raw.rstrip("\n")
+            match = RECORD_RE.match(line)
+            if match:
+                store_text(data, key, value)
+                key = match.group(1)
+                value = []
+                continue
+            if key:
+                value.append(line)
+        store_text(data, key, value)
 
 
 def read_text_dir(directory, data):
@@ -25,30 +56,7 @@ def read_text_dir(directory, data):
         path = os.path.join(directory, name)
         if not os.path.isfile(path):
             continue
-        key = ""
-        value = []
-
-        def store():
-            nonlocal key, value
-            if not key:
-                return
-            text = "\n".join(value)
-            while text.endswith("\n"):
-                text = text[:-1]
-            data[key] = text
-
-        with open(path, encoding="utf-8", errors="replace") as handle:
-            for raw in handle:
-                line = raw.rstrip("\n")
-                match = RECORD_RE.match(line)
-                if match:
-                    store()
-                    key = match.group(1)
-                    value = []
-                    continue
-                if key:
-                    value.append(line)
-            store()
+        load_text_file(path, data)
 
 
 def load_dirs(spec):
@@ -90,6 +98,7 @@ def resolve(value):
         return text_get(value)
     return value
 
+
 LATE = {
     "aide.removed",
     "aide.package",
@@ -112,13 +121,59 @@ LOOP_VARS = {
     "ifaces": "iface",
 }
 BINARIES = {
-    "amd", "basename", "biff", "chfn", "chsh", "cron", "date", "du", "dirname",
-    "echo", "egrep", "env", "find", "fingerd", "gpm", "grep", "hdparm", "su",
-    "ifconfig", "inetd", "identd", "init", "killall", "login", "ls", "lsof",
-    "mail", "mingetty", "netstat", "named", "passwd", "pidof", "pop2", "pop3",
-    "ps", "pstree", "rpcinfo", "rlogind", "rshd", "slogin", "sendmail", "sshd",
-    "syslogd", "tar", "tcpd", "tcpdump", "top", "telnetd", "timed", "traceroute",
-    "vdir", "w", "write",
+    "amd",
+    "basename",
+    "biff",
+    "chfn",
+    "chsh",
+    "cron",
+    "date",
+    "du",
+    "dirname",
+    "echo",
+    "egrep",
+    "env",
+    "find",
+    "fingerd",
+    "gpm",
+    "grep",
+    "hdparm",
+    "su",
+    "ifconfig",
+    "inetd",
+    "identd",
+    "init",
+    "killall",
+    "login",
+    "ls",
+    "lsof",
+    "mail",
+    "mingetty",
+    "netstat",
+    "named",
+    "passwd",
+    "pidof",
+    "pop2",
+    "pop3",
+    "ps",
+    "pstree",
+    "rpcinfo",
+    "rlogind",
+    "rshd",
+    "slogin",
+    "sendmail",
+    "sshd",
+    "syslogd",
+    "tar",
+    "tcpd",
+    "tcpdump",
+    "top",
+    "telnetd",
+    "timed",
+    "traceroute",
+    "vdir",
+    "w",
+    "write",
 }
 APP_PAIRS = (
     ("openssh", "openssh-server"),
@@ -133,9 +188,7 @@ APP_PAIRS = (
     ("named", "bind9"),
     ("ssh", "openssh-server"),
 )
-AIDE_ENTRY = re.compile(
-    r"^(?:[fdlcbpsDP!?][+.\-:=> <?A-Za-z]*:\s+\S|(?:added|removed|changed):\s+\S)"
-)
+AIDE_ENTRY = re.compile(r"^(?:[fdlcbpsDP!?][+.\-:=> <?A-Za-z]*:\s+\S|(?:added|removed|changed):\s+\S)")
 AIDE_HEAD = re.compile(
     r"^(?:file|directory|fifo|link|block device|character device|"
     r"socket|door|port|unknown file type):\s+\S",
@@ -166,44 +219,40 @@ class Finding:
         self.paths = paths
 
 
-def parse_catalog(text):
-    records = []
-    current = None
-    mode = None
-    buf = []
-
-    def flush_mode():
-        nonlocal mode, buf
-        if current is not None and mode:
-            current[mode] = "\n".join(buf).strip("\n")
-        mode = None
-        buf = []
-
-    for raw in text.splitlines():
-        if mode:
-            if raw == mode + ">>":
-                flush_mode()
-            else:
-                buf.append(raw)
-            continue
-        if not raw.strip() or raw.startswith("#"):
-            continue
-        if raw.startswith("[") and raw.endswith("]"):
-            if current:
-                records.append(current)
-            current = {"id": raw[1:-1]}
-            continue
-        if current is None:
-            continue
-        if raw.endswith("<<"):
-            mode = raw[: -2]
-            buf = []
-            continue
-        if "=" in raw:
-            key, value = raw.split("=", 1)
-            current[key.strip()] = value.strip()
+def start_record(records, current, raw):
     if current:
         records.append(current)
+    return {"id": raw[1:-1]}
+
+
+def feed_field(records, current, raw):
+    if not raw.strip() or raw.startswith("#"):
+        return current, True
+    if raw.startswith("[") and raw.endswith("]"):
+        return start_record(records, current, raw), True
+    return current, False
+
+
+def feed_value(current, raw):
+    if current is None:
+        return None, []
+    if raw.endswith("<<"):
+        return raw[:-2], []
+    if "=" in raw:
+        key, value = raw.split("=", 1)
+        current[key.strip()] = value.strip()
+    return None, []
+
+
+def feed_block(current, mode, buf, raw):
+    if raw == mode + ">>":
+        current[mode] = "\n".join(buf).strip("\n")
+        return None, []
+    buf.append(raw)
+    return mode, buf
+
+
+def prepare_records(records):
     for rec in records:
         rec["regex"] = re.compile(rec.get("match") or r"$^")
         rec["hold"] = rec.get("hold", "0")
@@ -212,6 +261,24 @@ def parse_catalog(text):
         else:
             rec["hold_re"] = None
     return records
+
+
+def parse_catalog(text):
+    records = []
+    current = None
+    mode = None
+    buf = []
+    for raw in text.splitlines():
+        if mode:
+            mode, buf = feed_block(current, mode, buf, raw)
+            continue
+        current, taken = feed_field(records, current, raw)
+        if taken:
+            continue
+        mode, buf = feed_value(current, raw)
+    if current:
+        records.append(current)
+    return prepare_records(records)
 
 
 def normalize_tool(tool):
@@ -232,18 +299,26 @@ def aide_path(line):
     return ""
 
 
+def aide_keep(line, stripped):
+    if not stripped:
+        return False
+    if line[:1] in (" ", "\t"):
+        return False
+    if AIDE_ENTRY.match(line):
+        return True
+    if AIDE_HEAD.match(stripped):
+        return True
+    return bool(AIDE_DIFF.match(stripped))
+
+
 def aide_findings(text):
     findings = []
     for raw in text.splitlines():
         line = raw.rstrip()
         stripped = line.strip()
-        if not stripped:
-            continue
         if AIDE_DB.match(stripped):
             break
-        if line[:1] in (" ", "\t"):
-            continue
-        if not (AIDE_ENTRY.match(line) or AIDE_HEAD.match(stripped) or AIDE_DIFF.match(stripped)):
+        if not aide_keep(line, stripped):
             continue
         path = aide_path(line)
         findings.append(Finding([line], [path] if path else []))
@@ -468,32 +543,45 @@ def extract_pkgs(text):
     return found
 
 
-def build_snap(paths):
+def snap_file(path, files):
+    base = os.path.basename(path)
+    found = re.search(r"(snap-.+\.mount)$", base)
+    if not found:
+        return ""
+    filename = found.group(1)
+    if filename not in files:
+        files.append(filename)
+    return filename
+
+
+def snap_name(filename):
+    decoded = re.sub(r"(?i)\\x2d", "-", filename)
+    found = re.match(r"snap-(.+)-(\d+)\.mount$", decoded)
+    if not found:
+        return ""
+    return found.group(1)
+
+
+def collect_snaps(paths):
     files = []
     snaps = []
     for path in paths:
-        base = os.path.basename(path)
-        match = re.search(r"(snap-.+\.mount)$", base)
-        if not match:
+        filename = snap_file(path, files)
+        if not filename:
             continue
-        filename = match.group(1)
-        if filename not in files:
-            files.append(filename)
-        decoded = re.sub(r"(?i)\\x2d", "-", filename)
-        name_match = re.match(r"snap-(.+)-(\d+)\.mount$", decoded)
-        snap = name_match.group(1) if name_match else ""
+        snap = snap_name(filename)
         if snap and snap not in snaps:
             snaps.append(snap)
+    return files, snaps
+
+
+def snap_lines(files, snaps, paths):
     lines = []
     chosen = files
     if not chosen:
         chosen = [os.path.basename(path) for path in paths if path]
     for filename in chosen:
-        lines.append(
-            "sudo find /etc/systemd/system -name "
-            + shlex.quote(filename)
-            + " -printf '%y %m %u:%g %p\\n'"
-        )
+        lines.append("sudo find /etc/systemd/system -name " + shlex.quote(filename) + " -printf '%y %m %u:%g %p\\n'")
     if snaps:
         for snap in snaps:
             lines.append("snap info " + shlex.quote(snap))
@@ -503,26 +591,41 @@ def build_snap(paths):
     return "\n".join(lines)
 
 
-def command_for(rec, paths, raw_lines, text):
+def build_snap(paths):
+    files, snaps = collect_snaps(paths)
+    return snap_lines(files, snaps, paths)
+
+
+def bin_values(text):
+    # bins should stay empty when the template has no real binary path.
+    found = extract_bins(text)
+    if found:
+        return quote_join(found)
+    return ""
+
+
+def pkg_values(rec, text):
     kind = rec.get("kind") or ""
-    if kind == "snap" or rec["id"] == "aide.snap-mount":
-        return build_snap(paths)
-    present = {
+    command = rec.get("command", "")
+    if kind == "apps" or "{pkgs}" in command:
+        return quote_join(extract_pkgs(text))
+    return ""
+
+
+def command_present(rec, paths, raw_lines, text):
+    return {
         "paths": quote_join(paths),
         "cmds": quote_join(extract_cmds(text)),
         "pids": quote_join(extract_pids(text)),
-        "bins": quote_join(extract_bins(text) or [path for path in paths if not path.endswith("/")]),
+        "bins": bin_values(text),
         "ports": quote_join(extract_ports(text)),
         "ifaces": quote_join(extract_ifaces(text)),
-        "pkgs": quote_join(extract_pkgs(text) if kind == "apps" or "{pkgs}" in rec.get("command", "") else []),
+        "pkgs": pkg_values(rec, text),
         "raw_lines": quote_join(raw_lines),
     }
-    # bins should stay empty when the template has no real binary path.
-    if not extract_bins(text):
-        present["bins"] = ""
-    if kind != "apps" and "{pkgs}" not in rec.get("command", ""):
-        present["pkgs"] = ""
-    script = apply_tokens(rec.get("command", ""), present)
+
+
+def finish_command(kind, script):
     if kind == "promisc" and "for iface in" not in script:
         extra = "ip -d link show"
         script = (script + "\n" + extra).strip() if script else extra
@@ -531,65 +634,108 @@ def command_for(rec, paths, raw_lines, text):
     return script.strip()
 
 
+def command_for(rec, paths, raw_lines, text):
+    kind = rec.get("kind") or ""
+    if kind == "snap" or rec["id"] == "aide.snap-mount":
+        return build_snap(paths)
+    present = command_present(rec, paths, raw_lines, text)
+    script = apply_tokens(rec.get("command", ""), present)
+    return finish_command(kind, script)
+
+
+def take_group(groups, order, assigned, rec, finding):
+    gid = rec["id"]
+    if gid not in groups:
+        groups[gid] = {"rec": rec, "lines": [], "paths": []}
+        order.append(gid)
+    group = groups[gid]
+    for line in finding.lines:
+        if line not in group["lines"]:
+            group["lines"].append(line)
+    for path in finding.paths:
+        if path and path not in group["paths"]:
+            group["paths"].append(path)
+            assigned[path] = gid
+
+
+def owned_id(finding, assigned):
+    for path in finding.paths:
+        if path in assigned:
+            return assigned[path]
+    return None
+
+
+def regex_hit(specific, text):
+    for rec in specific:
+        if rec["regex"].search(text):
+            return rec
+    return None
+
+
+def removed_record(tool, finding, by_id):
+    if tool != "aide":
+        return None
+    if not finding.lines:
+        return None
+    if not REMOVED_LINE.match(finding.lines[0].strip()):
+        return None
+    return by_id.get("aide.removed")
+
+
+def package_record(tool, finding, by_id):
+    if tool != "aide":
+        return None
+    if not finding.paths:
+        return None
+    if not is_pkg_path(finding.paths[0]):
+        return None
+    return by_id.get("aide.package")
+
+
+def conffile_record(tool, finding, by_id):
+    if tool != "aide":
+        return None
+    if not finding.paths:
+        return None
+    if not is_etc_path(finding.paths[0]):
+        return None
+    return by_id.get("aide.conffile")
+
+
+def aide_fallback(tool, finding, by_id):
+    chosen = removed_record(tool, finding, by_id)
+    if chosen is not None:
+        return chosen
+    chosen = package_record(tool, finding, by_id)
+    if chosen is not None:
+        return chosen
+    return conffile_record(tool, finding, by_id)
+
+
+def place_finding(groups, order, assigned, by_id, specific, tool, finding):
+    owner = owned_id(finding, assigned)
+    if owner:
+        take_group(groups, order, assigned, by_id[owner], finding)
+        return
+    text = "\n".join(finding.lines)
+    chosen = regex_hit(specific, text)
+    if chosen is None:
+        chosen = aide_fallback(tool, finding, by_id)
+    if chosen is None:
+        chosen = by_id.get(UNKNOWN[tool])
+    if chosen is None:
+        return
+    take_group(groups, order, assigned, chosen, finding)
+
+
 def classify(tool, findings, records):
     by_id = {rec["id"]: rec for rec in records}
-    specific = [
-        rec for rec in records if rec.get("tool") == tool and rec["id"] not in LATE
-    ]
+    specific = [rec for rec in records if rec.get("tool") == tool and rec["id"] not in LATE]
     groups = {}
     order = []
     assigned = {}
-
-    def take(rec, finding):
-        gid = rec["id"]
-        if gid not in groups:
-            groups[gid] = {"rec": rec, "lines": [], "paths": []}
-            order.append(gid)
-        group = groups[gid]
-        for line in finding.lines:
-            if line not in group["lines"]:
-                group["lines"].append(line)
-        for path in finding.paths:
-            if path and path not in group["paths"]:
-                group["paths"].append(path)
-                assigned[path] = gid
-
     for finding in findings:
-        owner = None
-        for path in finding.paths:
-            if path in assigned:
-                owner = assigned[path]
-                break
-        if owner:
-            take(by_id[owner], finding)
-            continue
-        text = "\n".join(finding.lines)
-        chosen = None
-        for rec in specific:
-            if rec["regex"].search(text):
-                chosen = rec
-                break
-        if chosen is None and tool == "aide" and finding.lines and REMOVED_LINE.match(finding.lines[0].strip()):
-            chosen = by_id.get("aide.removed")
-        if (
-            chosen is None
-            and tool == "aide"
-            and finding.paths
-            and is_pkg_path(finding.paths[0])
-        ):
-            chosen = by_id.get("aide.package")
-        if (
-            chosen is None
-            and tool == "aide"
-            and finding.paths
-            and is_etc_path(finding.paths[0])
-        ):
-            chosen = by_id.get("aide.conffile")
-        if chosen is None:
-            chosen = by_id.get(UNKNOWN[tool])
-        if chosen is None:
-            continue
-        take(chosen, finding)
+        place_finding(groups, order, assigned, by_id, specific, tool, finding)
     return [groups[gid] for gid in order]
 
 
@@ -627,32 +773,45 @@ def hold_of(groups):
     return 0
 
 
-def render(tool, log_text, summary, catalog_text):
-    tool = normalize_tool(tool)
-    if not tool:
-        return "", 0
-    if re.search(
-        r"planté|crashed|abgestürzt|bloqueó|erreur rc=|error rc=|Fehler rc=|"
-        r"n'est pas allé au bout|did not finish|nicht zu Ende|no llegó al final",
-        summary or "",
-        re.I,
-    ):
-        return "", 0
-    records = parse_catalog(catalog_text)
-    body = log_text or ""
-    for mark in (
+def crashed(summary):
+    return bool(
+        re.search(
+            r"planté|crashed|abgestürzt|bloqueó|erreur rc=|error rc=|Fehler rc=|"
+            r"n'est pas allé au bout|did not finish|nicht zu Ende|no llegó al final",
+            summary or "",
+            re.I,
+        )
+    )
+
+
+def with_summary(body, summary):
+    phrases = (
         "mirrors.dat modifié hors",
         "mirrors.dat changed outside",
         "mirrors.dat geändert außerhalb",
         "mirrors.dat modificado fuera",
-    ):
-        if summary and mark in summary and mark not in body:
-            body = summary + "\n" + body
-            break
+    )
+    for phrase in phrases:
+        if summary and phrase in summary and phrase not in body:
+            return summary + "\n" + body
+    return body
+
+
+def findings_of(tool, body):
     if tool == "aide":
-        findings = aide_findings(body)
-    else:
-        findings = other_findings(tool, body)
+        return aide_findings(body)
+    return other_findings(tool, body)
+
+
+def render(tool, log_text, summary, catalog_text):
+    tool = normalize_tool(tool)
+    if not tool:
+        return "", 0
+    if crashed(summary):
+        return "", 0
+    records = parse_catalog(catalog_text)
+    body = with_summary(log_text or "", summary)
+    findings = findings_of(tool, body)
     if not findings:
         return "", 0
     groups = classify(tool, findings, records)
@@ -662,15 +821,25 @@ def render(tool, log_text, summary, catalog_text):
     return advice, hold_of(groups)
 
 
+def argv_at(cursor):
+    if cursor < len(sys.argv):
+        return sys.argv[cursor]
+    return ""
+
+
+def read_log(log_path):
+    if not log_path or not os.path.isfile(log_path):
+        return ""
+    with open(log_path, encoding="utf-8", errors="replace") as handle:
+        return handle.read()
+
+
 def main():
-    tool = sys.argv[1] if len(sys.argv) > 1 else ""
-    log_path = sys.argv[2] if len(sys.argv) > 2 else ""
-    summary = sys.argv[3] if len(sys.argv) > 3 else ""
-    catalog_path = sys.argv[4] if len(sys.argv) > 4 else ""
-    log_text = ""
-    if log_path and os.path.isfile(log_path):
-        with open(log_path, encoding="utf-8", errors="replace") as handle:
-            log_text = handle.read()
+    tool = argv_at(1)
+    log_path = argv_at(2)
+    summary = argv_at(3)
+    catalog_path = argv_at(4)
+    log_text = read_log(log_path)
     with open(catalog_path, encoding="utf-8") as handle:
         catalog_text = handle.read()
     advice, hold = render(tool, log_text, summary, catalog_text)

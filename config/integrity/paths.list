@@ -1,10 +1,12 @@
 # =============================================================================
 # File       : config/integrity/paths.list
-# Updated at : 2026-10-20
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
+
+
 # -----------------------------------------------------------------------------
-# Purpose    : Files hashed once a day beside the AIDE baseline.
+# Purpose    : Files hashed beside the AIDE baseline.
 # Note       : A missing path is skipped.
 # -----------------------------------------------------------------------------
 

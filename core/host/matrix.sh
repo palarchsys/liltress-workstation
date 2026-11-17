@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/matrix.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
 
+# -----------------------------------------------------------------------------
+# Purpose    : Resolve the service host name and request an admin token.
+# -----------------------------------------------------------------------------
+
+
+# A busy local port stops the setup.
 check_localhost_port() {
     local port="$1"
     local line
@@ -15,12 +21,13 @@ check_localhost_port() {
     fi
 }
 
+# The public name follows the selected service.
 set_main_hostname() {
     case "${SERVER_TYPE:-}" in
-        MATRIX)    MAIN_HOSTNAME="${HOSTNAME_MATRIX}" ;;
-        LIVEKIT)   MAIN_HOSTNAME="${HOSTNAME_LIVEKIT}" ;;
+        MATRIX) MAIN_HOSTNAME="${HOSTNAME_MATRIX}" ;;
+        LIVEKIT) MAIN_HOSTNAME="${HOSTNAME_LIVEKIT}" ;;
         WIREGUARD) MAIN_HOSTNAME="${HOSTNAME_WIREGUARD}" ;;
-        *) log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.7" "${SERVER_TYPE:-}";;
+        *) log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.7" "${SERVER_TYPE:-}" ;;
     esac
     export MAIN_HOSTNAME
 }

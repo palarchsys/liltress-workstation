@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/clamav-response.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
+
+
 # -----------------------------------------------------------------------------
 # Purpose    : Quarantine one detection and record the actions.
 # Note       : Logs stay under the Liltress cron directories or /run.
@@ -11,10 +13,51 @@
 # Note       : A detection isolates new outbound flows for NET_ISOLATE_SEC seconds.
 # -----------------------------------------------------------------------------
 
+
+read_spare_names() {
+    local candidate="" line=""
+    SPARE_NAMES=()
+    for candidate in \
+        "${BASE:-}/config/watchdog/spare.list" \
+        "${CONFIG_BASE_DIRECTORY:-}/config/watchdog/spare.list" \
+        "${INSTALL_DIRECTORY:-}/config/watchdog/spare.list"; do
+        [[ -n "${candidate}" && -f "${candidate}" ]] || continue
+        while IFS= read -r line || [[ -n "${line}" ]]; do
+            [[ -z "${line}" || "${line}" == \#* ]] && continue
+            SPARE_NAMES+=("${line}")
+        done <"${candidate}"
+        return 0
+    done
+    SPARE_NAMES=(systemd sshd unbound fail2ban)
+}
+
+read_logger_tag() {
+    local tag="${BASE:-liltress}"
+    tag="${tag##*/}"
+    if [[ -z "${tag}" ]]; then
+        tag="liltress"
+    fi
+    printf '%s\n' "${tag}"
+}
+
 set -euo pipefail
-BASE="${BASE:-/opt/liltress-workstation}"
+HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -r "${HERE}/watchdog.conf" ]]; then
+    # shellcheck disable=SC1091
+    source "${HERE}/watchdog.conf"
+fi
+if [[ -z "${BASE:-}" && -z "${CONFIG_BASE_DIRECTORY:-}" && -n "${CONFIG_BASE_DIRECTORY+x}" ]]; then
+    exit 0
+fi
 # shellcheck disable=SC1091
-source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
+source "${HERE}/common.sh"
+if [[ -z "${BASE:-}" ]]; then
+    BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+fi
+STAMP="${STAMP:-$(date +%Y%m%d-%H%M%S)}"
+LOG_DIR="${LOG_DIR:-${BASE}/cron/security_logs}"
+ALERT_DIR="${ALERT_DIR:-${BASE}/cron/alerts}"
+mkdir -p -- "${LOG_DIR}" "${ALERT_DIR}"
 if [[ -z "${LOG_FILE:-}" ]]; then
     LOG_FILE="${LOG_DIR}/clamav-response-${STAMP}.log"
 fi
@@ -22,13 +65,13 @@ if [[ -f "${BASE}/cron/egress.conf" ]]; then
     # shellcheck disable=SC1091
     source "${BASE}/cron/egress.conf"
 fi
+read_spare_names
 
 file="${CLAMAV_EVENT_FILE:-${CLAM_VIRUSEVENT_FILENAME:-inconnu}}"
 virus="${CLAMAV_EVENT_VIRUS:-${CLAM_VIRUSEVENT_VIRUSNAME:-inconnu}}"
 kind="${CLAMAV_EVENT_KIND:-onaccess}"
 case "${kind}" in
     periodic) kind_label="scan périodique" ;;
-    idle) kind_label="passe différée" ;;
     *) kind_label="accès" ;;
 esac
 action_quarantine="quarantaine non appliquée"
@@ -40,20 +83,40 @@ check_clamav_denied() {
     local comm="$1"
     local name
     [[ -n "${comm}" ]] || return 1
-    for name in systemd sshd unbound fail2ban gamescope; do
+    for name in "${SPARE_NAMES[@]+"${SPARE_NAMES[@]}"}"; do
         [[ "${comm}" == "${name}" || "${comm}" == "${name}"* ]] && return 0
     done
     return 1
 }
 
-apply_clamav_quarantine() {
-    local quarantine base stamp dest
-    quarantine="${CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
+# A failed move keeps the original path.
+apply_clamav_move() {
+    local source="$1"
+    local dest="$2"
+    local success="$3"
+    local failure="$4"
+    if mv -- "${source}" "${dest}"; then
+        action_quarantine="${success}"
+    else
+        stored="${source}"
+        action_quarantine="${failure}"
+    fi
+}
+
+# The directory belongs to the scanner account when that account exists.
+ensure_clamav_dir() {
+    local quarantine="$1"
     if id clamav >/dev/null 2>&1; then
         install -d -m 750 -o clamav -g clamav "${quarantine}"
     else
         install -d -m 750 "${quarantine}"
     fi
+}
+
+apply_clamav_quarantine() {
+    local quarantine base stamp dest
+    quarantine="${CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
+    ensure_clamav_dir "${quarantine}"
     base="$(basename -- "${file}")"
     [[ -n "${base}" && "${base}" != "/" ]] || base="inconnu"
     stamp="$(date +%Y%m%d-%H%M%S-%N)"
@@ -65,30 +128,15 @@ apply_clamav_quarantine() {
             action_quarantine="déjà en quarantaine"
             return 0
         fi
-        if mv -- "${file}" "${dest}"; then
-            action_quarantine="renommé en quarantaine"
-        else
-            stored="${file}"
-            action_quarantine="renommage refusé"
-        fi
+        apply_clamav_move "${file}" "${dest}" "renommé en quarantaine" "renommage refusé"
         return 0
     fi
     if [[ -e "${file}" ]]; then
-        if mv -- "${file}" "${dest}"; then
-            action_quarantine="déplacé en quarantaine"
-        else
-            stored="${file}"
-            action_quarantine="déplacement refusé"
-        fi
+        apply_clamav_move "${file}" "${dest}" "déplacé en quarantaine" "déplacement refusé"
         return 0
     fi
     if [[ -e "${quarantine}/${base}" ]]; then
-        if mv -- "${quarantine}/${base}" "${dest}"; then
-            action_quarantine="renommé en quarantaine"
-        else
-            stored="${quarantine}/${base}"
-            action_quarantine="renommage refusé"
-        fi
+        apply_clamav_move "${quarantine}/${base}" "${dest}" "renommé en quarantaine" "renommage refusé"
         return 0
     fi
     stored="absent"
@@ -107,38 +155,59 @@ read_clamav_holder() {
     printf '%s\n' "${pid}"
 }
 
+# Pid 1 and a root owner stay untouched.
+signal_clamav_pid() {
+    local pid="$1"
+    local comm uid
+    if [[ "${pid}" == "1" ]]; then
+        action_process="processus non arrêté : pid 1"
+        return 0
+    fi
+    uid="$(stat -c '%u' "/proc/${pid}" 2>/dev/null || echo 0)"
+    if [[ "${uid}" == "0" ]]; then
+        action_process="processus non arrêté : uid 0"
+        return 0
+    fi
+    comm="$(cat "/proc/${pid}/comm" 2>/dev/null || true)"
+    if check_clamav_denied "${comm}"; then
+        action_process="processus non arrêté : ${comm}"
+        return 0
+    fi
+    if [[ -z "${comm}" ]]; then
+        action_process="processus non arrêté : nom absent"
+        return 0
+    fi
+    if kill -TERM "${pid}" 2>/dev/null; then
+        action_process="processus ${pid} (${comm}) arrêté"
+    else
+        action_process="processus ${pid} non arrêté : signal refusé"
+    fi
+    return 0
+}
+
 signal_clamav_holder() {
-    local target pid comm uid
+    local target pid
     action_process="processus non arrêté : aucun détenteur"
     for target in "${file}" "${stored}"; do
         [[ -n "${target}" && "${target}" != "absent" && "${target}" != "inconnue" && -e "${target}" ]] || continue
         pid="$(read_clamav_holder "${target}")"
         [[ -n "${pid}" && "${pid}" =~ ^[0-9]+$ ]] || continue
-        if [[ "${pid}" == "1" ]]; then
-            action_process="processus non arrêté : pid 1"
-            return 0
-        fi
-        uid="$(stat -c '%u' "/proc/${pid}" 2>/dev/null || echo 0)"
-        if [[ "${uid}" == "0" ]]; then
-            action_process="processus non arrêté : uid 0"
-            return 0
-        fi
-        comm="$(cat "/proc/${pid}/comm" 2>/dev/null || true)"
-        if check_clamav_denied "${comm}"; then
-            action_process="processus non arrêté : ${comm}"
-            return 0
-        fi
-        if [[ -z "${comm}" ]]; then
-            action_process="processus non arrêté : nom absent"
-            return 0
-        fi
-        if kill -TERM "${pid}" 2>/dev/null; then
-            action_process="processus ${pid} (${comm}) arrêté"
-        else
-            action_process="processus ${pid} non arrêté : signal refusé"
-        fi
+        signal_clamav_pid "${pid}"
         return 0
     done
+}
+
+# The timer removes the table after the chosen delay.
+arm_isolate_timer() {
+    local sec="$1"
+    if command -v systemd-run >/dev/null 2>&1; then
+        systemctl stop w-net-release.timer >/dev/null 2>&1 || true
+        systemd-run --unit=w-net-release --on-active="${sec}" --collect nft delete table inet w_isolate >/dev/null 2>&1 \
+            || true
+        action_network="isolation ${sec}s"
+    else
+        action_network="isolation posée sans minuteur"
+    fi
 }
 
 apply_net_isolate() {
@@ -159,20 +228,13 @@ apply_net_isolate() {
     nft add rule inet w_isolate output ip6 daddr ::1 accept
     nft add rule inet w_isolate output meta l4proto '{ tcp, udp }' th dport 53 accept
     nft add rule inet w_isolate output reject
-    if command -v systemd-run >/dev/null 2>&1; then
-        systemctl stop w-net-release.timer >/dev/null 2>&1 || true
-        systemd-run --unit=w-net-release --on-active="${sec}" --collect nft delete table inet w_isolate >/dev/null 2>&1 \
-            || true
-        action_network="isolation ${sec}s"
-    else
-        action_network="isolation posée sans minuteur"
-    fi
+    arm_isolate_timer "${sec}"
 }
 
 apply_clamav_quarantine
 if declare -F record_quarantine_origin >/dev/null 2>&1; then
     case "${action_quarantine}" in
-        "déplacé en quarantaine"|"renommé en quarantaine")
+        "déplacé en quarantaine" | "renommé en quarantaine")
             record_quarantine_origin clamav "${file}" "${stored}" "${virus}" || true
             ;;
         "déjà en quarantaine")
@@ -184,7 +246,7 @@ signal_clamav_holder
 apply_net_isolate
 
 response_stamp="${CLAMAV_RESPONSE_STAMP:-${STAMP}}"
-printf '%s\n' "${stored}" > "${LOG_DIR}/clamav-response-${response_stamp}.path"
+printf '%s\n' "${stored}" >"${LOG_DIR}/clamav-response-${response_stamp}.path"
 printf '%s\n' \
     "Date : $(date -Iseconds)" \
     "Type : ${kind_label}" \
@@ -194,6 +256,6 @@ printf '%s\n' \
     "Actions : ${action_quarantine} ; ${action_process} ; ${action_network}" \
     "Quarantaine : ${stored}" \
     "Recommandation : Ne remettez pas ce fichier en place. Lisez le journal avant toute autre action." \
-    >> "${LOG_FILE}"
-logger -t liltress-workstation -p auth.warning \
+    >>"${LOG_FILE}"
+logger -t "$(read_logger_tag)" -p auth.warning \
     "ClamAV ${virus} type=${kind_label} origine=${file} quarantaine=${stored} actions=${action_quarantine}"

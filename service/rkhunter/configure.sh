@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/rkhunter/configure.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Write the local rootkit-hunter file and blank its web command.
+# Note       : The closing announcement has no following command.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -16,13 +23,13 @@ get_current_user
 ACCOUNT_USER="${CURRENT_USER}"
 export ACCOUNT_USER
 
-log_info         "${INSTALL_WATCHER}" "configure.configuration-of-rkhunter-2"
-envsubst '$ACCOUNT_USER' < "$(locate_config_file rkhunter/rkhunter.conf.local)" > /etc/rkhunter.conf.local
+log_info "${INSTALL_WATCHER}" "configure.configuration-of-rkhunter-2"
+envsubst '$ACCOUNT_USER' <"$(locate_config_file rkhunter/rkhunter.conf.local)" >/etc/rkhunter.conf.local
 chmod 644 /etc/rkhunter.conf.local
-log_success      "${INSTALL_WATCHER}" "configure.rkhunter-conf-local-installed"
+log_success "${INSTALL_WATCHER}" "configure.rkhunter-conf-local-installed"
 
 if grep -qE '^[[:space:]]*WEB_CMD=' /etc/rkhunter.conf; then
     sed -i 's|^[[:space:]]*WEB_CMD=.*|WEB_CMD=""|' /etc/rkhunter.conf
 fi
 
-log_info         "${INSTALL_WATCHER}" "configure.base-rkhunter-propupd-after-the-purge-of-the-pac"
+log_info "${INSTALL_WATCHER}" "configure.base-rkhunter-propupd-after-the-purge-of-the-pac"

@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/banners/configure.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Write the login banner into the two issue files.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -12,8 +18,8 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
-log_info         "${INSTALL_WATCHER}" "configure.install-of-the-banners"
+log_info "${INSTALL_WATCHER}" "configure.install-of-the-banners"
 copy_backup /etc/issue
-printf '%s\n' "${BANNER_MESSAGE}" > /etc/issue
+printf '%s\n' "${BANNER_MESSAGE}" >/etc/issue
 cp -f /etc/issue /etc/issue.net
-log_success      "${INSTALL_WATCHER}" "configure.banners-installed-etc-issue-and-etc-issue-net"
+log_success "${INSTALL_WATCHER}" "configure.banners-installed-etc-issue-and-etc-issue-net"

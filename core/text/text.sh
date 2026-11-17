@@ -1,18 +1,39 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/text/text.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
-# Placeholders are {1}, {2}, … The whole number is read, so {10} is not {1}.
-# The argument is inserted as text. The catalog is not evaluated.
+
+# -----------------------------------------------------------------------------
+# Purpose    : Load catalog phrases and fill numbered placeholders.
+# Note       : A placeholder keeps its whole number, so {10} is not {1}. The value is inserted as text.
+# -----------------------------------------------------------------------------
+
 
 check_language() {
     case "${1:-}" in
-        en|fr|de|es) return 0 ;;
+        en | fr | de | es) return 0 ;;
         *) return 1 ;;
     esac
+}
+
+# The caller owns text_base.
+take_text_base() {
+    if declare -F get_product_base >/dev/null 2>&1; then
+        text_base="$(get_product_base)"
+        return 0
+    fi
+    if [[ -n "${BASE:-}" ]]; then
+        text_base="${BASE}"
+        return 0
+    fi
+    if [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
+        text_base="${CONFIG_BASE_DIRECTORY}"
+        return 0
+    fi
+    text_base="/opt/liltress"
 }
 
 collect_text_dirs() {
@@ -24,15 +45,7 @@ collect_text_dirs() {
     if [[ -z "${text_product}" ]]; then
         text_product="$(cd -- "${text_here}/../.." && pwd)"
     fi
-    if declare -F get_product_base >/dev/null 2>&1; then
-        text_base="$(get_product_base)"
-    elif [[ -n "${BASE:-}" ]]; then
-        text_base="${BASE}"
-    elif [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
-        text_base="${CONFIG_BASE_DIRECTORY}"
-    else
-        text_base="/opt/liltress"
-    fi
+    take_text_base
     dir_dest=()
     local -a text_candidates=(
         "$(cd -- "${text_here}/../.." && pwd)/locale/${lang}"
@@ -54,6 +67,14 @@ collect_text_dirs() {
     done
 }
 
+# The caller owns stripped. Trailing line breaks are removed here.
+strip_text_newlines() {
+    stripped="$1"
+    while [[ "${stripped}" == *$'\n' ]]; do
+        stripped="${stripped%$'\n'}"
+    done
+}
+
 read_text_file() {
     local file="$1"
     local -n text_dest="$2"
@@ -61,10 +82,8 @@ read_text_file() {
     while IFS= read -r line || [[ -n "${line}" ]]; do
         if [[ "${line}" =~ ^\[([a-z][a-z0-9-]*(\.[a-z0-9-]+)+|LABEL_[A-Z][A-Z0-9]*(_[A-Z0-9]+)*)\]$ ]]; then
             if [[ "${open}" -eq 1 ]]; then
-                while [[ "${value}" == *$'\n' ]]; do
-                    value="${value%$'\n'}"
-                done
-                text_dest["${key}"]="${value}"
+                strip_text_newlines "${value}"
+                text_dest["${key}"]="${stripped}"
             fi
             key="${BASH_REMATCH[1]}"
             value=""
@@ -75,28 +94,64 @@ read_text_file() {
             continue
         fi
         value+="${line}"$'\n'
-    done < "${file}"
+    done <"${file}"
     if [[ "${open}" -eq 1 ]]; then
-        while [[ "${value}" == *$'\n' ]]; do
-            value="${value%$'\n'}"
-        done
-        text_dest["${key}"]="${value}"
+        strip_text_newlines "${value}"
+        text_dest["${key}"]="${stripped}"
     fi
+}
+
+# A catalog already loaded is left as it is.
+skip_text_reload() {
+    [[ "${TEXT_LANGUAGE:-}" == "${lang}" && "${TEXT_READY:-0}" == "1" && "${TEXT_DIR_LOADED:-}" == "${TEXT_DIR:-}" ]] || return 1
+    export LANGUAGE
+    return 0
+}
+
+# Every phrase file in the directory is stored in the named array.
+read_text_catalog() {
+    local dir="$1"
+    local array_name="$2"
+    local file=""
+    for file in "${dir}"/*.txt; do
+        [[ -f "${file}" ]] || continue
+        read_text_file "${file}" "${array_name}"
+    done
+}
+
+# Directory lists are joined with a colon.
+record_text_dirs() {
+    local joined=""
+    joined="$(
+        IFS=:
+        printf '%s' "${english_dirs[*]}"
+    )"
+    TEXT_EN_DIRS="${joined}"
+    joined="$(
+        IFS=:
+        printf '%s' "${selected_dirs[*]}"
+    )"
+    TEXT_LANG_DIRS="${joined}"
+}
+
+# English phrases also fill the selected catalog.
+copy_english_text() {
+    local key=""
+    for key in "${!TEXT_ENGLISH[@]}"; do
+        TEXT_SELECTED["${key}"]="${TEXT_ENGLISH[${key}]}"
+    done
 }
 
 load_text() {
     local lang="${1:-${LANGUAGE:-en}}"
-    local dir="" file="" joined="" key=""
+    local dir=""
     if ! check_language "${lang}"; then
         lang="en"
     fi
     if [[ -z "${LANGUAGE:-}" ]]; then
         LANGUAGE="en"
     fi
-    if [[ "${TEXT_LANGUAGE:-}" == "${lang}" && "${TEXT_READY:-0}" == "1" && "${TEXT_DIR_LOADED:-}" == "${TEXT_DIR:-}" ]]; then
-        export LANGUAGE
-        return 0
-    fi
+    skip_text_reload && return 0
     declare -gA TEXT_ENGLISH=()
     declare -gA TEXT_SELECTED=()
     local -a english_dirs=() selected_dirs=()
@@ -107,33 +162,23 @@ load_text() {
         collect_text_dirs "${lang}" selected_dirs
     fi
     for dir in "${english_dirs[@]}"; do
-        for file in "${dir}"/*.txt; do
-            [[ -f "${file}" ]] || continue
-            read_text_file "${file}" TEXT_ENGLISH
-        done
+        read_text_catalog "${dir}" TEXT_ENGLISH
     done
     if [[ "${lang}" == "en" ]]; then
-        for key in "${!TEXT_ENGLISH[@]}"; do
-            TEXT_SELECTED["${key}"]="${TEXT_ENGLISH[${key}]}"
-        done
+        copy_english_text
     else
         for dir in "${selected_dirs[@]}"; do
-            for file in "${dir}"/*.txt; do
-                [[ -f "${file}" ]] || continue
-                read_text_file "${file}" TEXT_SELECTED
-            done
+            read_text_catalog "${dir}" TEXT_SELECTED
         done
     fi
-    joined="$(IFS=:; printf '%s' "${english_dirs[*]}")"
-    TEXT_EN_DIRS="${joined}"
-    joined="$(IFS=:; printf '%s' "${selected_dirs[*]}")"
-    TEXT_LANG_DIRS="${joined}"
+    record_text_dirs
     TEXT_LANGUAGE="${lang}"
     TEXT_DIR_LOADED="${TEXT_DIR:-}"
     TEXT_READY=1
     export LANGUAGE TEXT_EN_DIRS TEXT_LANG_DIRS
 }
 
+# The value is inserted as text. The catalog is not evaluated.
 apply_text() {
     local text="$1"
     shift
@@ -147,7 +192,7 @@ apply_text() {
             text_num="${BASH_REMATCH[1]}"
             text_mark="${BASH_REMATCH[0]}"
             text_rest="${text_rest#"${text_mark}"}"
-            if (( text_num >= 1 && text_num <= ${#text_args[@]} )); then
+            if ((text_num >= 1 && text_num <= ${#text_args[@]})); then
                 text_out+="${text_args[$((text_num - 1))]}"
             else
                 text_out+="{${text_num}}"
@@ -184,54 +229,61 @@ get_text() {
     apply_text "${text}" "$@"
 }
 
+# The caller owns found. A later block with the same key replaces it.
+read_text_key_file() {
+    local file="$1" key="$2"
+    local line="" current="" value=""
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+        if [[ "${line}" =~ ^\[([a-z][a-z0-9-]*(\.[a-z0-9-]+)+|LABEL_[A-Z][A-Z0-9]*(_[A-Z0-9]+)*)\]$ ]]; then
+            if [[ "${current}" == "${key}" ]]; then
+                strip_text_newlines "${value}"
+                found="${stripped}"
+            fi
+            current="${BASH_REMATCH[1]}"
+            value=""
+            continue
+        fi
+        if [[ -n "${current}" ]]; then
+            value+="${line}"$'\n'
+        fi
+    done <"${file}"
+    if [[ "${current}" == "${key}" ]]; then
+        strip_text_newlines "${value}"
+        found="${stripped}"
+    fi
+}
+
 read_text_record() {
     local lang="$1" key="$2"
     local -a dirs=()
-    local dir="" file="" line="" current="" value="" found=""
+    local dir="" file="" found=""
     collect_text_dirs "${lang}" dirs
     for dir in "${dirs[@]}"; do
         for file in "${dir}"/*.txt; do
             [[ -f "${file}" ]] || continue
-            current=""
-            value=""
-            while IFS= read -r line || [[ -n "${line}" ]]; do
-                if [[ "${line}" =~ ^\[([a-z][a-z0-9-]*(\.[a-z0-9-]+)+|LABEL_[A-Z][A-Z0-9]*(_[A-Z0-9]+)*)\]$ ]]; then
-                    if [[ "${current}" == "${key}" ]]; then
-                        found="${value}"
-                        while [[ "${found}" == *$'\n' ]]; do
-                            found="${found%$'\n'}"
-                        done
-                    fi
-                    current="${BASH_REMATCH[1]}"
-                    value=""
-                    continue
-                fi
-                if [[ -n "${current}" ]]; then
-                    value+="${line}"$'\n'
-                fi
-            done < "${file}"
-            if [[ "${current}" == "${key}" ]]; then
-                found="${value}"
-                while [[ "${found}" == *$'\n' ]]; do
-                    found="${found%$'\n'}"
-                done
-            fi
+            read_text_key_file "${file}" "${key}"
         done
     done
     printf '%s' "${found}"
 }
 
-read_language_file() {
-    local file="$1" line="" value="" sibling=""
-    if [[ -z "${LANGUAGE:-}" ]]; then
-        LANGUAGE="en"
-    fi
+# A missing language in the main file can live in the sibling file.
+take_language_file() {
+    local sibling=""
     if [[ -f "${file}" ]] && ! grep -qE '^LANGUAGE=' -- "${file}"; then
         sibling="$(dirname -- "${file}")/user.conf"
         if [[ -f "${sibling}" ]] && grep -qE '^LANGUAGE=' -- "${sibling}"; then
             file="${sibling}"
         fi
     fi
+}
+
+read_language_file() {
+    local file="$1" line="" value=""
+    if [[ -z "${LANGUAGE:-}" ]]; then
+        LANGUAGE="en"
+    fi
+    take_language_file
     if [[ -f "${file}" ]]; then
         line="$(grep -E '^LANGUAGE=' -- "${file}" | head -n 1 || true)"
         if [[ -n "${line}" ]]; then
@@ -292,10 +344,10 @@ ask_language() {
     choice="${choice%"${choice##*[![:space:]]}"}"
     case "${choice}" in
         "") LANGUAGE="${current}" ;;
-        1|en|EN) LANGUAGE="en" ;;
-        2|fr|FR) LANGUAGE="fr" ;;
-        3|de|DE) LANGUAGE="de" ;;
-        4|es|ES) LANGUAGE="es" ;;
+        1 | en | EN) LANGUAGE="en" ;;
+        2 | fr | FR) LANGUAGE="fr" ;;
+        3 | de | DE) LANGUAGE="de" ;;
+        4 | es | ES) LANGUAGE="es" ;;
         *) LANGUAGE="en" ;;
     esac
     export LANGUAGE

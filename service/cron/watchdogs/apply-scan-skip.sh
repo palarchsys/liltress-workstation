@@ -1,31 +1,61 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/apply-scan-skip.sh
-# Updated at : 2026-11-06
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
+
+# -----------------------------------------------------------------------------
+# Purpose    : Apply the on-access excludes to the scanner configuration.
+# Note       : Fixed excludes from onaccess.conf join the same block.
+# Note       : The temporary file is created under the product run directory.
+# Note       : Each OnAccessExcludePath value matches that directory only.
+# -----------------------------------------------------------------------------
+
+
+# The caller owns shown_python and reads it after this call.
+show_python_directory() {
+    local candidate="$1"
+    shown_python=0
+    [[ -n "${candidate}" && -d "${candidate}" ]] || return 0
+    (cd -- "${candidate}" && pwd -P)
+    shown_python=1
+    return 0
+}
+
+# The shared directory is printed as given, without resolving links.
+show_share_python() {
+    local dir="$1"
+    shown_python=0
+    if [[ ! -d "${dir}/share/python" ]]; then
+        return 0
+    fi
+    printf '%s\n' "${dir}/share/python"
+    shown_python=1
+    return 0
+}
+
 locate_python_dir() {
-    local dir hops=0 candidate
+    local dir="" hops=0 candidate="" shown_python=0
     for candidate in \
         "${CONFIG_BASE_DIRECTORY:-}/python" \
         "${BASE:-}/python" \
         "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"
-    do
-        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
-            (cd -- "${candidate}" && pwd -P)
+        "${INSTALL_DIRECTORY:-}/../share/python"; do
+        show_python_directory "${candidate}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
     done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -d "${dir}/share/python" ]]; then
-            printf '%s\n' "${dir}/share/python"
+        show_share_python "${dir}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
-        if [[ -d "${dir}/python" ]]; then
-            (cd -- "${dir}/python" && pwd -P)
+        show_python_directory "${dir}/python"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
         dir="$(dirname -- "${dir}")"
@@ -34,12 +64,6 @@ locate_python_dir() {
     printf '%s\n' "dossier python introuvable" >&2
     return 1
 }
-
-# -----------------------------------------------------------------------------
-# Note       : Fixed excludes from onaccess.conf join the same block.
-# Note       : The temporary file is created under /run/liltress-workstation.
-# Note       : Each OnAccessExcludePath value matches that directory only.
-# -----------------------------------------------------------------------------
 
 set -euo pipefail
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -69,8 +93,7 @@ load_onaccess_exclude() {
     for candidate in \
         "${INSTALL_DIRECTORY:-}/config/clamav/onaccess.conf" \
         "${BASE}/config/clamav/onaccess.conf" \
-        "/opt/liltress-workstation/config/clamav/onaccess.conf"
-    do
+        "/opt/liltress-workstation/config/clamav/onaccess.conf"; do
         [[ -f "${candidate}" ]] || continue
         found="${candidate}"
         break
@@ -87,11 +110,33 @@ load_onaccess_exclude() {
         ONACCESS_FIXED+=("${path}")
     done
     local kept=()
+    local rendered=""
     for path in "${ONACCESS_FIXED[@]+"${ONACCESS_FIXED[@]}"}"; do
-        [[ "${path}" == "${BASE}/src" ]] && continue
-        kept+=("${path}")
+        rendered="${path//__HF_BASE__/${BASE}}"
+        rendered="${rendered//__BASE__/${BASE}}"
+        [[ "${rendered}" == "${BASE}/src" ]] && continue
+        kept+=("${rendered}")
     done
     ONACCESS_FIXED=("${kept[@]+"${kept[@]}"}")
+}
+
+read_scan_run_dir() {
+    local candidate="" line=""
+    for candidate in \
+        "${BASE}/config/clamav/scan.conf" \
+        "${CONFIG_BASE_DIRECTORY:-}/config/clamav/scan.conf" \
+        "${INSTALL_DIRECTORY:-}/config/clamav/scan.conf"; do
+        [[ -n "${candidate}" && -f "${candidate}" ]] || continue
+        while IFS= read -r line || [[ -n "${line}" ]]; do
+            case "${line}" in
+                run-dir=*)
+                    printf '%s\n' "${line#run-dir=}"
+                    return 0
+                    ;;
+            esac
+        done <"${candidate}"
+    done
+    printf '%s\n' "/run/liltress-workstation"
 }
 
 load_onaccess_exclude
@@ -109,28 +154,18 @@ fi
 
 conf="/etc/clamav/clamd.conf"
 if [[ -f "${conf}" ]]; then
-    install -d -m 755 /run/liltress-workstation
-    tmp="$(mktemp -p /run/liltress-workstation)"
+    run_dir="$(read_scan_run_dir)"
+    install -d -m 755 "${run_dir}"
+    tmp="$(mktemp -p "${run_dir}")"
     trap 'rm -f "${tmp}"' EXIT
-    changed="$(python3 "$(locate_python_dir)/scan-skip-apply.py" "${conf}" "${tmp}" "${#ONACCESS_FIXED[@]}" "${ONACCESS_FIXED[@]}" "${SCAN_SKIP_VALID[@]}"
-)"
+    changed="$(
+        python3 "$(locate_python_dir)/scan-skip-apply.py" "${conf}" "${tmp}" "${#ONACCESS_FIXED[@]}" "${ONACCESS_FIXED[@]}" "${SCAN_SKIP_VALID[@]}"
+    )"
     if [[ "${changed}" == "changed" ]]; then
-        cat "${tmp}" > "${conf}"
+        cat "${tmp}" >"${conf}"
         restart_scan_skip_service
     fi
     rm -f "${tmp}"
     trap - EXIT
-fi
-
-rk="/etc/rkhunter.conf.local"
-if [[ -f "${rk}" && ${#SCAN_SKIP_VALID[@]} -gt 0 ]]; then
-    for path in "${SCAN_SKIP_VALID[@]}"; do
-        case "${path}" in
-            */.*)
-                grep -qxF "ALLOWHIDDENDIR=${path}" "${rk}" \
-                    || printf 'ALLOWHIDDENDIR=%s\n' "${path}" >> "${rk}"
-                ;;
-        esac
-    done
 fi
 exit 0

@@ -1,11 +1,11 @@
 # =============================================================================
 # File       : config/cron/w-boot-scan.service
-# Updated at : 2026-11-05
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
 [Unit]
-Description=Passe AIDE, rkhunter, chkrootkit, ClamAV et debsums après le démarrage
+Description=Passe de sécurité après le démarrage
 After=local-fs.target multi-user.target
 DefaultDependencies=no
 

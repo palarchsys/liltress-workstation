@@ -4,6 +4,8 @@
 # Updated at : 2026-11-12
 # Creator    : palarchsys
 # =============================================================================
+
+
 # -----------------------------------------------------------------------------
 # Purpose    : Write user.conf and secrets.conf, set MAIL_ALERTS in global.conf, then run the config check.
 # Note       : The first argument is the destination root.

@@ -1,15 +1,22 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/verify/alerts.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
+
+# -----------------------------------------------------------------------------
+# Purpose    : Report whether the alert timers and the mail path are ready.
+# Note       : Each timer name is one argument of the text lookup.
+# -----------------------------------------------------------------------------
+
+
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-    cat << 'EOF'
+    cat <<'EOF'
 Usage : sudo bash script/verify/alerts.sh [--no-send]
 
-Contrôle la passe de démarrage qui envoie les alertes, la passe horaire, la passe différée,
+Contrôle le timer de démarrage, le timer périodique,
 ClamAV à l'accès, et le chemin du courrier. Sans --no-send, un seul message d'essai part
 quand les alertes sont activées. Le sujet se termine par « Contrôle ».
 EOF
@@ -85,29 +92,19 @@ fi
 
 report_section "PASSE AU DEMARRAGE"
 timer_word="$(check_unit_word w-boot-chain.timer)"
-printf "$(get_text log.36s ""w-boot-chain.timer"")" "${timer_word}"
+printf "$(get_text log.36s "w-boot-chain.timer")" "${timer_word}"
 [[ "${timer_word}" == "OK" ]] || record_fail "timer de la chaîne de démarrage ${timer_word}"
-idle_word="$(check_unit_word w-idle-scan.timer)"
-printf "$(get_text log.36s ""w-idle-scan.timer"")" "${idle_word}"
-[[ "${idle_word}" == "OK" ]] || record_fail "timer de passe différée ${idle_word}"
 periodic_word="$(check_unit_word w-periodic-scan.timer)"
-printf "$(get_text log.36s ""w-periodic-scan.timer"")" "${periodic_word}"
-[[ "${periodic_word}" == "OK" ]] || record_fail "timer d'analyse ClamAV périodique ${periodic_word}"
-hourly_word="$(check_unit_word w-hourly-scan.timer)"
-printf "$(get_text log.36s "w-hourly-scan.timer")" "${hourly_word}"
-[[ "${hourly_word}" == "OK" ]] || record_fail "timer de passe horaire ${hourly_word}"
+printf "$(get_text log.36s "w-periodic-scan.timer")" "${periodic_word}"
+[[ "${periodic_word}" == "OK" ]] || record_fail "timer de la chaîne périodique ${periodic_word}"
 if [[ -x "${BIN}/boot-scan.sh" ]] \
-    && grep -q 'integrity.sh' "${BIN}/boot-scan.sh" \
-    && grep -q 'behavior.sh' "${BIN}/boot-scan.sh" \
-    && grep -q 'egress-watch.sh' "${BIN}/boot-scan.sh"; then
-    record_pass "boot-scan.sh exécutable, avec intégrité, audit et journal sortant"
+    && grep -q 'chain-periodic.sh' "${BIN}/boot-scan.sh" \
+    && grep -q 'arm-onaccess.sh' "${BIN}/boot-scan.sh" \
+    && grep -q 'arm-periodic-scan.sh' "${BIN}/boot-scan.sh" \
+    && grep -q 'reboot-notice.sh' "${BIN}/boot-scan.sh"; then
+    record_pass "boot-scan.sh exécutable : chaîne, accès, période, avis"
 else
     record_fail "boot-scan.sh absent ou incomplet dans ${BIN}"
-fi
-if [[ -x "${BIN}/idle-scan.sh" ]]; then
-    record_pass "idle-scan.sh exécutable"
-else
-    record_fail "idle-scan.sh absent de ${BIN}"
 fi
 skip_list="${BASE}/config/clamav/scan-skip.paths"
 [[ -f "${skip_list}" ]] || skip_list="${BASE}/cron/scan-skip.paths"
@@ -117,7 +114,7 @@ else
     record_fail "scan-skip.sh ou scan-skip.paths absent"
 fi
 printf '%-16s %-12s %s\n' "Module" "Script" "Lancé par"
-for pair in "Aide aide.sh" "Rkhunter rkhunter.sh" "Chkrootkit chkrootkit.sh" "Clamav clamav.sh" "Debsums debsums.sh"; do
+for pair in "Aide scan-aide.sh" "Rkhunter scan-rkhunter.sh" "Chkrootkit scan-chkrootkit.sh" "Clamav scan-clamav.sh" "Debsums scan-debsums.sh"; do
     label="${pair%% *}"
     script="${pair##* }"
     word="ABSENT"
@@ -126,7 +123,7 @@ for pair in "Aide aide.sh" "Rkhunter rkhunter.sh" "Chkrootkit chkrootkit.sh" "Cl
     elif [[ -f "${BIN}/${script}" ]]; then
         word="NON_EXEC"
     fi
-    printf '%-16s %-12s %s\n' "${label}" "${word}" "démarrage"
+    printf '%-16s %-20s %s\n' "${label}" "${word}" "chaîne périodique"
     [[ "${word}" == "OK" ]] || record_fail "${label} : ${BIN}/${script} inutilisable"
 done
 

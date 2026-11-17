@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/pam/install.sh
-# Updated at : 2026-11-07
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Install the PAM modules used by password policy.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -14,11 +20,11 @@ source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
 if ! check_workstation; then
-    log_info         "${INSTALL_WATCHER}" "install.installation-of-libpam-tmpdir"
-    run_silent_apt   "${INSTALL_WATCHER}" "install -y libpam-tmpdir" "install.pam.error"
-    log_success      "${INSTALL_WATCHER}" "install.libpam-tmpdir-installed"
+    log_info "${INSTALL_WATCHER}" "install.installation-of-libpam-tmpdir"
+    run_silent_apt "${INSTALL_WATCHER}" "install -y libpam-tmpdir" "install.pam.error"
+    log_success "${INSTALL_WATCHER}" "install.libpam-tmpdir-installed"
 fi
 
-log_info         "${INSTALL_WATCHER}" "install.installation-of-libpam-pwquality"
-run_silent_apt   "${INSTALL_WATCHER}" "install -y libpam-pwquality" "install.pam.error"
-log_success      "${INSTALL_WATCHER}" "install.libpam-pwquality-installed"
+log_info "${INSTALL_WATCHER}" "install.installation-of-libpam-pwquality"
+run_silent_apt "${INSTALL_WATCHER}" "install -y libpam-pwquality" "install.pam.error"
+log_success "${INSTALL_WATCHER}" "install.libpam-pwquality-installed"

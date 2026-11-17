@@ -5,6 +5,12 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
+# -----------------------------------------------------------------------------
+# Purpose    : Rebuild the integrity database under a lock so two refreshes cannot clash.
+# -----------------------------------------------------------------------------
+
+
 set -euo pipefail
 _text_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 _text_hops=0
@@ -62,7 +68,7 @@ if command -v flock >/dev/null 2>&1; then
     fi
 fi
 if [[ "${waited}" -eq 1 && -f "${stamp_path}" ]]; then
-    stamp_value="$(tr -d '[:space:]' < "${stamp_path}")"
+    stamp_value="$(tr -d '[:space:]' <"${stamp_path}")"
     if [[ "${stamp_value}" =~ ^[0-9]+$ && "${stamp_value}" -ge "${wait_start}" ]]; then
         printf '%s\n' "$(get_text log.baseline-help-saved)"
         exit 0
@@ -83,7 +89,7 @@ else
     printf '%s\n' "$(get_text log.base-help-not-generated-help-db-new-not-found-de "${aide_rc}")" >&2
     exit 1
 fi
-printf '%s\n' "$(date +%s)" > "${stamp_path}"
+printf '%s\n' "$(date +%s)" >"${stamp_path}"
 chmod 600 "${stamp_path}" 2>/dev/null || true
 if [[ "${aide_rc}" -ne 0 ]]; then
     printf '%s\n' "$(get_text log.help-init-a-returned-an-error-detail "${aide_rc}")"

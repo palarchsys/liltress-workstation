@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/07_router.sh
-# Updated at : 2026-11-14
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Confirm the router tables and the command lists.
+# -----------------------------------------------------------------------------
+
 
 
 locate_python_dir() {
@@ -123,7 +129,7 @@ if [[ -n "${root}" ]]; then
     else
         t_fail "help.user" "écran poste incomplet"
     fi
-    if [[ "${help_server}" == *"--basic"* && "${help_server}" == *"--avance"* && "${help_server}" == *"verify matrix"* && "${help_server}" != *"scan-skip"* ]]; then
+    if [[ "${help_server}" == *"--basic"* && "${help_server}" == *"--avance"* && "${help_server}" == *"verify matrix"* && "${help_server}" == *"scan-skip"* ]]; then
         t_pass "help.server" "commandes du serveur"
     else
         t_fail "help.server" "écran serveur incomplet"
@@ -141,7 +147,7 @@ if [[ -n "${root}" ]]; then
         && bash "${root}/scripts/render-install.sh" --print workstation | grep -q 'liltress-workstation' \
         && bash "${root}/scripts/render-install.sh" --print workstation | grep -q 'scan-skip.paths' \
         && bash "${root}/scripts/render-install.sh" --print server | grep -q 'liltress-server' \
-        && ! bash "${root}/scripts/render-install.sh" --print server | grep -q 'scan-skip.paths'
+        && bash "${root}/scripts/render-install.sh" --print server | grep -q 'scan-skip.paths'
     then
         t_pass "install.template" "rendu égal aux deux install.sh"
     else

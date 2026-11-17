@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/ubuntu.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
 
+# -----------------------------------------------------------------------------
+# Purpose    : Accept Ubuntu 26.04 and later, and recognize a local hypervisor.
+# Note       : A derivative is refused. An even year with minor 4 is a long-term release.
+# -----------------------------------------------------------------------------
+
+
+# Release 26.04 or newer is required. A derivative is refused.
 check_ubuntu_base() {
     local os_id="${ID:-}"
     local os_codename="${UBUNTU_CODENAME:-}"
@@ -56,7 +63,7 @@ get_sasl_map_type() {
     local map_type=""
     map_type="$(postconf -h default_database_type 2>/dev/null || true)"
     case "${map_type}" in
-        hash|cdb|lmdb)
+        hash | cdb | lmdb)
             printf '%s\n' "${map_type}"
             ;;
         *)
@@ -98,7 +105,7 @@ check_app() {
 
 check_password_unchanged() {
     case "$*" in
-        *chpasswd*|*passwd\ *|*" usermod -p "*|*chage*)
+        *chpasswd* | *passwd\ * | *" usermod -p "* | *chage*)
             log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.22" "$*"
             ;;
     esac

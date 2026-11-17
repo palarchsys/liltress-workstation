@@ -1,11 +1,11 @@
 # =============================================================================
 # File       : config/cron/w-periodic-scan.timer
-# Updated at : 2026-10-28
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
 [Unit]
-Description=Relance l'analyse ClamAV toutes les deux heures
+Description=Relance la chaîne de scan périodique
 
 [Timer]
 OnBootSec=${PERIODIC_ON_BOOT_SEC}

@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/10_vpn.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-16
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Confirm VPN profiles and the import refusals.
+# -----------------------------------------------------------------------------
+
 
 
 locate_python_dir() {
@@ -336,19 +342,13 @@ fi
 
 brand_mu="${ARTIFACTS}/vpn-brand-mu"
 brand_gap="${ARTIFACTS}/vpn-brand-gap"
-brand_zip="${ARTIFACTS}/vpn-brand-replace.zip"
-rm -rf "${brand_mu}" "${brand_gap}"
-mkdir -p "${brand_mu}" "${brand_gap}"
+brand_rep="${ARTIFACTS}/vpn-brand-replace"
+rm -rf "${brand_mu}" "${brand_gap}" "${brand_rep}"
+mkdir -p "${brand_mu}" "${brand_gap}" "${brand_rep}"
 cp -a "${wg_src}" "${brand_mu}/config.conf"
 cp -a "${brand_cg}/openvpn.ovpn" "${brand_cg}/ca.crt" "${brand_cg}/client.crt" "${brand_cg}/auth.txt" "${brand_gap}/"
-python3 - "${brand_zip}" << 'PY'
-import sys
-import zipfile
-path = sys.argv[1]
-with zipfile.ZipFile(path, "w") as archive:
-    archive.writestr("config.ovpn", "remote 203.0.113.10 1194\nauth-user-pass\nREPLACE\n")
-    archive.writestr("auth.txt", "alice\nbob\n")
-PY
+printf '%s\n' 'remote 203.0.113.10 1194' 'auth-user-pass' 'REPLACE' > "${brand_rep}/config.ovpn"
+printf '%s\n' 'alice' 'bob' > "${brand_rep}/auth.txt"
 brand_ok=1
 if ! install_vpn_bundle openvpn cyberghost cg-brand "${brand_cg}"; then
     brand_ok=0
@@ -381,12 +381,12 @@ if ( install_vpn_bundle openvpn acme acme-1 "${brand_cg}" ); then
     brand_ok=0
 fi
 [[ -d "${import_root}/vpn/openvpn/acme-1" ]] && brand_ok=0
-if ( install_vpn_bundle openvpn nordvpn nord-rep "${brand_zip}" ); then
+if ( install_vpn_bundle openvpn nordvpn nord-rep "${brand_rep}" ); then
     brand_ok=0
 fi
 [[ -d "${import_root}/vpn/openvpn/nord-rep" ]] && brand_ok=0
-[[ -f "${T_ROOT}/doc/examples/nordvpn.zip" ]] || brand_ok=0
-if ( install_vpn_bundle openvpn nordvpn nord-ex "${T_ROOT}/doc/examples/nordvpn.zip" ); then
+[[ -d "${T_ROOT}/doc/examples/nordvpn" ]] || brand_ok=0
+if ( install_vpn_bundle openvpn nordvpn nord-ex "${T_ROOT}/doc/examples/nordvpn" ); then
     brand_ok=0
 fi
 [[ -d "${import_root}/vpn/openvpn/nord-ex" ]] && brand_ok=0
@@ -408,43 +408,24 @@ log_error() {
     printf '%s\n' "$*" >> "${vpn_fault_log}"
     return 0
 }
-wrap_zip="${ARTIFACTS}/vpn-wrap.zip"
-root_zip="${ARTIFACTS}/vpn-auth-root.zip"
-short_zip="${ARTIFACTS}/vpn-auth-short.zip"
-two_zip="${ARTIFACTS}/vpn-two-dir.zip"
-python3 - "${wrap_zip}" "${root_zip}" "${short_zip}" "${two_zip}" << 'PY'
-import sys
-import zipfile
-wrap, root, short, two = sys.argv[1:]
-ovpn = """client
-remote 203.0.113.10 443
-proto udp
-auth-user-pass password.txt
-redirect-gateway def1
-ca ca.crt
-cert client.crt
-key client.key
-"""
-
-def add(archive, prefix, auth):
-    archive.writestr(prefix + "openvpn.ovpn", ovpn)
-    archive.writestr(prefix + "ca.crt", "ca-body\n")
-    archive.writestr(prefix + "client.crt", "cert-body\n")
-    archive.writestr(prefix + "client.key", "key-body\n")
-    if auth is not None:
-        archive.writestr(prefix + "auth.txt", auth)
-
-with zipfile.ZipFile(wrap, "w") as archive:
-    add(archive, "cgwrap/", "alice\nbob\n")
-with zipfile.ZipFile(root, "w") as archive:
-    add(archive, "cgroot/", None)
-    archive.writestr("auth.txt", "alice\nbob\n")
-with zipfile.ZipFile(short, "w") as archive:
-    add(archive, "cgshort/", "alice\n")
-with zipfile.ZipFile(two, "w") as archive:
-    archive.writestr("one/openvpn.ovpn", "remote 203.0.113.10 1194\n")
-    archive.writestr("two/auth.txt", "alice\nbob\n")
-PY
+wrap_dir="${ARTIFACTS}/vpn-wrap"
+root_dir="${ARTIFACTS}/vpn-auth-root"
+short_dir="${ARTIFACTS}/vpn-auth-short"
+two_dir="${ARTIFACTS}/vpn-two-dir"
+rm -rf "${wrap_dir}" "${root_dir}" "${short_dir}" "${two_dir}"
+mkdir -p "${wrap_dir}/cgwrap" "${root_dir}/cgroot" "${short_dir}/cgshort" "${two_dir}/one" "${two_dir}/two"
+ovpn=$'client\nremote 203.0.113.10 443\nproto udp\nauth-user-pass password.txt\nredirect-gateway def1\nca ca.crt\ncert client.crt\nkey client.key\n'
+for tree in "${wrap_dir}/cgwrap" "${root_dir}/cgroot" "${short_dir}/cgshort"; do
+    printf '%s\n' "${ovpn}" > "${tree}/openvpn.ovpn"
+    printf 'ca-body\n' > "${tree}/ca.crt"
+    printf 'cert-body\n' > "${tree}/client.crt"
+    printf 'key-body\n' > "${tree}/client.key"
+done
+printf '%s\n' 'alice' 'bob' > "${wrap_dir}/cgwrap/auth.txt"
+printf '%s\n' 'alice' 'bob' > "${root_dir}/auth.txt"
+printf '%s\n' 'alice' > "${short_dir}/cgshort/auth.txt"
+printf '%s\n' 'remote 203.0.113.10 1194' > "${two_dir}/one/openvpn.ovpn"
+printf '%s\n' 'alice' 'bob' > "${two_dir}/two/auth.txt"
 brand_extra="${ARTIFACTS}/vpn-brand-extra"
 brand_nokey="${ARTIFACTS}/vpn-brand-nokey"
 rm -rf "${brand_extra}" "${brand_nokey}"
@@ -460,7 +441,7 @@ printf 'note\n' > "${brand_extra}/readme.txt"
     printf '%s\n' 'AllowedIPs = 0.0.0.0/0'
 } > "${brand_nokey}/config.conf"
 detail_ok=1
-if ! install_vpn_bundle openvpn cyberghost cg-wrap "${wrap_zip}"; then
+if ! install_vpn_bundle openvpn cyberghost cg-wrap "${wrap_dir}"; then
     detail_ok=0
 fi
 grep -q 'auth-user-pass auth.txt' "${VPN_STAGE_DIR}/runtime" || detail_ok=0
@@ -469,13 +450,13 @@ grep -q 'password.txt' "${VPN_STAGE_DIR}/runtime" && detail_ok=0
 [[ -f "${VPN_STAGE_DIR}/ca.crt" && -f "${VPN_STAGE_DIR}/client.key" ]] || detail_ok=0
 grep -q 'brand=cyberghost' "${VPN_STAGE_DIR}/meta" || detail_ok=0
 [[ -d "${import_root}/vpn/openvpn/cg-wrap" ]] && detail_ok=0
-if ! install_vpn_bundle openvpn cyberghost cg-root "${root_zip}"; then
+if ! install_vpn_bundle openvpn cyberghost cg-root "${root_dir}"; then
     detail_ok=0
 fi
 grep -q 'auth-user-pass auth.txt' "${VPN_STAGE_DIR}/runtime" || detail_ok=0
 [[ -d "${import_root}/vpn/openvpn/cg-root" ]] && detail_ok=0
 : > "${vpn_fault_log}"
-if ( install_vpn_bundle openvpn cyberghost cg-short "${short_zip}" ); then
+if ( install_vpn_bundle openvpn cyberghost cg-short "${short_dir}" ); then
     detail_ok=0
 fi
 grep -q 'vpn.import.auth 1' "${vpn_fault_log}" || detail_ok=0
@@ -499,7 +480,7 @@ fi
 grep -q 'vpn.import.extra' "${vpn_fault_log}" || detail_ok=0
 grep -q 'readme.txt' "${vpn_fault_log}" || detail_ok=0
 : > "${vpn_fault_log}"
-if ( install_vpn_bundle openvpn nordvpn nord-file "${brand_zip}" ); then
+if ( install_vpn_bundle openvpn nordvpn nord-file "${brand_rep}" ); then
     detail_ok=0
 fi
 grep -q 'vpn.import.replace' "${vpn_fault_log}" || detail_ok=0
@@ -512,10 +493,32 @@ grep -q 'vpn.import.missing' "${vpn_fault_log}" || detail_ok=0
 grep -q 'PublicKey' "${vpn_fault_log}" || detail_ok=0
 [[ -d "${import_root}/vpn/wireguard/mu-nokey" ]] && detail_ok=0
 : > "${vpn_fault_log}"
-if ( install_vpn_bundle openvpn cyberghost cg-two "${two_zip}" ); then
+if ( install_vpn_bundle openvpn cyberghost cg-two "${two_dir}" ); then
     detail_ok=0
 fi
 grep -q 'vpn.import.zipdir' "${vpn_fault_log}" || detail_ok=0
+: > "${vpn_fault_log}"
+printf 'PK\003\004' > "${ARTIFACTS}/vpn-kept.zip"
+if ( install_vpn_bundle openvpn nordvpn nord-zip "${ARTIFACTS}/vpn-kept.zip" ); then
+    detail_ok=0
+fi
+grep -q 'vpn.import.zipfile' "${vpn_fault_log}" || detail_ok=0
+: > "${vpn_fault_log}"
+if ! install_vpn_bundle wireguard perso perso-file "${T_ROOT}/doc/examples/perso.conf"; then
+    detail_ok=0
+fi
+grep -q 'brand=perso' "${VPN_STAGE_DIR}/meta" || detail_ok=0
+grep -q 'Address = 10.8.0.2/24' "${VPN_STAGE_DIR}/source" || detail_ok=0
+grep -q 'PresharedKey' "${VPN_STAGE_DIR}/runtime" || detail_ok=0
+grep -q 'DNS' "${VPN_STAGE_DIR}/runtime" && detail_ok=0
+grep -q '203.0.113.10:51820' "${VPN_STAGE_DIR}/runtime" || detail_ok=0
+[[ -d "${import_root}/vpn/wireguard/perso-file" ]] && detail_ok=0
+: > "${vpn_fault_log}"
+if ( install_vpn_bundle openvpn perso perso-ovpn "${T_ROOT}/doc/examples/perso.conf" ); then
+    detail_ok=0
+fi
+grep -q 'vpn.import.brand' "${vpn_fault_log}" || detail_ok=0
+[[ -d "${import_root}/vpn/openvpn/perso-ovpn" ]] && detail_ok=0
 if [[ "${vpn_had_log_error}" -eq 1 ]]; then
     eval "$(declare -f vpn_saved_log_error | sed '1s/^vpn_saved_log_error/log_error/')"
     unset -f vpn_saved_log_error

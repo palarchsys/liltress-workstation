@@ -1,20 +1,34 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/alert-remedy.py
-# Updated at : 2026-11-12
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
-import json, sys
-path, tool, class_id, branch = sys.argv[1:]
-data = json.loads(open(path, encoding="utf-8").read())
-for dog in data.get("watchdogs", []):
-    if dog.get("name") != tool:
-        continue
-    for case in dog.get("cases", []):
-        if case.get("id") != class_id:
+
+# -----------------------------------------------------------------------------
+# Purpose    : Print the repair actions stored on one watchdog case.
+# Note       : A case missing from the catalog prints nothing and exits 0.
+# -----------------------------------------------------------------------------
+
+
+import json
+import sys
+
+
+def actions_of(catalog, tool, class_id, branch):
+    # The first matching case wins. A later case with the same id is ignored.
+    with open(catalog, encoding="utf-8") as handle:
+        data = json.load(handle)
+    for dog in data.get("watchdogs", []):
+        if dog.get("name") != tool:
             continue
-        for action in case.get(branch, []):
-            print(action)
-        sys.exit(0)
-sys.exit(0)
+        for case in dog.get("cases", []):
+            if case.get("id") != class_id:
+                continue
+            return case.get(branch, [])
+    return []
+
+
+for action in actions_of(*sys.argv[1:]):
+    print(action)

@@ -207,12 +207,14 @@ The other files of the pass are scanned.<br/>
 Two crashes in a row stop the ClamAV pass.<br/>
 The mail then says that the remaining files were not read.
 
-## ▪️ ClamAV idle scan
+## ▪️ ClamAV periodic scan
 
+The periodic chain runs this scan every 1 hour.<br/>
+The same scan also runs once in the boot chain.<br/>
 The message contains the summary and the journal excerpt.<br/>
 When a file was moved, the mail adds one restore command per file.<br/>
 The command is the same as in the on-access mail.<br/>
-A signature and a path already recorded in `/opt/liltress-workstation/cron/scan-skip.seen` do not send mail again.<br/>
+The walk includes the paths excluded from the on-access scan.<br/>
 <br/>
 A `clamscan` process stopped by a signal sends mail.<br/>
 The mail names the signal and each unread file.<br/>
@@ -220,8 +222,7 @@ The other files of the pass are scanned.<br/>
 Two crashes in a row stop the ClamAV pass.<br/>
 The mail then says that the remaining files were not read.<br/>
 <br/>
-The stamp stays in place.<br/>
-The journal form is `/opt/liltress-workstation/cron/security_logs/idle-scan-YYYYMMDD-HHMMSS.log`.
+The journal form is `/opt/liltress-workstation/cron/security_logs/clamav-YYYYMMDD-HHMMSS.log`.
 
 ## ▪️ rkhunter
 
@@ -250,7 +251,6 @@ The message is `Un redémarrage est utile. La machine n'a pas été redémarrée
 This mail does not add a command block.<br/>
 The same set of packages does not send mail again.<br/>
 <br/>
-A game that is running skips the mail and leaves the stamp unchanged.<br/>
 The script does not reboot the machine.<br/>
 The journal form is `/opt/liltress-workstation/cron/security_logs/reboot-notice-YYYYMMDD-HHMMSS.log`.
 
@@ -282,7 +282,7 @@ The installer refuses to start when the check does not pass.
 sudo "./liltress" verify alerts
 ```
 
-Checks the chain timer, the deferred timer, on-access ClamAV, and the mail path.<br/>
+Checks the boot-chain timer, the periodic timer, on-access ClamAV, and the mail path.<br/>
 Without `--no-send`, a probe is sent when alerts are enabled.<br/>
 The subject ends with `Contrôle`.<br/>
 The success line is `Résultat : OK`.

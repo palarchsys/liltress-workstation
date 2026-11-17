@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/aide/init-db.sh
-# Updated at : 2026-11-13
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Build the file-integrity database when it is absent.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -13,7 +19,7 @@ source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 
-if [[ "${REBUILD_BASE:-0}" != "1" && ( -f /var/lib/aide/aide.db || -f /var/lib/aide/aide.db.gz ) ]]; then
+if [[ "${REBUILD_BASE:-0}" != "1" && (-f /var/lib/aide/aide.db || -f /var/lib/aide/aide.db.gz) ]]; then
     log_info "${INSTALL_WATCHER}" "log.base-already-present"
     exit 0
 fi

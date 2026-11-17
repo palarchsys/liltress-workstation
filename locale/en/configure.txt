@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/en/configure.txt
-# Updated at : 2026-11-15
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
 
@@ -588,7 +588,7 @@ Install of the profile Lynis (workstation of work, exceptions documented)
 Installation of the collections CrowdSec
 
 [configure.installation-of-the-watchdogs-chain-to-the-start]
-Installation of the watchdogs (chain to the start, hourly password and scan all the 2 h, capped to {1}% of the total CPU)
+Installation of the watchdogs (chain at start and periodic chain every 1 hour, capped to {1}% of the total CPU)
 
 [configure.watchdog-copy-scripts]
 Scripts stay in the repository
@@ -798,7 +798,7 @@ clamonacc stays not active. Detail: {1}/clamonacc.log
 ClamAV launched in monitoring continues on {1}
 
 [configure.chain-of-start-hourly-password-and-scan-all-the-2]
-Chain of start, hourly password and scan all the 2 h installed, plafonnées to {1}% of the total CPU
+Chain at start and periodic chain every 1 hour installed, capped to {1}% of the total CPU
 
 [configure.crontab-user-not-touch-no-cron-allow]
 crontab user: not touché (no cron.allow).
@@ -1554,7 +1554,7 @@ Validation postconf (Lynis MAIL-8817)
 {1}: CONFIG_PREPARED must valoir 1 (file produced by configures.sh). example:./liltress configures
 
 [configure.chain-of-start-hourly-password-and-scan-all-the]
-Chain of start, hourly password and scan all the 2 h installed
+Chain at start and periodic chain every 1 hour installed
 
 [configure.restart-of-crowdsec-on]
 Restart of CrowdSec on {1}

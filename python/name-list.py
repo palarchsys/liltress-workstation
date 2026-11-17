@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/name-list.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Record the four name inventories of this repository.
+# Note       : Shell files under a log directory are left out of the inventory.
+# -----------------------------------------------------------------------------
+
 
 import csv
 import os
 import re
-from collections import defaultdict
 from pathlib import Path
 
 root = Path(os.environ["NAMES_ROOT"])
@@ -22,18 +28,24 @@ skip_files = {
     "name-functions.csv",
     "name-comments.csv",
     "name-references.csv",
+    "scripts/quality-baseline.txt",
 }
 prefix_var = {"W": "W_", "S": "S_", "T": "T_", "n": ""}
 prefix_fn = {"g": "g_", "w": "w_", "s": "s_", "t": "t_", "n": ""}
 scope_of = {
-    "W": "workstation", "S": "server", "T": "test",
-    "g": "shared", "w": "workstation", "s": "server", "t": "test",
+    "W": "workstation",
+    "S": "server",
+    "T": "test",
+    "g": "shared",
+    "w": "workstation",
+    "s": "server",
+    "t": "test",
     "n": "shared",
 }
 shared_vars = """
 ACCOUNT_SNAPSHOT ACCOUNT_USER AIDE_REFRESH ANTIBOT_HMAC_SECRET API_BASE_URL
-ARTIFACTS BANNER_MESSAGE BASE BEHAVIOR_WATCH BOOT_ACCURACY BOOT_ON_BOOT_SEC
-BRANCH CHKROOTKIT_IGNORE CLAMAV_DEFER CLAMAV_EVENT_FILE CLAMAV_EVENT_KIND
+ARTIFACTS BANNER_MESSAGE BASE BOOT_ACCURACY BOOT_ON_BOOT_SEC
+BRANCH CHKROOTKIT_IGNORE CLAMAV_EVENT_FILE CLAMAV_EVENT_KIND
 CLAMAV_EVENT_MAIL CLAMAV_EVENT_VIRUS CLAMAV_KILL CLAMAV_QUARANTINE
 CLAMAV_QUARANTINE_DIR CLAMAV_RESPONSE_STAMP
 CLAMAV_TEMPORARY_DIRECTORY CLAMAV_VIRUS_EVENT_PRESERVE CLAMONACC_BIN
@@ -52,7 +64,6 @@ EGRESS_AUDIT_FILE EGRESS_KERNEL EGRESS_LOG EGRESS_REGISTRY
 ELEMENT_PUBLIC_BASE_URL ENV_FILE_LIVEKIT ENV_FILE_MATRIX ENV_FILE_SECURITY
 ENV_FILE_WEB ENV_FILE_WIREGUARD FAILLOCK_DENY FAILLOCK_FAIL_INTERVAL
 FAILLOCK_UNLOCK HOSTNAME_LIVEKIT HOSTNAME_MATRIX HOSTNAME_WIREGUARD
-HOURLY_ACCURACY HOURLY_EVERY HOURLY_ON_BOOT_SEC IDLE_ACCURACY IDLE_EVERY
 INSTALL_DIRECTORY INSTALL_LOG_DIR INSTALL_LOG_FILE INSTALL_ROOT JWT_URL
 KEYCLOAK_CLIENT KEYCLOAK_PUBLIC_BASE_URL KEYCLOAK_REALM LANGUAGE LIMIT_WRAP
 LIVEKIT_URL LOGS_COLLECTED LOG_SYS LYNIS_MIN_SCORE
@@ -103,9 +114,7 @@ WIREGUARD_ALLOWED_IP WIREGUARD_DEFAULT_ADDRESS WIREGUARD_DEFAULT_DNS
 WIREGUARD_HOST WIREGUARD_UI_URL
 """.split()
 var_re = re.compile(
-    r"\b((?:W|S|T)_[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*|"
-    + "|".join(sorted(shared_vars, key=len, reverse=True))
-    + r")\b"
+    r"\b((?:W|S|T)_[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*|" + "|".join(sorted(shared_vars, key=len, reverse=True)) + r")\b"
 )
 fn_re = re.compile(r"\b(t_[a-z][a-z0-9]*(?:_[a-z0-9]+)*)\b")
 def_re = re.compile(r"^[ \t]*([a-z][a-z0-9_]*)\s*\(")
@@ -114,17 +123,21 @@ token_re = re.compile(r"[^\s\"'`<>()\[\]{},;]+")
 cartouche_re = re.compile(r"^#(?:\s[-=]{10,}|\s(?:File|Updated at|Creator|Purpose|Note|Tool)\b)")
 text_limit = 160
 
+
 def shorten(text):
     flat = " ".join(text.strip().split())
     if len(flat) <= text_limit:
         return flat
     return flat[: text_limit - 3] + "..."
 
+
 def rewrite(value):
     return value
 
+
 def clean_token(raw):
     return raw.strip(".,:;)")
+
 
 def reference_kind(value):
     lower = value.casefold()
@@ -138,12 +151,32 @@ def reference_kind(value):
         return "slug"
     return "filename"
 
+
+def readme_line(rel):
+    name = rel.rsplit("/", 1)[-1]
+    if name == "README.md":
+        return True
+    if not rel.endswith(".md"):
+        return False
+    marked = f"/{rel}"
+    if "/docs/" in marked:
+        return True
+    return "/doc/" in marked
+
+
+def spoken_kind(line):
+    if re.search(r"\bhf_log_(?:info|success|warn|error|debug|title)\b", line):
+        return "display"
+    if re.match(r"^\s*(echo|printf)\b", line):
+        return "display"
+    return ""
+
+
 def comment_kind(rel, line):
     stripped = line.lstrip()
     if cartouche_re.match(stripped):
         return "cartouche"
-    name = rel.rsplit("/", 1)[-1]
-    if name == "README.md" or (("/docs/" in f"/{rel}" or "/doc/" in f"/{rel}") and rel.endswith(".md")):
+    if readme_line(rel):
         return "readme"
     if stripped.startswith("#") and not stripped.startswith("#!"):
         return "comment"
@@ -151,11 +184,8 @@ def comment_kind(rel, line):
         return "display"
     if rel.endswith(".md"):
         return "comment"
-    if re.search(r"\bhf_log_(?:info|success|warn|error|debug|title)\b", line):
-        return "display"
-    if re.match(r"^\s*(echo|printf)\b", line):
-        return "display"
-    return ""
+    return spoken_kind(line)
+
 
 def first_mark(line):
     marks = []
@@ -168,10 +198,12 @@ def first_mark(line):
     marks.sort(key=lambda item: item[0])
     return marks[0][1]
 
+
 variables = {}
 functions = {}
 comments = []
 references = {}
+
 
 def add_name(table, name, prefix_map):
     prefix = name.split("_", 1)[0]
@@ -200,16 +232,42 @@ def add_name(table, name, prefix_map):
         table[name] = row
     return row
 
+
 defined = set()
-for base in roots:
-    start = root / base
-    if not start.is_dir():
-        continue
+
+
+def child_dirs(dirpath, dirnames):
+    kept = []
+    for name in dirnames:
+        if name in skip_dirs:
+            continue
+        if (Path(dirpath) / name).is_symlink():
+            continue
+        kept.append(name)
+    return sorted(kept)
+
+
+def log_path(rel):
+    marked = f"/{rel}"
+    if "/log/" in marked:
+        return True
+    return "/log/test/" in marked
+
+
+def shell_defs(path):
+    try:
+        text = path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return
+    for line in text.splitlines():
+        found = def_re.match(line)
+        if found and not found.group(1).startswith("t_"):
+            defined.add(found.group(1))
+
+
+def walk_shell(start):
     for dirpath, dirnames, filenames in os.walk(start):
-        dirnames[:] = sorted(
-            name for name in dirnames
-            if name not in skip_dirs and not (Path(dirpath) / name).is_symlink()
-        )
+        dirnames[:] = child_dirs(dirpath, dirnames)
         for filename in filenames:
             if not filename.endswith(".sh"):
                 continue
@@ -217,30 +275,123 @@ for base in roots:
             if path.is_symlink():
                 continue
             rel = path.relative_to(root).as_posix()
-            if "/log/" in f"/{rel}" or "/log/test/" in f"/{rel}":
+            if log_path(rel):
                 continue
-            try:
-                text = path.read_text(encoding="utf-8", errors="ignore")
-            except OSError:
-                continue
-            for line in text.splitlines():
-                match = def_re.match(line)
-                if match and not match.group(1).startswith("t_"):
-                    defined.add(match.group(1))
-if defined:
-    fn_re = re.compile(r"\b(" + "|".join(re.escape(name) for name in sorted(defined, key=len, reverse=True)) + r"|t_[a-z][a-z0-9]*(?:_[a-z0-9]+)*)\b")
+            shell_defs(path)
 
-for base in roots:
-    start = root / base
-    if not start.is_dir():
-        continue
+
+def collect_defined():
+    for base in roots:
+        start = root / base
+        if not start.is_dir():
+            continue
+        walk_shell(start)
+
+
+def compile_functions():
+    global fn_re
+    if not defined:
+        return
+    names = sorted(defined, key=len, reverse=True)
+    body = "|".join(re.escape(name) for name in names)
+    pattern = r"\b(" + body + r"|t_[a-z][a-z0-9]*(?:_[a-z0-9]+)*)\b"
+    fn_re = re.compile(pattern)
+
+
+def output_pruned(current):
+    if "test" not in current.parts:
+        return False
+    return "output" in current.parts
+
+
+def skip_path(rel):
+    if rel in skip_files:
+        return True
+    marked = f"/{rel}"
+    if "/logs/" in marked:
+        return True
+    if "/log/" in marked:
+        return True
+    return "/log/test/" in marked
+
+
+def note_vars(text, rel):
+    for found in var_re.finditer(text):
+        row = add_name(variables, found.group(1), prefix_var)
+        row["count"] += 1
+        row["files"].add(rel)
+
+
+def note_fns(text, rel):
+    for found in fn_re.finditer(text):
+        row = add_name(functions, found.group(1), prefix_fn)
+        row["count"] += 1
+        row["files"].add(rel)
+
+
+def note_comment(rel, number, line):
+    found = first_mark(line)
+    if not found:
+        return
+    kind = comment_kind(rel, line)
+    if not kind:
+        return
+    comments.append((rel, number, kind, found, shorten(line)))
+
+
+def keep_ref(token):
+    if not token:
+        return False
+    lower = token.casefold()
+    if "liltress" in lower:
+        return True
+    if "high-fortress.com" in lower:
+        return True
+    return bool(re.match(r"[ws]-", lower))
+
+
+def note_refs(line, rel):
+    for raw in token_re.findall(line):
+        token = clean_token(raw)
+        if not keep_ref(token):
+            continue
+        slot = references.get(token)
+        if slot is None:
+            slot = {
+                "kind": reference_kind(token),
+                "value": token,
+                "target": rewrite(token),
+                "count": 0,
+                "files": set(),
+            }
+            references[token] = slot
+        slot["count"] += 1
+        slot["files"].add(rel)
+
+
+def scan_text(rel, text):
+    note_vars(text, rel)
+    note_fns(text, rel)
+    for number, line in enumerate(text.splitlines(), start=1):
+        note_comment(rel, number, line)
+        note_refs(line, rel)
+
+
+def read_scan(path, rel):
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return
+    if b"\0" in data:
+        return
+    scan_text(rel, data.decode("utf-8", errors="ignore"))
+
+
+def scan_dir(start):
     for dirpath, dirnames, filenames in os.walk(start):
-        dirnames[:] = sorted(
-            name for name in dirnames
-            if name not in skip_dirs and not (Path(dirpath) / name).is_symlink()
-        )
+        dirnames[:] = child_dirs(dirpath, dirnames)
         current = Path(dirpath)
-        if "test" in current.parts and "output" in current.parts:
+        if output_pruned(current):
             dirnames[:] = []
             continue
         for filename in sorted(filenames):
@@ -248,50 +399,22 @@ for base in roots:
             if path.is_symlink():
                 continue
             rel = path.relative_to(root).as_posix()
-            if rel in skip_files or "/logs/" in f"/{rel}" or "/log/" in f"/{rel}" or "/log/test/" in f"/{rel}":
+            if skip_path(rel):
                 continue
-            try:
-                data = path.read_bytes()
-            except OSError:
-                continue
-            if b"\0" in data:
-                continue
-            text = data.decode("utf-8", errors="ignore")
-            for match in var_re.finditer(text):
-                row = add_name(variables, match.group(1), prefix_var)
-                row["count"] += 1
-                row["files"].add(rel)
-            for match in fn_re.finditer(text):
-                row = add_name(functions, match.group(1), prefix_fn)
-                row["count"] += 1
-                row["files"].add(rel)
-            for number, line in enumerate(text.splitlines(), start=1):
-                mark = first_mark(line)
-                kind = comment_kind(rel, line) if mark else ""
-                if mark and kind:
-                    comments.append((rel, number, kind, mark, shorten(line)))
-                for raw in token_re.findall(line):
-                    token = clean_token(raw)
-                    lower = token.casefold()
-                    if "liltress" not in lower and "high-fortress.com" not in lower and not re.match(r"[ws]-", lower):
-                        continue
-                    if not token:
-                        continue
-                    slot = references.get(token)
-                    if slot is None:
-                        slot = {
-                            "kind": reference_kind(token),
-                            "value": token,
-                            "target": rewrite(token),
-                            "count": 0,
-                            "files": set(),
-                        }
-                        references[token] = slot
-                    slot["count"] += 1
-                    slot["files"].add(rel)
+            read_scan(path, rel)
+
+
+def scan_tree():
+    for base in roots:
+        start = root / base
+        if not start.is_dir():
+            continue
+        scan_dir(start)
+
 
 def files_of(row):
     return ";".join(sorted(row["files"]))
+
 
 def write_csv(name, header, rows):
     dest = root / name
@@ -300,23 +423,35 @@ def write_csv(name, header, rows):
         writer.writerow(header)
         writer.writerows(rows)
 
-var_rows = [
-    [row["name"], row["scope"], row["prefix"], row["target"], row["count"], files_of(row)]
-    for row in sorted(variables.values(), key=lambda item: item["name"])
-]
-fn_rows = [
-    [row["name"], row["scope"], row["prefix"], row["verb"], row["target"], row["count"], files_of(row)]
-    for row in sorted(functions.values(), key=lambda item: item["name"])
-]
-comment_rows = [
-    [path, line, kind, match, text]
-    for path, line, kind, match, text in sorted(comments, key=lambda item: (item[0], item[1], item[3]))
-]
-ref_rows = [
-    [row["kind"], row["value"], row["target"], row["count"], files_of(row)]
-    for row in sorted(references.values(), key=lambda item: (item["kind"], item["value"]))
-]
-write_csv("name-variables.csv", ["name", "scope", "prefix", "target", "count", "files"], var_rows)
-write_csv("name-functions.csv", ["name", "scope", "prefix", "verb", "target", "count", "files"], fn_rows)
-write_csv("name-comments.csv", ["path", "line", "kind", "match", "text"], comment_rows)
-write_csv("name-references.csv", ["kind", "value", "target", "count", "files"], ref_rows)
+
+def emit_names():
+    var_rows = [
+        [row["name"], row["scope"], row["prefix"], row["target"], row["count"], files_of(row)]
+        for row in sorted(variables.values(), key=lambda item: item["name"])
+    ]
+    fn_rows = [
+        [row["name"], row["scope"], row["prefix"], row["verb"], row["target"], row["count"], files_of(row)]
+        for row in sorted(functions.values(), key=lambda item: item["name"])
+    ]
+    comment_rows = [
+        [path, line, kind, found, text]
+        for path, line, kind, found, text in sorted(comments, key=lambda item: (item[0], item[1], item[3]))
+    ]
+    ref_rows = [
+        [row["kind"], row["value"], row["target"], row["count"], files_of(row)]
+        for row in sorted(references.values(), key=lambda item: (item["kind"], item["value"]))
+    ]
+    write_csv("name-variables.csv", ["name", "scope", "prefix", "target", "count", "files"], var_rows)
+    write_csv("name-functions.csv", ["name", "scope", "prefix", "verb", "target", "count", "files"], fn_rows)
+    write_csv("name-comments.csv", ["path", "line", "kind", "match", "text"], comment_rows)
+    write_csv("name-references.csv", ["kind", "value", "target", "count", "files"], ref_rows)
+
+
+def run_name_list():
+    collect_defined()
+    compile_functions()
+    scan_tree()
+    emit_names()
+
+
+run_name_list()

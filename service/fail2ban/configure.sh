@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/fail2ban/configure.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Write the jail file with the ssh port and enable the service.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -14,12 +20,12 @@ source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 get_ssh_port
 
-log_info         "${INSTALL_WATCHER}" "configure.configuration-of-fail2ban"
-envsubst '$SSH_PORT' < "$(locate_config_file fail2ban/jail.local)" > /etc/fail2ban/jail.local
+log_info "${INSTALL_WATCHER}" "configure.configuration-of-fail2ban"
+envsubst '$SSH_PORT' <"$(locate_config_file fail2ban/jail.local)" >/etc/fail2ban/jail.local
 chmod 644 /etc/fail2ban/jail.local
-log_success      "${INSTALL_WATCHER}" "configure.jail-local-installed-sshd-port" "${SSH_PORT}"
+log_success "${INSTALL_WATCHER}" "configure.jail-local-installed-sshd-port" "${SSH_PORT}"
 
-log_info         "${INSTALL_WATCHER}" "configure.activation-of-fail2ban"
-run_silent       "${INSTALL_WATCHER}" "configure.fail2ban.error" systemctl enable --now fail2ban
-run_optional     "${INSTALL_WATCHER}" "configure.fail2ban.error" fail2ban-client reload
-log_success      "${INSTALL_WATCHER}" "configure.fail2ban-enabled"
+log_info "${INSTALL_WATCHER}" "configure.activation-of-fail2ban"
+run_silent "${INSTALL_WATCHER}" "configure.fail2ban.error" systemctl enable --now fail2ban
+run_optional "${INSTALL_WATCHER}" "configure.fail2ban.error" fail2ban-client reload
+log_success "${INSTALL_WATCHER}" "configure.fail2ban-enabled"

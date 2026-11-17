@@ -1,32 +1,58 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/check/test-harness.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
 
+# -----------------------------------------------------------------------------
+# Purpose    : Keep suite totals and the report under the product log directory.
+# -----------------------------------------------------------------------------
+
+
+# The caller owns shown_python and reads it after this call.
+show_python_directory() {
+    local candidate="$1"
+    shown_python=0
+    [[ -n "${candidate}" && -d "${candidate}" ]] || return 0
+    (cd -- "${candidate}" && pwd -P)
+    shown_python=1
+    return 0
+}
+
+# The shared directory is printed as given, without resolving links.
+show_share_python() {
+    local dir="$1"
+    shown_python=0
+    if [[ ! -d "${dir}/share/python" ]]; then
+        return 0
+    fi
+    printf '%s\n' "${dir}/share/python"
+    shown_python=1
+    return 0
+}
+
 locate_python_dir() {
-    local dir hops=0 candidate
+    local dir="" hops=0 candidate="" shown_python=0
     for candidate in \
         "${CONFIG_BASE_DIRECTORY:-}/python" \
         "${BASE:-}/python" \
         "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"
-    do
-        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
-            (cd -- "${candidate}" && pwd -P)
+        "${INSTALL_DIRECTORY:-}/../share/python"; do
+        show_python_directory "${candidate}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
     done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -d "${dir}/share/python" ]]; then
-            printf '%s\n' "${dir}/share/python"
+        show_share_python "${dir}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
-        if [[ -d "${dir}/python" ]]; then
-            (cd -- "${dir}/python" && pwd -P)
+        show_python_directory "${dir}/python"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
         dir="$(dirname -- "${dir}")"
@@ -47,10 +73,10 @@ t_log() {
     local line="[$(t_get_timestamp)] $*"
     printf '%s\n' "$line"
     if [[ -n "${RUN_LOG:-}" ]]; then
-        printf '%s\n' "$line" >> "${RUN_LOG}"
+        printf '%s\n' "$line" >>"${RUN_LOG}"
     fi
     if [[ -n "${T_SUITE_LOG:-}" ]]; then
-        printf '%s\n' "$line" >> "${T_SUITE_LOG}"
+        printf '%s\n' "$line" >>"${T_SUITE_LOG}"
     fi
 }
 
@@ -58,7 +84,7 @@ t_record() {
     local status="$1"
     local id="$2"
     local msg="$3"
-    printf '%s\t%s\t%s\n' "$status" "$id" "$msg" >> "${T_RESULT_TSV}"
+    printf '%s\t%s\t%s\n' "$status" "$id" "$msg" >>"${T_RESULT_TSV}"
 }
 
 t_pass() {
@@ -116,8 +142,8 @@ t_begin() {
     RUN_LOG="${T_OUTPUT}/run.log"
     T_RESULT_TSV="${T_OUTPUT}/results.tsv"
     mkdir -p "${ARTIFACTS}" "${T_SUITE_DIRECTORY}"
-    : > "${RUN_LOG}"
-    : > "${T_RESULT_TSV}"
+    : >"${RUN_LOG}"
+    : >"${T_RESULT_TSV}"
     local language_line="" language_value="" language_file=""
     LANGUAGE="en"
     language_file="${T_ROOT}/config/global.conf"
@@ -130,7 +156,7 @@ t_begin() {
         language_value="${language_value%\"}"
         language_value="${language_value#\"}"
         case "${language_value}" in
-            en|fr|de|es) LANGUAGE="${language_value}" ;;
+            en | fr | de | es) LANGUAGE="${language_value}" ;;
         esac
     fi
     export T_TEST_DIRECTORY T_ROOT T_OUTPUT ARTIFACTS T_SUITE_DIRECTORY RUN_LOG T_RESULT_TSV PROFILE LANGUAGE
@@ -152,7 +178,7 @@ t_run_suite() {
         [[ -f "${suite}" ]] || continue
         suite_name="$(basename "${suite}" .sh)"
         export T_SUITE_LOG="${T_SUITE_DIRECTORY}/${suite_name}.log"
-        : > "${T_SUITE_LOG}"
+        : >"${T_SUITE_LOG}"
         T_PASS=0
         T_FAIL=0
         T_WARN=0
@@ -171,57 +197,77 @@ t_run_suite() {
     done
 }
 
+# Heading, totals, and the result sentence.
+write_test_heading() {
+    echo "# Rapport de test"
+    echo ""
+    echo "$(get_text log.date "$(date -Iseconds)")"
+    echo "$(get_text log.profile "${PROFILE}")"
+    echo "$(get_text log.directory "${T_OUTPUT}")"
+    echo "$(get_text log.repository "${T_ROOT}")"
+    echo ""
+    echo "$(get_text log.total)"
+    echo ""
+    echo "$(get_text log.pass-fail-warn-skip)"
+    echo "|------|------|------|------|"
+    echo "| ${TOTAL_PASS} | ${TOTAL_FAIL} | ${TOTAL_WARN} | ${TOTAL_SKIP} |"
+    echo ""
+    if [[ "${TOTAL_FAIL}" -eq 0 ]]; then
+        echo "$(get_text log.result-ok-no-fail)"
+    else
+        echo "$(get_text log.result-ko-fail-to-fix-before-a-deployment "${TOTAL_FAIL}")"
+    fi
+    echo ""
+}
+
+# Rows whose status is FAIL, or the empty sentence.
+write_test_fail_rows() {
+    echo "$(get_text log.fail)"
+    echo ""
+    if grep -q '^FAIL' "${T_RESULT_TSV}"; then
+        echo "$(get_text log.id-detail)"
+        echo "|----|--------|"
+        awk -F'\t' '$1=="FAIL"{printf "| `%s` | %s |\n", $2, $3}' "${T_RESULT_TSV}"
+    else
+        echo "$(get_text log.aucun)"
+    fi
+    echo ""
+}
+
+# Rows whose status is WARN, or the empty sentence.
+write_test_warn_rows() {
+    echo "$(get_text log.warn)"
+    echo ""
+    if grep -q '^WARN' "${T_RESULT_TSV}"; then
+        echo "$(get_text log.id-detail)"
+        echo "|----|--------|"
+        awk -F'\t' '$1=="WARN"{printf "| `%s` | %s |\n", $2, $3}' "${T_RESULT_TSV}"
+    else
+        echo "$(get_text log.aucun)"
+    fi
+    echo ""
+}
+
+# Closing lines of the report.
+write_test_files() {
+    echo "$(get_text log.pass-preview)"
+    echo ""
+    echo "$(get_text log.see-results-tsv-and-suites-log-for-the-complete "${TOTAL_PASS}")"
+    echo ""
+    echo "$(get_text log.files)"
+    echo ""
+    echo "$(get_text log.combined-journal-run-log)"
+    echo "$(get_text log.raw-results-results-tsv)"
+    echo "$(get_text log.configs-sandbox-artifacts)"
+}
+
 t_finish() {
     {
-        echo "# Rapport de test"
-        echo ""
-        echo "$(get_text log.date "$(date -Iseconds)")"
-        echo "$(get_text log.profile "${PROFILE}")"
-        echo "$(get_text log.directory "${T_OUTPUT}")"
-        echo "$(get_text log.repository "${T_ROOT}")"
-        echo ""
-        echo "$(get_text log.total)"
-        echo ""
-        echo "$(get_text log.pass-fail-warn-skip)"
-        echo "|------|------|------|------|"
-        echo "| ${TOTAL_PASS} | ${TOTAL_FAIL} | ${TOTAL_WARN} | ${TOTAL_SKIP} |"
-        echo ""
-        if [[ "${TOTAL_FAIL}" -eq 0 ]]; then
-            echo "$(get_text log.result-ok-no-fail)"
-        else
-            echo "$(get_text log.result-ko-fail-to-fix-before-a-deployment "${TOTAL_FAIL}")"
-        fi
-        echo ""
-        echo "$(get_text log.fail)"
-        echo ""
-        if grep -q '^FAIL' "${T_RESULT_TSV}"; then
-            echo "$(get_text log.id-detail)"
-            echo "|----|--------|"
-            awk -F'\t' '$1=="FAIL"{printf "| `%s` | %s |\n", $2, $3}' "${T_RESULT_TSV}"
-        else
-            echo "$(get_text log.aucun)"
-        fi
-        echo ""
-        echo "$(get_text log.warn)"
-        echo ""
-        if grep -q '^WARN' "${T_RESULT_TSV}"; then
-            echo "$(get_text log.id-detail)"
-            echo "|----|--------|"
-            awk -F'\t' '$1=="WARN"{printf "| `%s` | %s |\n", $2, $3}' "${T_RESULT_TSV}"
-        else
-            echo "$(get_text log.aucun)"
-        fi
-        echo ""
-        echo "$(get_text log.pass-preview)"
-        echo ""
-        echo "$(get_text log.see-results-tsv-and-suites-log-for-the-complete "${TOTAL_PASS}")"
-        echo ""
-        echo "$(get_text log.files)"
-        echo ""
-        echo "$(get_text log.combined-journal-run-log)"
-        echo "$(get_text log.raw-results-results-tsv)"
-        echo "$(get_text log.configs-sandbox-artifacts)"
-    } > "${T_OUTPUT}/summary.md"
+        write_test_heading
+        write_test_fail_rows
+        write_test_warn_rows
+        write_test_files
+    } >"${T_OUTPUT}/summary.md"
 
     python3 "$(locate_python_dir)/test-summary.py" "${T_OUTPUT}/summary.json" "${TOTAL_PASS}" "${TOTAL_FAIL}" "${TOTAL_WARN}" "${TOTAL_SKIP}" "${PROFILE}" "${T_RESULT_TSV}"
 

@@ -1,32 +1,58 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/advice.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
 
+# -----------------------------------------------------------------------------
+# Purpose    : Turn one finding into the advice block of a mail.
+# -----------------------------------------------------------------------------
+
+
+# The caller owns shown_python and reads it after this call.
+show_python_directory() {
+    local candidate="$1"
+    shown_python=0
+    [[ -n "${candidate}" && -d "${candidate}" ]] || return 0
+    (cd -- "${candidate}" && pwd -P)
+    shown_python=1
+    return 0
+}
+
+# The shared directory is printed as given, without resolving links.
+show_share_python() {
+    local dir="$1"
+    shown_python=0
+    if [[ ! -d "${dir}/share/python" ]]; then
+        return 0
+    fi
+    printf '%s\n' "${dir}/share/python"
+    shown_python=1
+    return 0
+}
+
 locate_python_dir() {
-    local dir hops=0 candidate
+    local dir="" hops=0 candidate="" shown_python=0
     for candidate in \
         "${CONFIG_BASE_DIRECTORY:-}/python" \
         "${BASE:-}/python" \
         "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"
-    do
-        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
-            (cd -- "${candidate}" && pwd -P)
+        "${INSTALL_DIRECTORY:-}/../share/python"; do
+        show_python_directory "${candidate}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
     done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -d "${dir}/share/python" ]]; then
-            printf '%s\n' "${dir}/share/python"
+        show_share_python "${dir}"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
-        if [[ -d "${dir}/python" ]]; then
-            (cd -- "${dir}/python" && pwd -P)
+        show_python_directory "${dir}/python"
+        if [[ "${shown_python}" -eq 1 ]]; then
             return 0
         fi
         dir="$(dirname -- "${dir}")"
@@ -36,29 +62,76 @@ locate_python_dir() {
     return 1
 }
 
+# The tool name is printed when the module name is recognized.
+show_alert_module() {
+    case "$1" in
+        aide | Aide | AIDE)
+            printf '%s\n' aide
+            return 0
+            ;;
+        chkrootkit | Chkrootkit | CHKROOTKIT)
+            printf '%s\n' chkrootkit
+            return 0
+            ;;
+        rkhunter | Rkhunter | RKHUNTER)
+            printf '%s\n' rkhunter
+            return 0
+            ;;
+    esac
+    return 1
+}
+
+# The tool name is printed when the journal name is recognized.
+show_alert_basename() {
+    case "$1" in
+        aide-* | *_aide | *_aide.log)
+            printf '%s\n' aide
+            return 0
+            ;;
+        chkrootkit-* | *_chkrootkit | *_chkrootkit.log)
+            printf '%s\n' chkrootkit
+            return 0
+            ;;
+        rkhunter-* | *_rkhunter | *_rkhunter.log)
+            printf '%s\n' rkhunter
+            return 0
+            ;;
+    esac
+    return 1
+}
+
+# The tool name is printed when the summary line is recognized.
+show_alert_summary() {
+    case "$1" in
+        AIDE:* | AIDE\ *)
+            printf '%s\n' aide
+            return 0
+            ;;
+        chkrootkit*)
+            printf '%s\n' chkrootkit
+            return 0
+            ;;
+        rkhunter* | mirrors.dat*)
+            printf '%s\n' rkhunter
+            return 0
+            ;;
+    esac
+    return 1
+}
 
 get_alert_tool() {
     local module="${1:-}"
     local log="${2:-}"
     local summary="${3:-}"
-    local base
-    case "${module}" in
-        aide|Aide|AIDE) printf '%s\n' aide; return 0 ;;
-        chkrootkit|Chkrootkit|CHKROOTKIT) printf '%s\n' chkrootkit; return 0 ;;
-        rkhunter|Rkhunter|RKHUNTER) printf '%s\n' rkhunter; return 0 ;;
-    esac
+    local base=""
+    if show_alert_module "${module}"; then
+        return 0
+    fi
     base="$(basename -- "${log:-}" 2>/dev/null || true)"
-    case "${base}" in
-        aide-*|*_aide|*_aide.log) printf '%s\n' aide; return 0 ;;
-        chkrootkit-*|*_chkrootkit|*_chkrootkit.log) printf '%s\n' chkrootkit; return 0 ;;
-        rkhunter-*|*_rkhunter|*_rkhunter.log) printf '%s\n' rkhunter; return 0 ;;
-    esac
-    case "${summary}" in
-        AIDE:*|AIDE\ *) printf '%s\n' aide; return 0 ;;
-        chkrootkit*) printf '%s\n' chkrootkit; return 0 ;;
-        rkhunter*|mirrors.dat*) printf '%s\n' rkhunter; return 0 ;;
-    esac
-    return 1
+    if show_alert_basename "${base}"; then
+        return 0
+    fi
+    show_alert_summary "${summary}"
 }
 
 render_alert_advice() {

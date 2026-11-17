@@ -207,12 +207,14 @@ Die übrigen Dateien des Laufs werden geprüft.<br/>
 Zwei Abstürze nacheinander beenden den ClamAV-Lauf.<br/>
 Die Post sagt dann, dass die übrigen Dateien nicht gelesen wurden.
 
-## ▪️ Verzögerte ClamAV-Prüfung
+## ▪️ Periodische ClamAV-Prüfung
 
+Die periodische Kette führt diese Prüfung alle 1 h aus.<br/>
+Dieselbe Prüfung läuft auch einmal in der Startkette.<br/>
 Die Nachricht enthält die Zusammenfassung und den Journalauszug.<br/>
 Wenn eine Datei verschoben wurde, fügt die Post einen Wiederherstellungsbefehl je Datei hinzu.<br/>
 Der Befehl ist derselbe wie in der Post beim Zugriff.<br/>
-Eine Signatur und ein Pfad, die bereits in `/opt/liltress-workstation/cron/scan-skip.seen` stehen, senden keine weitere Post.<br/>
+Der Lauf schließt die Pfade ein, die vom Zugriff ausgeschlossen sind.<br/>
 <br/>
 Ein durch ein Signal beendeter Prozess `clamscan` sendet eine Post.<br/>
 Die Post nennt das Signal und jede ungelesene Datei.<br/>
@@ -220,8 +222,7 @@ Die übrigen Dateien des Laufs werden geprüft.<br/>
 Zwei Abstürze nacheinander beenden den ClamAV-Lauf.<br/>
 Die Post sagt dann, dass die übrigen Dateien nicht gelesen wurden.<br/>
 <br/>
-Der Stempel bleibt stehen.<br/>
-Die Journalform ist `/opt/liltress-workstation/cron/security_logs/idle-scan-YYYYMMDD-HHMMSS.log`.
+Die Journalform ist `/opt/liltress-workstation/cron/security_logs/clamav-YYYYMMDD-HHMMSS.log`.
 
 ## ▪️ rkhunter
 
@@ -250,7 +251,6 @@ Die Nachricht ist `Un redémarrage est utile. La machine n'a pas été redémarr
 Diese Post fügt keinen Befehlsblock hinzu.<br/>
 Derselbe Paketsatz sendet keine weitere Post.<br/>
 <br/>
-Ein laufendes Spiel überspringt die Post und lässt den Stempel unverändert.<br/>
 Das Skript startet die Maschine nicht neu.<br/>
 Die Journalform ist `/opt/liltress-workstation/cron/security_logs/reboot-notice-YYYYMMDD-HHMMSS.log`.
 
@@ -282,7 +282,7 @@ Das Installationsprogramm verweigert den Start, wenn die Prüfung nicht besteht.
 sudo "./liltress" verify alerts
 ```
 
-Prüft den Ketten-Timer, den verzögerten Timer, ClamAV beim Zugriff und den Postpfad.<br/>
+Prüft den Timer der Startkette, den periodischen Timer, ClamAV beim Zugriff und den Postpfad.<br/>
 Ohne `--no-send` geht eine Sonde ab, wenn die Alarme eingeschaltet sind.<br/>
 Der Betreff endet mit `Contrôle`.<br/>
 Die Erfolgszeile ist `Résultat : OK`.

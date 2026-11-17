@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/purge/rc.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Purge leftover packages, keeping the bootloader ones.
+# -----------------------------------------------------------------------------
+
 
 INSTALL_WATCHER="${1:-BASH}"
 INSTALL_DIRECTORY="${2:-}"
@@ -19,7 +25,7 @@ rc_pkgs=()
 local_p=""
 for local_p in "${rc_all[@]}"; do
     case "${local_p}" in
-        grub-pc|grub-pc-bin|grub-gfxpayload-lists) log_info "${INSTALL_WATCHER}" "log.rc-kept-boot" "${local_p}";;
+        grub-pc | grub-pc-bin | grub-gfxpayload-lists) log_info "${INSTALL_WATCHER}" "log.rc-kept-boot" "${local_p}" ;;
         *) rc_pkgs+=("${local_p}") ;;
     esac
 done

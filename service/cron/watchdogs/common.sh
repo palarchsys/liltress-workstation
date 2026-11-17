@@ -1,16 +1,49 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/common.sh
-# Updated at : 2026-11-13
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Load the shared watchdog helpers once.
+# Note       : A second visit returns immediately.
+# -----------------------------------------------------------------------------
+
 
 set -euo pipefail
 if [[ -n "${LILTRESS_COMMON_LOADED:-}" ]]; then
     return 0
 fi
 LILTRESS_COMMON_LOADED=1
-BASE="${BASE:-/opt/liltress-workstation}"
+
+# A watchdog.conf beside this file wins. Otherwise the nearest global.conf does.
+load_common_product() {
+    local dir="" hops=0
+    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    if [[ -r "${dir}/watchdog.conf" ]]; then
+        # shellcheck disable=SC1091
+        source "${dir}/watchdog.conf"
+    fi
+    if [[ -n "${BASE:-}" || -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
+        return 0
+    fi
+    while [[ -n "${dir}" && "${dir}" != "/" && "${hops}" -lt 8 ]]; do
+        if [[ -f "${dir}/config/global.conf" ]]; then
+            # shellcheck disable=SC1091
+            source "${dir}/config/global.conf"
+            return 0
+        fi
+        dir="$(dirname -- "${dir}")"
+        hops=$((hops + 1))
+    done
+}
+
+load_common_product
+if [[ -z "${BASE:-}" ]]; then
+    BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+fi
 LOG_DIR="${BASE}/cron/security_logs"
 ALERT_DIR="${BASE}/cron/alerts"
 mkdir -p "${LOG_DIR}" "${ALERT_DIR}"
@@ -25,15 +58,14 @@ if [[ -z "${WATCHDOG_MAIL:-}" && -r "${BASE}/config/secrets.conf" ]]; then
     source "${BASE}/config/secrets.conf"
 fi
 
-log_pass()  { printf '%s %s\n' "$(date -Iseconds)" "$*" | tee -a "${LOG_FILE}"; }
+log_pass() { printf '%s %s\n' "$(date -Iseconds)" "$*" | tee -a "${LOG_FILE}"; }
 
 here_watchdog="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 for candidate_watchdog in \
     "${BASE:-}/core/watchdog/load.sh" \
     "${here_watchdog}/../../core/watchdog/load.sh" \
     "${INSTALL_DIRECTORY:-}/core/watchdog/load.sh" \
-    "${CONFIG_BASE_DIRECTORY:-}/core/watchdog/load.sh"
-do
+    "${CONFIG_BASE_DIRECTORY:-}/core/watchdog/load.sh"; do
     if [[ -n "${candidate_watchdog}" && -f "${candidate_watchdog}" ]]; then
         # shellcheck disable=SC1090
         source "${candidate_watchdog}"
@@ -62,4 +94,3 @@ fi
 if declare -F read_language_file >/dev/null 2>&1 && [[ -f "${BASE}/config/global.conf" ]]; then
     read_language_file "${BASE}/config/global.conf"
 fi
-

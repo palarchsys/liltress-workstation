@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/ssh.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
 
+# -----------------------------------------------------------------------------
+# Purpose    : Resolve the effective daemon setting and the listening port.
+# -----------------------------------------------------------------------------
+
+
+# The first matching keyword from standard input is printed in lowercase.
 read_sshd_value() {
     local keyword="${1,,}"
     awk -v key="${keyword}" 'tolower($1) == key { print tolower($2); exit }'

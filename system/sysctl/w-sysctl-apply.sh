@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/sysctl/w-sysctl-apply.sh
-# Updated at : 2026-11-05
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Apply each sysctl line, skipping a key the kernel does not expose.
+# -----------------------------------------------------------------------------
+
 
 set -u
 conf="/etc/sysctl.d/99-zzz-liltress-workstation.conf"
@@ -30,5 +36,5 @@ while IFS= read -r line || [[ -n "${line}" ]]; do
     fi
 
     printf "$(get_text log.ignored "${err}")" >&2
-done < "${conf}"
+done <"${conf}"
 exit 0

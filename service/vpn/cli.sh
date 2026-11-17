@@ -5,6 +5,13 @@
 # Creator    : palarchsys
 # =============================================================================
 
+
+# -----------------------------------------------------------------------------
+# Purpose    : Run one named tunnel command.
+# Note       : Removing the active default profile starts the successor.
+# -----------------------------------------------------------------------------
+
+
 set -euo pipefail
 
 VPN_SRC="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -47,9 +54,9 @@ show_vpn_usage() {
     exit 2
 }
 
-remove_vpn_profile() {
-    local name="${1:-}" active total was_active=0
-    local -a successors=()
+# An empty name, a rejected name, or a missing profile ends the command.
+validate_vpn_remove() {
+    local name="$1"
     [[ -n "${name}" ]] || show_vpn_usage
     if ! check_vpn_name "${name}"; then
         note_vpn_log rm "${name}" fail "bad-name"
@@ -59,6 +66,12 @@ remove_vpn_profile() {
         note_vpn_log rm "${name}" fail "missing"
         log_error "${INSTALL_WATCHER}" "vpn.rm.missing" "${name}"
     fi
+}
+
+remove_vpn_profile() {
+    local name="${1:-}" active total was_active=0
+    local -a successors=()
+    validate_vpn_remove "${name}"
     load_vpn_settings
     active="$(get_vpn_active 2>/dev/null || true)"
     total="$(count_vpn_profiles)"
@@ -134,8 +147,37 @@ clear_vpn_default() {
     log_success "${INSTALL_WATCHER}" "vpn.default.cleared"
 }
 
+# The profile line keeps the saved handshake when that file exists.
+show_vpn_profile_line() {
+    local name="$1"
+    local proto="" iface="" handshake="-"
+    if [[ -n "${name}" && -f "$(get_vpn_profile_dir "${name}")/meta" ]]; then
+        proto="$(get_vpn_meta "${name}" proto 2>/dev/null || true)"
+        iface="$(get_vpn_meta "${name}" iface 2>/dev/null || true)"
+        if [[ -f "$(get_vpn_profile_dir "${name}")/handshake" ]]; then
+            handshake="$(tr -d '[:space:]' <"$(get_vpn_profile_dir "${name}")/handshake")"
+        fi
+        printf '%s\n' "$(get_text vpn.status.line "${name}" "${proto}" "${iface}" "${handshake}")"
+    else
+        printf '%s\n' "$(get_text vpn.status.none)"
+    fi
+}
+
+# A live tunnel reports success. An armed idle state reports a failure.
+finish_vpn_status() {
+    local name="$1"
+    local armed="$2"
+    local code=0
+    if [[ -n "${name}" ]] && check_vpn_tunnel "${name}"; then
+        code=0
+    elif [[ "${armed}" -eq 1 ]]; then
+        code=1
+    fi
+    exit "${code}"
+}
+
 show_vpn_status() {
-    local armed=0 name proto iface handshake count code=0 mode
+    local armed=0 name count mode
     load_vpn_settings
     mode="${VPN_MODE:-off}"
     printf '%s\n' "$(get_text vpn.status.mode "${mode}")"
@@ -154,29 +196,12 @@ show_vpn_status() {
     if [[ -z "${name}" && "${armed}" -eq 1 ]]; then
         name="${VPN_BOOT_PROFILE:-}"
     fi
-    proto=""
-    iface=""
-    handshake="-"
-    if [[ -n "${name}" && -f "$(get_vpn_profile_dir "${name}")/meta" ]]; then
-        proto="$(get_vpn_meta "${name}" proto 2>/dev/null || true)"
-        iface="$(get_vpn_meta "${name}" iface 2>/dev/null || true)"
-        if [[ -f "$(get_vpn_profile_dir "${name}")/handshake" ]]; then
-            handshake="$(tr -d '[:space:]' < "$(get_vpn_profile_dir "${name}")/handshake")"
-        fi
-        printf '%s\n' "$(get_text vpn.status.line "${name}" "${proto}" "${iface}" "${handshake}")"
-    else
-        printf '%s\n' "$(get_text vpn.status.none)"
-    fi
+    show_vpn_profile_line "${name}"
     if [[ "${armed}" -eq 1 ]]; then
         count="$(get_vpn_bypass_count)"
         printf '%s\n' "$(get_text vpn.status.bypass "${count}")"
     fi
-    if [[ -n "${name}" ]] && check_vpn_tunnel "${name}"; then
-        code=0
-    elif [[ "${armed}" -eq 1 ]]; then
-        code=1
-    fi
-    exit "${code}"
+    finish_vpn_status "${name}" "${armed}"
 }
 
 list_vpn_profiles() {
@@ -206,7 +231,7 @@ list_vpn_profiles() {
         done
     done
     shopt -u nullglob
-    if (( found == 0 )); then
+    if ((found == 0)); then
         printf '%s\n' "$(get_text vpn.list.empty)"
     fi
 }
@@ -278,7 +303,7 @@ case "${cmd}" in
     import)
         [[ $# -eq 4 ]] || show_vpn_usage
         case "$1" in
-            wireguard|openvpn) install_vpn_bundle "$1" "$2" "$3" "$4" ;;
+            wireguard | openvpn) install_vpn_bundle "$1" "$2" "$3" "$4" ;;
             *) show_vpn_usage ;;
         esac
         ;;

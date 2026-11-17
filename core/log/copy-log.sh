@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/copy-log.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Copy install journals and keep only the tail of a long file.
+# Note       : A private path is left in place.
+# -----------------------------------------------------------------------------
 
 
 collect_manual() {
@@ -31,41 +37,65 @@ log_note() {
     local snap="${INSTALL_LOG_DIR:-}"
     [[ -n "${snap}" ]] || return 0
     mkdir -p "${snap}/snapshot"
-    printf '%s\n' "$1" >> "${snap}/snapshot/truncated.txt"
+    printf '%s\n' "$1" >>"${snap}/snapshot/truncated.txt"
+}
+
+# The caller owns copy_stopped. A stop leaves the mode unchanged.
+copy_compressed_log() {
+    local src="$1"
+    local dest="$2"
+    local size="$3"
+    local max="$4"
+    if [[ "${size}" -gt "${max}" ]]; then
+        log_note "$(get_text log.ignored-compressed-octets "${size}" "${src}")"
+        copy_stopped=1
+        return 0
+    fi
+    cp -f -- "${src}" "${dest}" 2>/dev/null || copy_stopped=1
+    return 0
+}
+
+# The caller owns copy_stopped. A long plain file keeps only its final bytes.
+copy_plain_log() {
+    local src="$1"
+    local dest="$2"
+    local size="$3"
+    local max="$4"
+    if [[ "${size}" -gt "${max}" ]]; then
+        tail -c "${max}" "${src}" >"${dest}" 2>/dev/null || copy_stopped=1
+        if [[ "${copy_stopped}" -eq 0 ]]; then
+            log_note "$(get_text log.end-of-file-only-octets-kept "${size}" "${max}" "${src}")"
+        fi
+        return 0
+    fi
+    cp -f -- "${src}" "${dest}" 2>/dev/null || copy_stopped=1
+    return 0
 }
 
 copy_log_file() {
     local src="$1"
     local dest="$2"
-    local max size
+    local max="" size="" copy_stopped=0
     [[ -f "${src}" ]] || return 0
     if check_log_path_private "${src}"; then
         return 0
     fi
-    [[ -r "${src}" ]] || {
+    if [[ ! -r "${src}" ]]; then
         log_note "illisible ${src}"
         return 0
-    }
+    fi
     max="$(get_log_copy_limit)"
     size="$(stat -c '%s' "${src}" 2>/dev/null || echo 0)"
     mkdir -p "$(dirname "${dest}")"
     case "${src}" in
-        *.gz|*.xz|*.zst)
-            if [[ "${size}" -gt "${max}" ]]; then
-                log_note "$(get_text log.ignored-compressed-octets "${size}" "${src}")"
-                return 0
-            fi
-            cp -f -- "${src}" "${dest}" 2>/dev/null || return 0
+        *.gz | *.xz | *.zst)
+            copy_compressed_log "${src}" "${dest}" "${size}" "${max}"
             ;;
         *)
-            if [[ "${size}" -gt "${max}" ]]; then
-                tail -c "${max}" "${src}" > "${dest}" 2>/dev/null || return 0
-                log_note "$(get_text log.end-of-file-only-octets-kept "${size}" "${max}" "${src}")"
-            else
-                cp -f -- "${src}" "${dest}" 2>/dev/null || return 0
-            fi
+            copy_plain_log "${src}" "${dest}" "${size}" "${max}"
             ;;
     esac
+    [[ "${copy_stopped}" -eq 0 ]] || return 0
     chmod 644 "${dest}" 2>/dev/null || true
 }
 
@@ -130,7 +160,7 @@ copy_unit_journals() {
     mkdir -p "${snap}/journal"
     for unit in "$@"; do
         systemctl cat "${unit}" >/dev/null 2>&1 || continue
-        journalctl -u "${unit}" -b --no-pager -n 2000 > "${snap}/journal/${unit}.log" 2>&1 || true
+        journalctl -u "${unit}" -b --no-pager -n 2000 >"${snap}/journal/${unit}.log" 2>&1 || true
         chmod 644 "${snap}/journal/${unit}.log" 2>/dev/null || true
     done
     return 0

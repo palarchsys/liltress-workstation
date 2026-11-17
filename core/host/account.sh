@@ -1,33 +1,39 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/account.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
 
 
+# -----------------------------------------------------------------------------
+# Purpose    : Build the table of desktop accounts and compare it with the saved file.
+# Note       : Virtual groups are ignored before the tables are compared.
+# -----------------------------------------------------------------------------
+
+
+# The invoking account is kept, unless that account is root.
 get_current_user() {
-    local u="${SUDO_USER:-${USER:-}}"
-    if [[ -z "$u" || "$u" == "root" ]]; then
-        u="$(awk -F: '$3 >= 1000 && $3 < 65534 && $1 != "nobody" { print $1; exit }' /etc/passwd)"
+    local login="${SUDO_USER:-${USER:-}}"
+    if [[ -z "$login" || "$login" == "root" ]]; then
+        login="$(awk -F: '$3 >= 1000 && $3 < 65534 && $1 != "nobody" { print $1; exit }' /etc/passwd)"
     fi
-    if [[ -z "$u" ]]; then
+    if [[ -z "$login" ]]; then
         log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.16"
     fi
-    CURRENT_USER="$u"
+    CURRENT_USER="$login"
     CURRENT_GROUP="$(id -gn "$CURRENT_USER")"
     CURRENT_HOME="$(getent passwd "$CURRENT_USER" | awk -F: '{print $6}')"
     export CURRENT_USER CURRENT_GROUP CURRENT_HOME
 }
 
-# Ubuntu itself, release 26.04 or newer. A derivative is refused.
-
+# A desktop account has a home directory and a usable shell.
 check_desktop_account() {
     local uid="$1" home="$2" shell="$3"
     [[ "${uid}" -ge 1000 && "${uid}" -lt 60000 ]] || return 1
     [[ "${home}" == /home/* ]] || return 1
     case "${shell}" in
-        */nologin|*/false) return 1 ;;
+        */nologin | */false) return 1 ;;
     esac
     return 0
 }
@@ -35,7 +41,7 @@ check_desktop_account() {
 write_account_table() {
     local dest="$1"
     local name uid gid gecos home shell groups shadow_fp maxdays
-    : > "${dest}.tmp"
+    : >"${dest}.tmp"
     while IFS=: read -r name _ uid gid gecos home shell; do
         if ! check_desktop_account "${uid}" "${home}" "${shell}"; then
             continue
@@ -43,8 +49,8 @@ write_account_table() {
         groups="$(id -nG "${name}" | tr ' ' '\n' | LC_ALL=C sort | paste -sd, -)"
         shadow_fp="$(awk -F: -v u="${name}" '$1==u { print $2 }' /etc/shadow | sha256sum | awk '{ print $1 }')"
         maxdays="$(LANG=C LC_ALL=C chage -l "${name}" 2>/dev/null | awk -F: '/Maximum/ { gsub(/ /, "", $2); print $2 }')"
-        printf "$(get_text log.t-t-t-t-t-t-t-t "${name}" "${uid}" "${gid}" "${gecos}" "${home}" "${shell}" "${groups}" "${shadow_fp}" "${maxdays}")" >> "${dest}.tmp"
-    done < /etc/passwd
+        printf "$(get_text log.t-t-t-t-t-t-t-t "${name}" "${uid}" "${gid}" "${gecos}" "${home}" "${shell}" "${groups}" "${shadow_fp}" "${maxdays}")" >>"${dest}.tmp"
+    done </etc/passwd
     LC_ALL=C sort -o "${dest}" "${dest}.tmp"
     rm -f "${dest}.tmp"
     chmod 600 "${dest}"
@@ -57,9 +63,9 @@ record_account_snapshot() {
     chmod 700 /var/lib/liltress-workstation/accounts
     write_account_table "${ACCOUNT_SNAPSHOT}"
 
-    local n
-    n="$(wc -l < "${ACCOUNT_SNAPSHOT}" | tr -d ' ')"
-    if [[ "${n}" -lt 1 ]]; then
+    local count
+    count="$(wc -l <"${ACCOUNT_SNAPSHOT}" | tr -d ' ')"
+    if [[ "${count}" -lt 1 ]]; then
         log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.21"
     fi
 }
@@ -88,8 +94,8 @@ check_account_drift() {
     norm_base="$(mktemp)"
     norm_now="$(mktemp)"
     write_account_table "${current}"
-    strip_virt_groups < "${baseline}" > "${norm_base}"
-    strip_virt_groups < "${current}" > "${norm_now}"
+    strip_virt_groups <"${baseline}" >"${norm_base}"
+    strip_virt_groups <"${current}" >"${norm_now}"
     if cmp -s "${norm_base}" "${norm_now}"; then
         rm -f "${current}" "${norm_base}" "${norm_now}"
         return 0
@@ -98,5 +104,3 @@ check_account_drift() {
     rm -f "${current}" "${norm_base}" "${norm_now}"
     return 1
 }
-
-# Read one keyword from an sshd -T dump on stdin. Match ignores keyword case.

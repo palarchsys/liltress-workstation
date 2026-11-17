@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/install.sh
-# Updated at : 2026-11-13
+# Updated at : 2026-11-17
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Install the product tree from the GitHub archive.
+# Note       : Prepared configuration returns after the archive is fetched.
+# Note       : A missing terminal stops before the tree is replaced.
+# -----------------------------------------------------------------------------
+
 
 set -euo pipefail
 
@@ -96,6 +104,11 @@ restore_kept() {
         cp -a "${tmp}/keep/scan-skip.paths" "${INSTALL_ROOT}/config/clamav/scan-skip.paths"
         chmod 644 "${INSTALL_ROOT}/config/clamav/scan-skip.paths"
     fi
+    apply_kept_runtime
+}
+
+# Saved runtime directories return beside the configuration files.
+apply_kept_runtime() {
     local name
     for name in docker secrets; do
         if [[ -d "${tmp}/keep/${name}" ]]; then
@@ -150,7 +163,7 @@ if [[ -n "$(find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -print -quit)" ]]; th
             exec 3<&-
             label="$(get_text install.continue-o-n)"
             width="${#label}"
-            if (( width < 12 )); then
+            if ((width < 12)); then
                 width=12
             fi
             printf '\n         \e[34m%*s\e[0m : ' "${width}" "${label}" >&2
@@ -171,7 +184,7 @@ if [[ -n "$(find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -print -quit)" ]]; th
         exit 0
     fi
     case "${answer}" in
-        O|o) accepted=1 ;;
+        O | o) accepted=1 ;;
         *)
             if declare -F log_info >/dev/null 2>&1; then
                 log_info "${INSTALL_WATCHER}" "install.stopped"
@@ -244,7 +257,7 @@ if [[ "${accepted}" -eq 0 ]]; then
         exec 3<&-
         label="$(get_text install.continue-o-n)"
         width="${#label}"
-        if (( width < 12 )); then
+        if ((width < 12)); then
             width=12
         fi
         printf '\n         \e[34m%*s\e[0m : ' "${width}" "${label}" >&2
@@ -254,7 +267,7 @@ if [[ "${accepted}" -eq 0 ]]; then
         exit 0
     fi
     case "${answer}" in
-        O|o) ;;
+        O | o) ;;
         *)
             log_info "${INSTALL_WATCHER}" "install.stopped"
             exit 0

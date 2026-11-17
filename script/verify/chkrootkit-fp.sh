@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/verify/chkrootkit-fp.sh
-# Updated at : 2026-11-11
+# Updated at : 2026-11-15
 # Creator    : palarchsys
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Show the quiet chkrootkit result so later exclusions can be built from the output.
+# Note       : The text catalog must be present, and the command must be root.
+# -----------------------------------------------------------------------------
+
 
 set +e
 _text_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -63,7 +70,7 @@ version="$(chkrootkit -V 2>&1 | head -5)"
 } | tee "${log_file}"
 
 echo "$(get_text log.the-check-can-take-several-minutes)"
-chkrootkit -q >> "${log_file}" 2>&1
+chkrootkit -q >>"${log_file}" 2>&1
 rc=$?
 
 if [[ "$(tail -n 1 "${log_file}")" == "===== SORTIE =====" ]]; then
