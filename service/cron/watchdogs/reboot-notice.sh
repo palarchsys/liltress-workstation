@@ -23,22 +23,32 @@ MODULE_NAME="reboot"
 arm_crash_mail "avis de redémarrage"
 
 pkgs=""
+extra=""
 if [[ -f /var/run/reboot-required.pkgs ]]; then
     pkgs="$(sed '/^$/d' /var/run/reboot-required.pkgs)"
+    extra="${pkgs}"
 fi
-if [[ ! -f /var/run/reboot-required && -z "${pkgs}" ]]; then
+if command -v fwupdmgr >/dev/null 2>&1; then
+    fw=""
+    fw_rc=0
+    fw="$(timeout 20 fwupdmgr get-updates 2>/dev/null)" || fw_rc=$?
+    if [[ "${fw_rc}" -eq 0 && -n "${fw}" ]] && ! grep -qiE 'no updates available|no available firmware updates|no updatable devices' <<<"${fw}"; then
+        extra="${extra}"$'\n'"${fw}"
+    fi
+fi
+if [[ ! -f /var/run/reboot-required && -z "${extra}" ]]; then
     log_pass "$(get_text watchdog.no-restart-useful)"
     exit 0
 fi
 
 seen="${BASE}/cron/reboot-notice.seen"
-digest="$(printf '%s' "${pkgs}" | sha256sum | awk '{print $1}')"
+digest="$(printf '%s' "${extra}" | sha256sum | awk '{print $1}')"
 if [[ -f "${seen}" ]] && [[ "$(cat "${seen}")" == "${digest}" ]]; then
     log_pass "$(get_text watchdog.avis-of-restart-already-sent)"
     exit 0
 fi
 TITLE="$(get_text alert.mail.reboot.title)"
-MAIL_EXTRA="${pkgs}"
+MAIL_EXTRA="${extra}"
 MAIL_EXTRA_TITLE="$(get_text mail.reboot.packages)"
 MAIL_JOURNAL_ONLY=1
 export TITLE MAIL_EXTRA MAIL_EXTRA_TITLE MAIL_JOURNAL_ONLY
