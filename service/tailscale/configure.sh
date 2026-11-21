@@ -26,8 +26,8 @@ open_tailscale_ufw() {
     run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw allow in on tailscale0 to any port "${SSH_PORT}" proto tcp comment "OpenSSH via Tailscale only"
     run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw deny in on tailscale0 comment "Tailscale ingress is SSH only"
     run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw allow out on tailscale0 to any port "${SSH_PORT}" proto tcp comment "Workstation SSH toward tailnet"
-    run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw deny route out on tailscale0 comment "No route out via Tailscale"
-    run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw deny route in on tailscale0 comment "No route in via Tailscale"
+    run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw route deny out on tailscale0 comment "No route out via Tailscale"
+    run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw route deny in on tailscale0 comment "No route in via Tailscale"
 }
 
 run_tailscale_session
