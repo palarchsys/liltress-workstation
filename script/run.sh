@@ -58,39 +58,6 @@ trap install_exit EXIT
 source "${INSTALL_DIRECTORY}/service/unbound/dns.sh"
 clear_dns_override
 
-# The message uses the alert template and the project name.
-send_test_mail() {
-    if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
-        if [[ -z "${WATCHDOG_MAIL:-}" ]]; then
-            log_error "${INSTALL_WATCHER}" "log.g-watchdog-mail-is-empty-l-e-mail-of-end-of-inst"
-        fi
-        log_info "${INSTALL_WATCHER}" "log.send-of-the-e-mail-of-test-to" "${WATCHDOG_MAIL}"
-        mail_host="$(hostname -s 2>/dev/null || hostname)"
-        mail_date="$(date '+%Y-%m-%d %H:%M:%S')"
-        export TITLE="$(get_text mail.install.test.title)"
-        export MODULE_NAME="${TITLE}"
-        export PROJECT_NAME
-        export WATCHDOG_MAIL
-        export HOSTNAME="${mail_host}"
-        export DATE="${mail_date}"
-        export MAIL_SUBTITLE="${PROJECT_NAME} • ${mail_host} • ${mail_date}"
-        export MAIL_FOOTER="${PROJECT_NAME}"
-        export MAIL_BLOCK_SERVICES="$(get_text mail.install.test.block)"
-        export MAIL_SERVICES="$(get_text mail.install.test.body)"
-        export CONTENT="${MAIL_SERVICES}"
-        export MAIL_FILES=""
-        export MAIL_ACTIONS=""
-        export MAIL_IGNORE=""
-        export MAIL_TEMPLATE_FILE="${INSTALL_DIRECTORY}/service/cron/watchdogs/mail-alert.html"
-        if ! bash "${INSTALL_DIRECTORY}/service/cron/watchdogs/send.sh"; then
-            log_error "${INSTALL_WATCHER}" "log.l-e-mail-of-test-toward-was-not-accepted-by-post" "${WATCHDOG_MAIL}"
-        fi
-        log_success "${INSTALL_WATCHER}" "log.e-mail-of-test-sent-to" "${WATCHDOG_MAIL}"
-    else
-        log_info "${INSTALL_WATCHER}" "log.alerts-e-mail-off-no-message-of-end-not-is-sent"
-    fi
-}
-
 # A pending kernel or service change requests a reboot.
 show_reboot_notice() {
     set_step_hidden "$(get_text run.close.done)"
@@ -124,9 +91,6 @@ run_install_action() {
             run_silent_apt "${INSTALL_WATCHER}" "update" "run.script.error"
             run_silent_apt "${INSTALL_WATCHER}" "-o APT::Get::Always-Include-Phased-Updates=true upgrade -y --with-new-pkgs" "run.script.error"
             log_success "${INSTALL_WATCHER}" "log.fixes-of-security-installed"
-            ;;
-        test-mail)
-            send_test_mail
             ;;
         reboot-notice)
             show_reboot_notice

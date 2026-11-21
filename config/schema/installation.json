@@ -337,11 +337,6 @@
       "id": "install.close.title",
       "steps": [
         {
-          "id": "install.test-mail",
-          "service": "mail",
-          "action": "test-mail"
-        },
-        {
           "id": "install.cron.enable",
           "service": "cron",
           "path": "service/cron/enable.sh"

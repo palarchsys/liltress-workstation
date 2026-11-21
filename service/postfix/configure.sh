@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/postfix/configure.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -66,3 +66,4 @@ if ! systemctl is-active --quiet postfix; then
     log_error "${INSTALL_WATCHER}" "configure.postfix-is-not-active-after-the-configuration"
 fi
 log_success "${INSTALL_WATCHER}" "configure.postfix-enabled-listens-limited-to-localhost"
+confirm_install_test_mail

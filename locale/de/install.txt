@@ -78,7 +78,13 @@ Start der Konfiguration.
 Start der Fragen.\n\n
 
 [install.continue-o-n]
-Installation fortsetzen? [O/N] 
+Installation fortsetzen? [O/N]
+
+[install.confirm-title]
+Bestätigung
+
+[install.mail-test-received]
+Ist die Testnachricht angekommen? [O/N] 
 
 [install.no-terminal]
 Kein Terminal für die Frage. Abbruch.

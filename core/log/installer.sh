@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/installer.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -23,6 +23,28 @@ ask() {
     printf '         \e[34m%*s\e[0m : ' "${width}" "${label}" >&2
     IFS= read -r value </dev/tty || log_error "${INSTALL_WATCHER:-BASH}" "install.log.error.2"
     printf -v "${__var}" '%s' "${value}"
+}
+
+# O keeps going. Any other answer, or no terminal, tells the caller to stop.
+ask_yes() {
+    local label="$1"
+    local width answer=""
+    width="${#label}"
+    if ((width < 12)); then
+        width=12
+    fi
+    printf '\n' >&2
+    show_title_box "$(get_text install.confirm-title)"
+    printf '\n         \e[34m%*s\e[0m : ' "${width}" "${label}" >&2
+    if [[ ! -r /dev/tty ]]; then
+        log_info "${INSTALL_WATCHER:-BASH}" "install.no-terminal"
+        return 1
+    fi
+    IFS= read -r answer </dev/tty || answer=""
+    case "${answer}" in
+        O | o) return 0 ;;
+    esac
+    return 1
 }
 
 # The path is absolute, present, and free of blanks.

@@ -78,7 +78,13 @@ Lancement de la configuration.
 Lancement des questions.\n\n
 
 [install.continue-o-n]
-Continuer l'installation ? [O/N] 
+Continuer l'installation ? [O/N]
+
+[install.confirm-title]
+Confirmation
+
+[install.mail-test-received]
+Le courrier de test est-il arrivé ? [O/N] 
 
 [install.no-terminal]
 Pas de terminal pour la question. Arrêt.
