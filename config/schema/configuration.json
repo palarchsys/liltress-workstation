@@ -140,7 +140,7 @@
       "required": true,
       "minimum": 1,
       "maximum": 10,
-      "default": 4
+      "default": 3
     },
     {
       "name": "SSH_CLIENT_ALIVE_INTERVAL",
@@ -154,6 +154,28 @@
     },
     {
       "name": "SSH_CLIENT_ALIVE_COUNT_MAX",
+      "file": "global.conf",
+      "lot": "ssh",
+      "kind": "integer",
+      "required": true,
+      "minimum": 0,
+      "maximum": 10,
+      "default": 0
+    },
+    {
+      "name": "SSH_TCP_KEEPALIVE",
+      "file": "global.conf",
+      "lot": "ssh",
+      "kind": "choice",
+      "required": true,
+      "choices": [
+        "yes",
+        "no"
+      ],
+      "default": "no"
+    },
+    {
+      "name": "SSH_MAX_SESSIONS",
       "file": "global.conf",
       "lot": "ssh",
       "kind": "integer",
@@ -232,7 +254,7 @@
       "required": true,
       "minimum": 10,
       "maximum": 120,
-      "default": 30
+      "default": 20
     },
     {
       "name": "PAM_PASSWORD_MIN_LENGTH",
@@ -252,7 +274,7 @@
       "required": true,
       "minimum": 3,
       "maximum": 20,
-      "default": 8
+      "default": 5
     },
     {
       "name": "FAILLOCK_UNLOCK",
@@ -262,7 +284,7 @@
       "required": true,
       "minimum": 60,
       "maximum": 86400,
-      "default": 600
+      "default": 900
     },
     {
       "name": "FAILLOCK_FAIL_INTERVAL",
@@ -287,6 +309,72 @@
         "es"
       ],
       "default": "fr"
+    },
+    {
+      "name": "SSH_USER",
+      "file": "user.conf",
+      "lot": "account",
+      "kind": "user",
+      "required": true,
+      "pattern": "^[a-z_][a-z0-9_-]{0,31}$",
+      "exclude": [
+        "root",
+        "daemon",
+        "bin",
+        "sys",
+        "sync",
+        "games",
+        "man",
+        "lp",
+        "mail",
+        "news",
+        "uucp",
+        "proxy",
+        "www-data",
+        "backup",
+        "list",
+        "irc",
+        "nobody"
+      ],
+      "default": "drawbridge"
+    },
+    {
+      "name": "SSH_GROUP",
+      "file": "user.conf",
+      "lot": "account",
+      "kind": "user",
+      "required": true,
+      "pattern": "^[a-z_][a-z0-9_-]{0,31}$",
+      "exclude": [
+        "root",
+        "daemon",
+        "bin",
+        "sys",
+        "sync",
+        "games",
+        "man",
+        "lp",
+        "mail",
+        "news",
+        "uucp",
+        "proxy",
+        "www-data",
+        "backup",
+        "list",
+        "irc",
+        "nobody"
+      ],
+      "default": "drawbridge"
+    },
+    {
+      "name": "SSH_PORT",
+      "file": "user.conf",
+      "lot": "account",
+      "kind": "integer",
+      "required": true,
+      "minimum": 1024,
+      "maximum": 65535,
+      "default": 2501
     },
     {
       "name": "SECRET_PREPARED",
@@ -400,6 +488,14 @@
         "name": "MAIL_ALERTS",
         "value": "0"
       }
+    },
+    {
+      "name": "TAILSCALE_AUTH_KEY",
+      "file": "secrets.conf",
+      "lot": "token",
+      "kind": "secret",
+      "required": true,
+      "pattern": "^tskey-auth-[A-Za-z0-9_-]{10,200}$"
     }
   ]
 }

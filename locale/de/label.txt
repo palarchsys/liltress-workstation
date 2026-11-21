@@ -4,6 +4,18 @@ Sprache
 [LABEL_UBUNTU_PRO_TOKEN]
 Ubuntu-Pro-Token
 
+[LABEL_TAILSCALE_AUTH_KEY]
+Tailscale-Authentifizierungsschlüssel
+
+[LABEL_SSH_USER]
+SSH-Konto
+
+[LABEL_SSH_GROUP]
+SSH-Gruppe
+
+[LABEL_SSH_PORT]
+SSH-Port
+
 [LABEL_MAIL_ALERTS]
 E-Mail-Alarme
 
@@ -58,6 +70,12 @@ SSH-Keepalive-Anzahl
 [LABEL_SSH_LOGIN_GRACE_TIME]
 SSH-Anmeldefrist
 
+[LABEL_SSH_TCP_KEEPALIVE]
+SSH-TCP-Keepalive
+
+[LABEL_SSH_MAX_SESSIONS]
+SSH-Sitzungslimit
+
 [LABEL_WATCHDOG_CPU_LIMIT]
 CPU-Limit der Überwachung
 
@@ -90,9 +108,6 @@ Hauptkonto
 
 [LABEL_MAIN_GROUP]
 Hauptgruppe
-
-[LABEL_SSH_PORT]
-SSH-Port
 
 [LABEL_MODE_TEST]
 Testmodus

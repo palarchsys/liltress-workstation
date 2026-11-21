@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/state.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -192,7 +192,7 @@ refresh_vpn_state() {
 
 restart_vpn_services() {
     local unit
-    for unit in unbound.service systemd-resolved.service; do
+    for unit in unbound.service systemd-resolved.service tailscaled.service; do
         if systemctl cat "${unit}" >/dev/null 2>&1; then
             systemctl try-restart "${unit}" >/dev/null 2>&1 || true
         fi
@@ -202,5 +202,8 @@ restart_vpn_services() {
     fi
     if declare -F log_info >/dev/null 2>&1; then
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.service.restart"
+        if systemctl cat tailscaled.service >/dev/null 2>&1; then
+            log_info "${INSTALL_WATCHER:-BASH}" "vpn.service.tailscale"
+        fi
     fi
 }

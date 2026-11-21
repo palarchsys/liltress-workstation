@@ -69,14 +69,20 @@ set_config_default() {
     : "${LYNIS_MIN_SCORE:=80}"
     : "${SSH_BANNER_PATH:=/etc/ssh/sshd_banner}"
     : "${SSH_SERVICE_NAME:=ssh}"
-    : "${SSH_MAX_AUTH_TRIES:=4}"
+    : "${SSH_MAX_AUTH_TRIES:=3}"
     : "${SSH_CLIENT_ALIVE_INTERVAL:=300}"
-    : "${SSH_CLIENT_ALIVE_COUNT_MAX:=2}"
-    : "${SSH_LOGIN_GRACE_TIME:=30}"
+    : "${SSH_CLIENT_ALIVE_COUNT_MAX:=0}"
+    : "${SSH_LOGIN_GRACE_TIME:=20}"
+    : "${SSH_TCP_KEEPALIVE:=no}"
+    : "${SSH_MAX_SESSIONS:=2}"
     : "${PAM_PASSWORD_MIN_LENGTH:=12}"
-    : "${FAILLOCK_DENY:=8}"
-    : "${FAILLOCK_UNLOCK:=600}"
+    : "${FAILLOCK_DENY:=5}"
+    : "${FAILLOCK_UNLOCK:=900}"
     : "${FAILLOCK_FAIL_INTERVAL:=900}"
+    : "${SSH_USER:=drawbridge}"
+    : "${SSH_GROUP:=drawbridge}"
+    : "${SSH_PORT:=2501}"
+    : "${TAILSCALE_AUTH_KEY:=}"
     : "${WATCHDOG_CPU_LIMIT:=50}"
     : "${WATCHDOG_LIMIT_NICE:=19}"
     : "${WATCHDOG_LIMIT_IO_NICE:=3}"
@@ -118,6 +124,8 @@ SSH_SERVICE_NAME="${SSH_SERVICE_NAME}"
 SSH_MAX_AUTH_TRIES=${SSH_MAX_AUTH_TRIES}
 SSH_CLIENT_ALIVE_INTERVAL=${SSH_CLIENT_ALIVE_INTERVAL}
 SSH_CLIENT_ALIVE_COUNT_MAX=${SSH_CLIENT_ALIVE_COUNT_MAX}
+SSH_TCP_KEEPALIVE=${SSH_TCP_KEEPALIVE}
+SSH_MAX_SESSIONS=${SSH_MAX_SESSIONS}
 
 WATCHDOG_CPU_LIMIT=${WATCHDOG_CPU_LIMIT}
 WATCHDOG_LIMIT_NICE=${WATCHDOG_LIMIT_NICE}
@@ -172,6 +180,9 @@ write_user_config() {
 # =============================================================================
 
 LANGUAGE="${LANGUAGE:-en}"
+SSH_USER="${SSH_USER:-drawbridge}"
+SSH_GROUP="${SSH_GROUP:-drawbridge}"
+SSH_PORT=${SSH_PORT:-2501}
 
 EOF
     chmod 644 "${dest}"
@@ -192,6 +203,7 @@ write_secret_config() {
 
 SECRET_PREPARED=1
 UBUNTU_PRO_TOKEN="${UBUNTU_PRO_TOKEN}"
+TAILSCALE_AUTH_KEY="${TAILSCALE_AUTH_KEY}"
 POSTFIX_SMTP_LOGIN="${POSTFIX_SMTP_LOGIN}"
 POSTFIX_MAIL_ADDRESS="${POSTFIX_MAIL_ADDRESS}"
 POSTFIX_MAIL_PASSWORD="${POSTFIX_MAIL_PASSWORD}"
@@ -249,8 +261,10 @@ check_prepared_ssh() {
     local label_g="$1"
     check_port "${SSH_MAX_AUTH_TRIES:-x}" 1 10 || log_config_error "$(get_text configure.g-ssh-max-auth-tries-invalid-example-4 "${label_g}" "${SSH_MAX_AUTH_TRIES:-}")"
     check_port "${SSH_CLIENT_ALIVE_INTERVAL:-x}" 30 3600 || log_config_error "$(get_text configure.g-ssh-client-alive-interval-invalid-example-300 "${label_g}" "${SSH_CLIENT_ALIVE_INTERVAL:-}")"
-    check_port "${SSH_CLIENT_ALIVE_COUNT_MAX:-x}" 1 10 || log_config_error "$(get_text configure.g-ssh-client-alive-count-max-invalid-example-2 "${label_g}" "${SSH_CLIENT_ALIVE_COUNT_MAX:-}")"
+    check_port "${SSH_CLIENT_ALIVE_COUNT_MAX:-x}" 0 10 || log_config_error "$(get_text configure.g-ssh-client-alive-count-max-invalid-example-2 "${label_g}" "${SSH_CLIENT_ALIVE_COUNT_MAX:-}")"
     check_port "${SSH_LOGIN_GRACE_TIME:-x}" 10 120 || log_config_error "$(get_text configure.w-ssh-login-grace-time-invalid-example-30 "${label_g}" "${SSH_LOGIN_GRACE_TIME:-}")"
+    check_port "${SSH_MAX_SESSIONS:-x}" 1 10 || log_config_error "$(get_text configure.g-ssh-max-auth-tries-invalid-example-4 "${label_g}" "${SSH_MAX_SESSIONS:-}")"
+    [[ "${SSH_TCP_KEEPALIVE:-}" == "yes" || "${SSH_TCP_KEEPALIVE:-}" == "no" ]] || log_config_error "$(get_text configure.g-ssh-service-name-invalid-example-ssh "${label_g}" "${SSH_TCP_KEEPALIVE:-}")"
 }
 
 # The password length and the lockout timings stay inside their ranges.

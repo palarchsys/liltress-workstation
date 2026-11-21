@@ -4,6 +4,18 @@ Idioma
 [LABEL_UBUNTU_PRO_TOKEN]
 Token de Ubuntu Pro
 
+[LABEL_TAILSCALE_AUTH_KEY]
+Clave de autenticación de Tailscale
+
+[LABEL_SSH_USER]
+Cuenta SSH
+
+[LABEL_SSH_GROUP]
+Grupo SSH
+
+[LABEL_SSH_PORT]
+Puerto SSH
+
 [LABEL_MAIL_ALERTS]
 Alertas por correo
 
@@ -58,6 +70,12 @@ Número de keepalives SSH
 [LABEL_SSH_LOGIN_GRACE_TIME]
 Tiempo de gracia de conexión SSH
 
+[LABEL_SSH_TCP_KEEPALIVE]
+Keepalive TCP de SSH
+
+[LABEL_SSH_MAX_SESSIONS]
+Límite de sesiones SSH
+
 [LABEL_WATCHDOG_CPU_LIMIT]
 Límite de CPU del control
 
@@ -90,9 +108,6 @@ Cuenta principal
 
 [LABEL_MAIN_GROUP]
 Grupo principal
-
-[LABEL_SSH_PORT]
-Puerto SSH
 
 [LABEL_MODE_TEST]
 Modo de prueba

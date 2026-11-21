@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/install.txt
-# Updated at : 2026-11-14
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -1295,3 +1295,15 @@ Installierender Benutzer fehlt.
 
 [install.sudoers.invalid]
 sudoers-Datei abgelehnt.
+
+[install.tailscale.start]
+Installation von Tailscale
+
+[install.tailscale.suite]
+Tailscale-Suite {1}
+
+[install.tailscale.missing]
+Das Tailscale-Paket fehlt.
+
+[install.tailscale.ready]
+Tailscale-Dienst aktiviert.

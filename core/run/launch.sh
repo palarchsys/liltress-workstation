@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/run/launch.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -196,6 +196,12 @@ launch_maintain_host() {
             ;;
         mail)
             launch_exec "${root}" "${root}/core/mail/mail-test.sh" "$@"
+            ;;
+        ssh-close)
+            if [[ ! -f "${root}/script/ssh-close.sh" ]]; then
+                return 1
+            fi
+            launch_exec "${root}" "${root}/script/ssh-close.sh" "$@"
             ;;
         *)
             return 1

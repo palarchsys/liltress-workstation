@@ -6,7 +6,7 @@
 
 [DEFAULT]
 ignoreip = 127.0.0.1/8 ::1
-allowipv6 = auto
+allowipv6 = no
 banaction = ufw
 banaction_allports = ufw
 bantime = 1h
@@ -20,5 +20,5 @@ port = ${SSH_PORT}
 filter = sshd
 logpath = /var/log/auth.log
 backend = systemd
-maxretry = 5
-bantime = 1h
+maxretry = 3
+bantime = 1d

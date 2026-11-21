@@ -54,11 +54,10 @@ root_unlock_time = ${FAILLOCK_UNLOCK}
 EOF
 sed -i '/pam_faillock\.so/d' /etc/pam.d/common-auth /etc/pam.d/common-account 2>/dev/null || true
 install -m 644 "$(locate_config_file system/pam-configs/faillock)" /usr/share/pam-configs/faillock
-install -m 644 "$(locate_config_file system/pam-configs/faillock-preauth)" /usr/share/pam-configs/faillock-preauth
+rm -f /usr/share/pam-configs/faillock-preauth
 export DEBIAN_FRONTEND=noninteractive
 pam-auth-update --force
-
-pam-auth-update --enable faillock faillock-preauth --force
+pam-auth-update --enable faillock --remove faillock-preauth --force
 log_success "${INSTALL_WATCHER}" "configure.pam-faillock-configured"
 
 log_info "${INSTALL_WATCHER}" "configure.hardening-of-login-defs-umask-and-faillog-existi"

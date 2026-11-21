@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/configure.txt
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -1849,3 +1849,27 @@ Application sysctl forwarding Docker
 
 [configure.swap-mapping-failed]
 {1}
+
+[configure.tailscale.up]
+Verbindung von Tailscale
+
+[configure.tailscale.ready]
+Tailscale ist verbunden.
+
+[configure.tailscale.key]
+Der Tailscale-Schlüssel wird abgelehnt.
+
+[configure.tailscale.bad]
+Die Tailscale-Verbindung wird abgelehnt.
+
+[configure.tailscale.closed]
+Öffentlicher SSH-Zugang entfernt.
+
+[configure.ssh-close.ask]
+Öffentliches SSH schließen? [o/N]
+
+[configure.ssh-close.kept]
+Öffentliches SSH bleibt. Befehl: sudo ./liltress maintain ssh-close
+
+[configure.ssh-close.refused]
+Öffentliches SSH bleibt bestehen.

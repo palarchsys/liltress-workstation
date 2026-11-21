@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/sudoers/apply.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -38,7 +38,7 @@ target_user=""
 if [[ -f "${INSTALL_DIRECTORY}/script/verify/matrix.sh" ]]; then
     target_user="${MAIN_USER:-}"
 else
-    target_user="${SUDO_USER:-}"
+    target_user="${SSH_USER:-}"
 fi
 if [[ -z "${target_user}" || "${target_user}" == "root" ]] \
     || [[ ! "${target_user}" =~ ^[A-Za-z_][A-Za-z0-9_-]*$ ]]; then
@@ -84,6 +84,8 @@ with open(path, newline="", encoding="utf-8") as handle:
         group = (row.get("group") or "").strip()
         command = (row.get("command") or "").strip()
         if group not in allowed or not command:
+            continue
+        if "maintain ssh-close" in command:
             continue
         print(command)
 PY

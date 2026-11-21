@@ -857,7 +857,7 @@ t_check_config_name() {
         global.conf|user.conf|secrets.conf) return 0 ;;
         aide/aide.conf|fail2ban/jail.local|rkhunter/rkhunter.conf.local) return 0 ;;
         system/pam-configs/faillock|system/pam-configs/faillock-preauth) return 0 ;;
-        ssh/00-liltress-workstation.conf) return 0 ;;
+        ssh/00-liltress-workstation.conf|ssh/99-liltress-workstation.conf) return 0 ;;
         vpn/vpn.conf|vpn/bypass.cidrs) return 0 ;;
         unattended-upgrades/20auto-upgrades|unattended-upgrades/51liltress-workstation) return 0 ;;
     esac

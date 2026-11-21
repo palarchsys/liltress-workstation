@@ -177,6 +177,7 @@ template_name = shaped(
     required=True,
 )
 pro_token = shaped("secret", r"^[A-Za-z0-9]{6,100}$", required=True)
+tailscale_key = shaped("secret", r"^tskey-auth-[A-Za-z0-9_-]{10,200}$", required=True)
 secret_value = shaped(
     "secret",
     r"^[A-Za-z0-9@#%+=:./_-]{16,128}$",
@@ -197,6 +198,7 @@ watchdog_io = integer(0, 7, required=True)
 put_both("LANGUAGE", "language", True, languages)
 put_both("MAIL_ALERTS", "alerts", True, flag())
 put("workstation", "UBUNTU_PRO_TOKEN", "token", True, pro_token)
+put_both("TAILSCALE_AUTH_KEY", "token", True, tailscale_key)
 put(
     "server",
     "UBUNTU_PRO_TOKEN",
@@ -292,7 +294,18 @@ put("workstation", "LYNIS_MIN_SCORE", "audit", True, integer(0, 100, required=Tr
 put("workstation", "SSH_SERVICE_NAME", "ssh", True, choice(("ssh",), required=True))
 put("workstation", "SSH_MAX_AUTH_TRIES", "ssh", True, integer(1, 10, required=True))
 put("workstation", "SSH_CLIENT_ALIVE_INTERVAL", "ssh", True, integer(30, 3600, required=True))
-put("workstation", "SSH_CLIENT_ALIVE_COUNT_MAX", "ssh", True, integer(1, 10, required=True))
+put("workstation", "SSH_CLIENT_ALIVE_COUNT_MAX", "ssh", True, integer(0, 10, required=True))
+put("workstation", "SSH_TCP_KEEPALIVE", "ssh", True, choice(("yes", "no"), required=True))
+put("workstation", "SSH_MAX_SESSIONS", "ssh", True, integer(1, 10, required=True))
+put("workstation", "SSH_USER", "account", True, user_name)
+put("workstation", "SSH_GROUP", "account", True, user_name)
+put(
+    "workstation",
+    "SSH_PORT",
+    "account",
+    True,
+    integer(1024, 65535, required=True),
+)
 put("workstation", "SSH_LOGIN_GRACE_TIME", "ssh", True, integer(10, 120, required=True))
 put("workstation", "PAM_PASSWORD_MIN_LENGTH", "pam", True, integer(8, 32, required=True))
 put("workstation", "FAILLOCK_DENY", "pam", True, integer(3, 20, required=True))
@@ -370,6 +383,12 @@ put(
 put("server", "SSH_MAX_AUTH_TRIES", "ssh", True, integer(1, 10, required=True))
 put("server", "SSH_CLIENT_ALIVE_INTERVAL", "ssh", True, integer(0, 3600, required=True))
 put("server", "SSH_CLIENT_ALIVE_COUNT_MAX", "ssh", True, integer(0, 10, required=True))
+put("server", "SSH_LOGIN_GRACE_TIME", "ssh", True, integer(10, 120, required=True))
+put("server", "SSH_TCP_KEEPALIVE", "ssh", True, choice(("yes", "no"), required=True))
+put("server", "SSH_MAX_SESSIONS", "ssh", True, integer(1, 10, required=True))
+put("server", "FAILLOCK_DENY", "pam", True, integer(3, 20, required=True))
+put("server", "FAILLOCK_UNLOCK", "pam", True, integer(60, 86400, required=True))
+put("server", "FAILLOCK_FAIL_INTERVAL", "pam", True, integer(60, 86400, required=True))
 put(
     "server",
     "UNBOUND_FORWARDERS",
@@ -705,7 +724,8 @@ for derived_name in (
     put("server", derived_name, "domain", False, {"kind": "template", "computed": True})
 
 add_lot("workstation", "language", ["LANGUAGE"])
-add_lot("workstation", "token", ["UBUNTU_PRO_TOKEN"])
+add_lot("workstation", "token", ["UBUNTU_PRO_TOKEN", "TAILSCALE_AUTH_KEY"])
+add_lot("workstation", "account", ["SSH_USER", "SSH_GROUP", "SSH_PORT"])
 add_lot("workstation", "alerts", ["MAIL_ALERTS"])
 add_lot("workstation", "mail", mail_names)
 add_lot("workstation", "identity", ["PROJECT_NAME", "PROJECT_SLUG", "PROJECT_VERSION"])
@@ -721,6 +741,8 @@ add_lot(
         "SSH_CLIENT_ALIVE_INTERVAL",
         "SSH_CLIENT_ALIVE_COUNT_MAX",
         "SSH_LOGIN_GRACE_TIME",
+        "SSH_TCP_KEEPALIVE",
+        "SSH_MAX_SESSIONS",
     ],
 )
 add_lot(
@@ -747,7 +769,8 @@ add_lot(
 add_lot("server", "language", ["LANGUAGE"])
 add_lot("server", "site", ["PROJECT_NAME", "DOMAIN"])
 add_lot("server", "account", ["MAIN_USER", "MAIN_GROUP", "SSH_PORT"])
-add_lot("server", "token", ["UBUNTU_PRO_TOKEN"])
+add_lot("server", "token", ["UBUNTU_PRO_TOKEN", "TAILSCALE_AUTH_KEY"])
+add_lot("server", "pam", ["FAILLOCK_DENY", "FAILLOCK_UNLOCK", "FAILLOCK_FAIL_INTERVAL"])
 add_lot("server", "mode", ["MODE_TEST", "MODE_DEV"])
 add_lot("server", "audit", ["LYNIS_MIN_SCORE"])
 add_lot("server", "alerts", ["MAIL_ALERTS"])
@@ -774,6 +797,9 @@ add_lot(
         "SSH_MAX_AUTH_TRIES",
         "SSH_CLIENT_ALIVE_INTERVAL",
         "SSH_CLIENT_ALIVE_COUNT_MAX",
+        "SSH_LOGIN_GRACE_TIME",
+        "SSH_TCP_KEEPALIVE",
+        "SSH_MAX_SESSIONS",
     ],
 )
 add_lot(
@@ -1145,6 +1171,26 @@ labels = {
     "MAIN_USER": {"en": "Main account", "fr": "Compte principal", "de": "Hauptkonto", "es": "Cuenta principal"},
     "MAIN_GROUP": {"en": "Main group", "fr": "Groupe principal", "de": "Hauptgruppe", "es": "Grupo principal"},
     "SSH_PORT": {"en": "SSH port", "fr": "Port SSH", "de": "SSH-Port", "es": "Puerto SSH"},
+    "SSH_USER": {"en": "SSH account", "fr": "Compte SSH", "de": "SSH-Konto", "es": "Cuenta SSH"},
+    "SSH_GROUP": {"en": "SSH group", "fr": "Groupe SSH", "de": "SSH-Gruppe", "es": "Grupo SSH"},
+    "SSH_TCP_KEEPALIVE": {
+        "en": "SSH TCP keepalive",
+        "fr": "Maintien TCP SSH",
+        "de": "SSH-TCP-Keepalive",
+        "es": "Keepalive TCP de SSH",
+    },
+    "SSH_MAX_SESSIONS": {
+        "en": "SSH session limit",
+        "fr": "Nombre de sessions SSH",
+        "de": "SSH-Sitzungslimit",
+        "es": "Límite de sesiones SSH",
+    },
+    "TAILSCALE_AUTH_KEY": {
+        "en": "Tailscale auth key",
+        "fr": "Clé d'authentification Tailscale",
+        "de": "Tailscale-Authentifizierungsschlüssel",
+        "es": "Clave de autenticación de Tailscale",
+    },
     "MODE_TEST": {"en": "Test mode", "fr": "Mode test", "de": "Testmodus", "es": "Modo de prueba"},
     "MODE_DEV": {
         "en": "Development mode",

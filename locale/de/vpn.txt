@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/vpn.txt
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -308,3 +308,6 @@ Startprofil {1}.
 
 [vpn.status.default-none]
 Kein Startprofil.
+
+[vpn.service.tailscale]
+Tailscale startet neu. Die laufende SSH-Sitzung endet.

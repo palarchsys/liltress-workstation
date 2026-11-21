@@ -5,6 +5,8 @@ Auth-Type: Primary
 Auth:
 	[default=die]			pam_faillock.so authfail
 	sufficient			pam_faillock.so authsucc
+Auth-Initial:
+	required			pam_faillock.so preauth silent
 Account-Type: Primary
 Account:
 	required			pam_faillock.so

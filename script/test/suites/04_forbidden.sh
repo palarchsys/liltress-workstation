@@ -32,7 +32,11 @@ t_check_forbidden() {
     fi
 }
 t_check_forbidden "forbid.password-no" '^[[:space:]]*PasswordAuthentication[[:space:]]+no([[:space:]]|$)'
-t_check_forbidden "forbid.allowusers" '^[[:space:]]*AllowUsers[[:space:]]'
+if grep -qF 'AllowUsers ${SSH_ACCOUNT}' "${T_ROOT}/config/ssh/00-liltress-workstation.conf"; then
+    t_pass "require.allowusers" "AllowUsers lit le compte SSH"
+else
+    t_fail "require.allowusers" "AllowUsers absent du drop-in"
+fi
 t_check_forbidden "forbid.ufw-out" 'ufw[[:space:]]+default[[:space:]]+deny[[:space:]]+outgoing'
 t_check_forbidden "forbid.ufw-reset" 'ufw[[:space:]]+--force[[:space:]]+reset'
 sysctl_file="${T_ROOT}/system/sysctl/configure.sh"
@@ -99,13 +103,16 @@ fi
 
 chpasswd_hits="$(grep -RIn --include='*.sh' --exclude-dir=test 'chpasswd' "${T_ROOT}" \
     | grep -vE ':[0-9]+:[[:space:]]*#' \
+    | grep -v 'system/users/configure.sh:' \
     | grep -v '\*chpasswd\*' \
     | grep -v 'aucun chpasswd' \
     | grep -v 'jamais chpasswd' || true)"
 if [[ -n "${chpasswd_hits}" ]]; then
     t_fail "forbid.chpasswd" "$(printf '%s' "${chpasswd_hits}" | tr '\n' ' ' | head -c 500)"
+elif ! grep -q 'chpasswd -c YESCRYPT' "${T_ROOT}/system/users/configure.sh"; then
+    t_fail "forbid.chpasswd" "le compte SSH n'a pas de hash yescrypt"
 else
-    t_pass "forbid.chpasswd" "pas d'appel chpasswd"
+    t_pass "forbid.chpasswd" "chpasswd seulement pour le compte SSH"
 fi
 
 if grep -RInE --include='*.sh' 'chmod[[:space:]]+700[[:space:]]+.*(gcc|g\+\+|/usr/bin/cc)' "${T_ROOT}" | grep -vE ':[0-9]+:[[:space:]]*#' | grep -q .; then
@@ -119,8 +126,10 @@ if [[ -f "${MONO}/server/service/ssh/00-liltress-workstation.conf" || -f "${MONO
 else
     t_pass "forbid.dropin-on-server" "drop-in poste absent du serveur"
 fi
-if grep -q '^PasswordAuthentication yes$' "${MONO}/server/config/ssh/sshd.conf" 2>/dev/null; then
-    t_fail "forbid.server-ssh-password" "le sshd serveur accepte le mot de passe"
+if grep -q '^PasswordAuthentication yes$' "${MONO}/server/config/ssh/00-liltress-server.conf" \
+    && grep -q '^PubkeyAuthentication no$' "${MONO}/server/config/ssh/00-liltress-server.conf" \
+    && grep -q '^AuthenticationMethods password$' "${MONO}/server/config/ssh/00-liltress-server.conf"; then
+    t_pass "require.server-ssh-password" "sshd serveur en mot de passe"
 else
-    t_pass "forbid.server-ssh-password" "sshd serveur sans mot de passe"
+    t_fail "require.server-ssh-password" "sshd serveur sans mot de passe"
 fi

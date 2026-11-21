@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/down.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -45,6 +45,9 @@ finish_vpn_down() {
     fi
     if declare -F vpn_nm_apply_autoconnect >/dev/null 2>&1; then
         vpn_nm_apply_autoconnect || true
+    fi
+    if declare -F restart_vpn_services >/dev/null 2>&1; then
+        restart_vpn_services || true
     fi
 }
 

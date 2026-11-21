@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/es/vpn.txt
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -308,3 +308,6 @@ Perfil de arranque {1}.
 
 [vpn.status.default-none]
 Ningún perfil de arranque.
+
+[vpn.service.tailscale]
+Tailscale se reinicia. La sesión SSH en curso termina.

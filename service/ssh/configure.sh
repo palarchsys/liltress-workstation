@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ssh/configure.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -23,42 +23,10 @@ source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 
 require_root
-get_ssh_port
 
 log_info "${INSTALL_WATCHER}" "configure.port-detected" "${SSH_PORT}"
 log_info "${INSTALL_WATCHER}" "configure.configuration-of-ssh"
-copy_backup /etc/ssh/sshd_config
-
-ensure_directory /etc/ssh/sshd_config.d 755
-
-install -m 644 "$(locate_config_file ssh/00-liltress-workstation.conf)" /etc/ssh/sshd_config.d/00-liltress-workstation.conf
-rm -f /etc/ssh/sshd_config.d/99-liltress-workstation.conf
-
-if [[ -f /etc/ssh/sshd_config ]]; then
-    awk '
-        /^[[:space:]]*Include[[:space:]]/ && !seen { seen = 1 }
-        !seen && /^[[:space:]]*PermitRootLogin[[:space:]]/ {
-            print "# Liltress Workstation : une définition plus bas impose PermitRootLogin no"
-            print "# " $0
-            next
-        }
-        { print }
-    ' /etc/ssh/sshd_config >/etc/ssh/sshd_config.hfu \
-        && cat /etc/ssh/sshd_config.hfu >/etc/ssh/sshd_config \
-        && rm -f /etc/ssh/sshd_config.hfu
-
-    if ! grep -q 'Liltress Workstation permit-root' /etc/ssh/sshd_config \
-        && ! grep -q 'High-Fortress User permit-root' /etc/ssh/sshd_config; then
-        cat "$(locate_config_file ssh/permit-root.conf)" >>/etc/ssh/sshd_config
-    fi
-fi
-for snippet in /etc/ssh/sshd_config.d/*.conf; do
-    [[ -f "${snippet}" ]] || continue
-    [[ "${snippet}" == *00-liltress-workstation.conf ]] && continue
-    if grep -qE '^[[:space:]]*PermitRootLogin[[:space:]]' "${snippet}"; then
-        sed -i 's/^[[:space:]]*PermitRootLogin[[:space:]].*/# Liltress Workstation : le drop-in 00- pose PermitRootLogin no\n# &/' "${snippet}"
-    fi
-done
+install_sshd_dropin "${SSH_USER}" "liltress-workstation"
 
 ensure_directory "$(dirname "${SSH_BANNER_PATH}")" 755
 ensure_directory /run/sshd 755
@@ -78,5 +46,5 @@ log_info "${INSTALL_WATCHER}" "configure.pass-of-ssh-in-service-not-only-the-act
 run_optional "${INSTALL_WATCHER}" "configure.ssh.error.3" systemctl disable --now ssh.socket
 run_optional "${INSTALL_WATCHER}" "configure.ssh.error.4" systemctl unmask "${SSH_SERVICE_NAME}.service"
 run_silent "${INSTALL_WATCHER}" "configure.ssh.error.5" systemctl enable --now "${SSH_SERVICE_NAME}.service"
-run_silent "${INSTALL_WATCHER}" "configure.ssh.error.6" systemctl reload-or-restart "${SSH_SERVICE_NAME}"
+run_silent "${INSTALL_WATCHER}" "configure.ssh.error.6" reload_sshd_unit
 log_success "${INSTALL_WATCHER}" "configure.hardened-ssh-root-forbidden-password-kept-port" "${SSH_PORT}"

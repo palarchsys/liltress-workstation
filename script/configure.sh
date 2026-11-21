@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/configure.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -111,12 +111,22 @@ check_prompt_value() {
     local entry="$2"
     case "${kind}" in
         pro_token) check_pro_token "${entry}" ;;
+        tailscale) [[ "${entry}" =~ ^tskey-auth-[A-Za-z0-9_-]{10,200}$ ]] ;;
+        user) [[ "${entry}" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]] ;;
+        ssh_port) check_port "${entry}" 1024 65535 ;;
         email) check_email "${entry}" ;;
         secret) check_app_password "${entry}" ;;
         smtp) check_smtp "${entry}" ;;
         bool01) [[ "${entry}" =~ ^[01]$ ]] ;;
         *) return 1 ;;
     esac
+}
+
+read_prompt_hidden_kind() {
+    case "$1" in
+        pro_token | secret | tailscale) return 0 ;;
+    esac
+    return 1
 }
 
 prompt() {
@@ -128,7 +138,7 @@ prompt() {
         if [[ "${SECTION_OPEN:-0}" != "1" ]]; then
             echo "" >&2
         fi
-        if [[ "${field_kind}" == "pro_token" || "${field_kind}" == "secret" ]]; then
+        if read_prompt_hidden_kind "${field_kind}"; then
             read_prompt_pair "${field_label}" "${field_default}" || continue
         else
             read_prompt_line "${field_label}" "${field_default}"
@@ -228,6 +238,16 @@ prompt UBUNTU_PRO_TOKEN \
     pro_token \
     "Lettres et chiffres seulement, entre 6 et 100, sans espace."
 log_success "${INSTALL_WATCHER}" "configure.ubuntu-pro-accepted"
+prompt TAILSCALE_AUTH_KEY \
+    "Clé Tailscale" \
+    "clé auth réutilisable" \
+    "" \
+    tailscale \
+    "Préfixe auth, lettres, chiffres, tiret, 10 à 200."
+log_success "${INSTALL_WATCHER}" "configure.ubuntu-pro-accepted"
+prompt SSH_USER "Compte SSH" "drawbridge" "${SSH_USER:-drawbridge}" user "Compte du poste."
+prompt SSH_GROUP "Groupe SSH" "drawbridge" "${SSH_GROUP:-drawbridge}" user "Groupe du compte."
+prompt SSH_PORT "Port SSH" "2501" "${SSH_PORT:-2501}" ssh_port "Port entre 1024 et 65535."
 close_step_tree
 
 check_smtp_probe() {

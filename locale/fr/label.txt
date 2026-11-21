@@ -4,6 +4,18 @@ Langue
 [LABEL_UBUNTU_PRO_TOKEN]
 Jeton Ubuntu Pro
 
+[LABEL_TAILSCALE_AUTH_KEY]
+Clé d'authentification Tailscale
+
+[LABEL_SSH_USER]
+Compte SSH
+
+[LABEL_SSH_GROUP]
+Groupe SSH
+
+[LABEL_SSH_PORT]
+Port SSH
+
 [LABEL_MAIL_ALERTS]
 Alertes e-mail
 
@@ -58,6 +70,12 @@ Nombre de maintiens SSH
 [LABEL_SSH_LOGIN_GRACE_TIME]
 Délai de connexion SSH
 
+[LABEL_SSH_TCP_KEEPALIVE]
+Maintien TCP SSH
+
+[LABEL_SSH_MAX_SESSIONS]
+Nombre de sessions SSH
+
 [LABEL_WATCHDOG_CPU_LIMIT]
 Limite CPU du contrôle
 
@@ -90,9 +108,6 @@ Compte principal
 
 [LABEL_MAIN_GROUP]
 Groupe principal
-
-[LABEL_SSH_PORT]
-Port SSH
 
 [LABEL_MODE_TEST]
 Mode test

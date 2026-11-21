@@ -29,6 +29,11 @@
           "path": "script/project-tree.sh"
         },
         {
+          "id": "install.users",
+          "service": "users",
+          "path": "system/users/install.sh"
+        },
+        {
           "id": "install.base",
           "service": "base",
           "path": "system/base/install.sh"
@@ -87,6 +92,11 @@
           "id": "install.pam.configure",
           "service": "pam",
           "path": "system/pam/configure.sh"
+        },
+        {
+          "id": "install.users.configure",
+          "service": "users",
+          "path": "system/users/configure.sh"
         },
         {
           "id": "install.sudoers",
@@ -155,6 +165,11 @@
           "id": "install.ufw",
           "service": "ufw",
           "path": "service/ufw/install.sh"
+        },
+        {
+          "id": "install.tailscale",
+          "service": "tailscale",
+          "path": "service/tailscale/install.sh"
         },
         {
           "id": "install.usbguard",
@@ -230,6 +245,11 @@
           "id": "install.vpn.configure",
           "service": "vpn",
           "path": "service/vpn/configure.sh"
+        },
+        {
+          "id": "install.tailscale.configure",
+          "service": "tailscale",
+          "path": "service/tailscale/configure.sh"
         },
         {
           "id": "install.unbound.configure",

@@ -13,12 +13,14 @@
 
 set_statoverride_user_exec() {
     local path="$1"
-    local out=""
+    local out="" account group
+    account="${MAIN_USER:-${SSH_USER:-}}"
+    group="${MAIN_GROUP:-${SSH_GROUP:-}}"
     [[ -e "${path}" && ! -L "${path}" ]] || return 0
     if dpkg-statoverride --list "${path}" >/dev/null 2>&1; then
         out="$(dpkg-statoverride --remove "${path}" 2>&1)" || log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.10" "${path}" "${out}"
     fi
-    out="$(dpkg-statoverride --update --add "${MAIN_USER}" "${MAIN_GROUP}" 500 "${path}" 2>&1)" \
+    out="$(dpkg-statoverride --update --add "${account}" "${group}" 500 "${path}" 2>&1)" \
         || log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.11" "${path}" "${out}"
 }
 
@@ -32,10 +34,12 @@ mark_npm_packages() {
 }
 
 require_npm_account() {
-    [[ -n "${MAIN_USER:-}" && -n "${MAIN_GROUP:-}" ]] || log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.12"
-    getent passwd "${MAIN_USER}" >/dev/null || log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.13" "${MAIN_USER}"
-    getent group "${MAIN_GROUP}" >/dev/null || log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.14" "${MAIN_GROUP}"
-    log_info "${INSTALL_WATCHER:-BASH}" "install.lib.info.3" "${MAIN_USER}"
+    local account="${MAIN_USER:-${SSH_USER:-}}"
+    local group="${MAIN_GROUP:-${SSH_GROUP:-}}"
+    [[ -n "${account}" && -n "${group}" ]] || log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.12"
+    getent passwd "${account}" >/dev/null || log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.13" "${account}"
+    getent group "${group}" >/dev/null || log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.14" "${group}"
+    log_info "${INSTALL_WATCHER:-BASH}" "install.lib.info.3" "${account}"
 }
 
 # Doc paths and the node binary itself stay untouched. Returns 0 when the path is skipped.
@@ -136,10 +140,10 @@ lock_corepack_binary() {
 
 finish_npm_lock() {
     if [[ "${have_npm}" -eq 1 && "${locked}" -eq 0 ]]; then
-        log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.15" "${MAIN_USER}"
+        log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.15" "${MAIN_USER:-${SSH_USER:-}}"
     fi
     [[ "${locked}" -eq 1 ]] || return 0
-    log_success "${INSTALL_WATCHER:-BASH}" "install.lib.success.2" "${MAIN_USER}"
+    log_success "${INSTALL_WATCHER:-BASH}" "install.lib.success.2" "${MAIN_USER:-${SSH_USER:-}}"
 }
 
 lock_npm_to_main_user() {

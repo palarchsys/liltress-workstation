@@ -42,7 +42,7 @@ vpn_route_field() {
 
 vpn_route_is_tunnel() {
     local dev="$1"
-    [[ "${dev}" == "${VPN_IFACE_OVPN}" || "${dev}" == "${VPN_IFACE_WG}" || "${dev}" == "tun-probe" || "${dev}" == "wgl-probe" ]]
+    [[ "${dev}" == "${VPN_IFACE_OVPN}" || "${dev}" == "${VPN_IFACE_WG}" || "${dev}" == "tun-probe" || "${dev}" == "wgl-probe" || "${dev}" == "tailscale0" ]]
 }
 
 vpn_route_lookup() {
