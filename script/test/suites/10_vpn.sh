@@ -880,6 +880,7 @@ nm_ca="$(get_vpn_profile_dir cg-nm)/ca.crt"
 if [[ -f "${nm_file}" ]]; then
     grep -q '^id=cg-nm$' "${nm_file}" || { nm_ok=0; nm_why="id"; }
     grep -q '^interface-name=tun-liltress$' "${nm_file}" || { nm_ok=0; nm_why="iface"; }
+    grep -q '^tunnel-mtu=1200$' "${nm_file}" || { nm_ok=0; nm_why="mtu"; }
     grep -q '^ignore-auto-dns=true$' "${nm_file}" || { nm_ok=0; nm_why="dns"; }
     grep -F -q "ca=${nm_ca}" "${nm_file}" || { nm_ok=0; nm_why="ca"; }
     grep -q '^username=user-one$' "${nm_file}" || { nm_ok=0; nm_why="user"; }
@@ -922,6 +923,7 @@ if [[ -f "${wg_file}" ]]; then
     grep -q '^private-key=' "${wg_file}" || { nm_ok=0; nm_why="wg-key"; }
     grep -F -q "${wg_needle}" "${wg_file}" && { nm_ok=0; nm_why="aiguille"; }
     grep -q '^interface-name=wg-liltress$' "${wg_file}" || { nm_ok=0; nm_why="wg-iface"; }
+    grep -q '^mtu=1200$' "${wg_file}" || { nm_ok=0; nm_why="wg-mtu"; }
     grep -qx 'liltress.profile=cg-wg' "${wg_file}" || { nm_ok=0; nm_why="wg-marque"; }
     grep -q '^data=' "${wg_file}" && { nm_ok=0; nm_why="wg-data"; }
 else

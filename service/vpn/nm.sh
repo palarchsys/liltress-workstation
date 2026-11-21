@@ -384,6 +384,7 @@ render_vpn_nm_openvpn_vpn() {
     printf 'proto-tcp=%s\n' "${tcp}"
     printf 'dev=%s\n' "${iface}"
     printf '%s\n' 'dev-type=tun'
+    printf 'tunnel-mtu=%s\n' "${VPN_TUN_MTU}"
 }
 
 # Optional TLS lines after the device type.
@@ -590,6 +591,7 @@ render_vpn_nm_wireguard_head() {
     printf '\n'
     printf '%s\n' '[wireguard]'
     printf 'private-key=%s\n' "${private}"
+    printf 'mtu=%s\n' "${VPN_TUN_MTU}"
     printf '\n'
     printf '%s\n' "${peers}"
 }
@@ -923,6 +925,7 @@ apply_vpn_link_tunnel() {
 # After the tunnel is up, routes and boot flags follow.
 finish_vpn_link_up() {
     local name="$1"
+    apply_vpn_tunnel_mtu "${name}"
     clear_vpn_tunnel_routes || true
     apply_vpn_nft "${name}" 1 || rc=1
     vpn_nm_apply_autoconnect || true
@@ -987,6 +990,7 @@ vpn_nm_profile_mark() {
 
 # Turn the tunnel off without a daemon event.
 quiet_vpn_down() {
+    apply_vpn_tunnel_mtu
     vpn_nm_hold_on
     set_vpn_state_mode off
     load_vpn_settings
@@ -1025,14 +1029,26 @@ apply_vpn_nm_pre_up() {
     apply_vpn_nft "${profile}" 0 || true
 }
 
-# 1228-byte packets passed. 1400-byte packets did not.
-apply_vpn_tunnel_mtu() {
-    local profile="$1" iface
-    load_vpn_settings
-    iface="$(get_vpn_meta "${profile}" iface 2>/dev/null || true)"
+# The interface may already be gone. A missing device is not a failure.
+set_vpn_iface_mtu() {
+    local iface="$1"
     [[ -n "${iface}" ]] || return 0
     ip link show "${iface}" >/dev/null 2>&1 || return 0
     ip link set dev "${iface}" mtu "${VPN_TUN_MTU}" >/dev/null 2>&1 || true
+}
+
+# 1228-byte packets passed. 1400-byte packets did not.
+apply_vpn_tunnel_mtu() {
+    local profile="${1:-}" iface
+    load_vpn_settings
+    if [[ -n "${profile}" ]]; then
+        iface="$(get_vpn_meta "${profile}" iface 2>/dev/null || true)"
+        [[ -n "${iface}" ]] || iface="${VPN_IFACE_OVPN}"
+        set_vpn_iface_mtu "${iface}"
+        return 0
+    fi
+    set_vpn_iface_mtu "${VPN_IFACE_OVPN}"
+    set_vpn_iface_mtu "${VPN_IFACE_WG}"
 }
 
 # The tunnel is up, so the active name and the filter follow.
