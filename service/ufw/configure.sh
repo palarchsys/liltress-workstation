@@ -86,11 +86,6 @@ remove_ufw_marked() {
 }
 
 mapfile -t ssh_prefixes < <(ip -o addr show up scope global 2>/dev/null | awk '$2 != "tailscale0" && $2 != "wg-liltress" && $2 != "tun-liltress" {print $4}')
-run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw allow in on tailscale0 to any port "${SSH_PORT}" proto tcp comment "OpenSSH via Tailscale only"
-run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw deny in on tailscale0 comment "Tailscale ingress is SSH only"
-run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw allow out on tailscale0 to any port "${SSH_PORT}" proto tcp comment "Workstation SSH toward tailnet"
-run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw deny route out on tailscale0 comment "No route out via Tailscale"
-run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw deny route in on tailscale0 comment "No route in via Tailscale"
 run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw allow out 41641/udp comment "Tailscale direct"
 run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw allow out 3478/udp comment "Tailscale STUN"
 if ip -o -6 addr show up scope link 2>/dev/null | grep -q 'fe80:'; then
