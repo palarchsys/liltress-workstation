@@ -34,11 +34,6 @@
           "path": "system/users/install.sh"
         },
         {
-          "id": "install.base",
-          "service": "base",
-          "path": "system/base/install.sh"
-        },
-        {
           "id": "install.ssh",
           "service": "ssh",
           "path": "service/ssh/install.sh"

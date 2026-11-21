@@ -85,7 +85,7 @@ rk_line=$(t_get_plan_pos 'service/rkhunter/init-db.sh')
 aide_line=$(t_get_plan_pos 'service/aide/init-db.sh')
 if [[ -n "${rc_line}" && -n "${rk_line}" && -n "${aide_line}" \
       && "${rc_line}" -lt "${rk_line}" && "${rk_line}" -lt "${aide_line}" ]] \
-   && ! grep -q 'dpkg --purge' "${T_ROOT}/system/base/install.sh" \
+   && ! grep -q 'dpkg --purge' "${T_ROOT}/system/apt/install.sh" \
    && ! grep -qF 'rkhunter --propupd' "${T_ROOT}/service/rkhunter/configure.sh" \
    && grep -qF 'rkhunter --propupd' "${T_ROOT}/service/rkhunter/init-db.sh"; then
     t_pass "graph.order.purge-before-db" "purge rc (L${rc_line}) avant rkhunter (L${rk_line}) et AIDE (L${aide_line})"
