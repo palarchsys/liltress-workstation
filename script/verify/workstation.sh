@@ -107,7 +107,7 @@ fi
 if [[ "$(get_sshd_value passwordauthentication)" == "yes" ]]; then
     report_pass "PasswordAuthentication yes (le mot de passe du compte est accepté en SSH)"
 else
-    report_pass "PasswordAuthentication n'est pas yes (SSH n'accepte qu'une clé pour ${CURRENT_USER})"
+    report_fail "PasswordAuthentication n'est pas yes"
 fi
 tcp_fwd="$(get_sshd_value allowtcpforwarding)"
 agent_fwd="$(get_sshd_value allowagentforwarding)"
@@ -133,10 +133,10 @@ else
     report_fail "UFW outgoing n'est pas allow"
 fi
 ufw_rules="$(LANG=C LC_ALL=C LANGUAGE=C ufw status 2>/dev/null || true)"
-if grep -qF 'SSH LAN' <<<"${ufw_rules}" || grep -qF 'SSH (limit)' <<<"${ufw_rules}"; then
-    report_pass "SSH limité aux préfixes connectés"
+if grep -qF 'OpenSSH via Tailscale only' <<<"${ufw_rules}"; then
+    report_pass "SSH ouvert seulement via Tailscale"
 else
-    report_fail "règle SSH absente"
+    report_fail "règle SSH Tailscale absente"
 fi
 
 tmp_opts="$(findmnt -no OPTIONS /tmp 2>/dev/null || true)"

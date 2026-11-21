@@ -530,8 +530,7 @@ fi
 ver="${T_ROOT}/script/verify/workstation.sh"
 grep -q 'allowtcpforwarding' "${ver}" || daily_ok=0
 grep -q 'allowagentforwarding' "${ver}" || daily_ok=0
-grep -qF 'SSH (limit)' "${ver}" || daily_ok=0
-grep -qF 'SSH LAN' "${ver}" || daily_ok=0
+grep -qF 'OpenSSH via Tailscale only' "${ver}" || daily_ok=0
 grep -q 'timestamp_timeout=5' "${ver}" || daily_ok=0
 grep -q 'w-reboot-notice.timer' "${ver}" || daily_ok=0
 grep -qF 'allow with-interface equals { 03:*:* }' "${ver}" || daily_ok=0
