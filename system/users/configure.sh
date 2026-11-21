@@ -61,25 +61,11 @@ HOSTNAME=$(hostname -s 2>/dev/null || hostname)
 OBJECT="${PROJECT_NAME} Deployment : ${HOSTNAME} / Users"
 TITLE="Workstation Deployment"
 MODULE_NAME="Users Credentials"
-CONTENT="
-Projet          : ${PROJECT_NAME} (liltress)
-Répertoire base : ${CONFIG_BASE_DIRECTORY}
-
-User login      : ${SSH_USER}
-User password   : ${MAIN_PASSWORD}
-Root password   : ${ROOT_PASSWORD}
-Port SSH        : ${SSH_PORT}
-
-Auth SSH        : mot de passe
-"
-
-export OBJECT
-export TITLE
-export MODULE_NAME
-export CONTENT
+export OBJECT TITLE MODULE_NAME
 
 # shellcheck disable=SC1091
 source "${INSTALL_DIRECTORY}/core/mail/mail.sh"
+write_account_mail "${SSH_USER}"
 send_install_mail
 
 unset ROOT_PASSWORD

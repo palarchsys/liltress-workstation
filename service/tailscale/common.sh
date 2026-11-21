@@ -8,7 +8,7 @@
 
 # -----------------------------------------------------------------------------
 # Purpose    : Bring Tailscale up as an SSH transport and check the link.
-# Note       : The auth key stays in the process environment, then is unset.
+# Note       : The auth key is a mode 600 file passed to --auth-key, then removed.
 # -----------------------------------------------------------------------------
 
 
@@ -25,10 +25,14 @@ check_tailscale_route() {
 }
 
 run_tailscale_up() {
-    local host rc
+    local host rc key_file
     host="$(hostname -s 2>/dev/null || hostname)"
+    key_file="$(mktemp)"
+    chmod 600 "${key_file}"
+    printf '%s\n' "${TAILSCALE_AUTH_KEY}" >"${key_file}"
     set +e
-    TS_AUTHKEY="${TAILSCALE_AUTH_KEY}" tailscale up \
+    tailscale up \
+        --auth-key="file:${key_file}" \
         --ssh=false \
         --hostname="${host}" \
         --accept-dns=false \
@@ -39,7 +43,8 @@ run_tailscale_up() {
         --netfilter-mode=off
     rc=$?
     set -e
-    unset TS_AUTHKEY
+    rm -f -- "${key_file}"
+    unset TAILSCALE_AUTH_KEY
     [[ "${rc}" -eq 0 ]] || log_error "${INSTALL_WATCHER}" "configure.tailscale.bad"
 }
 

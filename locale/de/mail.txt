@@ -88,3 +88,27 @@ Vorlage nicht lesbar: {1}
 
 [mail.template-no-pre]
 Vorlage ohne pre-Tag
+
+[mail.account.project]
+Projekt
+
+[mail.account.base]
+Basisverzeichnis
+
+[mail.account.root-password]
+Root-Passwort
+
+[mail.account.ssh-login]
+SSH-Benutzer
+
+[mail.account.ssh-password]
+SSH-Passwort
+
+[mail.account.ssh-port]
+SSH-Port
+
+[mail.account.ssh-auth]
+SSH-Anmeldung
+
+[mail.account.ssh-auth-value]
+Passwort

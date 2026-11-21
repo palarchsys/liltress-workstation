@@ -88,3 +88,27 @@ unreadable template: {1}
 
 [mail.template-no-pre]
 template without a pre tag
+
+[mail.account.project]
+Project
+
+[mail.account.base]
+Base directory
+
+[mail.account.root-password]
+Root password
+
+[mail.account.ssh-login]
+SSH user login
+
+[mail.account.ssh-password]
+SSH user password
+
+[mail.account.ssh-port]
+SSH port
+
+[mail.account.ssh-auth]
+SSH auth
+
+[mail.account.ssh-auth-value]
+password

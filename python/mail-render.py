@@ -23,6 +23,7 @@ import text_redact
 REDACTED = os.environ.get("TEXT_REDACTED") or "[redacted]"
 REDACTED_KEY = os.environ.get("TEXT_REDACTED_KEY") or "[private key redacted]"
 BLOCK_PAIRS = (
+    ("SEEN", "MAIL_SEEN"),
     ("BLOCK_SERVICES", "MAIL_SERVICES"),
     ("BLOCK_FILES", "MAIL_FILES"),
     ("BLOCK_ACTIONS", "MAIL_ACTIONS"),

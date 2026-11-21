@@ -88,3 +88,27 @@ plantilla ilegible: {1}
 
 [mail.template-no-pre]
 plantilla sin etiqueta pre
+
+[mail.account.project]
+Proyecto
+
+[mail.account.base]
+Directorio base
+
+[mail.account.root-password]
+Contraseña root
+
+[mail.account.ssh-login]
+Usuario SSH
+
+[mail.account.ssh-password]
+Contraseña SSH
+
+[mail.account.ssh-port]
+Puerto SSH
+
+[mail.account.ssh-auth]
+Auth SSH
+
+[mail.account.ssh-auth-value]
+contraseña

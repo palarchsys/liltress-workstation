@@ -591,7 +591,7 @@ Check : {1} échec(s)
 Ce chemin n'est pas dans la liste : {1}
 
 [mail.install.test.title]
-Installation terminée
+Installation en cours
 
 [mail.install.test.block]
 Envoi

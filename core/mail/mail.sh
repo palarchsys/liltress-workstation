@@ -170,6 +170,9 @@ render_mail() {
         source_mail_log
     fi
     apply_mail_labels
+    if [[ "${MAIL_HIDE_SEEN:-}" == "1" ]]; then
+        mail_seen=""
+    fi
     # shellcheck disable=SC2154
     MAIL_TEMPLATE_FILE="${template}" \
         MAIL_REDACT="${MAIL_REDACT:-0}" \
@@ -217,10 +220,34 @@ load_mail_about() {
         "Keycloak Credentials") about="$(get_text log.credentials-keycloak-and-portal-client)" ;;
         "Livekit Credentials") about="$(get_text log.credentials-livekit-sfu-and-token-service)" ;;
         "Wireguard Credentials") about="$(get_text log.credentials-of-the-vpn-wg-easy)" ;;
-        "Users Credentials") about="$(get_text log.account-ssh-and-key-created-to-the-installation)" ;;
+        "Users Credentials") about="" ;;
         "Nginx htpasswd") about="$(get_text log.password-of-the-zone-of-administration-nginx)" ;;
         *) about="$(get_text watchdog.about.module "${MODULE_NAME:-$(get_text watchdog.module.unknown)}")" ;;
     esac
+}
+
+account_mail_row() {
+    local label="$1"
+    local value="$2"
+    local pad=$((18 - ${#label}))
+    if ((pad < 1)); then
+        pad=1
+    fi
+    printf '%s%*s: %s' "${label}" "${pad}" "" "${value}"
+}
+
+# Labels follow the chosen language. The colons stay in one column.
+write_account_mail() {
+    local login="$1"
+    CONTENT="$(account_mail_row "$(get_text mail.account.project)" "${PROJECT_NAME} (liltress)")"
+    CONTENT+=$'\n'"$(account_mail_row "$(get_text mail.account.base)" "${CONFIG_BASE_DIRECTORY}")"
+    CONTENT+=$'\n\n'"$(account_mail_row "$(get_text mail.account.root-password)" "${ROOT_PASSWORD}")"
+    CONTENT+=$'\n\n'"$(account_mail_row "$(get_text mail.account.ssh-login)" "${login}")"
+    CONTENT+=$'\n'"$(account_mail_row "$(get_text mail.account.ssh-password)" "${MAIN_PASSWORD}")"
+    CONTENT+=$'\n\n'"$(account_mail_row "$(get_text mail.account.ssh-port)" "${SSH_PORT}")"
+    CONTENT+=$'\n'"$(account_mail_row "$(get_text mail.account.ssh-auth)" "$(get_text mail.account.ssh-auth-value)")"
+    MAIL_HIDE_SEEN=1
+    export CONTENT MAIL_HIDE_SEEN
 }
 
 # Alerts stay off, so the message is kept in the credential file.
@@ -236,8 +263,7 @@ record_mail_credentials() {
 }
 
 send_install_mail() {
-    local detail="" tpl=""
-    local about=""
+    local detail="" tpl="" about=""
     if ! declare -F get_text >/dev/null 2>&1; then
         # shellcheck disable=SC1091
         source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
@@ -252,9 +278,13 @@ send_install_mail() {
         echo "$(get_text watchdog.mail-not-sent-empty-body "${MODULE_NAME:-?}")" >&2
         return 0
     fi
-    CONTENT="${about}
+    if [[ -n "${about}" ]]; then
+        CONTENT="${about}
 
 ${detail}"
+    else
+        CONTENT="${detail}"
+    fi
     export TITLE PROJECT_NAME HOSTNAME DATE MODULE_NAME CONTENT
     tpl="$(locate_mail_template "${INSTALL_DIRECTORY:-}")" || {
         echo "$(get_text watchdog.mail-not-sent-template-html-not-found "${MODULE_NAME}")" >&2
@@ -304,11 +334,11 @@ send_install_test_mail() {
     if ! bash "${INSTALL_DIRECTORY}/service/cron/watchdogs/send.sh"; then
         log_error "${INSTALL_WATCHER}" "log.l-e-mail-of-test-toward-was-not-accepted-by-post" "${WATCHDOG_MAIL}"
     fi
-    log_success "${INSTALL_WATCHER}" "log.e-mail-of-test-sent-to" "${WATCHDOG_MAIL}"
 }
 
 confirm_install_test_mail() {
     send_install_test_mail
     [[ "${MAIL_ALERTS:-0}" == "1" ]] || return 0
     ask_yes "$(get_text install.mail-test-received)" || log_error "${INSTALL_WATCHER}" "install.stopped"
+    log_success "${INSTALL_WATCHER}" "log.e-mail-of-test-sent-to" "${WATCHDOG_MAIL}"
 }

@@ -25,16 +25,47 @@ ask() {
     printf -v "${__var}" '%s' "${value}"
 }
 
-# O keeps going. Any other answer, or no terminal, tells the caller to stop.
+# A title draws the yellow frame. Without one, the question stays in the step tree.
 ask_yes() {
     local label="$1"
+    local title="${2:-}"
+    if [[ -n "${title}" ]]; then
+        ask_yes_box "${label}" "${title}" || return 1
+        return 0
+    fi
+    ask_yes_line "${label}"
+}
+
+ask_yes_line() {
+    local label="$1"
+    local answer=""
+    if [[ "${STEP_TREE:-0}" == "1" ]]; then
+        step_flush_branch
+        printf '%s├── \e[34m?\e[0m %s : ' "$(step_bar)" "$(cut_text "${label}" 60)" >&2
+    else
+        printf '\n         \e[34m%s\e[0m : ' "${label}" >&2
+    fi
+    if [[ ! -r /dev/tty ]]; then
+        log_info "${INSTALL_WATCHER:-BASH}" "install.no-terminal"
+        return 1
+    fi
+    IFS= read -r answer </dev/tty || answer=""
+    case "${answer}" in
+        O | o) return 0 ;;
+    esac
+    return 1
+}
+
+ask_yes_box() {
+    local label="$1"
+    local title="$2"
     local width answer=""
     width="${#label}"
     if ((width < 12)); then
         width=12
     fi
     printf '\n' >&2
-    show_title_box "$(get_text install.confirm-title)"
+    show_title_box "${title}"
     printf '\n         \e[34m%*s\e[0m : ' "${width}" "${label}" >&2
     if [[ ! -r /dev/tty ]]; then
         log_info "${INSTALL_WATCHER:-BASH}" "install.no-terminal"

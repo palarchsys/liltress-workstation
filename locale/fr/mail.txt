@@ -88,3 +88,27 @@ modèle illisible : {1}
 
 [mail.template-no-pre]
 modèle sans balise pre
+
+[mail.account.project]
+Projet
+
+[mail.account.base]
+Répertoire base
+
+[mail.account.root-password]
+Root password
+
+[mail.account.ssh-login]
+SSH User login
+
+[mail.account.ssh-password]
+SSH User password
+
+[mail.account.ssh-port]
+Port SSH
+
+[mail.account.ssh-auth]
+Auth SSH
+
+[mail.account.ssh-auth-value]
+mot de passe
