@@ -89,6 +89,15 @@ plantilla ilegible: {1}
 [mail.template-no-pre]
 plantilla sin etiqueta pre
 
+[mail.account.title]
+Creación de las cuentas
+
+[mail.account.heading]
+Cuentas del sistema
+
+[mail.reboot.packages]
+Servicios/Bibliotecas
+
 [mail.account.project]
 Proyecto
 

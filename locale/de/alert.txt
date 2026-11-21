@@ -1087,6 +1087,9 @@ Malware-Alarm
 [alert.mail.integrity.title]
 Integritätsalarm
 
+[alert.mail.reboot.title]
+Neustart-Alarm
+
 [alert.mail.evergreen.title]
 Dauerüberwachung
 

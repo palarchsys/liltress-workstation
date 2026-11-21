@@ -337,11 +337,6 @@
           "path": "service/cron/enable.sh"
         },
         {
-          "id": "install.cron.arm",
-          "service": "cron",
-          "path": "service/cron/arm.sh"
-        },
-        {
           "id": "install.verify",
           "service": "verify",
           "path": "script/verify/workstation.sh"
@@ -370,6 +365,11 @@
           "id": "install.aide.init",
           "service": "aide",
           "path": "service/aide/init-db.sh"
+        },
+        {
+          "id": "install.cron.arm",
+          "service": "cron",
+          "path": "service/cron/arm.sh"
         }
       ]
     }

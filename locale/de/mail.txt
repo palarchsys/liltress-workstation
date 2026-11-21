@@ -89,6 +89,15 @@ Vorlage nicht lesbar: {1}
 [mail.template-no-pre]
 Vorlage ohne pre-Tag
 
+[mail.account.title]
+Konten anlegen
+
+[mail.account.heading]
+Systemkonten
+
+[mail.reboot.packages]
+Dienste/Bibliotheken
+
 [mail.account.project]
 Projekt
 

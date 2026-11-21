@@ -1087,6 +1087,9 @@ Alerte logiciel malveillant
 [alert.mail.integrity.title]
 Alerte intégrité
 
+[alert.mail.reboot.title]
+Alerte redémarrage
+
 [alert.mail.evergreen.title]
 Alerte permanente
 

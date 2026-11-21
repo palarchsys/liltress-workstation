@@ -129,6 +129,9 @@ ${4}" \
         WATCHDOG_MAIL="${WATCHDOG_MAIL}" \
         PROJECT_NAME="${PROJECT_NAME}" \
         MAIL_TEMPLATE="${MAIL_TEMPLATE:-mail.html}" \
+        MAIL_EXTRA="${MAIL_EXTRA:-}" \
+        MAIL_EXTRA_TITLE="${MAIL_EXTRA_TITLE:-}" \
+        MAIL_JOURNAL_ONLY="${MAIL_JOURNAL_ONLY:-}" \
         bash "${send}" || true
 }
 
@@ -145,6 +148,9 @@ ${4}" \
         ADVICE="${ADVICE:-}" \
         PROJECT_NAME="${PROJECT_NAME}" \
         MAIL_TEMPLATE="${MAIL_TEMPLATE:-mail.html}" \
+        MAIL_EXTRA="${MAIL_EXTRA:-}" \
+        MAIL_EXTRA_TITLE="${MAIL_EXTRA_TITLE:-}" \
+        MAIL_JOURNAL_ONLY="${MAIL_JOURNAL_ONLY:-}" \
         MAIL_ALERTS="${MAIL_ALERTS}" \
         CONFIG_BASE_DIRECTORY="${CONFIG_BASE_DIRECTORY:-}" \
         BASE="${BASE:-}" \
@@ -161,6 +167,9 @@ send_alert_mail() {
     send="$(send_path)" || true
     if [[ -z "${send}" ]]; then
         return 0
+    fi
+    if [[ "${MAIL_JOURNAL_ONLY:-}" == "1" ]]; then
+        excerpt=""
     fi
     if [[ -n "${WATCHDOG_MAIL:-}" || "${EUID}" -eq 0 ]]; then
         invoke_alert_shell "${send}" "${module}" "${summary}" "${excerpt}"
@@ -307,7 +316,7 @@ skip_mail_delivery() {
 
 # Help text picks the HTML header. A zip is attached when the file is present.
 send_html_mail() {
-    local mail_help=""
+    local mail_help="" mail_object=""
     local -a mail_type=()
     local -a mail_attach=()
     mail_help="$(bash -c 'mail --help' 2>&1 || true)"
@@ -319,7 +328,11 @@ send_html_mail() {
     if [[ -n "${MAIL_ATTACH:-}" && -f "${MAIL_ATTACH}" ]]; then
         mail_attach+=(-A "${MAIL_ATTACH}")
     fi
-    printf '%s\n' "${MAIL_CONTENT}" | mail -s "${PROJECT_NAME} - ${HOSTNAME} - ${MODULE_NAME}" \
+    mail_object="${TITLE:-${MODULE_NAME}}"
+    if [[ -n "${MAIL_SERVICE:-}" ]]; then
+        mail_object="${MAIL_SERVICE} - ${mail_object}"
+    fi
+    printf '%s\n' "${MAIL_CONTENT}" | mail -s "${PROJECT_NAME} - ${HOSTNAME} - ${mail_object}" \
         "${mail_type[@]}" \
         "${mail_attach[@]}" \
         "${WATCHDOG_MAIL}"

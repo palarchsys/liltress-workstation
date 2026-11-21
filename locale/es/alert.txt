@@ -1087,6 +1087,9 @@ Alerta de malware
 [alert.mail.integrity.title]
 Alerta de integridad
 
+[alert.mail.reboot.title]
+Alerta de reinicio
+
 [alert.mail.evergreen.title]
 Alerta permanente
 

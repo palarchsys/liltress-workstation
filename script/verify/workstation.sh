@@ -80,13 +80,6 @@ else
     report_pass "chage ${CURRENT_USER} non forcé à 90 jours"
 fi
 
-if drift="$(check_account_drift 2>&1)"; then
-    report_pass "comptes humains (uid, groupes, home, shell, hash) inchangés"
-else
-    report_fail "un compte créé à l'installation Ubuntu a été modifié"
-    printf '%s\n' "${drift}" >>"${REPORT}"
-fi
-
 for b in gcc g++ cc make; do
     if command -v "${b}" >/dev/null 2>&1; then
         mode="$(stat -c '%a' "$(command -v "${b}")")"

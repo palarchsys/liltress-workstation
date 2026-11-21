@@ -57,11 +57,8 @@ if ! visudo -cf /etc/sudoers.d/liltress-timeout >/dev/null; then
 fi
 log_success "${INSTALL_WATCHER}" "configure.sudo-asks-again-the-password-after-5-minutes"
 
-HOSTNAME=$(hostname -s 2>/dev/null || hostname)
-OBJECT="${PROJECT_NAME} Deployment : ${HOSTNAME} / Users"
-TITLE="Workstation Deployment"
 MODULE_NAME="Users Credentials"
-export OBJECT TITLE MODULE_NAME
+export MODULE_NAME
 
 # shellcheck disable=SC1091
 source "${INSTALL_DIRECTORY}/core/mail/mail.sh"

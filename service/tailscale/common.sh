@@ -25,9 +25,10 @@ check_tailscale_route() {
 }
 
 run_tailscale_up() {
-    local host rc key_file
+    local host rc key_file err_file
     host="$(hostname -s 2>/dev/null || hostname)"
     key_file="$(mktemp)"
+    err_file="$(mktemp)"
     chmod 600 "${key_file}"
     printf '%s\n' "${TAILSCALE_AUTH_KEY}" >"${key_file}"
     set +e
@@ -40,10 +41,12 @@ run_tailscale_up() {
         --advertise-exit-node=false \
         --advertise-routes= \
         --exit-node= \
-        --netfilter-mode=off
+        --netfilter-mode=off \
+        2>"${err_file}"
     rc=$?
     set -e
-    rm -f -- "${key_file}"
+    grep -v 'netfilter=off; configure iptables yourself' "${err_file}" >&2 || true
+    rm -f -- "${key_file}" "${err_file}"
     unset TAILSCALE_AUTH_KEY
     [[ "${rc}" -eq 0 ]] || log_error "${INSTALL_WATCHER}" "configure.tailscale.bad"
 }

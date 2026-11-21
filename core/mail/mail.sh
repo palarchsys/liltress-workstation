@@ -170,8 +170,17 @@ render_mail() {
         source_mail_log
     fi
     apply_mail_labels
-    if [[ "${MAIL_HIDE_SEEN:-}" == "1" ]]; then
+    if [[ -n "${MAIL_SEEN_LABEL:-}" ]]; then
+        mail_seen="${MAIL_SEEN_LABEL}"
+    elif [[ "${MAIL_HIDE_SEEN:-}" == "1" ]]; then
         mail_seen=""
+    fi
+    if [[ -n "${MAIL_EXTRA_TITLE:-}" ]]; then
+        mail_check="${MAIL_EXTRA_TITLE}"
+    fi
+    if [[ -n "${MAIL_EXTRA:-}" && -z "${ADVICE:-}" ]]; then
+        ADVICE="${MAIL_EXTRA}"
+        export ADVICE
     fi
     # shellcheck disable=SC2154
     MAIL_TEMPLATE_FILE="${template}" \
@@ -246,8 +255,17 @@ write_account_mail() {
     CONTENT+=$'\n'"$(account_mail_row "$(get_text mail.account.ssh-password)" "${MAIN_PASSWORD}")"
     CONTENT+=$'\n\n'"$(account_mail_row "$(get_text mail.account.ssh-port)" "${SSH_PORT}")"
     CONTENT+=$'\n'"$(account_mail_row "$(get_text mail.account.ssh-auth)" "$(get_text mail.account.ssh-auth-value)")"
-    MAIL_HIDE_SEEN=1
-    export CONTENT MAIL_HIDE_SEEN
+    TITLE="$(get_text mail.account.title)"
+    MAIL_SEEN_LABEL="$(get_text mail.account.heading)"
+    export CONTENT TITLE MAIL_SEEN_LABEL
+}
+
+# Every subject is product, host, then the translated title.
+mail_subject() {
+    local host object
+    host="${HOSTNAME:-$(hostname -s 2>/dev/null || hostname)}"
+    object="${1:-${TITLE:-${MODULE_NAME:-}}}"
+    printf '%s - %s - %s' "${PROJECT_NAME:-Liltress}" "${host}" "${object}"
 }
 
 # Alerts stay off, so the message is kept in the credential file.
@@ -298,7 +316,7 @@ ${detail}"
         record_mail_credentials
         return 0
     fi
-    echo "${MAIL_CONTENT}" | mail -s "${OBJECT}" \
+    echo "${MAIL_CONTENT}" | mail -s "$(mail_subject)" \
         -a "Content-Type: text/html; charset=UTF-8" \
         "${WATCHDOG_MAIL}"
 }

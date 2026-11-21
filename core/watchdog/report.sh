@@ -43,28 +43,36 @@ set_watchdog_when() {
 }
 
 # One real row becomes one service line and maybe one file line.
+take_service_name() {
+    local tool="$1"
+    local name="$2"
+    if [[ -z "${tool}" || "${tool}" == "-" ]]; then
+        printf '%s' "${name}"
+        return 0
+    fi
+    printf '%s' "${tool}"
+}
+
+remember_service() {
+    local state_dir="$1"
+    local service="$2"
+    [[ -n "${service}" && "${service}" != "-" ]] || return 0
+    [[ "${seen}" == *"|${service}|"* ]] && return 0
+    printf '%s\n' "${service}" >>"${state_dir}/services.txt"
+    seen="${seen}${service}|"
+}
+
 render_watchdog_row() {
     local state_dir="$1"
     local explained="$2"
     local hold="$3"
-    local kind="$4"
     local name="$5"
     local when="$6"
     local path="$7"
     local tool="$8"
     local class_id="$9"
-    local type_word=""
     [[ "${explained}" == "0" ]] || return 0
-    case "${kind}" in
-        package) type_word="$(get_text alert.mail.type.package)" ;;
-        jail) type_word="$(get_text alert.mail.type.jail)" ;;
-        scenario) type_word="$(get_text alert.mail.type.scenario)" ;;
-        *) type_word="$(get_text alert.mail.type.file)" ;;
-    esac
-    if [[ "${seen}" != *"|${type_word} - ${name}|"* ]]; then
-        printf '%s - %s\n' "${type_word}" "${name}" >>"${state_dir}/services.txt"
-        seen="${seen}${type_word} - ${name}|"
-    fi
+    remember_service "${state_dir}" "$(take_service_name "${tool}" "${name}")"
     if [[ -n "${path}" && "${path}" != "-" ]]; then
         set_watchdog_when "${path}"
         printf '%s - %s\n' "${when}" "${path}" >>"${state_dir}/files.txt"
@@ -134,6 +142,37 @@ locate_alert_template() {
     return 0
 }
 
+mail_service_label() {
+    case "$1" in
+        aide) printf 'AIDE' ;;
+        rkhunter) printf 'RKHunter' ;;
+        clamav) printf 'ClamAV' ;;
+        chkrootkit) printf 'Chkrootkit' ;;
+        debsums) printf 'Debsums' ;;
+        auditd) printf 'Auditd' ;;
+        fail2ban) printf 'Fail2ban' ;;
+        crowdsec) printf 'CrowdSec' ;;
+        ufw) printf 'UFW' ;;
+        *) printf '%s' "$1" ;;
+    esac
+}
+
+mail_services_label() {
+    local file="$1"
+    local line label joined=""
+    [[ -f "${file}" ]] || return 0
+    while IFS= read -r line; do
+        [[ -z "${line}" ]] && continue
+        label="$(mail_service_label "${line}")"
+        if [[ -n "${joined}" ]]; then
+            joined="${joined}, ${label}"
+        else
+            joined="${label}"
+        fi
+    done <"${file}"
+    printf '%s' "${joined}"
+}
+
 # The caller owns title.
 take_watchdog_title() {
     local phase="$1"
@@ -191,10 +230,11 @@ send_watchdog_report() {
     load_text "${LANGUAGE:-en}"
     take_watchdog_title "${phase}"
     render_watchdog_rows "${state_dir}"
+    MAIL_SERVICE="$(mail_services_label "${state_dir}/services.txt")"
     set_watchdog_mail "${state_dir}" "${title}"
     MAIL_TEMPLATE_FILE="${template}"
     MAIL_ATTACH="${zip_path}"
-    export TITLE MODULE_NAME PROJECT_NAME HOSTNAME DATE CONTENT
+    export TITLE MODULE_NAME PROJECT_NAME HOSTNAME DATE CONTENT MAIL_SERVICE
     export MAIL_SUBTITLE MAIL_FOOTER MAIL_BLOCK_SERVICES MAIL_BLOCK_FILES MAIL_BLOCK_ACTIONS MAIL_BLOCK_IGNORE
     export MAIL_SERVICES MAIL_FILES MAIL_ACTIONS MAIL_IGNORE MAIL_TEMPLATE_FILE MAIL_ATTACH
     (deliver_mail) || true

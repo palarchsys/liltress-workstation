@@ -89,6 +89,15 @@ unreadable template: {1}
 [mail.template-no-pre]
 template without a pre tag
 
+[mail.account.title]
+Account creation
+
+[mail.account.heading]
+System accounts
+
+[mail.reboot.packages]
+Services/Libraries
+
 [mail.account.project]
 Project
 

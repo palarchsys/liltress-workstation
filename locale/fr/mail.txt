@@ -89,6 +89,15 @@ modèle illisible : {1}
 [mail.template-no-pre]
 modèle sans balise pre
 
+[mail.account.title]
+Création des comptes
+
+[mail.account.heading]
+Les comptes systèmes
+
+[mail.reboot.packages]
+Services/Librairies
+
 [mail.account.project]
 Projet
 
