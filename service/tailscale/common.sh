@@ -25,10 +25,16 @@ check_tailscale_route() {
     python3 "$(locate_python_dir)/tailscale-prefs.py"
 }
 
+# The CLI writes this notice on stdout. UFW already owns the firewall.
+strip_tailscale_notice() {
+    grep -v 'netfilter=off; configure iptables yourself' "$1" || true
+}
+
 run_tailscale_up() {
-    local host rc key_file err_file
+    local host rc key_file out_file err_file
     host="$(hostname -s 2>/dev/null || hostname)"
     key_file="$(mktemp)"
+    out_file="$(mktemp)"
     err_file="$(mktemp)"
     chmod 600 "${key_file}"
     printf '%s\n' "${TAILSCALE_AUTH_KEY}" >"${key_file}"
@@ -43,11 +49,12 @@ run_tailscale_up() {
         --advertise-routes= \
         --exit-node= \
         --netfilter-mode=off \
-        2>"${err_file}"
+        >"${out_file}" 2>"${err_file}"
     rc=$?
     set -e
-    grep -v 'netfilter=off; configure iptables yourself' "${err_file}" >&2 || true
-    rm -f -- "${key_file}" "${err_file}"
+    strip_tailscale_notice "${out_file}"
+    strip_tailscale_notice "${err_file}" >&2
+    rm -f -- "${key_file}" "${out_file}" "${err_file}"
     unset TAILSCALE_AUTH_KEY
     [[ "${rc}" -eq 0 ]] || log_error "${INSTALL_WATCHER}" "configure.tailscale.bad"
 }
