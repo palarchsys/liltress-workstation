@@ -64,6 +64,7 @@ verify-report-*.tsv
 /service/ufw/install.sh
 /service/tailscale/install.sh
 /service/tailscale/common.sh
+/service/tailscale/apply-routes.sh
 /service/unbound/install.sh
 /service/usbguard/install.sh
 /system/apt/install.sh

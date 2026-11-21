@@ -9,6 +9,7 @@
 # -----------------------------------------------------------------------------
 # Purpose    : Bring Tailscale up as an SSH transport and check the link.
 # Note       : The auth key is a mode 600 file passed to --auth-key, then removed.
+# Note       : Ordinary traffic keeps the host default route, including the VPN.
 # -----------------------------------------------------------------------------
 
 
@@ -51,15 +52,34 @@ run_tailscale_up() {
     [[ "${rc}" -eq 0 ]] || log_error "${INSTALL_WATCHER}" "configure.tailscale.bad"
 }
 
+# tailscaled restores its own policy rules each time the daemon starts.
+install_tailscale_route_unit() {
+    local dir="/etc/systemd/system/tailscaled.service.d"
+    local drop="${dir}/liltress-routes.conf"
+    local script="${INSTALL_DIRECTORY}/service/tailscale/apply-routes.sh"
+    local want have
+    [[ -f "${script}" ]] || log_error "${INSTALL_WATCHER}" "configure.tailscale.bad"
+    install -d -m 755 "${dir}"
+    want="$(printf '[Service]\nExecStartPost=-/bin/bash %s\n' "${script}")"
+    if [[ -f "${drop}" ]]; then
+        have="$(cat "${drop}")"
+        [[ "${have}" == "${want}" ]] && return 0
+    fi
+    printf '%s\n' "${want}" >"${drop}"
+    chmod 644 "${drop}"
+    systemctl daemon-reload >/dev/null 2>&1 || true
+}
+
 run_tailscale_session() {
     require_tailscale_key
-    if check_tailscale_route; then
-        log_success "${INSTALL_WATCHER}" "configure.tailscale.ready"
-        return 0
+    if ! check_tailscale_route; then
+        log_info "${INSTALL_WATCHER}" "configure.tailscale.up"
+        run_tailscale_up
+        check_tailscale_route || log_error "${INSTALL_WATCHER}" "configure.tailscale.bad"
     fi
-    log_info "${INSTALL_WATCHER}" "configure.tailscale.up"
-    run_tailscale_up
-    check_tailscale_route || log_error "${INSTALL_WATCHER}" "configure.tailscale.bad"
+    bash "${INSTALL_DIRECTORY}/service/tailscale/apply-routes.sh" \
+        || log_error "${INSTALL_WATCHER}" "configure.tailscale.bad"
+    install_tailscale_route_unit
     log_success "${INSTALL_WATCHER}" "configure.tailscale.ready"
 }
 
