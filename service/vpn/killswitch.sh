@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/killswitch.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -208,6 +208,17 @@ render_vpn_nft_extra_ports() {
     fi
 }
 
+# Tailnet and the local prefix stay open only while the tunnel is up.
+render_vpn_nft_local() {
+    local cidr open="${1:-0}"
+    [[ "${open}" == "1" ]] || return 0
+    printf '        ip daddr 100.64.0.0/10 accept\n'
+    while IFS= read -r cidr; do
+        [[ "${cidr}" == */* ]] || continue
+        printf '        ip daddr %s accept\n' "${cidr}"
+    done < <(list_vpn_lan_prefixes)
+}
+
 # The tunnel interface is allowed only when the caller asks.
 render_vpn_nft_iface() {
     if [[ "${with_iface}" == "1" && "${iface}" =~ ^[a-zA-Z0-9_-]{1,15}$ ]]; then
@@ -254,6 +265,7 @@ apply_vpn_nft() {
         render_vpn_nft_set bypass6 ipv6_addr "${b6[@]}"
         render_vpn_nft_endpoints
         render_vpn_nft_output_head
+        render_vpn_nft_local "${with_iface}"
         render_vpn_nft_profile_ports
         render_vpn_nft_extra_ports
         render_vpn_nft_iface

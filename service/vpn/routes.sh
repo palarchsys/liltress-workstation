@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/routes.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -99,6 +99,7 @@ apply_vpn_bypass_routes() {
         add_vpn_rule_from "${VPN_RULE_PRIO_BYPASS_FROM}" "${cidr}"
     done
     apply_vpn_ssh
+    apply_vpn_lan_routes
 }
 
 apply_vpn_endpoint_routes() {
@@ -148,6 +149,43 @@ clear_vpn_routes() {
     clear_vpn_rule_prio "${VPN_RULE_PRIO_SSH}"
     clear_vpn_rule_prio "${VPN_RULE_PRIO_BYPASS_TO}"
     clear_vpn_rule_prio "${VPN_RULE_PRIO_BYPASS_FROM}"
+    clear_vpn_rule_prio "${VPN_RULE_PRIO_LAN}"
+}
+
+# The physical card is the default that is not a tunnel.
+read_vpn_lan_dev() {
+    local line dev
+    while IFS= read -r line; do
+        dev="$(vpn_route_field "${line}" dev 2>/dev/null || true)"
+        [[ -n "${dev}" ]] || continue
+        vpn_route_is_tunnel "${dev}" && continue
+        printf '%s\n' "${dev}"
+        return 0
+    done < <(ip -4 route show default 2>/dev/null)
+    return 1
+}
+
+# Connected prefixes on that card. A host route is not a LAN.
+list_vpn_lan_prefixes() {
+    local dev line prefix
+    dev="$(read_vpn_lan_dev 2>/dev/null || true)"
+    [[ -n "${dev}" ]] || return 0
+    while IFS= read -r line; do
+        prefix="${line%% *}"
+        [[ "${prefix}" == */* ]] || continue
+        printf '%s\n' "${prefix}"
+    done < <(ip -4 route show dev "${dev}" scope link 2>/dev/null)
+}
+
+# Same-subnet hosts stay on the card. main holds the connected route.
+apply_vpn_lan_routes() {
+    local cidr
+    load_vpn_settings
+    clear_vpn_rule_prio "${VPN_RULE_PRIO_LAN}"
+    while IFS= read -r cidr; do
+        [[ -n "${cidr}" ]] || continue
+        ip -4 rule add priority "${VPN_RULE_PRIO_LAN}" to "${cidr}" lookup main
+    done < <(list_vpn_lan_prefixes)
 }
 
 # Take the first default that is not a tunnel device.

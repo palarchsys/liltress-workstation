@@ -185,6 +185,10 @@ grep -q 'meta mark set' "${vpn_dir}/killswitch.sh" || mode_ok=0
 grep -q 'fwmark' "${vpn_dir}/routes.sh" || mode_ok=0
 grep -q 'VPN_RULE_PRIO_SSH=45' "${cfg_dir}/vpn.conf" || mode_ok=0
 grep -q 'VPN_RULE_PRIO_TUNNEL=100' "${cfg_dir}/vpn.conf" || mode_ok=0
+grep -q 'VPN_RULE_PRIO_LAN=52' "${cfg_dir}/vpn.conf" || mode_ok=0
+grep -q 'VPN_TUN_MTU=1200' "${cfg_dir}/vpn.conf" || mode_ok=0
+grep -q 'ip daddr 100.64.0.0/10 accept' "${vpn_dir}/killswitch.sh" || mode_ok=0
+grep -q 'lookup main' "${vpn_dir}/routes.sh" || mode_ok=0
 grep -q 'VPN_FAILOVER_TRIES=3' "${cfg_dir}/vpn.conf" || mode_ok=0
 grep -q 'VPN_FAILOVER_TIMEOUT=10' "${cfg_dir}/vpn.conf" || mode_ok=0
 grep -q 'TimeoutStartSec=300' "${cfg_dir}/w-vpn.service" || mode_ok=0
@@ -958,7 +962,7 @@ export PATH="${saved_nm_path}"
 write_vpn_state || { nm_ok=0; nm_why="etat"; }
 set_vpn_state_mode on || { nm_ok=0; nm_why="mode-on"; }
 NM_TRACE=""
-for nm_fn in set_vpn_state_mode clear_vpn_tunnel_routes set_vpn_state_active record_vpn_attempt apply_vpn_nft restart_vpn_services apply_vpn_systemd apply_vpn_endpoint_routes apply_vpn_bypass_routes apply_vpn_ssh remember_vpn_direct_route; do
+for nm_fn in set_vpn_state_mode clear_vpn_tunnel_routes set_vpn_state_active record_vpn_attempt apply_vpn_nft restart_vpn_services apply_vpn_systemd apply_vpn_endpoint_routes apply_vpn_bypass_routes apply_vpn_ssh apply_vpn_lan_routes remember_vpn_direct_route; do
     if declare -F "${nm_fn}" >/dev/null 2>&1; then
         eval "$(declare -f "${nm_fn}" | sed "1s/^${nm_fn}/nm_saved_${nm_fn}/")"
     fi
@@ -976,6 +980,7 @@ apply_vpn_systemd() { return 0; }
 apply_vpn_endpoint_routes() { return 0; }
 apply_vpn_bypass_routes() { return 0; }
 apply_vpn_ssh() { return 0; }
+apply_vpn_lan_routes() { return 0; }
 NM_REMEMBER=0
 remember_vpn_direct_route() {
     NM_REMEMBER=1
@@ -1020,7 +1025,7 @@ NM_REMEMBER=0
 handle_vpn_nm_event tun-liltress dhcp4-change
 [[ "${NM_REMEMBER}" == "0" ]] || { nm_ok=0; nm_why="dhcp-tun"; }
 grep -q 'network-manager-openvpn-gnome' "${vpn_dir}/install.sh" || { nm_ok=0; nm_why="paquet"; }
-for nm_fn in set_vpn_state_mode clear_vpn_tunnel_routes set_vpn_state_active record_vpn_attempt apply_vpn_nft restart_vpn_services apply_vpn_systemd apply_vpn_endpoint_routes apply_vpn_bypass_routes apply_vpn_ssh remember_vpn_direct_route; do
+for nm_fn in set_vpn_state_mode clear_vpn_tunnel_routes set_vpn_state_active record_vpn_attempt apply_vpn_nft restart_vpn_services apply_vpn_systemd apply_vpn_endpoint_routes apply_vpn_bypass_routes apply_vpn_ssh apply_vpn_lan_routes remember_vpn_direct_route; do
     if declare -F "nm_saved_${nm_fn}" >/dev/null 2>&1; then
         eval "$(declare -f "nm_saved_${nm_fn}" | sed "1s/^nm_saved_${nm_fn}/${nm_fn}/")"
         unset -f "nm_saved_${nm_fn}"

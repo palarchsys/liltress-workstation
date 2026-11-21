@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/nm.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -1025,10 +1025,21 @@ apply_vpn_nm_pre_up() {
     apply_vpn_nft "${profile}" 0 || true
 }
 
+# 1228-byte packets passed. 1400-byte packets did not.
+apply_vpn_tunnel_mtu() {
+    local profile="$1" iface
+    load_vpn_settings
+    iface="$(get_vpn_meta "${profile}" iface 2>/dev/null || true)"
+    [[ -n "${iface}" ]] || return 0
+    ip link show "${iface}" >/dev/null 2>&1 || return 0
+    ip link set dev "${iface}" mtu "${VPN_TUN_MTU}" >/dev/null 2>&1 || true
+}
+
 # The tunnel is up, so the active name and the filter follow.
 apply_vpn_nm_up() {
     local profile="$1"
     set_vpn_state_mode on
+    apply_vpn_tunnel_mtu "${profile}"
     clear_vpn_tunnel_routes || true
     vpn_nm_set_active "${profile}"
     set_vpn_state_active "${profile}" || true
@@ -1049,6 +1060,16 @@ apply_vpn_nm_down() {
     quiet_vpn_down
 }
 
+# The killswitch must learn the new local prefix while the tunnel stays up.
+refresh_vpn_lan_filter() {
+    local active
+    declare -F check_vpn_killswitch >/dev/null 2>&1 || return 0
+    check_vpn_killswitch || return 0
+    active="$(get_vpn_active 2>/dev/null || true)"
+    [[ -n "${active}" ]] || return 0
+    apply_vpn_nft "${active}" 1 || true
+}
+
 # A direct address change outside the tunnel updates the bypass.
 apply_vpn_nm_dhcp() {
     local iface="$1"
@@ -1057,6 +1078,8 @@ apply_vpn_nm_dhcp() {
     check_vpn_mode || return 0
     remember_vpn_direct_route || true
     apply_vpn_ssh || true
+    apply_vpn_lan_routes || true
+    refresh_vpn_lan_filter
 }
 
 # Dispatcher entry. A pause, or a foreign file, does nothing.

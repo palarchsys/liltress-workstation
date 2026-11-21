@@ -162,6 +162,7 @@ set_vpn_setting_defaults() {
     VPN_RULE_PRIO_ENDPOINT=40
     VPN_RULE_PRIO_BYPASS_TO=50
     VPN_RULE_PRIO_BYPASS_FROM=51
+    VPN_RULE_PRIO_LAN=52
     VPN_RULE_PRIO_TUNNEL=100
     VPN_RULE_PRIO_SSH=45
     VPN_SSH_MARK=17820
@@ -170,6 +171,7 @@ set_vpn_setting_defaults() {
     VPN_TABLE_DIRECT_ID=17821
     VPN_TABLE_DIRECT_NAME=w_direct
     VPN_ROUTE_METRIC=50
+    VPN_TUN_MTU=1200
 }
 
 # The profile file wins. The packaged file is the fallback.
@@ -213,6 +215,9 @@ check_vpn_setting_direct() {
     [[ "${VPN_TABLE_DIRECT_ID}" =~ ^[0-9]+$ ]] || VPN_TABLE_DIRECT_ID=17821
     [[ "${VPN_TABLE_DIRECT_NAME}" =~ ^[a-z][a-z0-9_-]{0,14}$ ]] || VPN_TABLE_DIRECT_NAME=w_direct
     [[ "${VPN_ROUTE_METRIC}" =~ ^[0-9]+$ ]] || VPN_ROUTE_METRIC=50
+    [[ "${VPN_TUN_MTU}" =~ ^[0-9]+$ ]] || VPN_TUN_MTU=1200
+    [[ "${VPN_TUN_MTU}" -ge 576 && "${VPN_TUN_MTU}" -le 1500 ]] || VPN_TUN_MTU=1200
+    [[ "${VPN_RULE_PRIO_LAN}" =~ ^[0-9]+$ ]] || VPN_RULE_PRIO_LAN=52
 }
 
 # Boot follows a valid default profile.
