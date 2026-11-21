@@ -1,0 +1,10 @@
+# =============================================================================
+# File       : config/service/unattended-upgrades/20auto-upgrades
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::Download-Upgradeable-Packages "1";
+APT::Periodic::AutocleanInterval "7";

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/unbound/dns.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -143,10 +143,10 @@ apply_unbound_dns() {
     local script_dir
     script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
     ensure_directory /etc/systemd/resolved.conf.d 755
-    grep -v '^#' "$(locate_config_file unbound/resolved.conf)" >/etc/systemd/resolved.conf.d/90-liltress-workstation.conf
+    grep -v '^#' "$(locate_config_file service/unbound/resolved.conf)" >/etc/systemd/resolved.conf.d/90-liltress-workstation.conf
     chmod 644 /etc/systemd/resolved.conf.d/90-liltress-workstation.conf
     ensure_directory /etc/NetworkManager/conf.d 755
-    grep -v '^#' "$(locate_config_file unbound/networkmanager.conf)" >/etc/NetworkManager/conf.d/90-liltress-workstation-dns.conf
+    grep -v '^#' "$(locate_config_file service/unbound/networkmanager.conf)" >/etc/NetworkManager/conf.d/90-liltress-workstation-dns.conf
     chmod 644 /etc/NetworkManager/conf.d/90-liltress-workstation-dns.conf
     install -d -m 755 /etc/NetworkManager/dispatcher.d
     install -m 755 "${script_dir}/nm-dispatcher.sh" \

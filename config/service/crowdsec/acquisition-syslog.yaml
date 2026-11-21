@@ -1,0 +1,11 @@
+# =============================================================================
+# File       : config/service/crowdsec/acquisition-syslog.yaml
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+---
+source: file
+file: /var/log/syslog
+labels:
+  type: syslog

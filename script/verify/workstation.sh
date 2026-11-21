@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/verify/workstation.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -281,7 +281,7 @@ else
     report_fail "exclusions minimales absentes"
 fi
 # shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/config/clamav/onaccess.conf"
+source "${INSTALL_DIRECTORY}/config/service/clamav/onaccess.conf"
 if [[ "${ONACCESS_MOUNTS}" == "1" ]]; then
     mount_ok=1
     if [[ -d /media ]] && ! grep -q '^OnAccessIncludePath /media$' "${clam_conf}"; then
@@ -302,7 +302,7 @@ else
     report_pass "montages hors surveillance continue"
 fi
 # shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/config/ufw/egress.conf"
+source "${INSTALL_DIRECTORY}/config/service/ufw/egress.conf"
 response="${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/clamav-response.sh"
 if [[ -f "${response}" ]] \
     && grep -q 'kill -TERM' "${response}" \

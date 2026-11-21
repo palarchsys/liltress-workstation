@@ -1,0 +1,16 @@
+# =============================================================================
+# File       : config/service/vpn/w-vpn-watch.timer
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+[Unit]
+Description=Observe le tunnel du poste
+
+[Timer]
+OnActiveSec=30
+OnUnitActiveSec=30
+AccuracySec=5
+
+[Install]
+WantedBy=timers.target

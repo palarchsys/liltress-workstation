@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/configure.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -30,8 +30,8 @@ cpu_quota="$(
 )" || log_error "${INSTALL_WATCHER}" "configure.quota-cpu-not-found"
 [[ "${cpu_quota}" =~ ^[0-9]+$ ]] || log_error "${INSTALL_WATCHER}" "configure.quota-cpu-invalid" "${cpu_quota:-vide}"
 # shellcheck disable=SC1091
-# shellcheck source=../../config/cron/timers.conf
-source "$(locate_config_file cron/timers.conf)"
+# shellcheck source=../../config/service/cron/timers.conf
+source "$(locate_config_file service/cron/timers.conf)"
 
 log_info "${INSTALL_WATCHER}" "configure.installation-of-the-watchdogs-chain-to-the-start" "${WATCHDOG_CPU_LIMIT}"
 ensure_directory "${CONFIG_BASE_DIRECTORY}/cron" 750
@@ -47,7 +47,7 @@ fi
 
 export PROJECT_SLUG CONFIG_BASE_DIRECTORY
 
-sed "s|\${CONFIG_BASE_DIRECTORY}|${CONFIG_BASE_DIRECTORY}|g" "$(locate_config_file cron/schedule.cron)" \
+sed "s|\${CONFIG_BASE_DIRECTORY}|${CONFIG_BASE_DIRECTORY}|g" "$(locate_config_file service/cron/schedule.cron)" \
     >"/etc/cron.d/${PROJECT_SLUG}"
 chown root:root "/etc/cron.d/${PROJECT_SLUG}"
 chmod 600 "/etc/cron.d/${PROJECT_SLUG}"
@@ -59,7 +59,7 @@ systemctl_bin="$(command -v systemctl || true)"
 render_unit() {
     local rel="$1"
     local src dest
-    src="$(locate_config_file "cron/${rel}")" || log_error "${INSTALL_WATCHER}" "configure.unit-absent" "${rel}"
+    src="$(locate_config_file "service/cron/${rel}")" || log_error "${INSTALL_WATCHER}" "configure.unit-absent" "${rel}"
     dest="/etc/systemd/system/${rel}"
     sed \
         -e "s|\\\${WATCHDOG_LIMIT_NICE}|${WATCHDOG_LIMIT_NICE}|g" \

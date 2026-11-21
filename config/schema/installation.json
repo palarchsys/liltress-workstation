@@ -94,6 +94,24 @@
           "path": "system/pam/configure.sh"
         },
         {
+          "id": "install.postfix",
+          "service": "postfix",
+          "path": "service/postfix/install.sh",
+          "when": {
+            "var": "MAIL_ALERTS",
+            "eq": "1"
+          }
+        },
+        {
+          "id": "install.postfix.configure",
+          "service": "postfix",
+          "path": "service/postfix/configure.sh",
+          "when": {
+            "var": "MAIL_ALERTS",
+            "eq": "1"
+          }
+        },
+        {
           "id": "install.users.configure",
           "service": "users",
           "path": "system/users/configure.sh"
@@ -132,29 +150,6 @@
           "id": "install.ssh.configure",
           "service": "ssh",
           "path": "service/ssh/configure.sh"
-        }
-      ]
-    },
-    {
-      "id": "install.alert.title",
-      "steps": [
-        {
-          "id": "install.postfix",
-          "service": "postfix",
-          "path": "service/postfix/install.sh",
-          "when": {
-            "var": "MAIL_ALERTS",
-            "eq": "1"
-          }
-        },
-        {
-          "id": "install.postfix.configure",
-          "service": "postfix",
-          "path": "service/postfix/configure.sh",
-          "when": {
-            "var": "MAIL_ALERTS",
-            "eq": "1"
-          }
         }
       ]
     },

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/fs.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -155,7 +155,7 @@ load_usb_rule() {
         key="${line%%=*}"
         value="${line#*=}"
         set_usb_rule "${key}" "${value}"
-    done <"$(locate_config_file usbguard/daemon.conf)"
+    done <"$(locate_config_file service/usbguard/daemon.conf)"
 }
 
 mode_file() {

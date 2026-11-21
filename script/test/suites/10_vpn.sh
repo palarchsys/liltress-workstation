@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/10_vpn.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -46,7 +46,7 @@ t_section "vpn"
 export VPN_SKIP_INTEGRITY=1
 
 vpn_dir="${T_ROOT}/service/vpn"
-cfg_dir="${T_ROOT}/config/vpn"
+cfg_dir="${T_ROOT}/config/service/vpn"
 
 while IFS= read -r file; do
     rel="${file#"${T_ROOT}/"}"
@@ -1291,9 +1291,9 @@ else
 fi
 
 aide_ok=1
-grep -qF '!__HF_BASE__/vpn/[^/]+/[^/]+/handshake$' "${T_ROOT}/config/aide/aide.conf" || aide_ok=0
-grep -qF '!__HF_BASE__/vpn/[^/]+/[^/]+/status$' "${T_ROOT}/config/aide/aide.conf" || aide_ok=0
-if grep -q '/vpn/' "${T_ROOT}/config/integrity/paths.list"; then
+grep -qF '!__HF_BASE__/vpn/[^/]+/[^/]+/handshake$' "${T_ROOT}/config/service/aide/aide.conf" || aide_ok=0
+grep -qF '!__HF_BASE__/vpn/[^/]+/[^/]+/status$' "${T_ROOT}/config/service/aide/aide.conf" || aide_ok=0
+if grep -q '/vpn/' "${T_ROOT}/config/service/integrity/paths.list"; then
     aide_ok=0
 fi
 if [[ "${aide_ok}" -eq 1 ]]; then

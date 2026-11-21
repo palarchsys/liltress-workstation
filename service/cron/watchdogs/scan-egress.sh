@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-egress.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -70,9 +70,9 @@ read_egress_key() {
     local candidate="" line=""
     EGRESS_KEY="w-egress"
     for candidate in \
-        "${BASE:-}/config/watchdog/egress.keys" \
-        "${CONFIG_BASE_DIRECTORY:-}/config/watchdog/egress.keys" \
-        "${INSTALL_DIRECTORY:-}/config/watchdog/egress.keys"; do
+        "${BASE:-}/config/service/watchdog/egress.keys" \
+        "${CONFIG_BASE_DIRECTORY:-}/config/service/watchdog/egress.keys" \
+        "${INSTALL_DIRECTORY:-}/config/service/watchdog/egress.keys"; do
         [[ -n "${candidate}" && -f "${candidate}" ]] || continue
         line="$(grep -v '^#' "${candidate}" | head -n 1 || true)"
         [[ -n "${line}" ]] && EGRESS_KEY="${line}"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/rkhunter/configure.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -24,7 +24,7 @@ ACCOUNT_USER="${CURRENT_USER}"
 export ACCOUNT_USER
 
 log_info "${INSTALL_WATCHER}" "configure.configuration-of-rkhunter-2"
-envsubst '$ACCOUNT_USER' <"$(locate_config_file rkhunter/rkhunter.conf.local)" >/etc/rkhunter.conf.local
+envsubst '$ACCOUNT_USER' <"$(locate_config_file service/rkhunter/rkhunter.conf.local)" >/etc/rkhunter.conf.local
 chmod 644 /etc/rkhunter.conf.local
 log_success "${INSTALL_WATCHER}" "configure.rkhunter-conf-local-installed"
 

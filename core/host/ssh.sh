@@ -28,7 +28,7 @@ install_sshd_dropin() {
     local account="$1"
     local stem="$2"
     local src dest
-    src="$(locate_config_file "ssh/00-${stem}.conf")"
+    src="$(locate_config_file "service/ssh/00-${stem}.conf")"
     dest="/etc/ssh/sshd_config.d/00-${stem}.conf"
     ensure_directory /etc/ssh/sshd_config.d 755
     SSH_ACCOUNT="${account}" \
@@ -41,7 +41,7 @@ install_sshd_dropin() {
         SSH_TCP_KEEPALIVE="${SSH_TCP_KEEPALIVE}" \
         SSH_MAX_SESSIONS="${SSH_MAX_SESSIONS}" \
         envsubst '${SSH_PORT} ${SSH_ACCOUNT} ${SSH_BANNER_PATH} ${SSH_MAX_AUTH_TRIES} ${SSH_CLIENT_ALIVE_INTERVAL} ${SSH_CLIENT_ALIVE_COUNT_MAX} ${SSH_LOGIN_GRACE_TIME} ${SSH_TCP_KEEPALIVE} ${SSH_MAX_SESSIONS}' <"${src}" >"${dest}"
-    install -m 644 "$(locate_config_file "ssh/99-${stem}.conf")" "/etc/ssh/sshd_config.d/99-${stem}.conf"
+    install -m 644 "$(locate_config_file "service/ssh/99-${stem}.conf")" "/etc/ssh/sshd_config.d/99-${stem}.conf"
     chmod 644 "${dest}"
 }
 

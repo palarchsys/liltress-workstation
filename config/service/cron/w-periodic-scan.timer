@@ -1,0 +1,18 @@
+# =============================================================================
+# File       : config/service/cron/w-periodic-scan.timer
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+[Unit]
+Description=Relance la chaîne de scan périodique
+
+[Timer]
+OnBootSec=${PERIODIC_ON_BOOT_SEC}
+OnUnitActiveSec=${PERIODIC_EVERY}
+AccuracySec=${PERIODIC_ACCURACY}
+Persistent=${TIMER_PERSISTENT}
+Unit=w-periodic-scan.service
+
+[Install]
+WantedBy=timers.target

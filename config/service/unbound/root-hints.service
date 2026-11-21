@@ -1,0 +1,14 @@
+# =============================================================================
+# File       : config/service/unbound/root-hints.service
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+[Unit]
+Description=Recharge Unbound après mise à jour des serveurs racine DNS
+After=unbound.service
+
+[Service]
+Type=oneshot
+ExecStart=-/usr/libexec/unbound-helper root_trust_anchor_update
+ExecStart=-/bin/systemctl reload unbound.service

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/verify/alerts.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -106,7 +106,7 @@ if [[ -x "${BIN}/boot-scan.sh" ]] \
 else
     record_fail "boot-scan.sh absent ou incomplet dans ${BIN}"
 fi
-skip_list="${BASE}/config/clamav/scan-skip.paths"
+skip_list="${BASE}/config/service/clamav/scan-skip.paths"
 [[ -f "${skip_list}" ]] || skip_list="${BASE}/cron/scan-skip.paths"
 if [[ -x "${BASE}/script/scan-skip.sh" && -f "${skip_list}" ]]; then
     record_pass "commande scan-skip.sh et liste des chemins"

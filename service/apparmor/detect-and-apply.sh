@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/apparmor/detect-and-apply.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -30,7 +30,7 @@ remove_unshipped_profile() {
     shopt -s nullglob
     for installed in /etc/apparmor.d/w-*; do
         base="$(basename -- "${installed}")"
-        if [[ -f "${INSTALL_DIRECTORY}/config/apparmor/${base}" ]]; then
+        if [[ -f "${INSTALL_DIRECTORY}/config/service/apparmor/${base}" ]]; then
             continue
         fi
         log_info "BASH" "log.removal-of-the-profile" "${base}"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/fail2ban/configure.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -21,7 +21,7 @@ require_root
 get_ssh_port
 
 log_info "${INSTALL_WATCHER}" "configure.configuration-of-fail2ban"
-envsubst '$SSH_PORT' <"$(locate_config_file fail2ban/jail.local)" >/etc/fail2ban/jail.local
+envsubst '$SSH_PORT' <"$(locate_config_file service/fail2ban/jail.local)" >/etc/fail2ban/jail.local
 chmod 644 /etc/fail2ban/jail.local
 log_success "${INSTALL_WATCHER}" "configure.jail-local-installed-sshd-port" "${SSH_PORT}"
 

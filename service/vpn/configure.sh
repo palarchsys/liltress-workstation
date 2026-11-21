@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/configure.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -32,7 +32,7 @@ require_root
 
 render_vpn_unit() {
     local name="$1" src dest
-    src="$(locate_config_file "vpn/${name}")" || log_error "${INSTALL_WATCHER}" "vpn.profile.invalid" "${name}"
+    src="$(locate_config_file "service/vpn/${name}")" || log_error "${INSTALL_WATCHER}" "vpn.profile.invalid" "${name}"
     dest="/etc/systemd/system/${name}"
     if [[ -f "${dest}" ]]; then
         copy_backup "${dest}"
@@ -45,9 +45,9 @@ home="$(get_vpn_home)"
 install -d -m 755 "${home}"
 install -d -m 700 "${home}/wireguard" "${home}/openvpn"
 write_vpn_state
-install -m 644 "$(locate_config_file vpn/vpn.conf)" "${home}/vpn.conf"
+install -m 644 "$(locate_config_file service/vpn/vpn.conf)" "${home}/vpn.conf"
 if [[ ! -f "${home}/bypass.cidrs" ]]; then
-    install -m 644 "$(locate_config_file vpn/bypass.cidrs)" "${home}/bypass.cidrs"
+    install -m 644 "$(locate_config_file service/vpn/bypass.cidrs)" "${home}/bypass.cidrs"
 fi
 install -d -m 755 /etc/iproute2/rt_tables.d
 rt_file="/etc/iproute2/rt_tables.d/liltress-vpn.conf"

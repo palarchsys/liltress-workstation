@@ -1,0 +1,20 @@
+# =============================================================================
+# File       : config/service/vpn/w-vpn.service
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+[Unit]
+Description=Ouvre le tunnel choisi au demarrage
+After=network-online.target w-vpn-killswitch.service NetworkManager.service
+Wants=NetworkManager.service
+Requires=w-vpn-killswitch.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+TimeoutStartSec=300
+ExecStart=/usr/bin/bash @ROOT@/service/vpn/cli.sh boot-up
+
+[Install]
+WantedBy=multi-user.target

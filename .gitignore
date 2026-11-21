@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : .gitignore
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -100,15 +100,15 @@ verify-report-*.tsv
 /service/cron/watchdogs/scan-skip-lib.sh
 /service/cron/watchdogs/scan-usbguard.sh
 /service/cron/watchdogs/send.sh
-/config/alert/exclude.list
-/config/alert/action.json
-/config/auditd/enable.rules
-/config/auditd/prelude.rules
-/config/crowdsec/package.list
-/config/crowdsec/preferences.conf
-/config/postfix/debconf.conf
-/config/usbguard/daemon.conf
-/config/usbguard/ipc.acl
+/config/service/alert/exclude.list
+/config/service/alert/action.json
+/config/service/auditd/enable.rules
+/config/service/auditd/prelude.rules
+/config/service/crowdsec/package.list
+/config/service/crowdsec/preferences.conf
+/config/service/postfix/debconf.conf
+/config/service/usbguard/daemon.conf
+/config/service/usbguard/ipc.acl
 
 # Lois d'agent : dépôt privé liltress seulement.
 AGENTS.md

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/chkrootkit/install.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -25,7 +25,7 @@ if systemctl cat chkrootkit.timer >/dev/null 2>&1; then
     run_optional "${INSTALL_WATCHER}" "install.chkrootkit.error" systemctl disable --now chkrootkit.timer
     run_optional "${INSTALL_WATCHER}" "install.chkrootkit.error" systemctl mask chkrootkit.timer
 fi
-ignore_src="$(locate_config_file chkrootkit/patterns.ignore || true)"
+ignore_src="$(locate_config_file service/chkrootkit/patterns.ignore || true)"
 if [[ -z "${ignore_src}" || ! -f "${ignore_src}" ]]; then
     log_error "${INSTALL_WATCHER}" "install.list-chkrootkit-not-found"
 fi

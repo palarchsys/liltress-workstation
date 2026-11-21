@@ -348,7 +348,7 @@ sudo "./liltress" maintain scan-skip add $HOME/.cache/exemple
 sudo "./liltress" maintain scan-skip del $HOME/.cache/exemple
 ```
 
-Le fichier de liste est `/opt/liltress-workstation/config/clamav/scan-skip.paths`.<br/>
+Le fichier de liste est `/opt/liltress-workstation/config/service/clamav/scan-skip.paths`.<br/>
 Une liste déjà présente reste en place lorsque l'installeur tourne de nouveau.<br/>
 Une liste encore dans `/opt/liltress-workstation/cron/scan-skip.paths` est copiée une fois, lorsque le nouveau fichier est encore le modèle.
 

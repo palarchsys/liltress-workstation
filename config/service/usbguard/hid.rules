@@ -1,0 +1,8 @@
+# =============================================================================
+# File       : config/service/usbguard/hid.rules
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+allow with-interface equals { 03:*:* }
+allow with-interface equals { 09:*:* }

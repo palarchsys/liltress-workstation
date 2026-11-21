@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/auditd/configure.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -31,7 +31,7 @@ write_audit_watch() {
     [[ -d "${path}" ]] || field="path"
     printf '%s\n' "-a always,exit -F arch=b64 -F ${field}=${path} -F perm=wa -F key=${key}"
 }
-grep -v '^#' "$(locate_config_file auditd/prelude.rules)" >/etc/audit/rules.d/00-liltress-workstation.rules
+grep -v '^#' "$(locate_config_file service/auditd/prelude.rules)" >/etc/audit/rules.d/00-liltress-workstation.rules
 
 write_audit_list() {
     local profile path key
@@ -44,7 +44,7 @@ write_audit_list() {
         esac
         path="${path//__HF_BASE__/${CONFIG_BASE_DIRECTORY}}"
         write_audit_watch "${path}" "${key}"
-    done <"$(locate_config_file auditd/watches.list)"
+    done <"$(locate_config_file service/auditd/watches.list)"
 }
 {
     write_audit_list
@@ -58,9 +58,9 @@ write_audit_list() {
         [[ -e "${account_path}" ]] || continue
         write_audit_watch "${account_path}" account
     done
-    grep -v '^#' "$(locate_config_file auditd/tail.rules)"
+    grep -v '^#' "$(locate_config_file service/auditd/tail.rules)"
 } >/etc/audit/rules.d/50-liltress-workstation.rules
-grep -v '^#' "$(locate_config_file auditd/enable.rules)" >/etc/audit/rules.d/99-liltress-workstation.rules
+grep -v '^#' "$(locate_config_file service/auditd/enable.rules)" >/etc/audit/rules.d/99-liltress-workstation.rules
 chmod 640 /etc/audit/rules.d/00-liltress-workstation.rules \
     /etc/audit/rules.d/50-liltress-workstation.rules \
     /etc/audit/rules.d/99-liltress-workstation.rules

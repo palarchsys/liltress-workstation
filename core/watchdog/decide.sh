@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/decide.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,9 +18,9 @@ read_watchdog_exclude() {
     here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     shared=""
     for shared in \
-        "${here}/../../config/alert/exclude.list" \
-        "${BASE:-}/config/alert/exclude.list" \
-        "${CONFIG_BASE_DIRECTORY:-}/config/alert/exclude.list"; do
+        "${here}/../../config/service/alert/exclude.list" \
+        "${BASE:-}/config/service/alert/exclude.list" \
+        "${CONFIG_BASE_DIRECTORY:-}/config/service/alert/exclude.list"; do
         [[ -f "${shared}" ]] && break
         shared=""
     done
@@ -29,7 +29,7 @@ read_watchdog_exclude() {
         seen="${shared}"
     fi
     if declare -F locate_config_file >/dev/null 2>&1; then
-        product="$(locate_config_file alert/exclude.list 2>/dev/null || true)"
+        product="$(locate_config_file service/alert/exclude.list 2>/dev/null || true)"
         if [[ -n "${product}" && "${product}" != "${seen}" && -f "${product}" ]]; then
             printf '%s\n' "${product}"
         fi
@@ -116,7 +116,7 @@ check_watchdog_phase() {
     dpkg_log="${7:-/var/log/dpkg.log}"
     mkdir -p "${state_dir}"
     excludes="$(read_watchdog_exclude | awk 'NR > 1 { printf ":" } { printf "%s", $0 }')"
-    action_json="${here}/../../config/alert/action.json"
+    action_json="${here}/../../config/service/alert/action.json"
     WATCHDOG_STATUS="$(
         WATCHDOG_EXCLUDES="${excludes}" \
             python3 "${here}/../../python/alert-decide.py" "${phase}" "${log_dir}" "${since}" "${repair_file}" "${catalog}" "${apt_history}" "${dpkg_log}" "${state_dir}" "${action_json}"

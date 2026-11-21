@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-debsums.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -67,9 +67,9 @@ read_host_mode() {
     local candidate="" line=""
     HOST_MODE="workstation"
     for candidate in \
-        "${BASE:-}/config/watchdog/host.list" \
-        "${CONFIG_BASE_DIRECTORY:-}/config/watchdog/host.list" \
-        "${INSTALL_DIRECTORY:-}/config/watchdog/host.list"; do
+        "${BASE:-}/config/service/watchdog/host.list" \
+        "${CONFIG_BASE_DIRECTORY:-}/config/service/watchdog/host.list" \
+        "${INSTALL_DIRECTORY:-}/config/service/watchdog/host.list"; do
         [[ -n "${candidate}" && -f "${candidate}" ]] || continue
         line="$(grep -v '^#' "${candidate}" | head -n 1 || true)"
         [[ -n "${line}" ]] && HOST_MODE="${line}"

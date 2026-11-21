@@ -1,0 +1,20 @@
+# =============================================================================
+# File       : config/service/postfix/main.keys
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+myhostname=__HOSTNAME__
+myorigin=/etc/mailname
+relayhost=__RELAYHOST__
+smtp_sasl_auth_enable=yes
+smtp_sasl_password_maps=__SASL_TYPE__:/etc/postfix/sasl_passwd
+smtp_sasl_security_options=noanonymous
+smtp_tls_security_level=encrypt
+smtp_tls_CAfile=/etc/ssl/certs/ca-certificates.crt
+inet_interfaces=loopback-only
+inet_protocols=all
+default_transport=smtp
+smtpd_banner=__PROJECT_NAME__ ESMTP
+disable_vrfy_command=yes
+sender_canonical_maps=regexp:/etc/postfix/sender_canonical

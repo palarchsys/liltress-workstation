@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/apply-scan-skip.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -91,9 +91,9 @@ load_onaccess_exclude() {
     local candidate found=""
     ONACCESS_FIXED_EXCLUDE="${ONACCESS_FIXED_EXCLUDE:-/var/lib/snapd /snap /var/lib/clamav/quarantine /var/lib/clamav/tmp /var/log}"
     for candidate in \
-        "${INSTALL_DIRECTORY:-}/config/clamav/onaccess.conf" \
-        "${BASE}/config/clamav/onaccess.conf" \
-        "/opt/liltress-workstation/config/clamav/onaccess.conf"; do
+        "${INSTALL_DIRECTORY:-}/config/service/clamav/onaccess.conf" \
+        "${BASE}/config/service/clamav/onaccess.conf" \
+        "/opt/liltress-workstation/config/service/clamav/onaccess.conf"; do
         [[ -f "${candidate}" ]] || continue
         found="${candidate}"
         break
@@ -123,9 +123,9 @@ load_onaccess_exclude() {
 read_scan_run_dir() {
     local candidate="" line=""
     for candidate in \
-        "${BASE}/config/clamav/scan.conf" \
-        "${CONFIG_BASE_DIRECTORY:-}/config/clamav/scan.conf" \
-        "${INSTALL_DIRECTORY:-}/config/clamav/scan.conf"; do
+        "${BASE}/config/service/clamav/scan.conf" \
+        "${CONFIG_BASE_DIRECTORY:-}/config/service/clamav/scan.conf" \
+        "${INSTALL_DIRECTORY:-}/config/service/clamav/scan.conf"; do
         [[ -n "${candidate}" && -f "${candidate}" ]] || continue
         while IFS= read -r line || [[ -n "${line}" ]]; do
             case "${line}" in

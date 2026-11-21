@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-skip-lib.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -199,10 +199,10 @@ find_scan_skip_candidate() {
     local here="$1"
     local candidate
     for candidate in \
-        "${INSTALL_DIRECTORY:-}/config/clamav/scan-skip.paths" \
-        "${here}/../../../config/clamav/scan-skip.paths" \
-        "${here}/../../config/clamav/scan-skip.paths" \
-        "${BASE}/config/clamav/scan-skip.paths"; do
+        "${INSTALL_DIRECTORY:-}/config/service/clamav/scan-skip.paths" \
+        "${here}/../../../config/service/clamav/scan-skip.paths" \
+        "${here}/../../config/service/clamav/scan-skip.paths" \
+        "${BASE}/config/service/clamav/scan-skip.paths"; do
         [[ -n "${candidate}" && -f "${candidate}" ]] || continue
         printf '%s\n' "${candidate}"
         return 0
@@ -217,7 +217,7 @@ locate_scan_skip_file() {
         source_scan_skip_fs "${here}"
     fi
     if declare -F locate_config_file >/dev/null 2>&1; then
-        if found="$(locate_config_file clamav/scan-skip.paths)"; then
+        if found="$(locate_config_file service/clamav/scan-skip.paths)"; then
             printf '%s\n' "${found}"
             return 0
         fi
@@ -226,10 +226,10 @@ locate_scan_skip_file() {
         return 0
     fi
     if [[ -n "${INSTALL_DIRECTORY:-}" ]]; then
-        printf '%s\n' "${INSTALL_DIRECTORY}/config/clamav/scan-skip.paths"
+        printf '%s\n' "${INSTALL_DIRECTORY}/config/service/clamav/scan-skip.paths"
         return 0
     fi
-    printf '%s\n' "${BASE}/config/clamav/scan-skip.paths"
+    printf '%s\n' "${BASE}/config/service/clamav/scan-skip.paths"
 }
 
 # A list outside the two known roots is stored under the product.
@@ -237,7 +237,7 @@ choose_scan_skip_dest() {
     local dest="$1"
     if [[ "${dest}" != "${BASE}/"* ]]; then
         if [[ -z "${CONFIG_BASE_DIRECTORY:-}" || "${dest}" != "${CONFIG_BASE_DIRECTORY}/"* ]]; then
-            printf '%s\n' "${BASE}/config/clamav/scan-skip.paths"
+            printf '%s\n' "${BASE}/config/service/clamav/scan-skip.paths"
             return 0
         fi
     fi

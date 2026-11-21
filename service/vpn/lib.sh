@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/lib.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -180,9 +180,9 @@ read_vpn_setting_file() {
     if [[ -f "${file}" ]]; then
         # shellcheck disable=SC1090
         source "${file}"
-    elif [[ -f "$(get_vpn_root)/config/vpn/vpn.conf" ]]; then
+    elif [[ -f "$(get_vpn_root)/config/service/vpn/vpn.conf" ]]; then
         # shellcheck disable=SC1090
-        source "$(get_vpn_root)/config/vpn/vpn.conf"
+        source "$(get_vpn_root)/config/service/vpn/vpn.conf"
     fi
 }
 

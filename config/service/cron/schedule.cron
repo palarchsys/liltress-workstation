@@ -1,0 +1,8 @@
+# =============================================================================
+# File       : config/service/cron/schedule.cron
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin

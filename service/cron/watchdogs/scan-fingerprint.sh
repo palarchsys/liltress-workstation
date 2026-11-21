@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-fingerprint.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -16,9 +16,9 @@
 read_scan_run_dir() {
     local candidate="" line=""
     for candidate in \
-        "${BASE:-}/config/clamav/scan.conf" \
-        "${CONFIG_BASE_DIRECTORY:-}/config/clamav/scan.conf" \
-        "${INSTALL_DIRECTORY:-}/config/clamav/scan.conf"; do
+        "${BASE:-}/config/service/clamav/scan.conf" \
+        "${CONFIG_BASE_DIRECTORY:-}/config/service/clamav/scan.conf" \
+        "${INSTALL_DIRECTORY:-}/config/service/clamav/scan.conf"; do
         [[ -n "${candidate}" && -f "${candidate}" ]] || continue
         while IFS= read -r line || [[ -n "${line}" ]]; do
             case "${line}" in
@@ -59,9 +59,9 @@ fi
 
 list=""
 for candidate in \
-    "${BASE}/config/integrity/paths.list" \
-    "${CONFIG_BASE_DIRECTORY:-}/config/integrity/paths.list" \
-    "${INSTALL_DIRECTORY:-}/config/integrity/paths.list"; do
+    "${BASE}/config/service/integrity/paths.list" \
+    "${CONFIG_BASE_DIRECTORY:-}/config/service/integrity/paths.list" \
+    "${INSTALL_DIRECTORY:-}/config/service/integrity/paths.list"; do
     [[ -f "${candidate}" ]] || continue
     list="${candidate}"
     break

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/clamav-response.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,9 +18,9 @@ read_spare_names() {
     local candidate="" line=""
     SPARE_NAMES=()
     for candidate in \
-        "${BASE:-}/config/watchdog/spare.list" \
-        "${CONFIG_BASE_DIRECTORY:-}/config/watchdog/spare.list" \
-        "${INSTALL_DIRECTORY:-}/config/watchdog/spare.list"; do
+        "${BASE:-}/config/service/watchdog/spare.list" \
+        "${CONFIG_BASE_DIRECTORY:-}/config/service/watchdog/spare.list" \
+        "${INSTALL_DIRECTORY:-}/config/service/watchdog/spare.list"; do
         [[ -n "${candidate}" && -f "${candidate}" ]] || continue
         while IFS= read -r line || [[ -n "${line}" ]]; do
             [[ -z "${line}" || "${line}" == \#* ]] && continue

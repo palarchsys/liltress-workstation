@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/refresh-integrity.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -58,7 +58,7 @@ else
 fi
 
 base="$(get_product_base)"
-list="${base}/config/integrity/paths.list"
+list="${base}/config/service/integrity/paths.list"
 if [[ ! -f "${list}" ]]; then
     log_info "${INSTALL_WATCHER}" "vpn.integrity.skip" "integrity"
 elif ! stamp="$(watchdog_runtime_file "${base}" integrity.sha256)"; then

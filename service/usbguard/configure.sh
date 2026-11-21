@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/usbguard/configure.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -32,7 +32,7 @@ if command -v usbguard >/dev/null 2>&1; then
     fi
     rm -f "${rules}.gen"
 fi
-grep -v '^#' "$(locate_config_file usbguard/hid.rules)" >>"${rules}"
+grep -v '^#' "$(locate_config_file service/usbguard/hid.rules)" >>"${rules}"
 chmod 600 "${rules}"
 if ! grep -qF 'allow with-interface equals { 03:*:* }' "${rules}"; then
     log_warn "${INSTALL_WATCHER}" "configure.usbguard-left-stopped-the-rule-clavier-is-missin"
@@ -50,7 +50,7 @@ set_usb_rule IPCAllowedUsers "root ${CURRENT_USER}"
 chmod 600 "${daemon_conf}"
 
 ipc="/etc/usbguard/IPCAccessControl.d/${CURRENT_USER}"
-grep -v '^#' "$(locate_config_file usbguard/ipc.acl)" >"${ipc}"
+grep -v '^#' "$(locate_config_file service/usbguard/ipc.acl)" >"${ipc}"
 chmod 600 "${ipc}"
 
 log_info "${INSTALL_WATCHER}" "configure.activation-of-usbguard"

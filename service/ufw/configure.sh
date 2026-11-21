@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ufw/configure.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -25,8 +25,8 @@ copy_backup /etc/default/ufw
 copy_backup /etc/ufw/before.rules
 
 # shellcheck disable=SC1091
-# shellcheck source=../../config/ufw/policy.conf
-source "$(locate_config_file ufw/policy.conf)"
+# shellcheck source=../../config/service/ufw/policy.conf
+source "$(locate_config_file service/ufw/policy.conf)"
 
 log_info "${INSTALL_WATCHER}" "configure.policy-incoming-outgoing-routed" "${UFW_DEFAULT_INCOMING}" "${UFW_DEFAULT_OUTGOING}" "${UFW_DEFAULT_ROUTED}"
 run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw default "${UFW_DEFAULT_INCOMING}" incoming
@@ -53,7 +53,7 @@ else
 fi
 if [[ -f /etc/ufw/sysctl.conf ]] && ! grep -q 'bridge-nf-call-iptables' /etc/ufw/sysctl.conf; then
     printf "$(get_text log.n)" >>/etc/ufw/sysctl.conf
-    grep -v '^#' "$(locate_config_file ufw/bridge.conf)" >>/etc/ufw/sysctl.conf
+    grep -v '^#' "$(locate_config_file service/ufw/bridge.conf)" >>/etc/ufw/sysctl.conf
 fi
 
 if grep -q '^IPV6=' /etc/default/ufw; then

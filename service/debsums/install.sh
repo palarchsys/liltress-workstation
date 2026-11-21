@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/debsums/install.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -21,7 +21,7 @@ require_root
 
 log_info "${INSTALL_WATCHER}" "install.installation-of-debsums"
 run_silent_apt "${INSTALL_WATCHER}" "install -y debsums" "install.debsums.error"
-cron_line="$(grep -vE '^[[:space:]]*(#|$)' "$(locate_config_file debsums/check.conf)" | head -1)"
+cron_line="$(grep -vE '^[[:space:]]*(#|$)' "$(locate_config_file service/debsums/check.conf)" | head -1)"
 if [[ -z "${cron_line}" ]]; then
     log_error "${INSTALL_WATCHER}" "install.line-cron-check-not-found"
 fi

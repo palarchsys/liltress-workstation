@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/postfix/install.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -21,7 +21,7 @@ require_root
 
 log_info "${INSTALL_WATCHER}" "install.preconfiguration-of-postfix"
 debconf_tmp="$(mktemp)"
-sed "s|__HOSTNAME__|$(hostname -f)|g" "$(locate_config_file postfix/debconf.conf)" | grep -v '^#' >"${debconf_tmp}"
+sed "s|__HOSTNAME__|$(hostname -f)|g" "$(locate_config_file service/postfix/debconf.conf)" | grep -v '^#' >"${debconf_tmp}"
 run_silent "${INSTALL_WATCHER}" "install.postfix.error" debconf-set-selections "${debconf_tmp}"
 rm -f "${debconf_tmp}"
 log_success "${INSTALL_WATCHER}" "install.preconfiguration-of-postfix-finished"

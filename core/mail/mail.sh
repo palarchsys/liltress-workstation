@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/mail/mail.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -198,7 +198,7 @@ apply_postfix() {
         value="${value//__PROJECT_NAME__/${PROJECT_NAME}}"
         value="${value//__SASL_TYPE__/${sasl_type}}"
         postconf -e "${key} = ${value}"
-    done <"$(locate_config_file postfix/main.keys)"
+    done <"$(locate_config_file service/postfix/main.keys)"
 }
 
 # The caller owns about.

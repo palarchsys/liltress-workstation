@@ -1,9 +1,0 @@
-# =============================================================================
-# File       : config/usbguard/ipc.acl
-# Updated at : 2026-10-15
-# Creator    : palarchsys
-# =============================================================================
-
-Devices=modify,list,listen
-Policy=list
-Exceptions=listen

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-chkrootkit.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -67,9 +67,9 @@ read_host_mode() {
     local candidate="" line=""
     HOST_MODE="workstation"
     for candidate in \
-        "${BASE:-}/config/watchdog/host.list" \
-        "${CONFIG_BASE_DIRECTORY:-}/config/watchdog/host.list" \
-        "${INSTALL_DIRECTORY:-}/config/watchdog/host.list"; do
+        "${BASE:-}/config/service/watchdog/host.list" \
+        "${CONFIG_BASE_DIRECTORY:-}/config/service/watchdog/host.list" \
+        "${INSTALL_DIRECTORY:-}/config/service/watchdog/host.list"; do
         [[ -n "${candidate}" && -f "${candidate}" ]] || continue
         line="$(grep -v '^#' "${candidate}" | head -n 1 || true)"
         [[ -n "${line}" ]] && HOST_MODE="${line}"
@@ -81,9 +81,9 @@ read_spare_names() {
     local candidate="" line=""
     SPARE_NAMES=()
     for candidate in \
-        "${BASE:-}/config/watchdog/spare.list" \
-        "${CONFIG_BASE_DIRECTORY:-}/config/watchdog/spare.list" \
-        "${INSTALL_DIRECTORY:-}/config/watchdog/spare.list"; do
+        "${BASE:-}/config/service/watchdog/spare.list" \
+        "${CONFIG_BASE_DIRECTORY:-}/config/service/watchdog/spare.list" \
+        "${INSTALL_DIRECTORY:-}/config/service/watchdog/spare.list"; do
         [[ -n "${candidate}" && -f "${candidate}" ]] || continue
         while IFS= read -r line || [[ -n "${line}" ]]; do
             [[ -z "${line}" || "${line}" == \#* ]] && continue
@@ -109,16 +109,16 @@ elif [[ -f "${HERE}/../../../core/host/fs.sh" ]]; then
 fi
 IGNORE=""
 if declare -F locate_config_file >/dev/null 2>&1; then
-    IGNORE="$(locate_config_file chkrootkit/patterns.ignore || true)"
+    IGNORE="$(locate_config_file service/chkrootkit/patterns.ignore || true)"
 fi
-if [[ ! -f "${IGNORE}" && -f "${HERE}/../../../config/chkrootkit/patterns.ignore" ]]; then
-    IGNORE="${HERE}/../../../config/chkrootkit/patterns.ignore"
+if [[ ! -f "${IGNORE}" && -f "${HERE}/../../../config/service/chkrootkit/patterns.ignore" ]]; then
+    IGNORE="${HERE}/../../../config/service/chkrootkit/patterns.ignore"
 fi
 if [[ ! -f "${IGNORE}" && -f "${HERE}/chkrootkit.ignore" ]]; then
     IGNORE="${HERE}/chkrootkit.ignore"
 fi
 if [[ ! -f "${IGNORE}" ]]; then
-    IGNORE="${BASE}/config/chkrootkit/patterns.ignore"
+    IGNORE="${BASE}/config/service/chkrootkit/patterns.ignore"
 fi
 
 LOCAL_IGNORE="${BASE}/cron/chkrootkit.local.ignore"

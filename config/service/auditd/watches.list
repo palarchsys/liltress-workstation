@@ -1,0 +1,21 @@
+# =============================================================================
+# File       : config/service/auditd/watches.list
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+any /etc/ssh ssh-config
+any /etc/sudoers sudoers
+any /etc/sudoers.d sudoers
+any /etc/passwd identity
+any /etc/group identity
+any /etc/shadow identity
+any /etc/gshadow identity
+any /etc/apparmor.d apparmor
+any __HF_BASE__ w-config
+any /etc/ufw ufw-config
+any /root root-activity
+any /etc/localtime time-change
+virt /etc/libvirt libvirt-config
+any /etc/cron.d cron-config
+any /etc/systemd/system systemd-config

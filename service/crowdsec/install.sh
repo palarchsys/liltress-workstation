@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/crowdsec/install.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -31,11 +31,11 @@ fi
 install -m 644 "${key_tmp}" "${CROWDSEC_KEY}"
 rm -f "${key_tmp}"
 chown root:root "${CROWDSEC_KEY}"
-sed "s|__KEY__|${CROWDSEC_KEY}|g" "$(locate_config_file crowdsec/package.list)" \
+sed "s|__KEY__|${CROWDSEC_KEY}|g" "$(locate_config_file service/crowdsec/package.list)" \
     | grep -v '^#' >"${CROWDSEC_LIST}"
 chmod 644 "${CROWDSEC_LIST}"
 
-grep -v '^#' "$(locate_config_file crowdsec/preferences.conf)" >/etc/apt/preferences.d/crowdsec
+grep -v '^#' "$(locate_config_file service/crowdsec/preferences.conf)" >/etc/apt/preferences.d/crowdsec
 chmod 644 /etc/apt/preferences.d/crowdsec
 run_silent_apt "${INSTALL_WATCHER}" "update" "install.crowdsec.error"
 log_success "${INSTALL_WATCHER}" "install.repository-crowdsec-saved"

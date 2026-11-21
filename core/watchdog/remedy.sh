@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/remedy.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -68,7 +68,7 @@ watchdog_case_actions() {
     local class_id="$2"
     local branch="$3"
     local catalog=""
-    catalog="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../config/alert/action.json"
+    catalog="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../config/service/alert/action.json"
     [[ -f "${catalog}" ]] || return 0
     python3 "$(locate_python_dir)/alert-remedy.py" "${catalog}" "${tool}" "${class_id}" "${branch}"
 }

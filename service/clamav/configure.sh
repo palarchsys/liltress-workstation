@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/clamav/configure.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -19,8 +19,8 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 # shellcheck disable=SC1091
-# shellcheck source=../../config/clamav/onaccess.conf
-source "$(locate_config_file clamav/onaccess.conf)"
+# shellcheck source=../../config/service/clamav/onaccess.conf
+source "$(locate_config_file service/clamav/onaccess.conf)"
 require_root
 
 add_onaccess_directory() {

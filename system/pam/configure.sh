@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/pam/configure.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -53,7 +53,7 @@ even_deny_root
 root_unlock_time = ${FAILLOCK_UNLOCK}
 EOF
 sed -i '/pam_faillock\.so/d' /etc/pam.d/common-auth /etc/pam.d/common-account 2>/dev/null || true
-install -m 644 "$(locate_config_file system/pam-configs/faillock)" /usr/share/pam-configs/faillock
+install -m 644 "$(locate_config_file system/pam/faillock)" /usr/share/pam-configs/faillock
 rm -f /usr/share/pam-configs/faillock-preauth
 export DEBIAN_FRONTEND=noninteractive
 pam-auth-update --force

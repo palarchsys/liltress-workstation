@@ -1,0 +1,19 @@
+# =============================================================================
+# File       : config/system/sysctl/sysctl.service
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+[Unit]
+Description=Liltress Workstation sysctl
+Documentation=file://__HF_BASE__
+After=systemd-sysctl.service network-online.target
+Wants=systemd-sysctl.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=__HF_BASE__/system/sysctl/w-sysctl-apply.sh
+
+[Install]
+WantedBy=multi-user.target

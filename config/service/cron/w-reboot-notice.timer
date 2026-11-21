@@ -1,0 +1,17 @@
+# =============================================================================
+# File       : config/service/cron/w-reboot-notice.timer
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+[Unit]
+Description=Vérifie si un redémarrage est utile
+
+[Timer]
+OnUnitActiveSec=${REBOOT_EVERY}
+AccuracySec=${REBOOT_ACCURACY}
+Persistent=${TIMER_PERSISTENT}
+Unit=w-reboot-notice.service
+
+[Install]
+WantedBy=timers.target

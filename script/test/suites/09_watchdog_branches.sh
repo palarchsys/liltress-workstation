@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/09_watchdog_branches.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -261,8 +261,8 @@ fi
 
 t_set_user scan-fingerprint.sh
 printf 'alpha\n' > "${base}/file-a"
-mkdir -p "${base}/config/integrity"
-cat > "${base}/config/integrity/paths.list" << EOF
+mkdir -p "${base}/config/service/integrity"
+cat > "${base}/config/service/integrity/paths.list" << EOF
 # comment
 /no/such/liltress-file
 ${base}/file-a

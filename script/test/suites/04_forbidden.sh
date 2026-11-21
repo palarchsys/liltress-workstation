@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/04_forbidden.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -32,7 +32,7 @@ t_check_forbidden() {
     fi
 }
 t_check_forbidden "forbid.password-no" '^[[:space:]]*PasswordAuthentication[[:space:]]+no([[:space:]]|$)'
-if grep -qF 'AllowUsers ${SSH_ACCOUNT}' "${T_ROOT}/config/ssh/00-liltress-workstation.conf"; then
+if grep -qF 'AllowUsers ${SSH_ACCOUNT}' "${T_ROOT}/config/service/ssh/00-liltress-workstation.conf"; then
     t_pass "require.allowusers" "AllowUsers lit le compte SSH"
 else
     t_fail "require.allowusers" "AllowUsers absent du drop-in"
@@ -44,13 +44,13 @@ if grep -qF 'net.ipv6.conf.all.disable_ipv6 = 1' "${sysctl_file}" \
     && grep -qF 'net.ipv6.conf.default.disable_ipv6 = 1' "${sysctl_file}" \
     && grep -qF 'kernel.yama.ptrace_scope = 1' "${sysctl_file}" \
     && ! grep -qE 'unprivileged_userns_clone[[:space:]]*=[[:space:]]*0' "${sysctl_file}" \
-    && grep -qF 'UFW_IPV6=no' "${T_ROOT}/config/ufw/policy.conf"; then
+    && grep -qF 'UFW_IPV6=no' "${T_ROOT}/config/service/ufw/policy.conf"; then
     t_pass "require.ipv6-off" "sysctl et UFW coupent IPv6"
 else
     t_fail "require.ipv6-off" "IPv6 poste non coupé par défaut"
 fi
-resolver="${T_ROOT}/config/unbound/resolver.conf"
-resolved="${T_ROOT}/config/unbound/resolved.conf"
+resolver="${T_ROOT}/config/service/unbound/resolver.conf"
+resolved="${T_ROOT}/config/service/unbound/resolved.conf"
 if grep -qF 'interface: 127.0.0.1' "${resolver}" \
     && ! grep -qF 'interface: ::1' "${resolver}" \
     && grep -qF 'do-ip6: no' "${resolver}" \
@@ -121,14 +121,14 @@ else
     t_pass "forbid.compiler-700" "compilateurs non verrouillés"
 fi
 
-if [[ -f "${MONO}/server/service/ssh/00-liltress-workstation.conf" || -f "${MONO}/server/config/ssh/00-liltress-workstation.conf" ]]; then
+if [[ -f "${MONO}/server/service/ssh/00-liltress-workstation.conf" || -f "${MONO}/server/config/service/ssh/00-liltress-workstation.conf" ]]; then
     t_fail "forbid.dropin-on-server" "le drop-in poste est dans server/service/ssh"
 else
     t_pass "forbid.dropin-on-server" "drop-in poste absent du serveur"
 fi
-if grep -q '^PasswordAuthentication yes$' "${MONO}/server/config/ssh/00-liltress-server.conf" \
-    && grep -q '^PubkeyAuthentication no$' "${MONO}/server/config/ssh/00-liltress-server.conf" \
-    && grep -q '^AuthenticationMethods password$' "${MONO}/server/config/ssh/00-liltress-server.conf"; then
+if grep -q '^PasswordAuthentication yes$' "${MONO}/server/config/service/ssh/00-liltress-server.conf" \
+    && grep -q '^PubkeyAuthentication no$' "${MONO}/server/config/service/ssh/00-liltress-server.conf" \
+    && grep -q '^AuthenticationMethods password$' "${MONO}/server/config/service/ssh/00-liltress-server.conf"; then
     t_pass "require.server-ssh-password" "sshd serveur en mot de passe"
 else
     t_fail "require.server-ssh-password" "sshd serveur sans mot de passe"

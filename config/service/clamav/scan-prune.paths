@@ -1,0 +1,24 @@
+# =============================================================================
+# File       : config/service/clamav/scan-prune.paths
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Paths and names left out of the full ClamAV walk.
+# Note       : A leading slash is one directory. Any other line is a name.
+# -----------------------------------------------------------------------------
+
+/var/lib/snapd
+/snap
+/var/lib/clamav/quarantine
+/var/lib/clamav/tmp
+/var/log
+proc
+sys
+dev
+var/lib/libvirt
+var/lib/docker
+libvirt
+snap-private-tmp

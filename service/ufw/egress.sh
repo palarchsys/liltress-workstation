@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ufw/egress.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -21,8 +21,8 @@ source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 require_root
 # shellcheck disable=SC1091
-# shellcheck source=../../config/ufw/egress.conf
-source "$(locate_config_file ufw/egress.conf)"
+# shellcheck source=../../config/service/ufw/egress.conf
+source "$(locate_config_file service/ufw/egress.conf)"
 
 mkdir -p -- "${CONFIG_BASE_DIRECTORY}/cron"
 umask 077

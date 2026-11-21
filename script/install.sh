@@ -65,8 +65,8 @@ save_scan_skip() {
     if [[ -f "${tmp}/keep/scan-skip.paths" ]]; then
         return 0
     fi
-    if [[ -f "${root}/config/clamav/scan-skip.paths" ]] && ! grep -q '__HOME__' "${root}/config/clamav/scan-skip.paths"; then
-        cp -a "${root}/config/clamav/scan-skip.paths" "${tmp}/keep/scan-skip.paths"
+    if [[ -f "${root}/config/service/clamav/scan-skip.paths" ]] && ! grep -q '__HOME__' "${root}/config/service/clamav/scan-skip.paths"; then
+        cp -a "${root}/config/service/clamav/scan-skip.paths" "${tmp}/keep/scan-skip.paths"
     fi
 }
 
@@ -100,9 +100,9 @@ restore_kept() {
         chmod 600 "${INSTALL_ROOT}/config/secrets.conf"
     fi
     if [[ -f "${tmp}/keep/scan-skip.paths" ]]; then
-        mkdir -p "${INSTALL_ROOT}/config/clamav"
-        cp -a "${tmp}/keep/scan-skip.paths" "${INSTALL_ROOT}/config/clamav/scan-skip.paths"
-        chmod 644 "${INSTALL_ROOT}/config/clamav/scan-skip.paths"
+        mkdir -p "${INSTALL_ROOT}/config/service/clamav"
+        cp -a "${tmp}/keep/scan-skip.paths" "${INSTALL_ROOT}/config/service/clamav/scan-skip.paths"
+        chmod 644 "${INSTALL_ROOT}/config/service/clamav/scan-skip.paths"
     fi
     apply_kept_runtime
 }

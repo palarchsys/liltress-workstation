@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/crowdsec/configure.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-21
 # Creator    : palarchsys
 # =============================================================================
 
@@ -23,7 +23,7 @@ require_root
 log_info "${INSTALL_WATCHER}" "configure.installation-of-the-collections-crowdsec"
 run_silent "${INSTALL_WATCHER}" "configure.crowdsec.error" cscli hub update
 
-mapfile -t collections < <(grep -vE '^[[:space:]]*(#|$)' "$(locate_config_file crowdsec/collections.list)")
+mapfile -t collections < <(grep -vE '^[[:space:]]*(#|$)' "$(locate_config_file service/crowdsec/collections.list)")
 run_silent "${INSTALL_WATCHER}" "configure.crowdsec.error" cscli collections install --force "${collections[@]}"
 log_success "${INSTALL_WATCHER}" "configure.collections-linux-sshd-postfix-and-allowlist-ins"
 
@@ -35,32 +35,32 @@ while read -r name; do
     else
         log_warn "${INSTALL_WATCHER}" "configure.collection-absent-of-the-hub" "${name}"
     fi
-done <"$(locate_config_file crowdsec/optional.list)"
+done <"$(locate_config_file service/crowdsec/optional.list)"
 log_success "${INSTALL_WATCHER}" "configure.optional-collections-processed"
 
 log_info "${INSTALL_WATCHER}" "configure.configuration-of-the-duration-of-block"
 # shellcheck disable=SC1091
-# shellcheck source=../../config/crowdsec/ban.conf
-source "$(locate_config_file crowdsec/ban.conf)"
+# shellcheck source=../../config/service/crowdsec/ban.conf
+source "$(locate_config_file service/crowdsec/ban.conf)"
 if [[ ! "${CROWDSEC_BAN_DURATION}" =~ ^[0-9]+[smhd]$ ]]; then
     log_error "${INSTALL_WATCHER}" "configure.duration-of-block-invalid"
 fi
-grep -v '^#' "$(locate_config_file crowdsec/profiles.yaml)" \
+grep -v '^#' "$(locate_config_file service/crowdsec/profiles.yaml)" \
     | sed "s/duration: .*/duration: ${CROWDSEC_BAN_DURATION}/" \
         >/etc/crowdsec/profiles.yaml
 log_success "${INSTALL_WATCHER}" "configure.block-installed" "${CROWDSEC_BAN_DURATION}"
 
 log_info "${INSTALL_WATCHER}" "configure.configuration-of-the-journals-read-by-crowdsec"
 {
-    grep -v '^#' "$(locate_config_file crowdsec/acquisition-journal.yaml)"
+    grep -v '^#' "$(locate_config_file service/crowdsec/acquisition-journal.yaml)"
     if [[ -f /var/log/auth.log ]]; then
-        grep -v '^#' "$(locate_config_file crowdsec/acquisition-auth.yaml)"
+        grep -v '^#' "$(locate_config_file service/crowdsec/acquisition-auth.yaml)"
     fi
     if [[ -f /var/log/syslog ]]; then
-        grep -v '^#' "$(locate_config_file crowdsec/acquisition-syslog.yaml)"
+        grep -v '^#' "$(locate_config_file service/crowdsec/acquisition-syslog.yaml)"
     fi
     if [[ -f /var/log/mail.log ]]; then
-        grep -v '^#' "$(locate_config_file crowdsec/acquisition-mail.yaml)"
+        grep -v '^#' "$(locate_config_file service/crowdsec/acquisition-mail.yaml)"
     fi
 } >/etc/crowdsec/acquisitions.yaml
 chmod 644 /etc/crowdsec/acquisitions.yaml
@@ -81,7 +81,7 @@ sed -i "s|^[[:space:]]*api_key:.*|api_key: ${key}|" "${bouncer_cfg}"
 log_success "${INSTALL_WATCHER}" "configure.bouncer-nftables-linked-to-the-api-local"
 
 log_info "${INSTALL_WATCHER}" "configure.activation-of-crowdsec-and-of-the-bouncer"
-grep -v '^#' "$(locate_config_file crowdsec/audit.rules)" \
+grep -v '^#' "$(locate_config_file service/crowdsec/audit.rules)" \
     >/etc/audit/rules.d/w-crowdsec.rules
 chmod 640 /etc/audit/rules.d/w-crowdsec.rules
 run_silent "${INSTALL_WATCHER}" "configure.crowdsec.error" augenrules --load

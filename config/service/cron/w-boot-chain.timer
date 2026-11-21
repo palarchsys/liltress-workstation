@@ -1,0 +1,17 @@
+# =============================================================================
+# File       : config/service/cron/w-boot-chain.timer
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+[Unit]
+Description=Lance la chaîne de sécurité à chaque démarrage
+
+[Timer]
+OnBootSec=${BOOT_ON_BOOT_SEC}
+AccuracySec=${BOOT_ACCURACY}
+Persistent=${TIMER_PERSISTENT}
+Unit=w-boot-chain.service
+
+[Install]
+WantedBy=timers.target

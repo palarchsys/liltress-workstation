@@ -1,0 +1,11 @@
+# =============================================================================
+# File       : config/service/crowdsec/acquisition-journal.yaml
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+source: journalctl
+journalctl_filter:
+  - _SYSTEMD_UNIT=ssh.service
+labels:
+  type: syslog
