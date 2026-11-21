@@ -1,0 +1,7 @@
+# =============================================================================
+# File       : config/service/crowdsec/package.list
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+deb [signed-by=__KEY__] https://packagecloud.io/crowdsec/crowdsec/any any main

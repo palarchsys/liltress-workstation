@@ -1,0 +1,26 @@
+# =============================================================================
+# File       : config/service/alert/exclude.list
+# Updated at : 2026-11-21
+# Creator    : palarchsys
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Purpose    : Paths both products ignore when a watchdog classifies a change.
+# Note       : One path or one prefix per line. A directory prefix ends with a slash.
+# Note       : ip:address and scenario:name apply to CrowdSec and Fail2Ban.
+# Note       : The product file config/service/alert/exclude.list is added to this one.
+# -----------------------------------------------------------------------------
+
+/var/log/
+/opt/liltress-workstation/log/
+/opt/liltress-server/log/
+/opt/liltress-workstation/cron/security_logs/
+/opt/liltress-server/cron/security_logs/
+/opt/liltress-workstation/cron/cron_logs/
+/opt/liltress-server/cron/cron_logs/
+/opt/liltress-workstation/cron/alerts/
+/opt/liltress-server/cron/alerts/
+/var/cache/apt/
+/var/lib/apt/lists/
+/var/lib/snapd/sequence
