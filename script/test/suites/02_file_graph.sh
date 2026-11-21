@@ -133,10 +133,10 @@ if [[ "$(t_get_plan_pos 'service/ssh/configure.sh')" -lt "$(t_get_plan_pos 'serv
    && [[ "$(t_get_plan_pos 'apt-upgrade')" -lt "$(t_get_plan_pos 'service/usbguard/configure.sh')" ]] \
    && [[ "$(t_get_plan_pos 'service/usbguard/configure.sh')" -lt "$(t_get_plan_pos 'service/rkhunter/init-db.sh')" ]] \
    && [[ "$(t_get_plan_pos 'service/rkhunter/init-db.sh')" -lt "$(t_get_plan_pos 'service/aide/init-db.sh')" ]] \
-   && [[ "$(t_get_plan_pos 'service/aide/init-db.sh')" -lt "$(t_get_plan_pos 'script/verify/workstation.sh')" ]]; then
-    t_pass "graph.order.daily" "SSH avant UFW, USBGuard après correctifs, verify après AIDE"
+   && [[ "$(t_get_plan_pos 'script/verify/workstation.sh')" -lt "$(t_get_plan_pos 'service/aide/init-db.sh')" ]]; then
+    t_pass "graph.order.daily" "SSH avant UFW, USBGuard après correctifs, AIDE après verify"
 else
-    t_fail "graph.order.daily" "USBGuard suit les paquets ; verify suit AIDE"
+    t_fail "graph.order.daily" "USBGuard suit les paquets ; AIDE suit verify"
 fi
 
 t_section "modèle de mail dans template/"

@@ -337,16 +337,6 @@
           "path": "service/cron/enable.sh"
         },
         {
-          "id": "install.rkhunter.init",
-          "service": "rkhunter",
-          "path": "service/rkhunter/init-db.sh"
-        },
-        {
-          "id": "install.aide.init",
-          "service": "aide",
-          "path": "service/aide/init-db.sh"
-        },
-        {
           "id": "install.cron.arm",
           "service": "cron",
           "path": "service/cron/arm.sh"
@@ -370,6 +360,16 @@
           "id": "install.reboot-notice",
           "service": "reboot",
           "action": "reboot-notice"
+        },
+        {
+          "id": "install.rkhunter.init",
+          "service": "rkhunter",
+          "path": "service/rkhunter/init-db.sh"
+        },
+        {
+          "id": "install.aide.init",
+          "service": "aide",
+          "path": "service/aide/init-db.sh"
         }
       ]
     }
