@@ -9,7 +9,7 @@
 # -----------------------------------------------------------------------------
 # Purpose    : Install the product tree from the GitHub archive.
 # Note       : Prepared configuration returns after the archive is fetched.
-# Note       : A missing terminal stops before the tree is replaced.
+# Note       : The configuration check asks before the runner starts.
 # -----------------------------------------------------------------------------
 
 
@@ -127,18 +127,6 @@ apply_kept_runtime() {
     fi
 }
 
-# A missing terminal stops before the tree is replaced.
-stop_without_terminal() {
-    if declare -F log_info >/dev/null 2>&1; then
-        log_info "${INSTALL_WATCHER}" "install.no-terminal"
-    elif declare -F get_text >/dev/null 2>&1; then
-        printf '%s\n' "$(get_text install.no-terminal)" >&2
-    else
-        printf '%s\n' "No terminal for the question. Stopped." >&2
-    fi
-    exit 0
-}
-
 # Any answer other than O stops. An open frame is closed first.
 stop_install() {
     if [[ "${STEP_TREE:-0}" == "1" ]]; then
@@ -154,37 +142,6 @@ stop_install() {
     else
         printf '%s\n' "Stopped." >&2
     fi
-    exit 0
-}
-
-# Loaded display draws the titled question.
-ask_replace_known() {
-    local title=""
-    clear
-    if [[ -f "${INSTALL_DIRECTORY}/script/verify/workstation.sh" ]]; then
-        title="$(get_text log.liltress-workstation-hardening-workstation)"
-    else
-        title="$(get_text log.liltress-choice-of-the-profile)"
-    fi
-    ask_yes "$(get_text install.continue-o-n)" "${title}" || stop_install
-}
-
-# The replace question stays outside the installation section.
-ask_replace_continue() {
-    local answer=""
-    if [[ ! -r /dev/tty ]]; then
-        stop_without_terminal
-    fi
-    if declare -F ask_yes >/dev/null 2>&1 && declare -F get_text >/dev/null 2>&1 && declare -F show_title_box >/dev/null 2>&1; then
-        ask_replace_known
-        return 0
-    fi
-    printf '%s' "Continue the installation? [O/N] " >&2
-    IFS= read -r answer </dev/tty || answer=""
-    case "${answer}" in
-        O | o) return 0 ;;
-    esac
-    printf '%s\n' "Stopped." >&2
     exit 0
 }
 
@@ -253,20 +210,6 @@ if [[ -f "${INSTALL_ROOT}/src/liltress" ]]; then
     save_prepared "${INSTALL_ROOT}/src"
     save_scan_skip "${INSTALL_ROOT}/src"
     save_runtime "${INSTALL_ROOT}/src"
-fi
-
-if [[ -n "$(find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
-    if [[ -f "${INSTALL_ROOT}/core/boot/lib.sh" && -f "${INSTALL_ROOT}/core/boot/bootstrap.sh" && -f "${INSTALL_ROOT}/config/global.conf" ]]; then
-        INSTALL_DIRECTORY="${INSTALL_ROOT}"
-        # shellcheck disable=SC1091
-        source "${INSTALL_DIRECTORY}/core/boot/lib.sh" || true
-        # shellcheck disable=SC1091
-        source "${INSTALL_DIRECTORY}/config/global.conf" || true
-        if declare -F read_language_file >/dev/null 2>&1; then
-            read_language_file "${INSTALL_DIRECTORY}/config/global.conf" || true
-        fi
-    fi
-    ask_replace_continue
 fi
 
 if [[ -d "${INSTALL_ROOT}/.git" ]]; then

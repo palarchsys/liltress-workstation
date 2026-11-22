@@ -77,9 +77,6 @@ Start der Konfiguration.
 [install.launch-of-the-questions-n-n]
 Start der Fragen.\n\n
 
-[install.continue-o-n]
-Installation fortsetzen? [O/N]
-
 [install.confirm-title]
 Bestätigung
 
