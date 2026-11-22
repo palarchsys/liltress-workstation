@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/configure.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -29,62 +29,20 @@ show_usage() {
     printf '%s\n' "$(get_text configure.usage.workstation)"
 }
 
-read_secret() {
-    local secret_target="$1"
-    local char="" buf=""
-    while true; do
-        IFS= read -r -s -n 1 char || log_error "${INSTALL_WATCHER}" "configure.input-interrupted"
-        if [[ -z "${char}" || "${char}" == $'\n' ]]; then
-            printf '\n' >&2
-            break
-        fi
-        if [[ "${char}" == $'\177' || "${char}" == $'\b' ]]; then
-            if [[ -n "${buf}" ]]; then
-                buf="${buf%?}"
-                printf '\b \b' >&2
-            fi
-            continue
-        fi
-        buf+="${char}"
-        printf '*' >&2
-    done
-    printf -v "${secret_target}" '%s' "${buf}"
-}
-
-print_field() {
-    local label="$1"
-    local width="${#label}"
-    [[ "${width}" -lt 12 ]] && width=12
-    step_flush_branch
-    if [[ "${SECTION_OPEN:-0}" == "1" ]]; then
-        printf '%s' "$(step_bar)" >&2
-    else
-        printf '         ' >&2
-    fi
-    printf '\e[34m%*s\e[0m : ' "${width}" "${label}" >&2
-}
-
-write_secret_line() {
-    local label="$1" dest="$2"
-    print_field "${label}"
-    read_secret "${dest}"
-}
-
-# A secret entry is typed twice. An empty entry keeps the saved text.
+# A secret is typed twice, in clear. An empty entry keeps the saved text.
 read_prompt_pair() {
     local label="$1"
     local fallback="$2"
     local secret="" confirm=""
-    write_secret_line "${label}" secret
+    ask_line "${label}" secret || log_error "${INSTALL_WATCHER}" "configure.input-interrupted"
     secret="${secret// /}"
     if [[ -z "${secret}" && -n "${fallback}" ]]; then
         value="${fallback}"
         return 0
     fi
-    write_secret_line "Confirmation" confirm
+    ask_line "$(get_text configure.field.confirm)" confirm || log_error "${INSTALL_WATCHER}" "configure.input-interrupted"
     confirm="${confirm// /}"
     if [[ "${secret}" != "${confirm}" ]]; then
-        echo "" >&2
         log_warn "${INSTALL_WATCHER}" "configure.the-two-entries-differ"
         return 1
     fi
@@ -96,8 +54,7 @@ read_prompt_pair() {
 read_prompt_line() {
     local label="$1"
     local fallback="$2"
-    print_field "${label}"
-    IFS= read -r value || log_error "${INSTALL_WATCHER}" "configure.input-interrupted"
+    ask_line "${label}" value || log_error "${INSTALL_WATCHER}" "configure.input-interrupted"
     value="${value#"${value%%[![:space:]]*}"}"
     value="${value%"${value##*[![:space:]]}"}"
     if [[ -z "${value}" && -n "${fallback}" ]]; then
@@ -122,7 +79,8 @@ check_prompt_value() {
     esac
 }
 
-read_prompt_hidden_kind() {
+# These kinds are typed twice, in clear.
+prompt_needs_confirm() {
     case "$1" in
         pro_token | secret | tailscale) return 0 ;;
     esac
@@ -135,10 +93,7 @@ prompt() {
     current="${!field_name:-}"
     [[ -n "${current}" ]] && field_default="${current}"
     for attempt in 1 2 3; do
-        if [[ "${SECTION_OPEN:-0}" != "1" ]]; then
-            echo "" >&2
-        fi
-        if read_prompt_hidden_kind "${field_kind}"; then
+        if prompt_needs_confirm "${field_kind}"; then
             read_prompt_pair "${field_label}" "${field_default}" || continue
         else
             read_prompt_line "${field_label}" "${field_default}"
@@ -183,7 +138,8 @@ if [[ ! -t 0 ]]; then
 fi
 
 require_root
-clear
+set_step_visible "$(get_text install.configuration.title)"
+open_step_tree "script/configure.sh"
 
 ask_language
 asked_language="${LANGUAGE}"
@@ -225,29 +181,25 @@ if [[ -f "${DIR_SCRIPT}/config/secrets.conf" ]]; then
     set -u
 fi
 
-show_title_box "${PROJECT_NAME}"
-
-set_step_visible "$(get_text configure.script.title)"
-open_step_tree "$(get_text configure.script.title)"
 log_info "${INSTALL_WATCHER}" "configure.ubuntu-pro-token-url"
 log_info "${INSTALL_WATCHER}" "configure.letters-and-digits-without-spaces"
 prompt UBUNTU_PRO_TOKEN \
-    "Jeton Ubuntu Pro" \
+    "$(get_text configure.field.pro-token)" \
     "C1abcdefghij1234567890" \
     "" \
     pro_token \
-    "Lettres et chiffres seulement, entre 6 et 100, sans espace."
+    "$(get_text configure.hint.pro-token)"
 log_success "${INSTALL_WATCHER}" "configure.ubuntu-pro-accepted"
 prompt TAILSCALE_AUTH_KEY \
-    "Clé Tailscale" \
-    "clé auth réutilisable" \
+    "$(get_text configure.field.tailscale)" \
+    "tskey-auth-reusable" \
     "" \
     tailscale \
-    "Préfixe auth, lettres, chiffres, tiret, 10 à 200."
+    "$(get_text configure.hint.tailscale)"
 log_success "${INSTALL_WATCHER}" "configure.ubuntu-pro-accepted"
-prompt SSH_USER "Compte SSH" "drawbridge" "${SSH_USER:-drawbridge}" user "Compte du poste."
-prompt SSH_GROUP "Groupe SSH" "drawbridge" "${SSH_GROUP:-drawbridge}" user "Groupe du compte."
-prompt SSH_PORT "Port SSH" "2501" "${SSH_PORT:-2501}" ssh_port "Port entre 1024 et 65535."
+prompt SSH_USER "$(get_text configure.field.ssh-user)" "drawbridge" "${SSH_USER:-drawbridge}" user "$(get_text configure.hint.ssh-user)"
+prompt SSH_GROUP "$(get_text configure.field.ssh-group)" "drawbridge" "${SSH_GROUP:-drawbridge}" user "$(get_text configure.hint.ssh-group)"
+prompt SSH_PORT "$(get_text configure.field.ssh-port)" "2501" "${SSH_PORT:-2501}" ssh_port "$(get_text configure.hint.ssh-port)"
 close_step_tree
 
 check_smtp_probe() {
@@ -279,9 +231,9 @@ check_smtp_probe() {
 set_step_visible "$(get_text configure.enable-the-alerts-by-emails-y-n)"
 open_step_tree "$(get_text configure.enable-the-alerts-by-emails-y-n)"
 log_info "${INSTALL_WATCHER}" "configure.enable-the-alerts-by-emails-y-n"
+mail_choice=""
 while true; do
-    print_field "Activer"
-    IFS= read -r mail_choice || log_error "${INSTALL_WATCHER}" "configure.input-interrupted"
+    ask_line "$(get_text configure.enable-the-alerts-by-emails-y-n)" mail_choice || log_error "${INSTALL_WATCHER}" "configure.input-interrupted"
     case "${mail_choice}" in
         Y | y)
             clear_mail

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/run.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -30,8 +30,6 @@ if ! require_prepared_config "${INSTALL_DIRECTORY}"; then
 fi
 readonly INSTALL_DIRECTORY
 
-clear
-
 # shellcheck disable=SC1091
 source "${INSTALL_DIRECTORY}/config/global.conf"
 # shellcheck disable=SC1091
@@ -42,13 +40,6 @@ chmod 755 "${INSTALL_DIRECTORY}/liltress"
 get_operating_system
 get_current_user
 get_ssh_port
-
-show_title_box "$(get_text log.liltress-workstation-hardening-workstation)"
-printf '\n' >&2
-log_info "${INSTALL_WATCHER}" "log.current-user-home" "${CURRENT_USER}" "${CURRENT_HOME}"
-log_info "${INSTALL_WATCHER}" "log.port-ssh-detected" "${SSH_PORT}"
-log_info "${INSTALL_WATCHER}" "log.os" "${OS_PRETTY}"
-printf '\n' >&2
 
 init_install_log
 record_account_snapshot

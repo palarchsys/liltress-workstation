@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/log.txt
-# Updated at : 2026-11-13
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -154,6 +154,9 @@ Pakete rc bereinigt ({1})
 
 [log.profile]
 - **Profil**: `{1}`
+
+[log.profile-selected]
+Profil {1}
 
 [log.properties-baseline-rkhunter-saved-n]
 Eigenschaften-Basis rkhunter gespeicherte.\n

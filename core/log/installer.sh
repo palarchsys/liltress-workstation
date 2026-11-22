@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/installer.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,18 +11,28 @@
 # -----------------------------------------------------------------------------
 
 
-ask() {
+# A free answer stays visible. The line matches the yes question.
+# __answer stays local. The caller's name is the one printf -v writes.
+ask_line() {
     local label="$1"
     local __var="$2"
-    local width="${#label}"
-    local value=""
-    if ((width < 12)); then
-        width=12
+    local __answer=""
+    if [[ "${STEP_TREE:-0}" == "1" ]]; then
+        step_flush_branch
+        printf '%s├── \e[34m?\e[0m %s : ' "$(step_bar)" "$(cut_text "${label}" 60)" >&2
+    else
+        printf '\n         \e[34m%s\e[0m : ' "${label}" >&2
     fi
-    echo "" >&2
-    printf '         \e[34m%*s\e[0m : ' "${width}" "${label}" >&2
-    IFS= read -r value </dev/tty || log_error "${INSTALL_WATCHER:-BASH}" "install.log.error.2"
-    printf -v "${__var}" '%s' "${value}"
+    if [[ ! -r /dev/tty ]]; then
+        log_info "${INSTALL_WATCHER:-BASH}" "install.no-terminal"
+        return 1
+    fi
+    IFS= read -r __answer </dev/tty || return 1
+    printf -v "${__var}" '%s' "${__answer}"
+}
+
+ask() {
+    ask_line "$1" "$2" || log_error "${INSTALL_WATCHER:-BASH}" "install.log.error.2"
 }
 
 # A title draws the yellow frame. Without one, the question stays in the step tree.

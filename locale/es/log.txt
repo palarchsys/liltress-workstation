@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/es/log.txt
-# Updated at : 2026-11-13
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -154,6 +154,9 @@ Paquetes rc purgados ({1})
 
 [log.profile]
 - **Perfil**: `{1}`
+
+[log.profile-selected]
+Perfil {1}
 
 [log.properties-baseline-rkhunter-saved-n]
 Base de propiedades rkhunter guardada.\n

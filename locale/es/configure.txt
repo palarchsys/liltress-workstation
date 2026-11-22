@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/es/configure.txt
-# Updated at : 2026-11-21
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -58,6 +58,87 @@ IPV6={1}
 
 [configure.language.hint]
 Idioma (en, fr, de, es). Intro conserva el valor actual.
+
+[configure.field.confirm]
+Confirmación
+
+[configure.field.pro-token]
+Token de Ubuntu Pro
+
+[configure.field.pro-token-optional]
+Token de Ubuntu Pro (vacío = omitir)
+
+[configure.field.tailscale]
+Clave de Tailscale
+
+[configure.field.ssh-user]
+Cuenta SSH
+
+[configure.field.ssh-group]
+Grupo SSH
+
+[configure.field.ssh-group-account]
+Grupo de la cuenta SSH
+
+[configure.field.ssh-port]
+Puerto SSH
+
+[configure.field.mode]
+Modo (1 basic: nombre + dominio, 2 avanzado: todo salvo el perfil)
+
+[configure.field.title]
+Título
+
+[configure.field.domain]
+Dominio apex
+
+[configure.field.mode-test]
+MODE_TEST (0 producción TLS, 1 depuración sin Certbot)
+
+[configure.field.mode-dev]
+MODE_DEV (1 portal npm/python, 0 imágenes del portal)
+
+[configure.field.lynis]
+Umbral de Lynis
+
+[configure.field.certbot-mail]
+Correo de Let's Encrypt
+
+[configure.field.turnstile-site]
+Clave de sitio Turnstile
+
+[configure.field.turnstile-secret]
+Clave secreta de Turnstile
+
+[configure.field.hmac]
+Secreto HMAC antibot (o GEN)
+
+[configure.field.postgres]
+Contraseña del rol Postgres web (o GEN)
+
+[configure.field.mail-alert]
+¿Alertas por correo? [o/N]
+
+[configure.field.secrets]
+Secretos
+
+[configure.write.ask]
+¿Escribir global.conf y secrets.conf en {1}? [o/N]
+
+[configure.hint.pro-token]
+Solo letras y cifras, entre 6 y 100, sin espacios.
+
+[configure.hint.tailscale]
+Prefijo auth, letras, cifras, guion, de 10 a 200.
+
+[configure.hint.ssh-user]
+Cuenta del puesto.
+
+[configure.hint.ssh-group]
+Grupo de la cuenta.
+
+[configure.hint.ssh-port]
+Puerto entre 1024 y 65535.
 
 [configure.login]
 Inicio de sesión

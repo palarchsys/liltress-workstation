@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/fr/install.txt
-# Updated at : 2026-11-21
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -94,6 +94,39 @@ Arrêt.
 
 [install.launch-of-the-installation]
 Lancement de l'installation.
+
+[install.user]
+Utilisateur : {1}
+
+[install.os]
+OS : {1}
+
+[install.section]
+Installation
+
+[install.check.ask]
+Voulez-vous lancer la vérification de configuration ? [O/N]
+
+[install.check.valid]
+Configuration valide
+
+[install.check.invalid]
+Configuration invalide
+
+[install.run.ask]
+Voulez-vous lancer l'installation ? [O/N]
+
+[install.run.started]
+Lancement
+
+[install.configuration.title]
+Configuration
+
+[install.configuration.launch]
+Lancer le configurateur
+
+[install.configuration.command]
+sudo ./liltress configure
 
 [install.token-google-drive-absent-or-mode-different-of-6]
 Jeton Google Drive absent ({1}) ou mode différent de 600.

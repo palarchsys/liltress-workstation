@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/install.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -127,6 +127,125 @@ apply_kept_runtime() {
     fi
 }
 
+# A missing terminal stops before the tree is replaced.
+stop_without_terminal() {
+    if declare -F log_info >/dev/null 2>&1; then
+        log_info "${INSTALL_WATCHER}" "install.no-terminal"
+    elif declare -F get_text >/dev/null 2>&1; then
+        printf '%s\n' "$(get_text install.no-terminal)" >&2
+    else
+        printf '%s\n' "No terminal for the question. Stopped." >&2
+    fi
+    exit 0
+}
+
+# Any answer other than O stops. An open frame is closed first.
+stop_install() {
+    if [[ "${STEP_TREE:-0}" == "1" ]]; then
+        close_step_tree
+    fi
+    if [[ "${SECTION_OPEN:-0}" == "1" ]]; then
+        show_section_close
+    fi
+    if declare -F log_info >/dev/null 2>&1; then
+        log_info "${INSTALL_WATCHER}" "install.stopped"
+    elif declare -F get_text >/dev/null 2>&1; then
+        printf '%s\n' "$(get_text install.stopped)" >&2
+    else
+        printf '%s\n' "Stopped." >&2
+    fi
+    exit 0
+}
+
+# Loaded display draws the titled question.
+ask_replace_known() {
+    local title=""
+    clear
+    if [[ -f "${INSTALL_DIRECTORY}/script/verify/workstation.sh" ]]; then
+        title="$(get_text log.liltress-workstation-hardening-workstation)"
+    else
+        title="$(get_text log.liltress-choice-of-the-profile)"
+    fi
+    ask_yes "$(get_text install.continue-o-n)" "${title}" || stop_install
+}
+
+# The replace question stays outside the installation section.
+ask_replace_continue() {
+    local answer=""
+    if [[ ! -r /dev/tty ]]; then
+        stop_without_terminal
+    fi
+    if declare -F ask_yes >/dev/null 2>&1 && declare -F get_text >/dev/null 2>&1 && declare -F show_title_box >/dev/null 2>&1; then
+        ask_replace_known
+        return 0
+    fi
+    printf '%s' "Continue the installation? [O/N] " >&2
+    IFS= read -r answer </dev/tty || answer=""
+    case "${answer}" in
+        O | o) return 0 ;;
+    esac
+    printf '%s\n' "Stopped." >&2
+    exit 0
+}
+
+# Clone output would sit above the frame.
+show_product_title() {
+    local title=""
+    clear
+    if [[ -f "${INSTALL_DIRECTORY}/script/verify/workstation.sh" ]]; then
+        title="$(get_text log.liltress-workstation-hardening-workstation)"
+    else
+        title="$(get_text log.liltress-choice-of-the-profile)"
+    fi
+    show_title_box "${title}"
+    printf '\n' >&2
+}
+
+# The home directory stays out of the two lines.
+show_install_identity() {
+    get_operating_system
+    get_current_user
+    log_info "${INSTALL_WATCHER}" "install.user" "${CURRENT_USER}"
+    log_info "${INSTALL_WATCHER}" "install.os" "${OS_PRETTY}"
+}
+
+# O continues. Any other answer stops.
+ask_install_step() {
+    ask_yes "$1" || stop_install
+}
+
+# The check runs only after O. The result line stays in this tree.
+ask_config_gate() {
+    open_step_tree "script/config-check.sh"
+    mark_section_step
+    ask_install_step "$(get_text install.check.ask)"
+    if bash "${INSTALL_ROOT}/script/configure.sh" --check; then
+        log_success "${INSTALL_WATCHER}" "install.check.valid"
+        return 0
+    fi
+    log_success "${INSTALL_WATCHER}" "install.check.invalid"
+    return 1
+}
+
+# The runner is a new process. It closes this line, then its own section.
+launch_runner() {
+    open_step_tree "script/run.sh"
+    mark_section_step
+    ask_install_step "$(get_text install.run.ask)"
+    log_success "${INSTALL_WATCHER}" "install.run.started"
+    export STEP_TREE STEP_PENDING SECTION_OPEN SECTION_HAD_STEP
+    cd "${INSTALL_ROOT}"
+    exec bash "${INSTALL_ROOT}/script/run.sh"
+}
+
+# A failed check closes the section and names the configurator.
+launch_configurator() {
+    close_step_tree
+    set_step_hidden "$(get_text install.configuration.title)"
+    show_closing_note "$(get_text install.configuration.launch)" "$(get_text install.configuration.command)"
+    exec bash "${INSTALL_ROOT}/script/configure.sh"
+}
+
 mkdir -p "${INSTALL_ROOT}"
 save_prepared "${INSTALL_ROOT}"
 save_scan_skip "${INSTALL_ROOT}"
@@ -136,7 +255,6 @@ if [[ -f "${INSTALL_ROOT}/src/liltress" ]]; then
     save_runtime "${INSTALL_ROOT}/src"
 fi
 
-accepted=0
 if [[ -n "$(find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
     if [[ -f "${INSTALL_ROOT}/core/boot/lib.sh" && -f "${INSTALL_ROOT}/core/boot/bootstrap.sh" && -f "${INSTALL_ROOT}/config/global.conf" ]]; then
         INSTALL_DIRECTORY="${INSTALL_ROOT}"
@@ -148,54 +266,7 @@ if [[ -n "$(find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -print -quit)" ]]; th
             read_language_file "${INSTALL_DIRECTORY}/config/global.conf" || true
         fi
     fi
-    if declare -F show_title_box >/dev/null 2>&1 && declare -F get_text >/dev/null 2>&1; then
-        clear
-        if [[ -f "${INSTALL_DIRECTORY}/script/verify/workstation.sh" ]]; then
-            show_title_box "$(get_text log.liltress-workstation-hardening-workstation)"
-        else
-            show_title_box "$(get_text log.liltress-choice-of-the-profile)"
-        fi
-        printf '\n' >&2
-    fi
-    answer=""
-    if [[ -r /dev/tty ]] && { exec 3<>/dev/tty; } 2>/dev/null; then
-        if declare -F get_text >/dev/null 2>&1 && declare -F show_title_box >/dev/null 2>&1; then
-            exec 3<&-
-            label="$(get_text install.continue-o-n)"
-            width="${#label}"
-            if ((width < 12)); then
-                width=12
-            fi
-            printf '\n         \e[34m%*s\e[0m : ' "${width}" "${label}" >&2
-            IFS= read -r answer </dev/tty || answer=""
-        else
-            printf '%s' "Continue the installation? [O/N] " >&3
-            IFS= read -r answer <&3 || answer=""
-            exec 3<&-
-        fi
-    else
-        if declare -F log_info >/dev/null 2>&1; then
-            log_info "${INSTALL_WATCHER}" "install.no-terminal"
-        elif declare -F get_text >/dev/null 2>&1; then
-            printf '%s\n' "$(get_text install.no-terminal)" >&2
-        else
-            printf '%s\n' "No terminal for the question. Stopped." >&2
-        fi
-        exit 0
-    fi
-    case "${answer}" in
-        O | o) accepted=1 ;;
-        *)
-            if declare -F log_info >/dev/null 2>&1; then
-                log_info "${INSTALL_WATCHER}" "install.stopped"
-            elif declare -F get_text >/dev/null 2>&1; then
-                printf '%s\n' "$(get_text install.stopped)"
-            else
-                printf '%s\n' "Stopped."
-            fi
-            exit 0
-            ;;
-    esac
+    ask_replace_continue
 fi
 
 if [[ -d "${INSTALL_ROOT}/.git" ]]; then
@@ -243,43 +314,11 @@ source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 read_language_file "${INSTALL_DIRECTORY}/config/global.conf"
 
-clear
-if [[ -f "${INSTALL_DIRECTORY}/script/verify/workstation.sh" ]]; then
-    show_title_box "$(get_text log.liltress-workstation-hardening-workstation)"
-else
-    show_title_box "$(get_text log.liltress-choice-of-the-profile)"
-fi
+show_product_title
+show_install_identity
 printf '\n' >&2
-
-if [[ "${accepted}" -eq 0 ]]; then
-    answer=""
-    if [[ -r /dev/tty ]] && { exec 3<>/dev/tty; } 2>/dev/null; then
-        exec 3<&-
-        label="$(get_text install.continue-o-n)"
-        width="${#label}"
-        if ((width < 12)); then
-            width=12
-        fi
-        printf '\n         \e[34m%*s\e[0m : ' "${width}" "${label}" >&2
-        IFS= read -r answer </dev/tty || answer=""
-    else
-        log_info "${INSTALL_WATCHER}" "install.no-terminal"
-        exit 0
-    fi
-    case "${answer}" in
-        O | o) ;;
-        *)
-            log_info "${INSTALL_WATCHER}" "install.stopped"
-            exit 0
-            ;;
-    esac
+set_step_visible "$(get_text install.section)"
+if ask_config_gate; then
+    launch_runner
 fi
-
-if bash "${INSTALL_ROOT}/script/configure.sh" --check; then
-    log_info "${INSTALL_WATCHER}" "install.launch-of-the-installation"
-    cd "${INSTALL_ROOT}"
-    exec bash "${INSTALL_ROOT}/script/run.sh"
-fi
-
-log_info "${INSTALL_WATCHER}" "install.launch-of-the-configuration-n-n"
-exec bash "${INSTALL_ROOT}/script/configure.sh"
+launch_configurator

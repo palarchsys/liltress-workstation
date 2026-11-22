@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/configure.txt
-# Updated at : 2026-11-21
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -58,6 +58,87 @@ IPV6={1}
 
 [configure.language.hint]
 Sprache (en, fr, de, es). Eingabe behält den aktuellen Wert.
+
+[configure.field.confirm]
+Bestätigung
+
+[configure.field.pro-token]
+Ubuntu-Pro-Token
+
+[configure.field.pro-token-optional]
+Ubuntu-Pro-Token (leer = überspringen)
+
+[configure.field.tailscale]
+Tailscale-Schlüssel
+
+[configure.field.ssh-user]
+SSH-Konto
+
+[configure.field.ssh-group]
+SSH-Gruppe
+
+[configure.field.ssh-group-account]
+Gruppe des SSH-Kontos
+
+[configure.field.ssh-port]
+SSH-Port
+
+[configure.field.mode]
+Modus (1 basic: Name + Domain, 2 erweitert: alles außer dem Profil)
+
+[configure.field.title]
+Titel
+
+[configure.field.domain]
+Apex-Domain
+
+[configure.field.mode-test]
+MODE_TEST (0 Produktion TLS, 1 Debug ohne Certbot)
+
+[configure.field.mode-dev]
+MODE_DEV (1 Portal npm/python, 0 Portal-Images)
+
+[configure.field.lynis]
+Lynis-Schwelle
+
+[configure.field.certbot-mail]
+Let's Encrypt E-Mail
+
+[configure.field.turnstile-site]
+Turnstile-Site-Key
+
+[configure.field.turnstile-secret]
+Turnstile-Geheimschlüssel
+
+[configure.field.hmac]
+Antibot-HMAC-Geheimnis (oder GEN)
+
+[configure.field.postgres]
+Passwort der Web-Postgres-Rolle (oder GEN)
+
+[configure.field.mail-alert]
+E-Mail-Alarme? [o/N]
+
+[configure.field.secrets]
+Geheimnisse
+
+[configure.write.ask]
+global.conf und secrets.conf in {1} schreiben? [o/N]
+
+[configure.hint.pro-token]
+Nur Buchstaben und Ziffern, 6 bis 100, ohne Leerzeichen.
+
+[configure.hint.tailscale]
+Auth-Präfix, Buchstaben, Ziffern, Bindestrich, 10 bis 200.
+
+[configure.hint.ssh-user]
+Konto des Postens.
+
+[configure.hint.ssh-group]
+Gruppe des Kontos.
+
+[configure.hint.ssh-port]
+Port zwischen 1024 und 65535.
 
 [configure.login]
 Anmeldung

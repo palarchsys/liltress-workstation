@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/fr/configure.txt
-# Updated at : 2026-11-21
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -58,6 +58,87 @@ IPV6={1}
 
 [configure.language.hint]
 Langue (en, fr, de, es). Entrée conserve la valeur actuelle.
+
+[configure.field.confirm]
+Confirmation
+
+[configure.field.pro-token]
+Jeton Ubuntu Pro
+
+[configure.field.pro-token-optional]
+Jeton Ubuntu Pro (vide = ignorer)
+
+[configure.field.tailscale]
+Clé Tailscale
+
+[configure.field.ssh-user]
+Compte SSH
+
+[configure.field.ssh-group]
+Groupe SSH
+
+[configure.field.ssh-group-account]
+Groupe du compte SSH
+
+[configure.field.ssh-port]
+Port SSH
+
+[configure.field.mode]
+Mode (1 basic : nom + domaine, 2 avancé : tout sauf le profil)
+
+[configure.field.title]
+Titre
+
+[configure.field.domain]
+Domaine apex
+
+[configure.field.mode-test]
+MODE_TEST (0 production TLS, 1 debug sans Certbot)
+
+[configure.field.mode-dev]
+MODE_DEV (1 portail npm/python, 0 images du portail)
+
+[configure.field.lynis]
+Seuil Lynis
+
+[configure.field.certbot-mail]
+E-mail Let's Encrypt
+
+[configure.field.turnstile-site]
+Turnstile site key
+
+[configure.field.turnstile-secret]
+Turnstile secret key
+
+[configure.field.hmac]
+Secret HMAC antibot (ou GEN)
+
+[configure.field.postgres]
+Mot de passe du rôle Postgres web (ou GEN)
+
+[configure.field.mail-alert]
+Alertes par e-mail ? [o/N]
+
+[configure.field.secrets]
+Secrets
+
+[configure.write.ask]
+Écrire global.conf et secrets.conf dans {1} ? [o/N]
+
+[configure.hint.pro-token]
+Lettres et chiffres seulement, entre 6 et 100, sans espace.
+
+[configure.hint.tailscale]
+Préfixe auth, lettres, chiffres, tiret, 10 à 200.
+
+[configure.hint.ssh-user]
+Compte du poste.
+
+[configure.hint.ssh-group]
+Groupe du compte.
+
+[configure.hint.ssh-port]
+Port entre 1024 et 65535.
 
 [configure.login]
 Login

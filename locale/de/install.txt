@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/install.txt
-# Updated at : 2026-11-21
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -94,6 +94,39 @@ Abbruch.
 
 [install.launch-of-the-installation]
 Start der Installation.
+
+[install.user]
+Benutzer : {1}
+
+[install.os]
+OS : {1}
+
+[install.section]
+Installation
+
+[install.check.ask]
+Konfigurationsprüfung starten? [O/N]
+
+[install.check.valid]
+Konfiguration gültig
+
+[install.check.invalid]
+Konfiguration ungültig
+
+[install.run.ask]
+Installation starten? [O/N]
+
+[install.run.started]
+Start
+
+[install.configuration.title]
+Konfiguration
+
+[install.configuration.launch]
+Konfigurator starten
+
+[install.configuration.command]
+sudo ./liltress configure
 
 [install.token-google-drive-absent-or-mode-different-of-6]
 Token Google Drive fehlt ({1}) oder Modus unterschiedlich von 600.

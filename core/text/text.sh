@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/text/text.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -325,21 +325,11 @@ load_product_text() {
     fi
 }
 
+# One question uses the language already selected. An empty entry keeps it.
 ask_language() {
-    local current="${LANGUAGE:-en}" hint="" choice="" lang=""
+    local current="${LANGUAGE:-en}" choice=""
     check_language "${current}" || current="en"
-    for lang in en fr de es; do
-        hint="$(read_text_record "${lang}" "configure.language.hint")"
-        if [[ -z "${hint}" ]]; then
-            hint="${lang}"
-        fi
-        printf '%s\n' "${hint}" >&2
-    done
-    printf '%s\n' "1 en" >&2
-    printf '%s\n' "2 fr" >&2
-    printf '%s\n' "3 de" >&2
-    printf '%s\n' "4 es" >&2
-    IFS= read -r choice || choice=""
+    ask_line "$(get_text configure.language.hint)" choice || choice=""
     choice="${choice#"${choice%%[![:space:]]*}"}"
     choice="${choice%"${choice##*[![:space:]]}"}"
     case "${choice}" in
