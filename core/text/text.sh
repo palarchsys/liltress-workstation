@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/text/text.sh
-# Updated at : 2026-11-22
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -308,7 +308,6 @@ read_language_file() {
 
 # Command substitution starts a subshell. A catalog loaded there is discarded.
 # Load once in this shell so later lookups reuse the arrays.
-
 load_product_text() {
     local lang_file=""
     if [[ -n "${PRODUCT_ROOT:-}" && -f "${PRODUCT_ROOT}/config/global.conf" ]]; then

@@ -349,16 +349,27 @@ def audit_paths(line):
     return paths
 
 
+def check_audit_exec(line):
+    return "exec-tmp" in line or "EXECVE" in line
+
+
+def check_audit_event(line):
+    if "ANOM_" in line:
+        return True
+    if "res=failed" not in line:
+        return False
+    return "USER_LOGIN" in line or "USER_AUTH" in line
+
+
 def audit_rows(text):
     rows = []
     for raw in text.splitlines():
         line = raw.strip()
-        if "exec-tmp" in line or "EXECVE" in line:
+        if check_audit_exec(line):
             for path in audit_paths(line):
                 rows.append((path, "audit.exec", "1", "auditd"))
             continue
-        failed_auth = "res=failed" in line and ("USER_LOGIN" in line or "USER_AUTH" in line)
-        if "ANOM_" in line or failed_auth:
+        if check_audit_event(line):
             rows.append(("-", "audit.event", "1", "auditd"))
     return rows
 
@@ -650,4 +661,5 @@ def run_alert_decide():
     emit(collect_found())
 
 
-run_alert_decide()
+if __name__ == "__main__":
+    run_alert_decide()

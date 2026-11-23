@@ -350,6 +350,7 @@ def reset_packages(log_path, packages, leftover):
         remove_cache()
 
 
-log_path = Path(sys.argv[1])
-packages, leftover = collect_lines(log_path.read_text(errors="replace"))
-reset_packages(log_path, packages, leftover)
+if __name__ == "__main__":
+    log_path = Path(sys.argv[1])
+    packages, leftover = collect_lines(log_path.read_text(errors="replace"))
+    reset_packages(log_path, packages, leftover)

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/arm-units.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -21,7 +21,6 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 
 # shellcheck disable=SC1091
 source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
-require_root
 
 arm_one() {
     local verb="$1"
@@ -29,6 +28,7 @@ arm_one() {
     local error_key="$3"
     run_silent "${INSTALL_WATCHER}" "${error_key}" systemctl "${verb}" "${unit}"
 }
+require_root
 
 case "${arm_mode}" in
     enable)

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/ssh.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,7 +18,6 @@ read_sshd_value() {
 }
 
 # Print one effective sshd setting. 10.2 uses lowercase, 10.5 uses canonical case.
-
 get_sshd_value() {
     local keyword="${1,,}"
     sshd -T 2>/dev/null | read_sshd_value "${keyword}"

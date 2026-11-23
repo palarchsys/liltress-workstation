@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/alert-excerpt.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -255,4 +255,5 @@ def write_excerpt(path):
         sys.stdout.write("\n".join(body))
 
 
-write_excerpt(sys.argv[1])
+if __name__ == "__main__":
+    write_excerpt(sys.argv[1])

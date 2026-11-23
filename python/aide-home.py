@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/aide-home.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -90,4 +90,5 @@ def run_aide_home():
     sys.exit("mode python refusé")
 
 
-run_aide_home()
+if __name__ == "__main__":
+    run_aide_home()

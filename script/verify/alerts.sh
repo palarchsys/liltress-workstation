@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/verify/alerts.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,214 +12,275 @@
 # -----------------------------------------------------------------------------
 
 
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-    cat <<'EOF'
+show_alert_usage() {
+    if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+        cat <<'EOF'
 Usage : sudo bash script/verify/alerts.sh [--no-send]
 
 Contrôle le timer de démarrage, le timer périodique,
 ClamAV à l'accès, et le chemin du courrier. Sans --no-send, un seul message d'essai part
 quand les alertes sont activées. Le sujet se termine par « Contrôle ».
 EOF
-    exit 0
-fi
-
-_text_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-_text_hops=0
-while [[ "${_text_hops}" -lt 8 && "${_text_dir}" != "/" ]]; do
-    if [[ -f "${_text_dir}/text-load.sh" ]]; then
-        # shellcheck disable=SC1090
-        source "${_text_dir}/text-load.sh"
-        break
+        exit 0
     fi
-    if [[ -f "${_text_dir}/share/core/text/text-load.sh" ]]; then
-        # shellcheck disable=SC1090
-        source "${_text_dir}/share/core/text/text-load.sh"
-        break
+}
+
+load_alert_text() {
+    _text_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    _text_hops=0
+    while [[ "${_text_hops}" -lt 8 && "${_text_dir}" != "/" ]]; do
+        if [[ -f "${_text_dir}/text-load.sh" ]]; then
+            # shellcheck disable=SC1090
+            source "${_text_dir}/text-load.sh"
+            break
+        fi
+        if [[ -f "${_text_dir}/share/core/text/text-load.sh" ]]; then
+            # shellcheck disable=SC1090
+            source "${_text_dir}/share/core/text/text-load.sh"
+            break
+        fi
+        if [[ -f "${_text_dir}/core/text/text-load.sh" ]]; then
+            # shellcheck disable=SC1090
+            source "${_text_dir}/core/text/text-load.sh"
+            break
+        fi
+        _text_dir="$(dirname -- "${_text_dir}")"
+        _text_hops=$((_text_hops + 1))
+    done
+    unset _text_dir _text_hops
+    if ! declare -F load_installed_text >/dev/null 2>&1; then
+        printf '%s\n' "get_text absent" >&2
+        exit 1
     fi
-    if [[ -f "${_text_dir}/core/text/text-load.sh" ]]; then
-        # shellcheck disable=SC1090
-        source "${_text_dir}/core/text/text-load.sh"
-        break
+    load_installed_text
+}
+
+require_alert_root() {
+    if [[ "${EUID}" -ne 0 ]]; then
+        printf "$(get_text log.run-this-script-with-sudo-sudo-bash-verify-alert)" >&2
+        exit 1
     fi
-    _text_dir="$(dirname -- "${_text_dir}")"
-    _text_hops=$((_text_hops + 1))
-done
-unset _text_dir _text_hops
-if ! declare -F load_installed_text >/dev/null 2>&1; then
-    printf '%s\n' "get_text absent" >&2
-    exit 1
-fi
-load_installed_text
-if [[ "${EUID}" -ne 0 ]]; then
-    printf "$(get_text log.run-this-script-with-sudo-sudo-bash-verify-alert)" >&2
-    exit 1
-fi
+}
 
-send=1
-if [[ "${1:-}" == "--no-send" ]]; then
-    send=0
-elif [[ -n "${1:-}" ]]; then
-    printf 'Option inconnue : %s\n' "$1" >&2
-    exit 2
-fi
-
-INSTALL_DIRECTORY="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-export INSTALL_DIRECTORY
-# shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/config/global.conf"
-
-BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
-BIN="${BASE}/service/cron/watchdogs"
-LOG_DIR="${BASE}/cron/security_logs"
-set -u
-
-FAIL=0
-WARN=0
-REASONS=()
-
-# shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/core/check/verify.sh"
-
-printf "$(get_text log.liltress-workstation-checks-that-send-an-alert-n)"
-printf "$(get_text log.date-2 "$(date -Iseconds)")"
-printf "$(get_text log.host "$(hostname -s 2>/dev/null || hostname)")"
-printf "$(get_text log.base "${BASE}")"
-if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
-    printf "$(get_text log.alerts-enabled-n)"
-else
-    printf "$(get_text log.alerts-off-n)"
-fi
-
-report_section "PASSE AU DEMARRAGE"
-timer_word="$(check_unit_word w-boot-chain.timer)"
-printf "$(get_text log.36s "w-boot-chain.timer")" "${timer_word}"
-[[ "${timer_word}" == "OK" ]] || record_fail "timer de la chaîne de démarrage ${timer_word}"
-periodic_word="$(check_unit_word w-periodic-scan.timer)"
-printf "$(get_text log.36s "w-periodic-scan.timer")" "${periodic_word}"
-[[ "${periodic_word}" == "OK" ]] || record_fail "timer de la chaîne périodique ${periodic_word}"
-if [[ -x "${BIN}/boot-scan.sh" ]] \
-    && grep -q 'chain-periodic.sh' "${BIN}/boot-scan.sh" \
-    && grep -q 'arm-onaccess.sh' "${BIN}/boot-scan.sh" \
-    && grep -q 'arm-periodic-scan.sh' "${BIN}/boot-scan.sh" \
-    && grep -q 'reboot-notice.sh' "${BIN}/boot-scan.sh"; then
-    record_pass "boot-scan.sh exécutable : chaîne, accès, période, avis"
-else
-    record_fail "boot-scan.sh absent ou incomplet dans ${BIN}"
-fi
-skip_list="${BASE}/config/service/clamav/scan-skip.paths"
-[[ -f "${skip_list}" ]] || skip_list="${BASE}/cron/scan-skip.paths"
-if [[ -x "${BASE}/script/scan-skip.sh" && -f "${skip_list}" ]]; then
-    record_pass "commande scan-skip.sh et liste des chemins"
-else
-    record_fail "scan-skip.sh ou scan-skip.paths absent"
-fi
-printf '%-16s %-12s %s\n' "Module" "Script" "Lancé par"
-for pair in "Aide scan-aide.sh" "Rkhunter scan-rkhunter.sh" "Chkrootkit scan-chkrootkit.sh" "Clamav scan-clamav.sh" "Debsums scan-debsums.sh"; do
-    label="${pair%% *}"
-    script="${pair##* }"
-    word="ABSENT"
-    if [[ -x "${BIN}/${script}" ]]; then
-        word="OK"
-    elif [[ -f "${BIN}/${script}" ]]; then
-        word="NON_EXEC"
+read_alert_mode() {
+    send=1
+    if [[ "${1:-}" == "--no-send" ]]; then
+        send=0
+    elif [[ -n "${1:-}" ]]; then
+        printf 'Option inconnue : %s\n' "$1" >&2
+        exit 2
     fi
-    printf '%-16s %-20s %s\n' "${label}" "${word}" "chaîne périodique"
-    [[ "${word}" == "OK" ]] || record_fail "${label} : ${BIN}/${script} inutilisable"
-done
+}
 
-if [[ -x "${BIN}/clamav-event.sh" ]] && grep -q 'clamav-event.sh' /etc/clamav/clamd.conf 2>/dev/null; then
-    record_pass "ClamAV à l'accès : VirusEvent pointe vers clamav-event.sh"
-else
-    record_fail "ClamAV à l'accès : VirusEvent ou clamav-event.sh absent"
-fi
-if [[ -x "${BIN}/clamav-response.sh" ]]; then
-    record_pass "réponse ClamAV exécutable"
-else
-    record_fail "clamav-response.sh absent de ${BIN}"
-fi
-if grep -q '^OnAccessIncludePath /tmp$' /etc/clamav/clamd.conf 2>/dev/null \
-    && grep -q '^OnAccessIncludePath /var/tmp$' /etc/clamav/clamd.conf 2>/dev/null \
-    && ! grep -q '^OnAccessIncludePath /$' /etc/clamav/clamd.conf 2>/dev/null \
-    && ! grep -q '^OnAccessIncludePath /home$' /etc/clamav/clamd.conf 2>/dev/null; then
-    record_pass "surveillance continue sur /tmp et /var/tmp, sans / ni /home"
-else
-    record_fail "surveillance continue incomplète"
-fi
-if grep -q '/var/lib/clamav/quarantine' /etc/clamav/clamd.conf 2>/dev/null \
-    && grep -q '/var/lib/clamav/tmp' /etc/clamav/clamd.conf 2>/dev/null; then
-    record_pass "quarantaine et temporaire ClamAV exclus"
-else
-    record_fail "quarantaine ou temporaire ClamAV non exclus"
-fi
-
-report_section "SERVICES"
-clam_unit="clamav-clamonacc.service"
-if [[ "$(check_unit_word clamonacc.service)" == "OK" ]]; then
-    clam_unit="clamonacc.service"
-fi
-for unit in clamav-daemon.service clamav-freshclam.service "${clam_unit}" fail2ban.service auditd.service crowdsec.service crowdsec-firewall-bouncer.service; do
-    word="$(check_unit_word "${unit}")"
-    printf "$(get_text log.36s "${unit}")" "${word}"
-    [[ "${word}" == "OK" ]] || record_fail "service ${unit} ${word}"
-done
-if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
-    word="$(check_unit_word postfix.service)"
-    printf "$(get_text log.36s "postfix.service")" "${word}"
-    [[ "${word}" == "OK" ]] || record_fail "postfix ${word}"
-else
-    record_pass "postfix non exigé : alertes coupées"
-fi
-printf "$(get_text log.fail2ban-auditd-and-crowdsec-n-have-no-mail-clea)"
-
-report_section "DERNIER PASSAGE"
-if systemctl show w-boot-scan.service -p ExecMainExitTimestamp --value --no-pager 2>/dev/null | grep -q .; then
-    printf "$(get_text log.last-start-of-the-password-s-n)" "$(systemctl show w-boot-scan.service -p ExecMainExitTimestamp --value --no-pager 2>/dev/null)"
-    printf "$(get_text log.result-systemd-s-n)" "$(systemctl show w-boot-scan.service -p Result --value --no-pager 2>/dev/null)"
-else
-    record_warn "la passe de démarrage n'a pas encore de résultat systemd"
-fi
-printf '%-16s %-12s %s\n' "Module" "Journal" "Modifié"
-for name in aide integrity rkhunter behavior chkrootkit clamav debsums egress; do
-    file="$(find "${LOG_DIR}" -name "${name}-*.log" -type f 2>/dev/null | sort | tail -1 || true)"
-    if [[ -n "${file}" ]]; then
-        when="$(date -d "@$(stat -c %Y "${file}")" '+%Y-%m-%d %H:%M' 2>/dev/null || stat -c %y "${file}")"
-        printf "$(get_text log.16s-12s "${name}")" "présent" "${when}"
+load_alert_context() {
+    INSTALL_DIRECTORY="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+    export INSTALL_DIRECTORY
+    # shellcheck disable=SC1091
+    source "${INSTALL_DIRECTORY}/config/global.conf"
+    BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+    BIN="${BASE}/service/cron/watchdogs"
+    LOG_DIR="${BASE}/cron/security_logs"
+    set -u
+    FAIL=0
+    WARN=0
+    REASONS=()
+    # shellcheck disable=SC1091
+    source "${INSTALL_DIRECTORY}/core/check/verify.sh"
+    printf "$(get_text log.liltress-workstation-checks-that-send-an-alert-n)"
+    printf "$(get_text log.date-2 "$(date -Iseconds)")"
+    printf "$(get_text log.host "$(hostname -s 2>/dev/null || hostname)")"
+    printf "$(get_text log.base "${BASE}")"
+    if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
+        printf "$(get_text log.alerts-enabled-n)"
     else
-        printf "$(get_text log.16s-12s "${name}")" "absent" "pas encore de passage"
+        printf "$(get_text log.alerts-off-n)"
     fi
-done
+}
 
-report_section "CHEMIN DU COURRIER"
-if [[ -x "${BIN}/send.sh" ]]; then
-    record_pass "send.sh exécutable"
-else
-    record_fail "send.sh absent de ${BIN}"
-fi
-if [[ -f "${BASE}/template/${MAIL_TEMPLATE:-mail.html}" ]]; then
-    record_pass "modèle HTML présent"
-else
-    record_fail "modèle HTML absent de ${BASE}/template"
-fi
-if command -v mail >/dev/null 2>&1; then
-    record_pass "commande mail présente"
-else
-    record_fail "commande mail absente"
-fi
-if [[ "${MAIL_ALERTS:-0}" == "1" && -z "${WATCHDOG_MAIL:-}" ]]; then
-    record_fail "alertes activées sans destinataire"
-elif [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
-    record_pass "destinataire défini"
-else
-    record_pass "aucun destinataire exigé : alertes coupées"
-fi
+check_alert_timers() {
+    local timer_word periodic_word
+    report_section "PASSE AU DEMARRAGE"
+    timer_word="$(check_unit_word w-boot-chain.timer)"
+    printf "$(get_text log.36s "w-boot-chain.timer")" "${timer_word}"
+    [[ "${timer_word}" == "OK" ]] || record_fail "timer de la chaîne de démarrage ${timer_word}"
+    periodic_word="$(check_unit_word w-periodic-scan.timer)"
+    printf "$(get_text log.36s "w-periodic-scan.timer")" "${periodic_word}"
+    [[ "${periodic_word}" == "OK" ]] || record_fail "timer de la chaîne périodique ${periodic_word}"
+}
 
-if [[ "${send}" -eq 0 ]]; then
-    record_pass "essai non lancé (--no-send)"
-elif [[ "${MAIL_ALERTS:-0}" != "1" ]]; then
-    record_pass "essai non lancé : alertes coupées"
-elif [[ "${FAIL}" -ne 0 ]]; then
-    record_warn "essai non lancé : le chemin du courrier a déjà un échec"
-else
+check_alert_boot_script() {
+    if [[ -x "${BIN}/boot-scan.sh" ]] \
+        && grep -q 'chain-periodic.sh' "${BIN}/boot-scan.sh" \
+        && grep -q 'arm-onaccess.sh' "${BIN}/boot-scan.sh" \
+        && grep -q 'arm-periodic-scan.sh' "${BIN}/boot-scan.sh" \
+        && grep -q 'reboot-notice.sh' "${BIN}/boot-scan.sh"; then
+        record_pass "boot-scan.sh exécutable : chaîne, accès, période, avis"
+    else
+        record_fail "boot-scan.sh absent ou incomplet dans ${BIN}"
+    fi
+}
+
+check_alert_skip() {
+    local skip_list="${BASE}/config/service/clamav/scan-skip.paths"
+    [[ -f "${skip_list}" ]] || skip_list="${BASE}/cron/scan-skip.paths"
+    if [[ -x "${BASE}/script/scan-skip.sh" && -f "${skip_list}" ]]; then
+        record_pass "commande scan-skip.sh et liste des chemins"
+    else
+        record_fail "scan-skip.sh ou scan-skip.paths absent"
+    fi
+}
+
+check_alert_modules() {
+    local pair label script word
+    printf '%-16s %-12s %s\n' "Module" "Script" "Lancé par"
+    for pair in "Aide scan-aide.sh" "Rkhunter scan-rkhunter.sh" "Chkrootkit scan-chkrootkit.sh" "Clamav scan-clamav.sh" "Debsums scan-debsums.sh"; do
+        label="${pair%% *}"
+        script="${pair##* }"
+        word="ABSENT"
+        if [[ -x "${BIN}/${script}" ]]; then
+            word="OK"
+        elif [[ -f "${BIN}/${script}" ]]; then
+            word="NON_EXEC"
+        fi
+        printf '%-16s %-20s %s\n' "${label}" "${word}" "chaîne périodique"
+        [[ "${word}" == "OK" ]] || record_fail "${label} : ${BIN}/${script} inutilisable"
+    done
+}
+
+check_alert_virus_event() {
+    if [[ -x "${BIN}/clamav-event.sh" ]] && grep -q 'clamav-event.sh' /etc/clamav/clamd.conf 2>/dev/null; then
+        record_pass "ClamAV à l'accès : VirusEvent pointe vers clamav-event.sh"
+    else
+        record_fail "ClamAV à l'accès : VirusEvent ou clamav-event.sh absent"
+    fi
+}
+
+check_alert_clamav_response() {
+    if [[ -x "${BIN}/clamav-response.sh" ]]; then
+        record_pass "réponse ClamAV exécutable"
+    else
+        record_fail "clamav-response.sh absent de ${BIN}"
+    fi
+}
+
+check_alert_onaccess() {
+    if grep -q '^OnAccessIncludePath /tmp$' /etc/clamav/clamd.conf 2>/dev/null \
+        && grep -q '^OnAccessIncludePath /var/tmp$' /etc/clamav/clamd.conf 2>/dev/null \
+        && ! grep -q '^OnAccessIncludePath /$' /etc/clamav/clamd.conf 2>/dev/null \
+        && ! grep -q '^OnAccessIncludePath /home$' /etc/clamav/clamd.conf 2>/dev/null; then
+        record_pass "surveillance continue sur /tmp et /var/tmp, sans / ni /home"
+    else
+        record_fail "surveillance continue incomplète"
+    fi
+}
+
+check_alert_quarantine() {
+    if grep -q '/var/lib/clamav/quarantine' /etc/clamav/clamd.conf 2>/dev/null \
+        && grep -q '/var/lib/clamav/tmp' /etc/clamav/clamd.conf 2>/dev/null; then
+        record_pass "quarantaine et temporaire ClamAV exclus"
+    else
+        record_fail "quarantaine ou temporaire ClamAV non exclus"
+    fi
+}
+
+check_alert_units() {
+    local clam_unit word unit
+    report_section "SERVICES"
+    clam_unit="clamav-clamonacc.service"
+    if [[ "$(check_unit_word clamonacc.service)" == "OK" ]]; then
+        clam_unit="clamonacc.service"
+    fi
+    for unit in clamav-daemon.service clamav-freshclam.service "${clam_unit}" fail2ban.service auditd.service crowdsec.service crowdsec-firewall-bouncer.service; do
+        word="$(check_unit_word "${unit}")"
+        printf "$(get_text log.36s "${unit}")" "${word}"
+        [[ "${word}" == "OK" ]] || record_fail "service ${unit} ${word}"
+    done
+    if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
+        word="$(check_unit_word postfix.service)"
+        printf "$(get_text log.36s "postfix.service")" "${word}"
+        [[ "${word}" == "OK" ]] || record_fail "postfix ${word}"
+    else
+        record_pass "postfix non exigé : alertes coupées"
+    fi
+    printf "$(get_text log.fail2ban-auditd-and-crowdsec-n-have-no-mail-clea)"
+}
+
+check_alert_boot_result() {
+    report_section "DERNIER PASSAGE"
+    if systemctl show w-boot-scan.service -p ExecMainExitTimestamp --value --no-pager 2>/dev/null | grep -q .; then
+        printf "$(get_text log.last-start-of-the-password-s-n)" "$(systemctl show w-boot-scan.service -p ExecMainExitTimestamp --value --no-pager 2>/dev/null)"
+        printf "$(get_text log.result-systemd-s-n)" "$(systemctl show w-boot-scan.service -p Result --value --no-pager 2>/dev/null)"
+    else
+        record_warn "la passe de démarrage n'a pas encore de résultat systemd"
+    fi
+}
+
+check_alert_journals() {
+    local name file when
+    printf '%-16s %-12s %s\n' "Module" "Journal" "Modifié"
+    for name in aide integrity rkhunter behavior chkrootkit clamav debsums egress; do
+        file="$(find "${LOG_DIR}" -name "${name}-*.log" -type f 2>/dev/null | sort | tail -1 || true)"
+        if [[ -n "${file}" ]]; then
+            when="$(date -d "@$(stat -c %Y "${file}")" '+%Y-%m-%d %H:%M' 2>/dev/null || stat -c %y "${file}")"
+            printf "$(get_text log.16s-12s "${name}")" "présent" "${when}"
+        else
+            printf "$(get_text log.16s-12s "${name}")" "absent" "pas encore de passage"
+        fi
+    done
+}
+
+check_alert_mail() {
+    report_section "CHEMIN DU COURRIER"
+    if [[ -x "${BIN}/send.sh" ]]; then
+        record_pass "send.sh exécutable"
+    else
+        record_fail "send.sh absent de ${BIN}"
+    fi
+    if [[ -f "${BASE}/template/${MAIL_TEMPLATE:-mail.html}" ]]; then
+        record_pass "modèle HTML présent"
+    else
+        record_fail "modèle HTML absent de ${BASE}/template"
+    fi
+    if command -v mail >/dev/null 2>&1; then
+        record_pass "commande mail présente"
+    else
+        record_fail "commande mail absente"
+    fi
+    if [[ "${MAIL_ALERTS:-0}" == "1" && -z "${WATCHDOG_MAIL:-}" ]]; then
+        record_fail "alertes activées sans destinataire"
+    elif [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
+        record_pass "destinataire défini"
+    else
+        record_pass "aucun destinataire exigé : alertes coupées"
+    fi
+}
+
+read_alert_ack() {
+    local started="$1"
+    local ack=""
+    for _ in 1 2 3 4 5; do
+        sleep 4
+        ack="$(journalctl -u postfix --since "@${started}" --no-pager 2>/dev/null | grep -E 'status=(sent|deferred|bounced)' | tail -1 || true)"
+        [[ -n "${ack}" ]] && break
+    done
+    printf '%s\n' "${ack}"
+}
+
+record_alert_ack() {
+    local ack="$1"
+    if [[ "${ack}" == *status=sent* ]]; then
+        record_pass "essai parti (status=sent, sujet se terminant par Contrôle)"
+    elif [[ "${ack}" == *status=deferred* || "${ack}" == *status=bounced* ]]; then
+        record_fail "essai non remis (SMTP deferred ou bounced)"
+    elif [[ -z "$(mailq 2>/dev/null | sed -n '1p' | grep -v 'Mail queue is empty' || true)" ]]; then
+        record_warn "essai accepté localement, accusé SMTP pas encore dans le journal"
+    else
+        record_fail "essai encore en file d'attente"
+    fi
+}
+
+run_alert_probe() {
+    local stamp started probe
     stamp="$(date +%Y%m%d-%H%M%S)"
     export DATE="$(date '+%Y-%m-%d %H:%M:%S')"
     export MODULE_NAME="Contrôle"
@@ -235,37 +296,56 @@ else
         record_fail "essai refusé par send.sh"
         printf '%s\n' "${probe}" | sed -n '1,8p'
     else
-        ack=""
-        for _ in 1 2 3 4 5; do
-            sleep 4
-            ack="$(journalctl -u postfix --since "@${started}" --no-pager 2>/dev/null | grep -E 'status=(sent|deferred|bounced)' | tail -1 || true)"
-            [[ -n "${ack}" ]] && break
-        done
-        if [[ "${ack}" == *status=sent* ]]; then
-            record_pass "essai parti (status=sent, sujet se terminant par Contrôle)"
-        elif [[ "${ack}" == *status=deferred* || "${ack}" == *status=bounced* ]]; then
-            record_fail "essai non remis (SMTP deferred ou bounced)"
-        elif [[ -z "$(mailq 2>/dev/null | sed -n '1p' | grep -v 'Mail queue is empty' || true)" ]]; then
-            record_warn "essai accepté localement, accusé SMTP pas encore dans le journal"
-        else
-            record_fail "essai encore en file d'attente"
-        fi
+        record_alert_ack "$(read_alert_ack "${started}")"
     fi
-fi
+}
 
-if [[ "${#REASONS[@]}" -gt 0 ]]; then
-    report_section "A CORRIGER"
-    printf '%s\n' "${REASONS[@]}"
-fi
+check_alert_send() {
+    if [[ "${send}" -eq 0 ]]; then
+        record_pass "essai non lancé (--no-send)"
+    elif [[ "${MAIL_ALERTS:-0}" != "1" ]]; then
+        record_pass "essai non lancé : alertes coupées"
+    elif [[ "${FAIL}" -ne 0 ]]; then
+        record_warn "essai non lancé : le chemin du courrier a déjà un échec"
+    else
+        run_alert_probe
+    fi
+}
 
-report_section "RESULTAT"
-if [[ "${FAIL}" -eq 0 && "${WARN}" -eq 0 ]]; then
-    printf "$(get_text log.result-ok-n)"
-    exit 0
-fi
-if [[ "${FAIL}" -eq 0 ]]; then
-    printf "$(get_text log.result-ok-s-dot-s-to-confirmer-n)" "${WARN}"
-    exit 0
-fi
-printf "$(get_text log.result-s-failure-s-s-dot-s-to-confirmer-n)" "${FAIL}" "${WARN}"
-exit 1
+finish_alert_report() {
+    if [[ "${#REASONS[@]}" -gt 0 ]]; then
+        report_section "A CORRIGER"
+        printf '%s\n' "${REASONS[@]}"
+    fi
+    report_section "RESULTAT"
+    if [[ "${FAIL}" -eq 0 && "${WARN}" -eq 0 ]]; then
+        printf "$(get_text log.result-ok-n)"
+        exit 0
+    fi
+    if [[ "${FAIL}" -eq 0 ]]; then
+        printf "$(get_text log.result-ok-s-dot-s-to-confirmer-n)" "${WARN}"
+        exit 0
+    fi
+    printf "$(get_text log.result-s-failure-s-s-dot-s-to-confirmer-n)" "${FAIL}" "${WARN}"
+    exit 1
+}
+
+show_alert_usage "$@"
+load_alert_text "$@"
+require_alert_root "$@"
+read_alert_mode "$@"
+load_alert_context "$@"
+check_alert_timers "$@"
+check_alert_boot_script "$@"
+check_alert_skip "$@"
+check_alert_modules "$@"
+check_alert_virus_event "$@"
+check_alert_clamav_response "$@"
+check_alert_onaccess "$@"
+check_alert_quarantine "$@"
+check_alert_units "$@"
+check_alert_boot_result "$@"
+check_alert_journals "$@"
+check_alert_mail "$@"
+check_alert_send "$@"
+finish_alert_report "$@"

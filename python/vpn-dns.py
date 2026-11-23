@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/vpn-dns.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -130,4 +130,5 @@ def run_lookup():
     print("\n".join(rows))
 
 
-run_lookup()
+if __name__ == "__main__":
+    run_lookup()

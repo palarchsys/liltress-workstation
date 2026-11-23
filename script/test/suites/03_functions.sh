@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/03_functions.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -10,9 +10,6 @@
 # Purpose    : Confirm the kept functions and the workstation base.
 # -----------------------------------------------------------------------------
 
-
-t_section "fonctions conservées"
-MONO="$(cd -- "${T_ROOT}/.." && pwd)"
 
 t_require_function() {
     local name="$1"
@@ -23,6 +20,8 @@ t_require_function() {
         t_fail "fn:${name}" "absente de ${where}"
     fi
 }
+t_section "fonctions conservées"
+MONO="$(cd -- "${T_ROOT}/.." && pwd)"
 
 for name in set_color_blue require_root set_step_visible log_error run_silent run_optional run_silent_apt run_step \
     add_line copy_backup ensure_directory check_user init_install_log \

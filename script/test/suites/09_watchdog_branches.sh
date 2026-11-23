@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/09_watchdog_branches.sh
-# Updated at : 2026-11-22
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,18 +11,20 @@
 # -----------------------------------------------------------------------------
 
 
+read_python_candidate() {
+    local candidate="$1"
+    [[ -n "${candidate}" && -d "${candidate}" ]] || return 1
+    (cd -- "${candidate}" && pwd -P)
+}
+
 locate_python_dir() {
-    local dir hops=0 candidate
+    local dir="" hops=0 candidate=""
     for candidate in \
         "${CONFIG_BASE_DIRECTORY:-}/python" \
         "${BASE:-}/python" \
         "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"
-    do
-        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
-            (cd -- "${candidate}" && pwd -P)
-            return 0
-        fi
+        "${INSTALL_DIRECTORY:-}/../share/python"; do
+        read_python_candidate "${candidate}" && return 0
     done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
@@ -30,25 +32,13 @@ locate_python_dir() {
             printf '%s\n' "${dir}/share/python"
             return 0
         fi
-        if [[ -d "${dir}/python" ]]; then
-            (cd -- "${dir}/python" && pwd -P)
-            return 0
-        fi
+        read_python_candidate "${dir}/python" && return 0
         dir="$(dirname -- "${dir}")"
         hops=$((hops + 1))
     done
     printf '%s\n' "dossier python introuvable" >&2
     return 1
 }
-
-t_section "branches des contrôles poste"
-
-holder_pid=""
-work=""
-bin=""
-base=""
-parent="$(cd -- "${T_ROOT}/.." && pwd)"
-probe="${parent}/scripts/vm-probe.sh"
 
 t_clear_holder() {
     if [[ -n "${holder_pid}" ]]; then
@@ -246,6 +236,32 @@ exit 0
 EOF
     chmod 755 "${work}/path/journalctl"
 }
+
+t_check_user_sec() {
+    local id="$1"
+    local raw="$2"
+    local expect="$3"
+    t_set_user clamav-response.sh
+    printf 'note\n' > "${work}/samples/note.txt"
+    printf 'NET_ISOLATE_SEC=%s\n' "${raw}" > "${base}/cron/egress.conf"
+    t_run_user "${bin}/clamav-response.sh" "" "export CLAMAV_EVENT_FILE=${work}/samples/note.txt
+export CLAMAV_EVENT_VIRUS=Eicar"
+    if [[ "$(t_check_got_status)" == "0" ]] && t_log_has "isolation ${expect}s" \
+        && grep -q -- "--on-active=${expect}" "${work}/systemd-run.log"; then
+        t_pass "${id}" "durée ${expect}"
+    else
+        t_fail "${id}" "statut $(t_check_got_status) $(tr '\n' ' ' < "${work}/systemd-run.log" 2>/dev/null || true)"
+    fi
+}
+
+t_section "branches des contrôles poste"
+
+holder_pid=""
+work=""
+bin=""
+base=""
+parent="$(cd -- "${T_ROOT}/.." && pwd)"
+probe="${parent}/scripts/vm-probe.sh"
 
 if ! command -v bwrap >/dev/null 2>&1; then
     t_fail "branch.bwrap" "bwrap absent"
@@ -662,23 +678,6 @@ if [[ "$(t_check_got_status)" == "0" ]] && t_log_has "nft absent" && [[ ! -e "${
 else
     t_fail "branch.usr.response.nft-absent" "statut $(t_check_got_status) $(tr '\n' ' ' < "${work}/stderr.txt" 2>/dev/null || true)"
 fi
-
-t_check_user_sec() {
-    local id="$1"
-    local raw="$2"
-    local expect="$3"
-    t_set_user clamav-response.sh
-    printf 'note\n' > "${work}/samples/note.txt"
-    printf 'NET_ISOLATE_SEC=%s\n' "${raw}" > "${base}/cron/egress.conf"
-    t_run_user "${bin}/clamav-response.sh" "" "export CLAMAV_EVENT_FILE=${work}/samples/note.txt
-export CLAMAV_EVENT_VIRUS=Eicar"
-    if [[ "$(t_check_got_status)" == "0" ]] && t_log_has "isolation ${expect}s" \
-        && grep -q -- "--on-active=${expect}" "${work}/systemd-run.log"; then
-        t_pass "${id}" "durée ${expect}"
-    else
-        t_fail "${id}" "statut $(t_check_got_status) $(tr '\n' ' ' < "${work}/systemd-run.log" 2>/dev/null || true)"
-    fi
-}
 t_check_user_sec branch.usr.response.clamp-low 10 120
 t_check_user_sec branch.usr.response.clamp-high 400 120
 t_check_user_sec branch.usr.response.sec 45 45

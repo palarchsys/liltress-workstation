@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/install.sh
-# Updated at : 2026-11-22
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,39 +13,45 @@
 # -----------------------------------------------------------------------------
 
 
-set -euo pipefail
+run_product_install_part_01() {
+    set -euo pipefail
 
-INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
-export INSTALL_WATCHER
+    INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
+    export INSTALL_WATCHER
 
-REPO_URL="${REPO_URL:-https://github.com/palarchsys/liltress-workstation}"
-BRANCH="${BRANCH:-main}"
-INSTALL_ROOT="${INSTALL_ROOT:-/opt/liltress-workstation}"
+    REPO_URL="${REPO_URL:-https://github.com/palarchsys/liltress-workstation}"
+    BRANCH="${BRANCH:-main}"
+    INSTALL_ROOT="${INSTALL_ROOT:-/opt/liltress-workstation}"
 
-if [[ "${EUID}" -ne 0 ]]; then
-    if declare -F get_text >/dev/null 2>&1; then
-        printf '%s\n' "$(get_text install.this-script-must-be-executed-as-root-sudo)" >&2
-    else
-        printf '%s\n' "This script must be run as root (sudo)." >&2
+    if [[ "${EUID}" -ne 0 ]]; then
+        if declare -F get_text >/dev/null 2>&1; then
+            printf '%s\n' "$(get_text install.this-script-must-be-executed-as-root-sudo)" >&2
+        else
+            printf '%s\n' "This script must be run as root (sudo)." >&2
+        fi
+        exit 1
     fi
-    exit 1
-fi
 
-if [[ -z "${INSTALL_ROOT}" || "${INSTALL_ROOT}" != /opt/* || "${INSTALL_ROOT}" == "/opt" || "${INSTALL_ROOT}" == "/" || "${INSTALL_ROOT}" == *..* || "${INSTALL_ROOT}" == *[[:space:]]* ]]; then
-    if declare -F get_text >/dev/null 2>&1; then
-        printf '%s\n' "$(get_text install.root-of-install-rejected "${INSTALL_ROOT}")" >&2
-    else
-        printf '%s\n' "Install root rejected: ${INSTALL_ROOT}" >&2
+}
+
+run_product_install_part_02() {
+    if [[ -z "${INSTALL_ROOT}" || "${INSTALL_ROOT}" != /opt/* || "${INSTALL_ROOT}" == "/opt" || "${INSTALL_ROOT}" == "/" || "${INSTALL_ROOT}" == *..* || "${INSTALL_ROOT}" == *[[:space:]]* ]]; then
+        if declare -F get_text >/dev/null 2>&1; then
+            printf '%s\n' "$(get_text install.root-of-install-rejected "${INSTALL_ROOT}")" >&2
+        else
+            printf '%s\n' "Install root rejected: ${INSTALL_ROOT}" >&2
+        fi
+        exit 1
     fi
-    exit 1
-fi
 
-export DEBIAN_FRONTEND=noninteractive
-apt-get install -y -qq ca-certificates git >/dev/null 2>&1
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get install -y -qq ca-certificates git >/dev/null 2>&1
 
-tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
-mkdir -p "${tmp}/keep"
+    tmp="$(mktemp -d)"
+    trap 'rm -rf "$tmp"' EXIT
+    mkdir -p "${tmp}/keep"
+
+}
 
 save_prepared() {
     local root="$1"
@@ -203,45 +209,49 @@ launch_configurator() {
     exec bash "${INSTALL_ROOT}/script/configure.sh"
 }
 
-mkdir -p "${INSTALL_ROOT}"
-save_prepared "${INSTALL_ROOT}"
-save_scan_skip "${INSTALL_ROOT}"
-if [[ -f "${INSTALL_ROOT}/src/liltress" ]]; then
-    save_prepared "${INSTALL_ROOT}/src"
-    save_scan_skip "${INSTALL_ROOT}/src"
-    save_runtime "${INSTALL_ROOT}/src"
-fi
-
-if [[ -d "${INSTALL_ROOT}/.git" ]]; then
-    git -C "${INSTALL_ROOT}" fetch -q --depth 1 origin "${BRANCH}"
-    trap - EXIT
-    save_runtime "${INSTALL_ROOT}"
-    git -C "${INSTALL_ROOT}" clean -fdq
-    git -C "${INSTALL_ROOT}" checkout -q -f -B "${BRANCH}" FETCH_HEAD
-else
-    trap - EXIT
-    save_runtime "${INSTALL_ROOT}"
-    find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-    git clone -q --depth 1 --branch "${BRANCH}" "${REPO_URL}" "${INSTALL_ROOT}"
-fi
-
-if [[ ! -f "${INSTALL_ROOT}/config/global.conf" || ! -f "${INSTALL_ROOT}/liltress" ]]; then
-    if declare -F log_error >/dev/null 2>&1; then
-        log_error "${INSTALL_WATCHER}" "install.archive-github-invalid-config-global-conf-absent"
-    elif declare -F get_text >/dev/null 2>&1; then
-        printf '%s\n' "$(get_text install.archive-github-invalid-config-global-conf-absent)" >&2
-        exit 1
-    else
-        printf '%s\n' "Invalid GitHub archive (config/global.conf absent)." >&2
-        exit 1
+run_product_install_part_03() {
+    mkdir -p "${INSTALL_ROOT}"
+    save_prepared "${INSTALL_ROOT}"
+    save_scan_skip "${INSTALL_ROOT}"
+    if [[ -f "${INSTALL_ROOT}/src/liltress" ]]; then
+        save_prepared "${INSTALL_ROOT}/src"
+        save_scan_skip "${INSTALL_ROOT}/src"
+        save_runtime "${INSTALL_ROOT}/src"
     fi
-fi
 
-restore_kept
-trap 'rm -rf "$tmp"' EXIT
-rm -rf "${INSTALL_ROOT:?}/src"
-chmod 755 "${INSTALL_ROOT}/liltress"
-INSTALL_DIRECTORY="${INSTALL_ROOT}" bash -c '
+    if [[ -d "${INSTALL_ROOT}/.git" ]]; then
+        git -C "${INSTALL_ROOT}" fetch -q --depth 1 origin "${BRANCH}"
+        trap - EXIT
+        save_runtime "${INSTALL_ROOT}"
+        git -C "${INSTALL_ROOT}" clean -fdq
+        git -C "${INSTALL_ROOT}" checkout -q -f -B "${BRANCH}" FETCH_HEAD
+    else
+        trap - EXIT
+        save_runtime "${INSTALL_ROOT}"
+        find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+        git clone -q --depth 1 --branch "${BRANCH}" "${REPO_URL}" "${INSTALL_ROOT}"
+    fi
+
+    if [[ ! -f "${INSTALL_ROOT}/config/global.conf" || ! -f "${INSTALL_ROOT}/liltress" ]]; then
+        if declare -F log_error >/dev/null 2>&1; then
+            log_error "${INSTALL_WATCHER}" "install.archive-github-invalid-config-global-conf-absent"
+        elif declare -F get_text >/dev/null 2>&1; then
+            printf '%s\n' "$(get_text install.archive-github-invalid-config-global-conf-absent)" >&2
+            exit 1
+        else
+            printf '%s\n' "Invalid GitHub archive (config/global.conf absent)." >&2
+            exit 1
+        fi
+    fi
+
+    restore_kept
+    trap 'rm -rf "$tmp"' EXIT
+}
+
+run_product_install_part_04() {
+    rm -rf "${INSTALL_ROOT:?}/src"
+    chmod 755 "${INSTALL_ROOT}/liltress"
+    INSTALL_DIRECTORY="${INSTALL_ROOT}" bash -c '
     set -euo pipefail
     # shellcheck disable=SC1091
     source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
@@ -250,18 +260,23 @@ INSTALL_DIRECTORY="${INSTALL_ROOT}" bash -c '
     set_tree_modes
 '
 
-INSTALL_DIRECTORY="${INSTALL_ROOT}"
-# shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
-# shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/config/global.conf"
-read_language_file "${INSTALL_DIRECTORY}/config/global.conf"
+    INSTALL_DIRECTORY="${INSTALL_ROOT}"
+    # shellcheck disable=SC1091
+    source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
+    # shellcheck disable=SC1091
+    source "${INSTALL_DIRECTORY}/config/global.conf"
+    read_language_file "${INSTALL_DIRECTORY}/config/global.conf"
 
-show_product_title
-show_install_identity
-printf '\n' >&2
-set_step_visible "$(get_text install.section)"
-if ask_config_gate; then
-    launch_runner
-fi
-launch_configurator
+    show_product_title
+    show_install_identity
+    printf '\n' >&2
+    set_step_visible "$(get_text install.section)"
+    if ask_config_gate; then
+        launch_runner
+    fi
+    launch_configurator
+}
+run_product_install_part_01 "$@"
+run_product_install_part_02 "$@"
+run_product_install_part_03 "$@"
+run_product_install_part_04 "$@"

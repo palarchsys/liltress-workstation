@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/04_forbidden.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -10,9 +10,6 @@
 # Purpose    : Confirm the workstation forbidden patterns stay absent.
 # -----------------------------------------------------------------------------
 
-
-t_section "interdits poste"
-MONO="$(cd -- "${T_ROOT}/.." && pwd)"
 
 t_get_forbidden_hit() {
     local pattern="$1"
@@ -31,6 +28,8 @@ t_check_forbidden() {
         t_pass "${id}" "aucune ligne active"
     fi
 }
+t_section "interdits poste"
+MONO="$(cd -- "${T_ROOT}/.." && pwd)"
 t_check_forbidden "forbid.password-no" '^[[:space:]]*PasswordAuthentication[[:space:]]+no([[:space:]]|$)'
 if grep -qF 'AllowUsers ${SSH_ACCOUNT}' "${T_ROOT}/config/service/ssh/00-liltress-workstation.conf"; then
     t_pass "require.allowusers" "AllowUsers lit le compte SSH"

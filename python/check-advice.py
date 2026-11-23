@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/check-advice.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -88,4 +88,5 @@ def check_advice():
     sys.exit(0)
 
 
-check_advice()
+if __name__ == "__main__":
+    check_advice()

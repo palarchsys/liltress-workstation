@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-rkhunter.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -40,41 +40,53 @@ ensure_rkhunter_allows() {
     done
 }
 
-set -euo pipefail
-HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck disable=SC1091
-source "${HERE}/common.sh"
-LOG_FILE="${LOG_DIR}/rkhunter-${STAMP}.log"
-ALERT_FILE="${ALERT_DIR}/rkhunter-${STAMP}.txt"
-if ! command -v rkhunter >/dev/null; then
-    log_pass "$(get_text watchdog.rkhunter-absent-skip)"
-    exit 0
-fi
-ensure_rkhunter_allows
-read_spare_names
-set +e
-# A stuck read on a pty must not hold the rest of the pass.
-run_limited timeout --signal=TERM 900 rkhunter --check --skip-keypress --report-warnings-only --nocolors >>"${LOG_FILE}" 2>&1
-check_rc=$?
-set -e
-CONFIRMED_COUNT=0
-confirmed_tmp="$(mktemp)"
-record_quarantine_log rkhunter "${LOG_FILE}" "${SPARE_NAMES[@]}" >"${confirmed_tmp}" || true
-if [[ -s "${confirmed_tmp}" ]]; then
-    cat "${confirmed_tmp}" >>"${LOG_FILE}"
-fi
-rm -f "${confirmed_tmp}"
-if [[ "${check_rc}" -ge 128 ]]; then
-    log_alert "$(get_crash_sentence "rkhunter" "${check_rc}")"
-elif [[ "${check_rc}" -ne 0 || "${CONFIRMED_COUNT:-0}" -gt 0 ]]; then
-    if [[ "${check_rc}" -eq 1 && "${CONFIRMED_COUNT:-0}" -eq 0 ]]; then
-        set_rkhunter_note || true
-        RKHUNTER_REFRESH=1 \
-            log_alert "$(get_text watchdog.rkhunter-warnings-see "${LOG_FILE}")"
-    else
-        log_alert "$(get_text watchdog.rkhunter-warnings-see "${LOG_FILE}")"
+run_scan_rkhunter_part_01() {
+    set -euo pipefail
+    HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    # shellcheck disable=SC1091
+    source "${HERE}/common.sh"
+    LOG_FILE="${LOG_DIR}/rkhunter-${STAMP}.log"
+    ALERT_FILE="${ALERT_DIR}/rkhunter-${STAMP}.txt"
+    if ! command -v rkhunter >/dev/null; then
+        log_pass "$(get_text watchdog.rkhunter-absent-skip)"
+        exit 0
     fi
-else
-    log_pass "rkhunter OK"
-fi
-exit 0
+    ensure_rkhunter_allows
+    read_spare_names
+    set +e
+    # A stuck read on a pty must not hold the rest of the pass.
+    run_limited timeout --signal=TERM 900 rkhunter --check --skip-keypress --report-warnings-only --nocolors >>"${LOG_FILE}" 2>&1
+    check_rc=$?
+    set -e
+    CONFIRMED_COUNT=0
+    confirmed_tmp="$(mktemp)"
+    record_quarantine_log rkhunter "${LOG_FILE}" "${SPARE_NAMES[@]}" >"${confirmed_tmp}" || true
+    if [[ -s "${confirmed_tmp}" ]]; then
+        cat "${confirmed_tmp}" >>"${LOG_FILE}"
+    fi
+    rm -f "${confirmed_tmp}"
+}
+
+run_scan_rkhunter_part_02() {
+    if [[ "${check_rc}" -ge 128 ]]; then
+        log_alert "$(get_crash_sentence "rkhunter" "${check_rc}")"
+    elif [[ "${check_rc}" -ne 0 || "${CONFIRMED_COUNT:-0}" -gt 0 ]]; then
+        if [[ "${check_rc}" -eq 1 && "${CONFIRMED_COUNT:-0}" -eq 0 ]]; then
+            set_rkhunter_note || true
+            RKHUNTER_REFRESH=1 \
+                log_alert "$(get_text watchdog.rkhunter-warnings-see "${LOG_FILE}")"
+        else
+            log_alert "$(get_text watchdog.rkhunter-warnings-see "${LOG_FILE}")"
+        fi
+    else
+        log_pass "rkhunter OK"
+    fi
+    exit 0
+}
+
+run_scan_rkhunter_part_03() {
+    run_scan_rkhunter_part_01 "$@"
+    run_scan_rkhunter_part_02 "$@"
+}
+
+run_scan_rkhunter_part_03 "$@"

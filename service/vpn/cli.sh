@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/cli.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,42 +12,41 @@
 # -----------------------------------------------------------------------------
 
 
-set -euo pipefail
-
-VPN_SRC="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$(cd -- "${VPN_SRC}/../.." && pwd)"
-export PRODUCT_ROOT="${ROOT}"
-export INSTALL_DIRECTORY="${ROOT}"
-INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
-export INSTALL_WATCHER
-
-# shellcheck disable=SC1091
-source "${ROOT}/core/boot/lib.sh"
-# shellcheck disable=SC1091
-source "${ROOT}/config/global.conf"
-# shellcheck disable=SC1091
-source "${VPN_SRC}/lib.sh"
-# shellcheck disable=SC1091
-source "${VPN_SRC}/state.sh"
-# shellcheck disable=SC1091
-source "${VPN_SRC}/killswitch.sh"
-# shellcheck disable=SC1091
-source "${VPN_SRC}/routes.sh"
-# shellcheck disable=SC1091
-source "${VPN_SRC}/import.sh"
-# shellcheck disable=SC1091
-source "${VPN_SRC}/nm.sh"
-# shellcheck disable=SC1091
-source "${VPN_SRC}/up.sh"
-# shellcheck disable=SC1091
-source "${VPN_SRC}/down.sh"
-# shellcheck disable=SC1091
-source "${VPN_SRC}/switch.sh"
-# shellcheck disable=SC1091
-source "${VPN_SRC}/failover.sh"
-
-require_root
-load_vpn_settings
+load_vpn_cli() {
+    set -euo pipefail
+    VPN_SRC="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    ROOT="$(cd -- "${VPN_SRC}/../.." && pwd)"
+    export PRODUCT_ROOT="${ROOT}"
+    export INSTALL_DIRECTORY="${ROOT}"
+    INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
+    export INSTALL_WATCHER
+    # shellcheck disable=SC1091
+    source "${ROOT}/core/boot/lib.sh"
+    # shellcheck disable=SC1091
+    source "${ROOT}/config/global.conf"
+    # shellcheck disable=SC1091
+    source "${VPN_SRC}/lib.sh"
+    # shellcheck disable=SC1091
+    source "${VPN_SRC}/state.sh"
+    # shellcheck disable=SC1091
+    source "${VPN_SRC}/killswitch.sh"
+    # shellcheck disable=SC1091
+    source "${VPN_SRC}/routes.sh"
+    # shellcheck disable=SC1091
+    source "${VPN_SRC}/import.sh"
+    # shellcheck disable=SC1091
+    source "${VPN_SRC}/nm.sh"
+    # shellcheck disable=SC1091
+    source "${VPN_SRC}/up.sh"
+    # shellcheck disable=SC1091
+    source "${VPN_SRC}/down.sh"
+    # shellcheck disable=SC1091
+    source "${VPN_SRC}/switch.sh"
+    # shellcheck disable=SC1091
+    source "${VPN_SRC}/failover.sh"
+    require_root
+    load_vpn_settings
+}
 
 show_vpn_usage() {
     printf '%s\n' "$(get_text vpn.usage)" >&2
@@ -288,95 +287,115 @@ arm_vpn_boot() {
     exit 0
 }
 
+run_vpn_cli_status() {
+    [[ $# -eq 0 ]] || show_vpn_usage
+    show_vpn_status
+}
+
+run_vpn_cli_list() {
+    [[ $# -eq 0 ]] || show_vpn_usage
+    list_vpn_profiles
+}
+
+run_vpn_cli_import() {
+    [[ $# -eq 4 ]] || show_vpn_usage
+    case "$1" in
+        wireguard | openvpn) install_vpn_bundle "$1" "$2" "$3" "$4" ;;
+        *) show_vpn_usage ;;
+    esac
+}
+
+run_vpn_cli_test() {
+    local test_rc=0
+    [[ $# -eq 1 ]] || show_vpn_usage
+    run_vpn_test "$1" || test_rc=$?
+    refresh_vpn_integrity
+    exit "${test_rc}"
+}
+
+run_vpn_cli_switch() {
+    [[ $# -eq 1 ]] || show_vpn_usage
+    run_vpn_switch "$1"
+}
+
+run_vpn_cli_mode() {
+    [[ $# -eq 1 ]] || show_vpn_usage
+    case "$1" in
+        on) run_vpn_mode_on ;;
+        off) run_vpn_mode_off ;;
+        *) show_vpn_usage ;;
+    esac
+}
+
+run_vpn_cli_default() {
+    if [[ $# -eq 0 ]]; then
+        show_vpn_default
+    elif [[ $# -eq 1 && "$1" == "off" ]]; then
+        clear_vpn_default
+    elif [[ $# -eq 1 ]]; then
+        set_vpn_default "$1"
+    else
+        show_vpn_usage
+    fi
+}
+
+run_vpn_cli_remove() {
+    [[ $# -eq 1 ]] || show_vpn_usage
+    remove_vpn_profile "$1"
+}
+
+run_vpn_cli_bypass() {
+    if [[ $# -eq 0 ]]; then
+        show_vpn_bypass
+    elif [[ $# -eq 1 && "$1" == "reload" ]]; then
+        run_vpn_bypass_reload
+    else
+        show_vpn_usage
+    fi
+}
+
+run_vpn_cli_endpoint() {
+    [[ $# -eq 1 ]] || show_vpn_usage
+    refresh_vpn_endpoint "$1"
+}
+
+run_vpn_cli_boot() {
+    load_vpn_settings
+    if ! check_vpn_boot_on; then
+        set_vpn_state_mode off
+        load_vpn_settings
+        apply_vpn_systemd || true
+        clear_vpn_network
+        refresh_vpn_integrity
+        exit 0
+    fi
+    if check_vpn_tunnel "${VPN_BOOT_PROFILE}"; then
+        exit 0
+    fi
+    VPN_DEFER_INTEGRITY=1
+    run_vpn_failover
+    VPN_DEFER_INTEGRITY=0
+    refresh_vpn_integrity
+    exit 0
+}
+
+load_vpn_cli
+
 cmd="${1:-}"
 shift || true
 
 case "${cmd}" in
-    status)
-        [[ $# -eq 0 ]] || show_vpn_usage
-        show_vpn_status
-        ;;
-    list)
-        [[ $# -eq 0 ]] || show_vpn_usage
-        list_vpn_profiles
-        ;;
-    import)
-        [[ $# -eq 4 ]] || show_vpn_usage
-        case "$1" in
-            wireguard | openvpn) install_vpn_bundle "$1" "$2" "$3" "$4" ;;
-            *) show_vpn_usage ;;
-        esac
-        ;;
-    test)
-        [[ $# -eq 1 ]] || show_vpn_usage
-        test_rc=0
-        run_vpn_test "$1" || test_rc=$?
-        refresh_vpn_integrity
-        exit "${test_rc}"
-        ;;
-    switch)
-        [[ $# -eq 1 ]] || show_vpn_usage
-        run_vpn_switch "$1"
-        ;;
-    mode)
-        [[ $# -eq 1 ]] || show_vpn_usage
-        case "$1" in
-            on) run_vpn_mode_on ;;
-            off) run_vpn_mode_off ;;
-            *) show_vpn_usage ;;
-        esac
-        ;;
-    default)
-        if [[ $# -eq 0 ]]; then
-            show_vpn_default
-        elif [[ $# -eq 1 && "$1" == "off" ]]; then
-            clear_vpn_default
-        elif [[ $# -eq 1 ]]; then
-            set_vpn_default "$1"
-        else
-            show_vpn_usage
-        fi
-        ;;
-    rm)
-        [[ $# -eq 1 ]] || show_vpn_usage
-        remove_vpn_profile "$1"
-        ;;
-    bypass)
-        if [[ $# -eq 0 ]]; then
-            show_vpn_bypass
-        elif [[ $# -eq 1 && "$1" == "reload" ]]; then
-            run_vpn_bypass_reload
-        else
-            show_vpn_usage
-        fi
-        ;;
-    refresh-endpoint)
-        [[ $# -eq 1 ]] || show_vpn_usage
-        refresh_vpn_endpoint "$1"
-        ;;
-    boot-killswitch)
-        arm_vpn_boot
-        ;;
-    boot-up)
-        load_vpn_settings
-        if ! check_vpn_boot_on; then
-            set_vpn_state_mode off
-            load_vpn_settings
-            apply_vpn_systemd || true
-            clear_vpn_network
-            refresh_vpn_integrity
-            exit 0
-        fi
-        if check_vpn_tunnel "${VPN_BOOT_PROFILE}"; then
-            exit 0
-        fi
-        VPN_DEFER_INTEGRITY=1
-        run_vpn_failover
-        VPN_DEFER_INTEGRITY=0
-        refresh_vpn_integrity
-        exit 0
-        ;;
-    *)
-        show_vpn_usage
-        ;;
+    status) run_vpn_cli_status "$@" ;;
+    list) run_vpn_cli_list "$@" ;;
+    import) run_vpn_cli_import "$@" ;;
+    test) run_vpn_cli_test "$@" ;;
+    switch) run_vpn_cli_switch "$@" ;;
+    mode) run_vpn_cli_mode "$@" ;;
+    default) run_vpn_cli_default "$@" ;;
+    rm) run_vpn_cli_remove "$@" ;;
+    bypass) run_vpn_cli_bypass "$@" ;;
+    refresh-endpoint) run_vpn_cli_endpoint "$@" ;;
+    boot-killswitch) arm_vpn_boot ;;
+    boot-up) run_vpn_cli_boot ;;
+    *) show_vpn_usage ;;
 esac

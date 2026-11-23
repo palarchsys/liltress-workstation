@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-auditd.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -112,49 +112,59 @@ finish_audit_window() {
     printf '%s\n' "$(get_text watchdog.no-execution-temporary)"
 }
 
-set -euo pipefail
-HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -r "${HERE}/watchdog.conf" ]]; then
+run_scan_auditd_part_01() {
+    set -euo pipefail
+    HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    if [[ -r "${HERE}/watchdog.conf" ]]; then
+        # shellcheck disable=SC1091
+        source "${HERE}/watchdog.conf"
+    fi
+    if [[ -z "${BASE:-}" && -z "${CONFIG_BASE_DIRECTORY:-}" && -n "${CONFIG_BASE_DIRECTORY+x}" ]]; then
+        exit 0
+    fi
     # shellcheck disable=SC1091
-    source "${HERE}/watchdog.conf"
-fi
-if [[ -z "${BASE:-}" && -z "${CONFIG_BASE_DIRECTORY:-}" && -n "${CONFIG_BASE_DIRECTORY+x}" ]]; then
-    exit 0
-fi
-# shellcheck disable=SC1091
-source "${HERE}/common.sh"
-if [[ -z "${BASE:-}" ]]; then
-    BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
-fi
-STAMP="${STAMP:-$(date +%Y%m%d-%H%M%S)}"
-LOG_DIR="${LOG_DIR:-${BASE}/cron/security_logs}"
-ALERT_DIR="${ALERT_DIR:-${BASE}/cron/alerts}"
-mkdir -p -- "${LOG_DIR}" "${ALERT_DIR}"
-LOG_FILE="${LOG_DIR}/auditd-${STAMP}.log"
-ALERT_FILE="${ALERT_DIR}/auditd-${STAMP}.txt"
-MODULE_NAME="Auditd"
-if declare -F watchdog_runtime_file >/dev/null 2>&1; then
-    stamp="$(watchdog_runtime_file "${BASE}" behavior.stamp)"
-else
-    stamp="${BASE}/cron/behavior.stamp"
-fi
+    source "${HERE}/common.sh"
+    if [[ -z "${BASE:-}" ]]; then
+        BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+    fi
+    STAMP="${STAMP:-$(date +%Y%m%d-%H%M%S)}"
+    LOG_DIR="${LOG_DIR:-${BASE}/cron/security_logs}"
+    ALERT_DIR="${ALERT_DIR:-${BASE}/cron/alerts}"
+    mkdir -p -- "${LOG_DIR}" "${ALERT_DIR}"
+    LOG_FILE="${LOG_DIR}/auditd-${STAMP}.log"
+    ALERT_FILE="${ALERT_DIR}/auditd-${STAMP}.txt"
+    MODULE_NAME="Auditd"
+    if declare -F watchdog_runtime_file >/dev/null 2>&1; then
+        stamp="$(watchdog_runtime_file "${BASE}" behavior.stamp)"
+    else
+        stamp="${BASE}/cron/behavior.stamp"
+    fi
+    ausearch_bin="$(read_ausearch_bin || true)"
+}
 
-ausearch_bin="$(read_ausearch_bin || true)"
-if [[ -z "${ausearch_bin}" ]]; then
-    printf '%s\n' "$(get_text watchdog.ausearch-absent)"
+run_scan_auditd_part_02() {
+    if [[ -z "${ausearch_bin}" ]]; then
+        printf '%s\n' "$(get_text watchdog.ausearch-absent)"
+        exit 0
+    fi
+    if [[ ! -s "${stamp}" ]] || ! grep -Eq '^[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}$' "${stamp}"; then
+        record_audit_stamp
+        printf '%s\n' "$(get_text watchdog.initial-rep-re-written)"
+        exit 0
+    fi
+    found="$(mktemp)"
+    extra="$(mktemp)"
+    kept="$(mktemp)"
+    trap 'rm -f "${found}" "${extra}" "${kept}"' EXIT
+    start="$(head -n 1 "${stamp}")"
+    query_audit_window "${ausearch_bin}" "${start}"
+    finish_audit_window
     exit 0
-fi
-if [[ ! -s "${stamp}" ]] || ! grep -Eq '^[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}$' "${stamp}"; then
-    record_audit_stamp
-    printf '%s\n' "$(get_text watchdog.initial-rep-re-written)"
-    exit 0
-fi
+}
 
-found="$(mktemp)"
-extra="$(mktemp)"
-kept="$(mktemp)"
-trap 'rm -f "${found}" "${extra}" "${kept}"' EXIT
-start="$(head -n 1 "${stamp}")"
-query_audit_window "${ausearch_bin}" "${start}"
-finish_audit_window
-exit 0
+run_scan_auditd_part_03() {
+    run_scan_auditd_part_01 "$@"
+    run_scan_auditd_part_02 "$@"
+}
+
+run_scan_auditd_part_03 "$@"

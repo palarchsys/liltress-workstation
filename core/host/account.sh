@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/account.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -56,8 +56,6 @@ write_account_table() {
     chmod 600 "${dest}"
 }
 
-ACCOUNT_SNAPSHOT="/var/lib/liltress-workstation/accounts/human.tsv"
-
 record_account_snapshot() {
     mkdir -p /var/lib/liltress-workstation/accounts
     chmod 700 /var/lib/liltress-workstation/accounts
@@ -104,3 +102,5 @@ check_account_drift() {
     rm -f "${current}" "${norm_base}" "${norm_now}"
     return 1
 }
+
+ACCOUNT_SNAPSHOT="/var/lib/liltress-workstation/accounts/human.tsv"

@@ -316,7 +316,8 @@ def run_state():
     command()
 
 
-cmd = sys.argv[1]
-path = sys.argv[2]
-args = sys.argv[3:]
-run_state()
+if __name__ == "__main__":
+    cmd = sys.argv[1]
+    path = sys.argv[2]
+    args = sys.argv[3:]
+    run_state()

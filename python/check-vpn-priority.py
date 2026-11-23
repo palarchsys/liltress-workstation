@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/check-vpn-priority.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -29,8 +29,9 @@ def require_priority(conf_text, egress_text, lib_text):
         sys.exit("priorité absente du script")
 
 
-require_priority(
-    Path(sys.argv[1]).read_text(encoding="utf-8"),
-    Path(sys.argv[2]).read_text(encoding="utf-8"),
-    Path(sys.argv[3]).read_text(encoding="utf-8"),
-)
+if __name__ == "__main__":
+    require_priority(
+        Path(sys.argv[1]).read_text(encoding="utf-8"),
+        Path(sys.argv[2]).read_text(encoding="utf-8"),
+        Path(sys.argv[3]).read_text(encoding="utf-8"),
+    )

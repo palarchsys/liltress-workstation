@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/ubuntu.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -40,7 +40,6 @@ check_ubuntu_base() {
 }
 
 # Return 0 when the resolved base is an LTS: even year, minor 4.
-
 check_ubuntu_lts() {
     local version="${UBUNTU_BASE_VERSION:-}"
     local major=0
@@ -58,7 +57,6 @@ check_ubuntu_lts() {
 }
 
 # Print the Postfix map type in use: hash on 26.04, cdb on 26.10.
-
 get_sasl_map_type() {
     local map_type=""
     map_type="$(postconf -h default_database_type 2>/dev/null || true)"

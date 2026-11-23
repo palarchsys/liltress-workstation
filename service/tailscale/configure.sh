@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/tailscale/configure.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -19,7 +19,6 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
 source "${INSTALL_DIRECTORY}/service/tailscale/common.sh"
-require_root
 
 # tailscaled alone does not create the interface. UFW rejects a missing name.
 open_tailscale_ufw() {
@@ -29,6 +28,7 @@ open_tailscale_ufw() {
     run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw route deny out on tailscale0 comment "No route out via Tailscale"
     run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw route deny in on tailscale0 comment "No route in via Tailscale"
 }
+require_root
 
 run_tailscale_session
 open_tailscale_ufw

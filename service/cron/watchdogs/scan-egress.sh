@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-egress.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -94,46 +94,55 @@ report_ufw_blocks() {
     log_alert "$(get_text watchdog.flow-outbound-refus-s-by-the-policy-of-output)"
 }
 
-set -euo pipefail
-HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -r "${HERE}/watchdog.conf" ]]; then
+load_egress_config() {
+    set -euo pipefail
+    HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    if [[ -r "${HERE}/watchdog.conf" ]]; then
+        # shellcheck disable=SC1091
+        source "${HERE}/watchdog.conf"
+    fi
+    if [[ -z "${BASE:-}" && -z "${CONFIG_BASE_DIRECTORY:-}" && -n "${CONFIG_BASE_DIRECTORY+x}" ]]; then
+        exit 0
+    fi
     # shellcheck disable=SC1091
-    source "${HERE}/watchdog.conf"
-fi
-if [[ -z "${BASE:-}" && -z "${CONFIG_BASE_DIRECTORY:-}" && -n "${CONFIG_BASE_DIRECTORY+x}" ]]; then
-    exit 0
-fi
-# shellcheck disable=SC1091
-source "${HERE}/common.sh"
-if [[ -z "${BASE:-}" ]]; then
-    BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
-fi
-if [[ -f "${BASE}/cron/egress.conf" ]]; then
-    # shellcheck disable=SC1091
-    source "${BASE}/cron/egress.conf"
-fi
-STAMP="${STAMP:-$(date +%Y%m%d-%H%M%S)}"
-LOG_DIR="${LOG_DIR:-${BASE}/cron/security_logs}"
-ALERT_DIR="${ALERT_DIR:-${BASE}/cron/alerts}"
-mkdir -p -- "${LOG_DIR}" "${ALERT_DIR}"
-LOG_FILE="${LOG_DIR}/egress-${STAMP}.log"
-ALERT_FILE="${ALERT_DIR}/egress-${STAMP}.txt"
-MODULE_NAME="Ufw"
-if ! declare -F log_pass >/dev/null 2>&1; then
-    log_pass() { printf '%s\n' "$*"; }
-fi
-read_egress_key
+    source "${HERE}/common.sh"
+    if [[ -z "${BASE:-}" ]]; then
+        BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+    fi
+    if [[ -f "${BASE}/cron/egress.conf" ]]; then
+        # shellcheck disable=SC1091
+        source "${BASE}/cron/egress.conf"
+    fi
+}
 
-if ! command -v journalctl >/dev/null 2>&1; then
-    log_pass "$(get_text watchdog.journalctl-absent)"
-    exit 0
-fi
+set_egress_paths() {
+    STAMP="${STAMP:-$(date +%Y%m%d-%H%M%S)}"
+    LOG_DIR="${LOG_DIR:-${BASE}/cron/security_logs}"
+    ALERT_DIR="${ALERT_DIR:-${BASE}/cron/alerts}"
+    mkdir -p -- "${LOG_DIR}" "${ALERT_DIR}"
+    LOG_FILE="${LOG_DIR}/egress-${STAMP}.log"
+    ALERT_FILE="${ALERT_DIR}/egress-${STAMP}.txt"
+    MODULE_NAME="Ufw"
+    if ! declare -F log_pass >/dev/null 2>&1; then
+        log_pass() { printf '%s\n' "$*"; }
+    fi
+    read_egress_key
+}
 
-if declare -F watchdog_runtime_file >/dev/null 2>&1; then
-    stamp="$(watchdog_runtime_file "${BASE}" egress.stamp)"
-else
-    stamp="${BASE}/cron/egress.stamp"
-fi
+require_egress_journal() {
+    if ! command -v journalctl >/dev/null 2>&1; then
+        log_pass "$(get_text watchdog.journalctl-absent)"
+        exit 0
+    fi
+}
+
+locate_egress_stamp() {
+    if declare -F watchdog_runtime_file >/dev/null 2>&1; then
+        stamp="$(watchdog_runtime_file "${BASE}" egress.stamp)"
+    else
+        stamp="${BASE}/cron/egress.stamp"
+    fi
+}
 
 record_egress_stamp() {
     local moment
@@ -292,74 +301,107 @@ install_egress_hold() {
     nft add element inet w_flow_hold "${set_name}" "{ ${dst} . ${lower} . ${dpt} timeout ${sec}s }"
 }
 
-if [[ ! -s "${stamp}" ]] || ! grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$' "${stamp}"; then
-    record_egress_stamp
-    log_pass "$(get_text watchdog.initial-rep-re-written)"
-    exit 0
-fi
+check_egress_flow() {
+    [[ -n "${1}" && -n "${2}" && -n "${3}" ]]
+}
 
-install -d -m 755 /run/liltress-workstation
-raw="$(mktemp -p /run/liltress-workstation)"
-found="$(mktemp -p /run/liltress-workstation)"
-audit_tmp="$(mktemp -p /run/liltress-workstation)"
-kept="$(mktemp -p /run/liltress-workstation)"
-suspects="$(mktemp -p /run/liltress-workstation)"
-blocked_lines="$(mktemp -p /run/liltress-workstation)"
-ufw_file="$(mktemp -p /run/liltress-workstation)"
-trap 'rm -f "${raw}" "${found}" "${audit_tmp}" "${kept}" "${suspects}" "${blocked_lines}" "${ufw_file}"' EXIT
-start="$(head -n 1 "${stamp}")"
-journalctl -k --since "${start}" --no-pager >"${raw}" 2>/dev/null || true
-grep -F -- "${EGRESS_KEY}" "${raw}" >"${found}" || true
-strip_egress_routine "${found}" "${kept}"
-mv -f "${kept}" "${found}"
-record_egress_stamp
-if ! grep -q -F -- "${EGRESS_KEY}" "${found}"; then
-    grep -E '\[UFW BLOCK\].*IN= .*OUT=[^[:space:]]' "${raw}" >"${ufw_file}" || true
-    report_ufw_blocks "${ufw_file}"
-    exit 0
-fi
-if command -v ausearch >/dev/null 2>&1; then
-    formatted="$(date -d "${start}" '+%m/%d/%Y %H:%M:%S' 2>/dev/null || true)"
-    if [[ -n "${formatted}" ]]; then
-        # shellcheck disable=SC2086
-        ausearch -k "${EGRESS_KEY}" --start ${formatted} >"${audit_tmp}" 2>/dev/null || true
+check_egress_stamp() {
+    if [[ ! -s "${stamp}" ]] || ! grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$' "${stamp}"; then
+        record_egress_stamp
+        log_pass "$(get_text watchdog.initial-rep-re-written)"
+        exit 0
     fi
-fi
-if declare -F watchdog_runtime_file >/dev/null 2>&1; then
-    registry="$(watchdog_runtime_file "${BASE}" quarantine.registry)"
-else
-    registry="${BASE}/cron/quarantine.registry"
-fi
-list_egress_suspects "${found}" "${audit_tmp}" "${registry}" >"${suspects}" || true
-if [[ ! -s "${suspects}" ]]; then
-    log_pass "$(get_text watchdog.no-flow-suspicious-outbound)"
-    exit 0
-fi
-sec="$(get_isolate_seconds)"
-declare -A held_flows=()
-blocked=0
-while IFS=$'\t' read -r proto dst dpt exe kline || [[ -n "${proto}" ]]; do
-    [[ -n "${proto}" && -n "${dst}" && -n "${dpt}" ]] || continue
-    flow_key="${proto}|${dst}|${dpt}"
-    if [[ -z "${held_flows[${flow_key}]:-}" ]]; then
-        if install_egress_hold "${dst}" "${proto}" "${dpt}" "${sec}"; then
-            held_flows["${flow_key}"]=1
-            blocked=1
-            printf '%s\n' "$(get_text watchdog.blocked-during-s "${dst}" "${proto,,}" "${dpt}" "${sec}" "${exe}")" >>"${LOG_FILE}"
+}
+
+set_egress_scan() {
+    install -d -m 755 /run/liltress-workstation
+    raw="$(mktemp -p /run/liltress-workstation)"
+    found="$(mktemp -p /run/liltress-workstation)"
+    audit_tmp="$(mktemp -p /run/liltress-workstation)"
+    kept="$(mktemp -p /run/liltress-workstation)"
+    suspects="$(mktemp -p /run/liltress-workstation)"
+    blocked_lines="$(mktemp -p /run/liltress-workstation)"
+    ufw_file="$(mktemp -p /run/liltress-workstation)"
+    trap 'rm -f "${raw}" "${found}" "${audit_tmp}" "${kept}" "${suspects}" "${blocked_lines}" "${ufw_file}"' EXIT
+    start="$(head -n 1 "${stamp}")"
+    journalctl -k --since "${start}" --no-pager >"${raw}" 2>/dev/null || true
+    grep -F -- "${EGRESS_KEY}" "${raw}" >"${found}" || true
+    strip_egress_routine "${found}" "${kept}"
+    mv -f "${kept}" "${found}"
+    record_egress_stamp
+    if ! grep -q -F -- "${EGRESS_KEY}" "${found}"; then
+        grep -E '\[UFW BLOCK\].*IN= .*OUT=[^[:space:]]' "${raw}" >"${ufw_file}" || true
+        report_ufw_blocks "${ufw_file}"
+        exit 0
+    fi
+}
+
+collect_egress_audit() {
+    local formatted
+    if command -v ausearch >/dev/null 2>&1; then
+        formatted="$(date -d "${start}" '+%m/%d/%Y %H:%M:%S' 2>/dev/null || true)"
+        if [[ -n "${formatted}" ]]; then
+            # shellcheck disable=SC2086
+            ausearch -k "${EGRESS_KEY}" --start ${formatted} >"${audit_tmp}" 2>/dev/null || true
         fi
     fi
-    if [[ -n "${held_flows[${flow_key}]:-}" ]]; then
-        printf '%s\n' "${kline}" >>"${blocked_lines}"
+}
+
+locate_egress_registry() {
+    if declare -F watchdog_runtime_file >/dev/null 2>&1; then
+        registry="$(watchdog_runtime_file "${BASE}" quarantine.registry)"
+    else
+        registry="${BASE}/cron/quarantine.registry"
     fi
-done <"${suspects}"
-if [[ "${blocked}" -eq 0 ]]; then
-    log_pass "$(get_text watchdog.block-rejected)"
+    list_egress_suspects "${found}" "${audit_tmp}" "${registry}" >"${suspects}" || true
+}
+
+apply_egress_holds() {
+    local sec flow_key proto dst dpt exe kline
+    if [[ ! -s "${suspects}" ]]; then
+        log_pass "$(get_text watchdog.no-flow-suspicious-outbound)"
+        exit 0
+    fi
+    sec="$(get_isolate_seconds)"
+    declare -A held_flows=()
+    blocked=0
+    while IFS=$'\t' read -r proto dst dpt exe kline || [[ -n "${proto}" ]]; do
+        check_egress_flow "${proto}" "${dst}" "${dpt}" || continue
+        flow_key="${proto}|${dst}|${dpt}"
+        if [[ -z "${held_flows[${flow_key}]:-}" ]]; then
+            if install_egress_hold "${dst}" "${proto}" "${dpt}" "${sec}"; then
+                held_flows["${flow_key}"]=1
+                blocked=1
+                printf '%s\n' "$(get_text watchdog.blocked-during-s "${dst}" "${proto,,}" "${dpt}" "${sec}" "${exe}")" >>"${LOG_FILE}"
+            fi
+        fi
+        if [[ -n "${held_flows[${flow_key}]:-}" ]]; then
+            printf '%s\n' "${kline}" >>"${blocked_lines}"
+        fi
+    done <"${suspects}"
+}
+
+finish_egress_scan() {
+    if [[ "${blocked}" -eq 0 ]]; then
+        log_pass "$(get_text watchdog.block-rejected)"
+        exit 0
+    fi
+    if declare -F render_egress_body >/dev/null 2>&1; then
+        render_egress_body "${blocked_lines}" "${audit_tmp}" >>"${LOG_FILE}" || true
+    else
+        cat "${blocked_lines}" >>"${LOG_FILE}"
+    fi
+    log_alert "$(get_text watchdog.flow-outbound-suspicious-blocked)"
     exit 0
-fi
-if declare -F render_egress_body >/dev/null 2>&1; then
-    render_egress_body "${blocked_lines}" "${audit_tmp}" >>"${LOG_FILE}" || true
-else
-    cat "${blocked_lines}" >>"${LOG_FILE}"
-fi
-log_alert "$(get_text watchdog.flow-outbound-suspicious-blocked)"
-exit 0
+}
+
+load_egress_config
+set_egress_paths
+require_egress_journal
+locate_egress_stamp
+check_egress_stamp
+set_egress_scan
+collect_egress_audit
+locate_egress_registry
+apply_egress_holds
+finish_egress_scan

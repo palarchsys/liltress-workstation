@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/product.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -20,7 +20,6 @@ source "${product_dir}/matrix.sh"
 source "${product_dir}/runtime.sh"
 # shellcheck disable=SC1091
 source "${product_dir}/collect.sh"
-unset product_dir
 
 # Return 0 when the desktop marker is present.
 check_workstation() {
@@ -28,3 +27,4 @@ check_workstation() {
     [[ -n "${PRODUCT_ROOT:-}" && -f "${PRODUCT_ROOT}/config/global.conf" ]] || return 1
     grep -qE '^(SERVER_TYPE="WORKSTATION"|PROJECT_SLUG="liltress-workstation")$' "${PRODUCT_ROOT}/config/global.conf"
 }
+unset product_dir

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/configure.sh
-# Updated at : 2026-11-22
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,17 +13,20 @@
 # -----------------------------------------------------------------------------
 
 
-set -euo pipefail
-INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
-export INSTALL_WATCHER
+run_workstation_configure_part_01() {
+    set -euo pipefail
+    INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
+    export INSTALL_WATCHER
 
-DIR_SCRIPT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-# shellcheck disable=SC1091
-source "${DIR_SCRIPT}/script/config-check.sh"
-# shellcheck disable=SC1091
-source "${DIR_SCRIPT}/script/config/common.sh"
-# shellcheck disable=SC1091
-source "${DIR_SCRIPT}/core/boot/lib.sh"
+    DIR_SCRIPT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+    # shellcheck disable=SC1091
+    source "${DIR_SCRIPT}/script/config-check.sh"
+    # shellcheck disable=SC1091
+    source "${DIR_SCRIPT}/script/config/common.sh"
+    # shellcheck disable=SC1091
+    source "${DIR_SCRIPT}/core/boot/lib.sh"
+
+}
 
 show_usage() {
     printf '%s\n' "$(get_text configure.usage.workstation)"
@@ -108,99 +111,69 @@ prompt() {
     log_error "${INSTALL_WATCHER}" "configure.three-attempts-without-an-accepted-answer-exampl" "${field_label}" "${field_example}"
 }
 
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-    read_language_file "${DIR_SCRIPT}/config/global.conf"
-    show_usage
-    exit 0
-fi
-
-if [[ "${1:-}" == "--check" ]]; then
-    read_language_file "${DIR_SCRIPT}/config/global.conf"
-    log_info "${INSTALL_WATCHER}" "configure.configuration-check"
-    if require_prepared_config "${DIR_SCRIPT}"; then
-        log_success "${INSTALL_WATCHER}" "configure.configuration-conforms"
+run_workstation_configure_part_02() {
+    if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+        read_language_file "${DIR_SCRIPT}/config/global.conf"
+        show_usage
         exit 0
     fi
-    exit 1
-fi
 
-if [[ -n "${1:-}" || $# -gt 0 ]]; then
-    read_language_file "${DIR_SCRIPT}/config/global.conf"
-    show_usage >&2
-    exit 2
-fi
+}
 
-if [[ ! -t 0 ]]; then
-    if [[ ! -r /dev/tty ]]; then
-        log_error "${INSTALL_WATCHER}" "configure.no-terminal-for-the-questions-run-sudo-bash-lilt" "${DIR_SCRIPT}"
+run_workstation_configure_part_03() {
+    if [[ -n "${1:-}" || $# -gt 0 ]]; then
+        read_language_file "${DIR_SCRIPT}/config/global.conf"
+        show_usage >&2
+        exit 2
     fi
-    exec </dev/tty
-fi
 
-require_root
-set_step_visible "$(get_text install.configuration.title)"
-open_step_tree "script/configure.sh"
+    if [[ ! -t 0 ]]; then
+        if [[ ! -r /dev/tty ]]; then
+            log_error "${INSTALL_WATCHER}" "configure.no-terminal-for-the-questions-run-sudo-bash-lilt" "${DIR_SCRIPT}"
+        fi
+        exec </dev/tty
+    fi
 
-ask_language
-asked_language="${LANGUAGE}"
+    require_root
+    set_step_visible "$(get_text install.configuration.title)"
+    open_step_tree "script/configure.sh"
 
-set_config_default
+}
 
-saved_dir_set=0
-saved_dir=""
-if [[ -n "${INSTALL_DIRECTORY+x}" ]]; then
-    saved_dir_set=1
-    saved_dir="${INSTALL_DIRECTORY}"
-    unset INSTALL_DIRECTORY || true
-fi
-if [[ -f "${DIR_SCRIPT}/config/global.conf" ]]; then
-    set +u
-    # shellcheck disable=SC1091
-    source "${DIR_SCRIPT}/config/global.conf"
-    set -u
-fi
-if [[ -f "${DIR_SCRIPT}/config/user.conf" ]]; then
-    set +u
-    # shellcheck disable=SC1091
-    source "${DIR_SCRIPT}/config/user.conf"
-    set -u
-fi
-if [[ "${saved_dir_set}" == "1" ]]; then
-    INSTALL_DIRECTORY="${saved_dir}"
-fi
-unset saved_dir saved_dir_set
-LANGUAGE="${asked_language}"
-export LANGUAGE
-TEXT_READY=0
-load_text "${LANGUAGE}"
-unset asked_language
-if [[ -f "${DIR_SCRIPT}/config/secrets.conf" ]]; then
-    set +u
-    # shellcheck disable=SC1091
-    source "${DIR_SCRIPT}/config/secrets.conf"
-    set -u
-fi
+run_workstation_configure_part_04() {
+    asked_language="${LANGUAGE}"
 
-log_info "${INSTALL_WATCHER}" "configure.ubuntu-pro-token-url"
-log_info "${INSTALL_WATCHER}" "configure.letters-and-digits-without-spaces"
-prompt UBUNTU_PRO_TOKEN \
-    "$(get_text configure.field.pro-token)" \
-    "C1abcdefghij1234567890" \
-    "" \
-    pro_token \
-    "$(get_text configure.hint.pro-token)"
-log_success "${INSTALL_WATCHER}" "configure.ubuntu-pro-accepted"
-prompt TAILSCALE_AUTH_KEY \
-    "$(get_text configure.field.tailscale)" \
-    "tskey-auth-reusable" \
-    "" \
-    tailscale \
-    "$(get_text configure.hint.tailscale)"
-log_success "${INSTALL_WATCHER}" "configure.ubuntu-pro-accepted"
-prompt SSH_USER "$(get_text configure.field.ssh-user)" "drawbridge" "${SSH_USER:-drawbridge}" user "$(get_text configure.hint.ssh-user)"
-prompt SSH_GROUP "$(get_text configure.field.ssh-group)" "drawbridge" "${SSH_GROUP:-drawbridge}" user "$(get_text configure.hint.ssh-group)"
-prompt SSH_PORT "$(get_text configure.field.ssh-port)" "2501" "${SSH_PORT:-2501}" ssh_port "$(get_text configure.hint.ssh-port)"
-close_step_tree
+    set_config_default
+
+    saved_dir_set=0
+    saved_dir=""
+    if [[ -n "${INSTALL_DIRECTORY+x}" ]]; then
+        saved_dir_set=1
+        saved_dir="${INSTALL_DIRECTORY}"
+        unset INSTALL_DIRECTORY || true
+    fi
+    if [[ -f "${DIR_SCRIPT}/config/global.conf" ]]; then
+        set +u
+        # shellcheck disable=SC1091
+        source "${DIR_SCRIPT}/config/global.conf"
+        set -u
+    fi
+    if [[ -f "${DIR_SCRIPT}/config/user.conf" ]]; then
+        set +u
+        # shellcheck disable=SC1091
+        source "${DIR_SCRIPT}/config/user.conf"
+        set -u
+    fi
+    if [[ "${saved_dir_set}" == "1" ]]; then
+        INSTALL_DIRECTORY="${saved_dir}"
+    fi
+    unset saved_dir saved_dir_set
+    LANGUAGE="${asked_language}"
+    export LANGUAGE
+    TEXT_READY=0
+    load_text "${LANGUAGE}"
+    unset asked_language
+}
 
 check_smtp_probe() {
     local out="" rc=0 safe=""
@@ -228,85 +201,156 @@ check_smtp_probe() {
     return 1
 }
 
-set_step_visible "$(get_text configure.enable-the-alerts-by-emails-y-n)"
-open_step_tree "$(get_text configure.enable-the-alerts-by-emails-y-n)"
-log_info "${INSTALL_WATCHER}" "configure.enable-the-alerts-by-emails-y-n"
-mail_choice=""
-while true; do
-    ask_line "$(get_text configure.enable-the-alerts-by-emails-y-n)" mail_choice || log_error "${INSTALL_WATCHER}" "configure.input-interrupted"
-    case "${mail_choice}" in
-        Y | y)
-            clear_mail
+ask_smtp_values() {
+    clear_mail
+    ask_smtp_host
+    ask_smtp_login
+    ask_smtp_secret
+    ask_smtp_from
+    WATCHDOG_MAIL="${POSTFIX_MAIL_ADDRESS}"
+    log_info "${INSTALL_WATCHER}" "configure.attempt-of-send-swaks-checks-server-login-passwo"
+    if check_smtp_probe; then
+        MAIL_ALERTS=1
+        log_success "${INSTALL_WATCHER}" "configure.attempt-of-send-accepted"
+        return 0
+    fi
+    clear_mail
+    log_info "${INSTALL_WATCHER}" "configure.return-to-the-choice-of-the-alerts"
+    return 1
+}
 
-            log_info "${INSTALL_WATCHER}" "configure.form-host-port-for-example-smtp-mail-outlook-com"
-            prompt POSTFIX_MAIL_SMTP \
-                "$(get_text configure.server)" \
-                "smtp-mail.outlook.com:587" \
-                "" \
-                smtp \
-                "$(get_text configure.enter-the-server-and-the-port-without-brackets-e)"
-
-            log_info "${INSTALL_WATCHER}" "configure.address-email-serving-of-login"
-            prompt POSTFIX_SMTP_LOGIN \
-                "$(get_text configure.login)" \
-                "$(get_text configure.toi-exemple-com)" \
-                "" \
-                email \
-                "$(get_text configure.enter-the-address-email-of-the-account-smtp)"
-
-            log_info "${INSTALL_WATCHER}" "configure.spaces-removed-the-line-following-confirms"
-            prompt POSTFIX_MAIL_PASSWORD \
-                "$(get_text configure.password)" \
-                "mot-de-passe-application" \
-                "" \
-                secret \
-                "$(get_text configure.password-of-application-at-least-8-characters-wi)"
-
-            log_info "${INSTALL_WATCHER}" "configure.the-alerts-leave-toward-this-same-address"
-            prompt POSTFIX_MAIL_ADDRESS \
-                "$(get_text configure.from)" \
-                "$(get_text configure.toi-exemple-com)" \
-                "" \
-                email \
-                "$(get_text configure.enter-the-address-email-sender)"
-            WATCHDOG_MAIL="${POSTFIX_MAIL_ADDRESS}"
-
-            log_info "${INSTALL_WATCHER}" "configure.attempt-of-send-swaks-checks-server-login-passwo"
-            if check_smtp_probe; then
-                MAIL_ALERTS=1
-                log_success "${INSTALL_WATCHER}" "configure.attempt-of-send-accepted"
+run_workstation_configure_part_06() {
+    set_step_visible "$(get_text configure.enable-the-alerts-by-emails-y-n)"
+    open_step_tree "$(get_text configure.enable-the-alerts-by-emails-y-n)"
+    log_info "${INSTALL_WATCHER}" "configure.enable-the-alerts-by-emails-y-n"
+    mail_choice=""
+    while true; do
+        ask_line "$(get_text configure.enable-the-alerts-by-emails-y-n)" mail_choice || log_error "${INSTALL_WATCHER}" "configure.input-interrupted"
+        case "${mail_choice}" in
+            Y | y)
+                if ask_smtp_values; then
+                    break
+                fi
+                ;;
+            N | n | non)
+                log_info "${INSTALL_WATCHER}" "configure.cutoff-of-the-alerts-email"
+                clear_mail
+                MAIL_ALERTS=0
+                log_success "${INSTALL_WATCHER}" "configure.alerts-email-off-the-checks-will-start-without-s-2"
                 break
-            fi
-            clear_mail
-            log_info "${INSTALL_WATCHER}" "configure.return-to-the-choice-of-the-alerts"
-            ;;
-        N | n | non)
-            log_info "${INSTALL_WATCHER}" "configure.cutoff-of-the-alerts-email"
-            clear_mail
-            MAIL_ALERTS=0
-            log_success "${INSTALL_WATCHER}" "configure.alerts-email-off-the-checks-will-start-without-s-2"
-            break
-            ;;
-        *)
-            log_warn "${INSTALL_WATCHER}" "log.answer-y-or-n"
-            ;;
-    esac
-done
-close_step_tree
+                ;;
+            *)
+                log_warn "${INSTALL_WATCHER}" "log.answer-y-or-n"
+                ;;
+        esac
+    done
+    close_step_tree
 
-set_step_visible "$(get_text configure.record-of-the-configuration)"
-open_step_tree "$(get_text configure.record-of-the-configuration)"
-log_info "${INSTALL_WATCHER}" "configure.record-of-the-configuration"
-mkdir -p "${DIR_SCRIPT}/config"
-write_user_config "${DIR_SCRIPT}/config/user.conf"
-write_secret_config "${DIR_SCRIPT}/config/secrets.conf"
-write_mail_alerts "${DIR_SCRIPT}/config/global.conf"
+    set_step_visible "$(get_text configure.record-of-the-configuration)"
+    open_step_tree "$(get_text configure.record-of-the-configuration)"
+    log_info "${INSTALL_WATCHER}" "configure.record-of-the-configuration"
+    mkdir -p "${DIR_SCRIPT}/config"
+    write_user_config "${DIR_SCRIPT}/config/user.conf"
+    write_secret_config "${DIR_SCRIPT}/config/secrets.conf"
+    write_mail_alerts "${DIR_SCRIPT}/config/global.conf"
 
-if ! require_prepared_config "${DIR_SCRIPT}"; then
-    log_error "${INSTALL_WATCHER}" "configure.the-files-written-pass-not-the-check"
+}
+
+run_workstation_configure_part_07() {
+    if ! require_prepared_config "${DIR_SCRIPT}"; then
+        log_error "${INSTALL_WATCHER}" "configure.the-files-written-pass-not-the-check"
+    fi
+
+    log_success "${INSTALL_WATCHER}" "configure.configuration-saved"
+    close_step_tree
+    show_section_close
+    exec bash "${DIR_SCRIPT}/script/run.sh"
+}
+run_workstation_configure_part_01 "$@"
+run_workstation_configure_part_02 "$@"
+if [[ "${1:-}" == "--check" ]]; then
+    read_language_file "${DIR_SCRIPT}/config/global.conf"
+    log_info "${INSTALL_WATCHER}" "configure.configuration-check"
+    if require_prepared_config "${DIR_SCRIPT}"; then
+        log_success "${INSTALL_WATCHER}" "configure.configuration-conforms"
+        exit 0
+    fi
+    exit 1
 fi
+run_workstation_configure_part_03 "$@"
+ask_language
 
-log_success "${INSTALL_WATCHER}" "configure.configuration-saved"
-close_step_tree
-show_section_close
-exec bash "${DIR_SCRIPT}/script/run.sh"
+run_workstation_configure_part_05() {
+    if [[ -f "${DIR_SCRIPT}/config/secrets.conf" ]]; then
+        set +u
+        # shellcheck disable=SC1091
+        source "${DIR_SCRIPT}/config/secrets.conf"
+        set -u
+    fi
+
+    log_info "${INSTALL_WATCHER}" "configure.ubuntu-pro-token-url"
+    log_info "${INSTALL_WATCHER}" "configure.letters-and-digits-without-spaces"
+    prompt UBUNTU_PRO_TOKEN \
+        "$(get_text configure.field.pro-token)" \
+        "C1abcdefghij1234567890" \
+        "" \
+        pro_token \
+        "$(get_text configure.hint.pro-token)"
+    log_success "${INSTALL_WATCHER}" "configure.ubuntu-pro-accepted"
+    prompt TAILSCALE_AUTH_KEY \
+        "$(get_text configure.field.tailscale)" \
+        "tskey-auth-reusable" \
+        "" \
+        tailscale \
+        "$(get_text configure.hint.tailscale)"
+    log_success "${INSTALL_WATCHER}" "configure.ubuntu-pro-accepted"
+    prompt SSH_USER "$(get_text configure.field.ssh-user)" "drawbridge" "${SSH_USER:-drawbridge}" user "$(get_text configure.hint.ssh-user)"
+    prompt SSH_GROUP "$(get_text configure.field.ssh-group)" "drawbridge" "${SSH_GROUP:-drawbridge}" user "$(get_text configure.hint.ssh-group)"
+    prompt SSH_PORT "$(get_text configure.field.ssh-port)" "2501" "${SSH_PORT:-2501}" ssh_port "$(get_text configure.hint.ssh-port)"
+    close_step_tree
+
+}
+
+ask_smtp_host() {
+    log_info "${INSTALL_WATCHER}" "configure.form-host-port-for-example-smtp-mail-outlook-com"
+    prompt POSTFIX_MAIL_SMTP \
+        "$(get_text configure.server)" \
+        "smtp-mail.outlook.com:587" \
+        "" \
+        smtp \
+        "$(get_text configure.enter-the-server-and-the-port-without-brackets-e)"
+}
+
+ask_smtp_login() {
+    log_info "${INSTALL_WATCHER}" "configure.address-email-serving-of-login"
+    prompt POSTFIX_SMTP_LOGIN \
+        "$(get_text configure.login)" \
+        "$(get_text configure.toi-exemple-com)" \
+        "" \
+        email \
+        "$(get_text configure.enter-the-address-email-of-the-account-smtp)"
+}
+
+ask_smtp_secret() {
+    log_info "${INSTALL_WATCHER}" "configure.spaces-removed-the-line-following-confirms"
+    prompt POSTFIX_MAIL_PASSWORD \
+        "$(get_text configure.password)" \
+        "mot-de-passe-application" \
+        "" \
+        secret \
+        "$(get_text configure.password-of-application-at-least-8-characters-wi)"
+}
+
+ask_smtp_from() {
+    log_info "${INSTALL_WATCHER}" "configure.the-alerts-leave-toward-this-same-address"
+    prompt POSTFIX_MAIL_ADDRESS \
+        "$(get_text configure.from)" \
+        "$(get_text configure.toi-exemple-com)" \
+        "" \
+        email \
+        "$(get_text configure.enter-the-address-email-sender)"
+}
+run_workstation_configure_part_04 "$@"
+run_workstation_configure_part_05 "$@"
+run_workstation_configure_part_06 "$@"
+run_workstation_configure_part_07 "$@"

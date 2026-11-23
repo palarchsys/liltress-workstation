@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/route-pick.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -128,4 +128,5 @@ def run_route_pick():
     show_routes(routes, sys.argv[1:], root)
 
 
-run_route_pick()
+if __name__ == "__main__":
+    run_route_pick()

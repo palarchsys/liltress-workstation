@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/scan-skip-path.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -38,11 +38,12 @@ def normal_path(raw):
     print(os.path.normpath(text))
 
 
-mode = sys.argv[1]
-argument = sys.argv[2:]
-if mode == "edit":
-    drop_path(Path(argument[0]), argument[1])
-elif mode == "norm":
-    normal_path(argument[0])
-else:
-    sys.exit("mode python refusé")
+if __name__ == "__main__":
+    mode = sys.argv[1]
+    argument = sys.argv[2:]
+    if mode == "edit":
+        drop_path(Path(argument[0]), argument[1])
+    elif mode == "norm":
+        normal_path(argument[0])
+    else:
+        sys.exit("mode python refusé")

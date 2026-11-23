@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/rkhunter/init-db.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,36 +12,43 @@
 # -----------------------------------------------------------------------------
 
 
-INSTALL_WATCHER="${1:-BASH}"
-INSTALL_DIRECTORY="${2:-}"
-export INSTALL_WATCHER INSTALL_DIRECTORY
+run_init_db_part_01() {
+    INSTALL_WATCHER="${1:-BASH}"
+    INSTALL_DIRECTORY="${2:-}"
+    export INSTALL_WATCHER INSTALL_DIRECTORY
+    source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
+    source "${INSTALL_DIRECTORY}/config/global.conf"
+    require_root
+    if [[ "${REBUILD_BASE:-0}" != "1" && -f /var/lib/rkhunter/db/rkhunter.dat ]]; then
+        log_info "${INSTALL_WATCHER}" "log.base-already-present"
+        exit 0
+    fi
+    log_info "${INSTALL_WATCHER}" "log.record-of-the-baseline-rkhunter"
+    rk_out=""
+    rk_rc=0
+    rk_out=$(rkhunter --update --nocolors 2>&1) || rk_rc=$?
+    case "${rk_rc}" in
+        0 | 2) ;;
+        *) log_warn "${INSTALL_WATCHER}" "log.rkhunter-update-rc-continued" "${rk_rc}" "${rk_out}" ;;
+    esac
+}
 
-source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
-source "${INSTALL_DIRECTORY}/config/global.conf"
-require_root
+run_init_db_part_02() {
+    if [[ ("${rk_rc}" -eq 0 || "${rk_rc}" -eq 2) && -x "${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/record-mirrors.sh" ]]; then
+        BASE="${CONFIG_BASE_DIRECTORY}" bash "${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/record-mirrors.sh" save || true
+    fi
+    run_silent "${INSTALL_WATCHER}" "install.rkhunter.error" rkhunter --propupd
+    rk_tmp="/var/lib/rkhunter/tmp"
+    if [[ -d "${rk_tmp}" ]]; then
+        cp -f -p /etc/passwd "${rk_tmp}/passwd"
+        cp -f -p /etc/group "${rk_tmp}/group"
+    fi
+    log_success "${INSTALL_WATCHER}" "log.baseline-rkhunter-saved"
+}
 
-if [[ "${REBUILD_BASE:-0}" != "1" && -f /var/lib/rkhunter/db/rkhunter.dat ]]; then
-    log_info "${INSTALL_WATCHER}" "log.base-already-present"
-    exit 0
-fi
+run_init_db_part_03() {
+    run_init_db_part_01 "$@"
+    run_init_db_part_02 "$@"
+}
 
-log_info "${INSTALL_WATCHER}" "log.record-of-the-baseline-rkhunter"
-rk_out=""
-rk_rc=0
-rk_out=$(rkhunter --update --nocolors 2>&1) || rk_rc=$?
-case "${rk_rc}" in
-    0 | 2) ;;
-    *) log_warn "${INSTALL_WATCHER}" "log.rkhunter-update-rc-continued" "${rk_rc}" "${rk_out}" ;;
-esac
-
-if [[ ("${rk_rc}" -eq 0 || "${rk_rc}" -eq 2) && -x "${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/record-mirrors.sh" ]]; then
-    BASE="${CONFIG_BASE_DIRECTORY}" bash "${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/record-mirrors.sh" save || true
-fi
-
-run_silent "${INSTALL_WATCHER}" "install.rkhunter.error" rkhunter --propupd
-rk_tmp="/var/lib/rkhunter/tmp"
-if [[ -d "${rk_tmp}" ]]; then
-    cp -f -p /etc/passwd "${rk_tmp}/passwd"
-    cp -f -p /etc/group "${rk_tmp}/group"
-fi
-log_success "${INSTALL_WATCHER}" "log.baseline-rkhunter-saved"
+run_init_db_part_03 "$@"

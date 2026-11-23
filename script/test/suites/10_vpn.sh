@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/10_vpn.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,18 +12,20 @@
 
 
 
+read_python_candidate() {
+    local candidate="$1"
+    [[ -n "${candidate}" && -d "${candidate}" ]] || return 1
+    (cd -- "${candidate}" && pwd -P)
+}
+
 locate_python_dir() {
-    local dir hops=0 candidate
+    local dir="" hops=0 candidate=""
     for candidate in \
         "${CONFIG_BASE_DIRECTORY:-}/python" \
         "${BASE:-}/python" \
         "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"
-    do
-        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
-            (cd -- "${candidate}" && pwd -P)
-            return 0
-        fi
+        "${INSTALL_DIRECTORY:-}/../share/python"; do
+        read_python_candidate "${candidate}" && return 0
     done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
@@ -31,10 +33,7 @@ locate_python_dir() {
             printf '%s\n' "${dir}/share/python"
             return 0
         fi
-        if [[ -d "${dir}/python" ]]; then
-            (cd -- "${dir}/python" && pwd -P)
-            return 0
-        fi
+        read_python_candidate "${dir}/python" && return 0
         dir="$(dirname -- "${dir}")"
         hops=$((hops + 1))
     done
@@ -408,6 +407,7 @@ if declare -F log_error >/dev/null 2>&1; then
     vpn_had_log_error=1
     eval "$(declare -f log_error | sed '1s/^log_error/vpn_saved_log_error/')"
 fi
+
 log_error() {
     printf '%s\n' "$*" >> "${vpn_fault_log}"
     return 0
@@ -529,6 +529,8 @@ if [[ "${vpn_had_log_error}" -eq 1 ]]; then
 else
     unset -f log_error
 fi
+
+run_vpn_test() { return 1; }
 if [[ "${detail_ok}" -eq 1 ]]; then
     t_pass "vpn.import.detail" "motif nommé, auth.txt adapté"
 else
@@ -536,7 +538,6 @@ else
 fi
 
 unset VPN_IMPORT_STAGE_ONLY
-run_vpn_test() { return 1; }
 roll_ok=1
 if install_vpn_openvpn "cg-roll" "${brand_cg}/openvpn.ovpn"; then
     roll_ok=0
@@ -556,18 +557,25 @@ fi
 
 # shellcheck disable=SC1091
 source "${vpn_dir}/failover.sh"
+
 apply_vpn_systemd() { return 0; }
+
 clear_vpn_network() { return 0; }
+
 restart_vpn_services() { return 0; }
+
 remove_vpn_iface() { return 0; }
+
 arm_vpn_lockdown() { return 0; }
-VPN_TRACE=""
+
 send_vpn_alert() { VPN_TRACE="${VPN_TRACE}alert "; return 0; }
+
 run_vpn_mode_off() {
     VPN_TRACE="${VPN_TRACE}off "
     set_vpn_state_mode off
     VPN_MODE=off
 }
+VPN_TRACE=""
 life_root="${ARTIFACTS}/vpn-life-root"
 rm -rf "${life_root}"
 mkdir -p "${life_root}"
@@ -656,6 +664,7 @@ if declare -F log_info >/dev/null 2>&1; then
     reason_had_info=1
     eval "$(declare -f log_info | sed '1s/^log_info/vpn_saved_log_info/')"
 fi
+
 log_info() {
     printf '%s\n' "$*" >> "${reason_log}"
     return 0
@@ -737,6 +746,7 @@ fi
 
 # shellcheck disable=SC1091
 source "${vpn_dir}/routes.sh"
+
 ensure_vpn_table() { return 0; }
 iface_root="${ARTIFACTS}/vpn-iface"
 rm -rf "${iface_root}"
@@ -969,25 +979,37 @@ for nm_fn in set_vpn_state_mode clear_vpn_tunnel_routes set_vpn_state_active rec
         eval "$(declare -f "${nm_fn}" | sed "1s/^${nm_fn}/nm_saved_${nm_fn}/")"
     fi
 done
+
 set_vpn_state_mode() {
     NM_TRACE="${NM_TRACE}${1} "
     return 0
 }
+
 clear_vpn_tunnel_routes() { return 0; }
+
 set_vpn_state_active() { return 0; }
+
 record_vpn_attempt() { return 0; }
+
 apply_vpn_nft() { return 0; }
+
 restart_vpn_services() { return 0; }
+
 apply_vpn_systemd() { return 0; }
+
 apply_vpn_endpoint_routes() { return 0; }
+
 apply_vpn_bypass_routes() { return 0; }
+
 apply_vpn_ssh() { return 0; }
+
 apply_vpn_lan_routes() { return 0; }
-NM_REMEMBER=0
+
 remember_vpn_direct_route() {
     NM_REMEMBER=1
     return 0
 }
+NM_REMEMBER=0
 unset CONNECTION_FILENAME
 NM_TRACE=""
 handle_vpn_nm_event eth0 vpn-up

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/clamav-response.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -40,44 +40,53 @@ read_logger_tag() {
     printf '%s\n' "${tag}"
 }
 
-set -euo pipefail
-HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -r "${HERE}/watchdog.conf" ]]; then
+run_clamav_response_part_01() {
+    set -euo pipefail
+    HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    if [[ -r "${HERE}/watchdog.conf" ]]; then
+        # shellcheck disable=SC1091
+        source "${HERE}/watchdog.conf"
+    fi
+    if [[ -z "${BASE:-}" && -z "${CONFIG_BASE_DIRECTORY:-}" && -n "${CONFIG_BASE_DIRECTORY+x}" ]]; then
+        exit 0
+    fi
     # shellcheck disable=SC1091
-    source "${HERE}/watchdog.conf"
-fi
-if [[ -z "${BASE:-}" && -z "${CONFIG_BASE_DIRECTORY:-}" && -n "${CONFIG_BASE_DIRECTORY+x}" ]]; then
-    exit 0
-fi
-# shellcheck disable=SC1091
-source "${HERE}/common.sh"
-if [[ -z "${BASE:-}" ]]; then
-    BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
-fi
-STAMP="${STAMP:-$(date +%Y%m%d-%H%M%S)}"
-LOG_DIR="${LOG_DIR:-${BASE}/cron/security_logs}"
-ALERT_DIR="${ALERT_DIR:-${BASE}/cron/alerts}"
-mkdir -p -- "${LOG_DIR}" "${ALERT_DIR}"
-if [[ -z "${LOG_FILE:-}" ]]; then
-    LOG_FILE="${LOG_DIR}/clamav-response-${STAMP}.log"
-fi
-if [[ -f "${BASE}/cron/egress.conf" ]]; then
-    # shellcheck disable=SC1091
-    source "${BASE}/cron/egress.conf"
-fi
-read_spare_names
+    source "${HERE}/common.sh"
+    if [[ -z "${BASE:-}" ]]; then
+        BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
+    fi
+    STAMP="${STAMP:-$(date +%Y%m%d-%H%M%S)}"
+    LOG_DIR="${LOG_DIR:-${BASE}/cron/security_logs}"
+    ALERT_DIR="${ALERT_DIR:-${BASE}/cron/alerts}"
+    mkdir -p -- "${LOG_DIR}" "${ALERT_DIR}"
+    if [[ -z "${LOG_FILE:-}" ]]; then
+        LOG_FILE="${LOG_DIR}/clamav-response-${STAMP}.log"
+    fi
+}
 
-file="${CLAMAV_EVENT_FILE:-${CLAM_VIRUSEVENT_FILENAME:-inconnu}}"
-virus="${CLAMAV_EVENT_VIRUS:-${CLAM_VIRUSEVENT_VIRUSNAME:-inconnu}}"
-kind="${CLAMAV_EVENT_KIND:-onaccess}"
-case "${kind}" in
-    periodic) kind_label="scan périodique" ;;
-    *) kind_label="accès" ;;
-esac
-action_quarantine="quarantaine non appliquée"
-action_process="processus non arrêté : aucun détenteur"
-action_network="isolation non appliquée"
-stored="inconnue"
+run_clamav_response_part_02() {
+    if [[ -f "${BASE}/cron/egress.conf" ]]; then
+        # shellcheck disable=SC1091
+        source "${BASE}/cron/egress.conf"
+    fi
+    read_spare_names
+    file="${CLAMAV_EVENT_FILE:-${CLAM_VIRUSEVENT_FILENAME:-inconnu}}"
+    virus="${CLAMAV_EVENT_VIRUS:-${CLAM_VIRUSEVENT_VIRUSNAME:-inconnu}}"
+    kind="${CLAMAV_EVENT_KIND:-onaccess}"
+    case "${kind}" in
+        periodic) kind_label="scan périodique" ;;
+        *) kind_label="accès" ;;
+    esac
+    action_quarantine="quarantaine non appliquée"
+    action_process="processus non arrêté : aucun détenteur"
+    action_network="isolation non appliquée"
+    stored="inconnue"
+}
+
+run_clamav_response_part_03() {
+    run_clamav_response_part_01 "$@"
+    run_clamav_response_part_02 "$@"
+}
 
 check_clamav_denied() {
     local comm="$1"
@@ -231,31 +240,36 @@ apply_net_isolate() {
     arm_isolate_timer "${sec}"
 }
 
-apply_clamav_quarantine
-if declare -F record_quarantine_origin >/dev/null 2>&1; then
-    case "${action_quarantine}" in
-        "déplacé en quarantaine" | "renommé en quarantaine")
-            record_quarantine_origin clamav "${file}" "${stored}" "${virus}" || true
-            ;;
-        "déjà en quarantaine")
-            add_existing_restore "${stored}" || true
-            ;;
-    esac
-fi
-signal_clamav_holder
-apply_net_isolate
+run_clamav_response_part_04() {
+    apply_clamav_quarantine
+    if declare -F record_quarantine_origin >/dev/null 2>&1; then
+        case "${action_quarantine}" in
+            "déplacé en quarantaine" | "renommé en quarantaine")
+                record_quarantine_origin clamav "${file}" "${stored}" "${virus}" || true
+                ;;
+            "déjà en quarantaine")
+                add_existing_restore "${stored}" || true
+                ;;
+        esac
+    fi
+    signal_clamav_holder
+    apply_net_isolate
+    response_stamp="${CLAMAV_RESPONSE_STAMP:-${STAMP}}"
+    printf '%s\n' "${stored}" >"${LOG_DIR}/clamav-response-${response_stamp}.path"
+    printf '%s\n' \
+        "Date : $(date -Iseconds)" \
+        "Type : ${kind_label}" \
+        "Signature : ${virus}" \
+        "Fichier : $(basename -- "${file}")" \
+        "Emplacement d'origine : ${file}" \
+        "Actions : ${action_quarantine} ; ${action_process} ; ${action_network}" \
+        "Quarantaine : ${stored}" \
+        "Recommandation : Ne remettez pas ce fichier en place. Lisez le journal avant toute autre action." \
+        >>"${LOG_FILE}"
+    logger -t "$(read_logger_tag)" -p auth.warning \
+        "ClamAV ${virus} type=${kind_label} origine=${file} quarantaine=${stored} actions=${action_quarantine}"
+}
 
-response_stamp="${CLAMAV_RESPONSE_STAMP:-${STAMP}}"
-printf '%s\n' "${stored}" >"${LOG_DIR}/clamav-response-${response_stamp}.path"
-printf '%s\n' \
-    "Date : $(date -Iseconds)" \
-    "Type : ${kind_label}" \
-    "Signature : ${virus}" \
-    "Fichier : $(basename -- "${file}")" \
-    "Emplacement d'origine : ${file}" \
-    "Actions : ${action_quarantine} ; ${action_process} ; ${action_network}" \
-    "Quarantaine : ${stored}" \
-    "Recommandation : Ne remettez pas ce fichier en place. Lisez le journal avant toute autre action." \
-    >>"${LOG_FILE}"
-logger -t "$(read_logger_tag)" -p auth.warning \
-    "ClamAV ${virus} type=${kind_label} origine=${file} quarantaine=${stored} actions=${action_quarantine}"
+run_clamav_response_part_03 "$@"
+
+run_clamav_response_part_04 "$@"

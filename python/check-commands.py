@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/check-commands.py
-# Updated at : 2026-11-17
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -199,4 +199,5 @@ def run_check_commands():
     sys.exit("mode python refusé")
 
 
-run_check_commands()
+if __name__ == "__main__":
+    run_check_commands()

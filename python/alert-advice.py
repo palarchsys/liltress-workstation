@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/alert-advice.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -99,118 +99,154 @@ def resolve(value):
     return value
 
 
-LATE = {
-    "aide.removed",
-    "aide.package",
-    "aide.conffile",
-    "aide.unknown",
-    "chk.unknown",
-    "rk.unknown",
-}
-UNKNOWN = {
-    "aide": "aide.unknown",
-    "chkrootkit": "chk.unknown",
-    "rkhunter": "rk.unknown",
-}
-LOOP_VARS = {
-    "paths": "p",
-    "cmds": "c",
-    "pids": "pid",
-    "bins": "b",
-    "ports": "port",
-    "ifaces": "iface",
-}
-BINARIES = {
-    "amd",
-    "basename",
-    "biff",
-    "chfn",
-    "chsh",
-    "cron",
-    "date",
-    "du",
-    "dirname",
-    "echo",
-    "egrep",
-    "env",
-    "find",
-    "fingerd",
-    "gpm",
-    "grep",
-    "hdparm",
-    "su",
-    "ifconfig",
-    "inetd",
-    "identd",
-    "init",
-    "killall",
-    "login",
-    "ls",
-    "lsof",
-    "mail",
-    "mingetty",
-    "netstat",
-    "named",
-    "passwd",
-    "pidof",
-    "pop2",
-    "pop3",
-    "ps",
-    "pstree",
-    "rpcinfo",
-    "rlogind",
-    "rshd",
-    "slogin",
-    "sendmail",
-    "sshd",
-    "syslogd",
-    "tar",
-    "tcpd",
-    "tcpdump",
-    "top",
-    "telnetd",
-    "timed",
-    "traceroute",
-    "vdir",
-    "w",
-    "write",
-}
-APP_PAIRS = (
-    ("openssh", "openssh-server"),
-    ("openssl", "openssl"),
-    ("exim", "exim4"),
-    ("apache", "apache2"),
-    ("nginx", "nginx"),
-    ("proftpd", "proftpd-basic"),
-    ("vsftpd", "vsftpd"),
-    ("sendmail", "sendmail"),
-    ("bind9", "bind9"),
-    ("named", "bind9"),
-    ("ssh", "openssh-server"),
-)
-AIDE_ENTRY = re.compile(r"^(?:[fdlcbpsDP!?][+.\-:=> <?A-Za-z]*:\s+\S|(?:added|removed|changed):\s+\S)")
-AIDE_HEAD = re.compile(
-    r"^(?:file|directory|fifo|link|block device|character device|"
-    r"socket|door|port|unknown file type):\s+\S",
-    re.I,
-)
-AIDE_DIFF = re.compile(r"^entry \S+ in databases has different attributes\b", re.I)
-AIDE_DB = re.compile(r"^the attributes of the \(uncompressed\) database\b", re.I)
-AIDE_PATH = re.compile(
-    r"^(?:[fdlcbpsDP!?][+.\-:=> <?A-Za-z]*|(?:added|removed|changed)|"
-    r"(?:File|Directory|FIFO|Link|Block device|Character device|Socket|Door|Port|"
-    r"Unknown file type)):\s+(\S.*)$",
-    re.I,
-)
-AIDE_ENTRY_PATH = re.compile(
-    r"^Entry (\S+) in databases has different attributes\b",
-    re.I,
-)
-REMOVED_LINE = re.compile(r"^(?:removed:\s+\S|[fdlcbpsDP!?][-]{3,}:\s+\S)")
-PATH_TOKEN = re.compile(
-    r"(?<![A-Za-z0-9])(/(?:[\w.+@=-]|\\x[0-9A-Fa-f]{2})+"
-    r"(?:/(?:[\w.+@=-]|\\x[0-9A-Fa-f]{2})+)*)"
-)
+def load_late_ids():
+    return {
+        "aide.removed",
+        "aide.package",
+        "aide.conffile",
+        "aide.unknown",
+        "chk.unknown",
+        "rk.unknown",
+    }
+
+
+def load_unknown_ids():
+    return {
+        "aide": "aide.unknown",
+        "chkrootkit": "chk.unknown",
+        "rkhunter": "rk.unknown",
+    }
+
+
+def load_loop_vars():
+    return {
+        "paths": "p",
+        "cmds": "c",
+        "pids": "pid",
+        "bins": "b",
+        "ports": "port",
+        "ifaces": "iface",
+    }
+
+
+def load_binary_head():
+    return {
+        "amd",
+        "basename",
+        "biff",
+        "chfn",
+        "chsh",
+        "cron",
+        "date",
+        "du",
+        "dirname",
+        "echo",
+        "egrep",
+        "env",
+        "find",
+        "fingerd",
+        "gpm",
+        "grep",
+        "hdparm",
+        "su",
+        "ifconfig",
+        "inetd",
+        "identd",
+        "init",
+        "killall",
+        "login",
+        "ls",
+        "lsof",
+        "mail",
+    }
+
+
+def load_binary_tail():
+    return {
+        "mingetty",
+        "netstat",
+        "named",
+        "passwd",
+        "pidof",
+        "pop2",
+        "pop3",
+        "ps",
+        "pstree",
+        "rpcinfo",
+        "rlogind",
+        "rshd",
+        "slogin",
+        "sendmail",
+        "sshd",
+        "syslogd",
+        "tar",
+        "tcpd",
+        "tcpdump",
+        "top",
+        "telnetd",
+        "timed",
+        "traceroute",
+        "vdir",
+        "w",
+        "write",
+    }
+
+
+def load_binary_names():
+    names = load_binary_head()
+    names.update(load_binary_tail())
+    return names
+
+
+def load_app_pairs():
+    return (
+        ("openssh", "openssh-server"),
+        ("openssl", "openssl"),
+        ("exim", "exim4"),
+        ("apache", "apache2"),
+        ("nginx", "nginx"),
+        ("proftpd", "proftpd-basic"),
+        ("vsftpd", "vsftpd"),
+        ("sendmail", "sendmail"),
+        ("bind9", "bind9"),
+        ("named", "bind9"),
+        ("ssh", "openssh-server"),
+    )
+
+
+def load_aide_patterns():
+    global AIDE_ENTRY, AIDE_HEAD, AIDE_DIFF, AIDE_DB, AIDE_PATH, AIDE_ENTRY_PATH, REMOVED_LINE, PATH_TOKEN
+    AIDE_ENTRY = re.compile(r"^(?:[fdlcbpsDP!?][+.\-:=> <?A-Za-z]*:\s+\S|(?:added|removed|changed):\s+\S)")
+    AIDE_HEAD = re.compile(
+        r"^(?:file|directory|fifo|link|block device|character device|"
+        r"socket|door|port|unknown file type):\s+\S",
+        re.I,
+    )
+    AIDE_DIFF = re.compile(r"^entry \S+ in databases has different attributes\b", re.I)
+    AIDE_DB = re.compile(r"^the attributes of the \(uncompressed\) database\b", re.I)
+    AIDE_PATH = re.compile(
+        r"^(?:[fdlcbpsDP!?][+.\-:=> <?A-Za-z]*|(?:added|removed|changed)|"
+        r"(?:File|Directory|FIFO|Link|Block device|Character device|Socket|Door|Port|"
+        r"Unknown file type)):\s+(\S.*)$",
+        re.I,
+    )
+    AIDE_ENTRY_PATH = re.compile(
+        r"^Entry (\S+) in databases has different attributes\b",
+        re.I,
+    )
+    REMOVED_LINE = re.compile(r"^(?:removed:\s+\S|[fdlcbpsDP!?][-]{3,}:\s+\S)")
+    PATH_TOKEN = re.compile(
+        r"(?<![A-Za-z0-9])(/(?:[\w.+@=-]|\\x[0-9A-Fa-f]{2})+"
+        r"(?:/(?:[\w.+@=-]|\\x[0-9A-Fa-f]{2})+)*)"
+    )
+
+
+LATE = load_late_ids()
+UNKNOWN = load_unknown_ids()
+LOOP_VARS = load_loop_vars()
+BINARIES = load_binary_names()
+APP_PAIRS = load_app_pairs()
+load_aide_patterns()
 
 
 class Finding:

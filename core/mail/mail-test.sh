@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/mail/mail-test.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,25 +12,26 @@
 # -----------------------------------------------------------------------------
 
 
-set -euo pipefail
+run_mail_test_part_01() {
+    set -euo pipefail
+    script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    for candidate in \
+        "${script_dir}/log.sh" \
+        "${script_dir}/../core/log/log.sh" \
+        "${script_dir}/../log/log.sh" \
+        "${script_dir}/../core/log/log.sh" \
+        "${CONFIG_BASE_DIRECTORY:-}/core/log/log.sh" \
+        "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
+        "${INSTALL_DIRECTORY:-}/core/log/log.sh"; do
+        if [[ -n "${candidate}" && -f "${candidate}" ]]; then
+            # shellcheck disable=SC1090
+            source "${candidate}"
+            break
+        fi
+    done
+    # The recipient can live in the secret file.
+}
 
-script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-for candidate in \
-    "${script_dir}/log.sh" \
-    "${script_dir}/../core/log/log.sh" \
-    "${script_dir}/../log/log.sh" \
-    "${script_dir}/../core/log/log.sh" \
-    "${CONFIG_BASE_DIRECTORY:-}/core/log/log.sh" \
-    "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
-    "${INSTALL_DIRECTORY:-}/core/log/log.sh"; do
-    if [[ -n "${candidate}" && -f "${candidate}" ]]; then
-        # shellcheck disable=SC1090
-        source "${candidate}"
-        break
-    fi
-done
-
-# The recipient can live in the secret file.
 load_mail_test_secrets() {
     if [[ -z "${WATCHDOG_MAIL:-}" && -r "${base}/config/secrets.conf" ]]; then
         # shellcheck disable=SC1091
@@ -135,22 +136,26 @@ send_mail_test() {
     deliver_mail_test "${base}"
 }
 
-if [[ "$(basename -- "${script_dir}")" == "bin" ]]; then
-    base="$(dirname -- "${script_dir}")"
-else
-    base="${CONFIG_BASE_DIRECTORY:-}"
-fi
-if [[ -n "${base}" && -f "${base}/config/global.conf" ]] && declare -F read_language_file >/dev/null 2>&1; then
-    read_language_file "${base}/config/global.conf"
-fi
-
-if [[ "${EUID}" -ne 0 ]]; then
-    if declare -F get_text >/dev/null 2>&1; then
-        printf '%s\n' "$(get_text log.root-required)" >&2
+run_mail_test_part_02() {
+    if [[ "$(basename -- "${script_dir}")" == "bin" ]]; then
+        base="$(dirname -- "${script_dir}")"
     else
-        printf '%s\n' "root required" >&2
+        base="${CONFIG_BASE_DIRECTORY:-}"
     fi
-    exit 1
-fi
+    if [[ -n "${base}" && -f "${base}/config/global.conf" ]] && declare -F read_language_file >/dev/null 2>&1; then
+        read_language_file "${base}/config/global.conf"
+    fi
+    if [[ "${EUID}" -ne 0 ]]; then
+        if declare -F get_text >/dev/null 2>&1; then
+            printf '%s\n' "$(get_text log.root-required)" >&2
+        else
+            printf '%s\n' "root required" >&2
+        fi
+        exit 1
+    fi
+    send_mail_test
+}
 
-send_mail_test
+run_mail_test_part_01 "$@"
+
+run_mail_test_part_02 "$@"

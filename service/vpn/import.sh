@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/import.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -912,6 +912,7 @@ refresh_vpn_endpoint() {
     ep6="${pair[1]}"
     apply_vpn_refresh_target "${name}" "${proto}" "${dir}" "${runtime}" "${port}" "${ep4}" "${ep6}"
 }
+
 vpn_brand_cited() {
     local ovpn="$1" line trimmed key rest token
     [[ -f "${ovpn}" ]] || return 0

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/version-update.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,6 +12,16 @@
 # -----------------------------------------------------------------------------
 
 
+mark_prepared_config() {
+    local flag="$1"
+    if [[ ! -f "${root}/config/global.conf" ]]; then
+        return 0
+    fi
+    if ! grep -q '^CONFIG_PREPARED=1$' "${root}/config/global.conf"; then
+        return 0
+    fi
+    git -C "${root}" update-index "${flag}" -- config/global.conf 2>/dev/null || true
+}
 set -euo pipefail
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -25,16 +35,6 @@ fi
 if [[ ! -d "${root}/.git" ]]; then
     exit 0
 fi
-mark_prepared_config() {
-    local flag="$1"
-    if [[ ! -f "${root}/config/global.conf" ]]; then
-        return 0
-    fi
-    if ! grep -q '^CONFIG_PREPARED=1$' "${root}/config/global.conf"; then
-        return 0
-    fi
-    git -C "${root}" update-index "${flag}" -- config/global.conf 2>/dev/null || true
-}
 mark_prepared_config --skip-worktree
 previous="$(git -C "${root}" rev-parse HEAD)"
 git -C "${root}" pull --ff-only

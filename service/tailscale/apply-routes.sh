@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/tailscale/apply-routes.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,8 +11,6 @@
 # Note       : Only 100.64.0.0/10 consults Tailscale table 52.
 # -----------------------------------------------------------------------------
 
-
-set -euo pipefail
 
 # One priority can hold several copies. Stop when the priority is empty.
 clear_tailscale_rule() {
@@ -38,5 +36,6 @@ apply_tailscale_routes() {
     ip -4 rule add priority "${net_prio}" to 100.64.0.0/10 lookup 52
     ip -4 rule add priority "${rest_prio}" lookup main
 }
+set -euo pipefail
 
 apply_tailscale_routes

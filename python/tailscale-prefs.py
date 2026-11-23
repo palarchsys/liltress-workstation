@@ -16,8 +16,15 @@ import subprocess
 import sys
 
 
+def get_advertised_routes(prefs):
+    routes = prefs.get("AdvertiseRoutes")
+    if routes:
+        return routes
+    return []
+
+
 def prefs_ok(prefs):
-    routes = prefs.get("AdvertiseRoutes") or []
+    routes = get_advertised_routes(prefs)
     mode = prefs.get("NetfilterMode")
     if prefs.get("RunSSH"):
         return False
@@ -41,4 +48,5 @@ def run_tailscale_prefs():
     return 0 if prefs_ok(prefs) else 1
 
 
-sys.exit(run_tailscale_prefs())
+if __name__ == "__main__":
+    sys.exit(run_tailscale_prefs())

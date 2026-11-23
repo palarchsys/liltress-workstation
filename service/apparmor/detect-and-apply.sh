@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/apparmor/detect-and-apply.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -17,7 +17,6 @@ export INSTALL_DIRECTORY
 
 source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
-require_root
 
 log_apparmor_detect() {
     local base="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
@@ -43,5 +42,6 @@ remove_unshipped_profile() {
     done
     shopt -u nullglob
 }
+require_root
 
 remove_unshipped_profile

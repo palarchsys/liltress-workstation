@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/clamav-fresh.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -42,13 +42,14 @@ def remember(seen_path, fresh):
             handle.write(key + "\n")
 
 
-log_lines = Path(sys.argv[1]).read_text(errors="replace").splitlines()
-seen_path = Path(sys.argv[2])
-known = set()
-if seen_path.is_file():
-    known = {line for line in seen_path.read_text(errors="replace").splitlines() if line}
-found = fresh_hits(log_lines, known)
-if found:
-    remember(seen_path, found)
-    for key in found:
-        print(key)
+if __name__ == "__main__":
+    log_lines = Path(sys.argv[1]).read_text(errors="replace").splitlines()
+    seen_path = Path(sys.argv[2])
+    known = set()
+    if seen_path.is_file():
+        known = {line for line in seen_path.read_text(errors="replace").splitlines() if line}
+    found = fresh_hits(log_lines, known)
+    if found:
+        remember(seen_path, found)
+        for key in found:
+            print(key)

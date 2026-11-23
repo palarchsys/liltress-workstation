@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/kernel/configure.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,8 +18,6 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 
 source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
-require_root
-log_info "${INSTALL_WATCHER}" "configure.tightening-of-the-permissions-of-the-files-read"
 
 apply_strict_mode() {
     local mode="$1" owner="$2" group="$3" path="$4"
@@ -29,6 +27,8 @@ apply_strict_mode() {
     fi
     dpkg-statoverride --update --add "${owner}" "${group}" "${mode}" "${path}" >/dev/null
 }
+require_root
+log_info "${INSTALL_WATCHER}" "configure.tightening-of-the-permissions-of-the-files-read"
 for cron_dir in /etc/cron.d /etc/cron.hourly /etc/cron.daily /etc/cron.weekly /etc/cron.monthly; do
     apply_strict_mode 700 root root "${cron_dir}"
 done

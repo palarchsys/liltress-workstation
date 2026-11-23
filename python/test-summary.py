@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/test-summary.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -43,4 +43,5 @@ def write_summary(out_path, passed, failed, warned, skipped, profile, tsv_path):
         handle.write("\n")
 
 
-write_summary(*sys.argv[1:8])
+if __name__ == "__main__":
+    write_summary(*sys.argv[1:8])

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/refresh-integrity.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -35,35 +35,40 @@ source "${root}/config/global.conf"
 # shellcheck disable=SC1091
 source "${root}/core/watchdog/base.sh"
 
-INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
-log_info "${INSTALL_WATCHER}" "vpn.integrity.start"
-wrote=0
-
-if [[ -f /etc/aide/aide.conf && -f "${root}/service/aide/refresh-db.sh" ]]; then
-    if ! bash "${root}/service/aide/refresh-db.sh"; then
-        log_error "${INSTALL_WATCHER}" "vpn.integrity.aide"
+refresh_aide_database() {
+    if [[ -f /etc/aide/aide.conf && -f "${root}/service/aide/refresh-db.sh" ]]; then
+        if ! bash "${root}/service/aide/refresh-db.sh"; then
+            log_error "${INSTALL_WATCHER}" "vpn.integrity.aide"
+        fi
+        wrote=1
+    else
+        log_info "${INSTALL_WATCHER}" "vpn.integrity.skip" "aide"
     fi
-    wrote=1
-else
-    log_info "${INSTALL_WATCHER}" "vpn.integrity.skip" "aide"
-fi
+}
 
-if command -v rkhunter >/dev/null 2>&1 && [[ -f "${root}/service/rkhunter/refresh-db.sh" ]]; then
-    if ! bash "${root}/service/rkhunter/refresh-db.sh"; then
-        log_error "${INSTALL_WATCHER}" "vpn.integrity.rkhunter"
+refresh_rkhunter_database() {
+    if command -v rkhunter >/dev/null 2>&1 && [[ -f "${root}/service/rkhunter/refresh-db.sh" ]]; then
+        if ! bash "${root}/service/rkhunter/refresh-db.sh"; then
+            log_error "${INSTALL_WATCHER}" "vpn.integrity.rkhunter"
+        fi
+        wrote=1
+    else
+        log_info "${INSTALL_WATCHER}" "vpn.integrity.skip" "rkhunter"
     fi
-    wrote=1
-else
-    log_info "${INSTALL_WATCHER}" "vpn.integrity.skip" "rkhunter"
-fi
+}
 
-base="$(get_product_base)"
-list="${base}/config/service/integrity/paths.list"
-if [[ ! -f "${list}" ]]; then
-    log_info "${INSTALL_WATCHER}" "vpn.integrity.skip" "integrity"
-elif ! stamp="$(watchdog_runtime_file "${base}" integrity.sha256)"; then
-    log_error "${INSTALL_WATCHER}" "vpn.integrity.stamp"
-else
+refresh_path_stamp() {
+    local base list stamp current path
+    base="$(get_product_base)"
+    list="${base}/config/service/integrity/paths.list"
+    if [[ ! -f "${list}" ]]; then
+        log_info "${INSTALL_WATCHER}" "vpn.integrity.skip" "integrity"
+        return 0
+    fi
+    if ! stamp="$(watchdog_runtime_file "${base}" integrity.sha256)"; then
+        log_error "${INSTALL_WATCHER}" "vpn.integrity.stamp"
+        return 0
+    fi
     current="$(mktemp)"
     trap 'rm -f "${current}"' EXIT
     while read -r path; do
@@ -76,7 +81,15 @@ else
     fi
     chmod 600 "${stamp}"
     wrote=1
-fi
+}
+
+INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
+log_info "${INSTALL_WATCHER}" "vpn.integrity.start"
+wrote=0
+
+refresh_aide_database
+refresh_rkhunter_database
+refresh_path_stamp
 
 if [[ "${wrote}" -eq 1 ]]; then
     log_success "${INSTALL_WATCHER}" "vpn.integrity.ok"

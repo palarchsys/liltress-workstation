@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/install-render.py
-# Updated at : 2026-11-17
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -126,4 +126,5 @@ def render_product():
     write_dest(text, dest)
 
 
-render_product()
+if __name__ == "__main__":
+    render_product()

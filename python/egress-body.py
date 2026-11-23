@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/egress-body.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -345,4 +345,5 @@ def run_egress():
     sys.exit("mode python refusé")
 
 
-run_egress()
+if __name__ == "__main__":
+    run_egress()

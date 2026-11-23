@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/auditd/configure.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,20 +18,12 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 
 source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
-require_root
-get_current_user
-
-log_info "${INSTALL_WATCHER}" "configure.configuration-of-auditd"
-
-install -d -m 750 /etc/audit/rules.d
-rm -f /etc/audit/rules.d/"${PROJECT_SLUG}".rules
 
 write_audit_watch() {
     local path="$1" key="$2" field="dir"
     [[ -d "${path}" ]] || field="path"
     printf '%s\n' "-a always,exit -F arch=b64 -F ${field}=${path} -F perm=wa -F key=${key}"
 }
-grep -v '^#' "$(locate_config_file service/auditd/prelude.rules)" >/etc/audit/rules.d/00-liltress-workstation.rules
 
 write_audit_list() {
     local profile path key
@@ -46,6 +38,14 @@ write_audit_list() {
         write_audit_watch "${path}" "${key}"
     done <"$(locate_config_file service/auditd/watches.list)"
 }
+require_root
+get_current_user
+
+log_info "${INSTALL_WATCHER}" "configure.configuration-of-auditd"
+
+install -d -m 750 /etc/audit/rules.d
+rm -f /etc/audit/rules.d/"${PROJECT_SLUG}".rules
+grep -v '^#' "$(locate_config_file service/auditd/prelude.rules)" >/etc/audit/rules.d/00-liltress-workstation.rules
 {
     write_audit_list
     for account_path in \

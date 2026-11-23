@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/boot/lib.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -10,17 +10,6 @@
 # Purpose    : Set the product root and load the shared engine.
 # -----------------------------------------------------------------------------
 
-
-set -euo pipefail
-
-if [[ -z "${PRODUCT_ROOT:-}" ]]; then
-    if [[ -n "${INSTALL_DIRECTORY:-}" ]]; then
-        PRODUCT_ROOT="${INSTALL_DIRECTORY}"
-    else
-        PRODUCT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
-    fi
-fi
-export PRODUCT_ROOT
 
 # The caller owns shown_python and reads it after this call.
 show_python_directory() {
@@ -72,6 +61,16 @@ locate_python_dir() {
     printf '%s\n' "dossier python introuvable" >&2
     return 1
 }
+set -euo pipefail
+
+if [[ -z "${PRODUCT_ROOT:-}" ]]; then
+    if [[ -n "${INSTALL_DIRECTORY:-}" ]]; then
+        PRODUCT_ROOT="${INSTALL_DIRECTORY}"
+    else
+        PRODUCT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+    fi
+fi
+export PRODUCT_ROOT
 
 if [[ -f "${PRODUCT_ROOT}/../share/core/boot/bootstrap.sh" ]]; then
     # shellcheck disable=SC1091

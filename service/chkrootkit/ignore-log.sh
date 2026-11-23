@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/chkrootkit/ignore-log.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -62,43 +62,55 @@ locate_python_dir() {
     return 1
 }
 
-set -euo pipefail
-_text_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-_text_hops=0
-while [[ "${_text_hops}" -lt 8 && "${_text_dir}" != "/" ]]; do
-    if [[ -f "${_text_dir}/text-load.sh" ]]; then
-        # shellcheck disable=SC1090
-        source "${_text_dir}/text-load.sh"
-        break
+run_ignore_log_part_01() {
+    set -euo pipefail
+    _text_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    _text_hops=0
+    while [[ "${_text_hops}" -lt 8 && "${_text_dir}" != "/" ]]; do
+        if [[ -f "${_text_dir}/text-load.sh" ]]; then
+            # shellcheck disable=SC1090
+            source "${_text_dir}/text-load.sh"
+            break
+        fi
+        if [[ -f "${_text_dir}/share/core/text/text-load.sh" ]]; then
+            # shellcheck disable=SC1090
+            source "${_text_dir}/share/core/text/text-load.sh"
+            break
+        fi
+        if [[ -f "${_text_dir}/core/text/text-load.sh" ]]; then
+            # shellcheck disable=SC1090
+            source "${_text_dir}/core/text/text-load.sh"
+            break
+        fi
+        _text_dir="$(dirname -- "${_text_dir}")"
+        _text_hops=$((_text_hops + 1))
+    done
+    unset _text_dir _text_hops
+    if ! declare -F load_installed_text >/dev/null 2>&1; then
+        printf '%s\n' "get_text absent" >&2
+        exit 1
     fi
-    if [[ -f "${_text_dir}/share/core/text/text-load.sh" ]]; then
-        # shellcheck disable=SC1090
-        source "${_text_dir}/share/core/text/text-load.sh"
-        break
-    fi
-    if [[ -f "${_text_dir}/core/text/text-load.sh" ]]; then
-        # shellcheck disable=SC1090
-        source "${_text_dir}/core/text/text-load.sh"
-        break
-    fi
-    _text_dir="$(dirname -- "${_text_dir}")"
-    _text_hops=$((_text_hops + 1))
-done
-unset _text_dir _text_hops
-if ! declare -F load_installed_text >/dev/null 2>&1; then
-    printf '%s\n' "get_text absent" >&2
-    exit 1
-fi
-load_installed_text
-BASE="${BASE:-/opt/liltress-workstation}"
-if [[ "${EUID}" -ne 0 ]]; then
-    printf "$(get_text log.run-this-command-with-sudo-n)" >&2
-    exit 1
-fi
-if [[ $# -ne 1 || ! -f "$1" ]]; then
-    printf "$(get_text log.enter-the-journal-chkrootkit-named-in-l)"\''e-mail.\n' >&2
-    printf "$(get_text log.example-sudo-bash-bin-chkrootkit-ignore-log-sh-c "${BASE}" "${BASE}")" >&2
-    exit 1
-fi
+    load_installed_text
+    BASE="${BASE:-/opt/liltress-workstation}"
+}
 
-python3 "$(locate_python_dir)/chkrootkit-filter.py" ignore "${BASE}" "$1"
+run_ignore_log_part_02() {
+    if [[ "${EUID}" -ne 0 ]]; then
+        printf "$(get_text log.run-this-command-with-sudo-n)" >&2
+        exit 1
+    fi
+    if [[ $# -ne 1 || ! -f "$1" ]]; then
+        printf "$(get_text log.enter-the-journal-chkrootkit-named-in-l)"\''e-mail.\n' >&2
+        printf "$(get_text log.example-sudo-bash-bin-chkrootkit-ignore-log-sh-c "${BASE}" "${BASE}")" >&2
+        exit 1
+    fi
+
+    python3 "$(locate_python_dir)/chkrootkit-filter.py" ignore "${BASE}" "$1"
+}
+
+run_ignore_log_part_03() {
+    run_ignore_log_part_01 "$@"
+    run_ignore_log_part_02 "$@"
+}
+
+run_ignore_log_part_03 "$@"

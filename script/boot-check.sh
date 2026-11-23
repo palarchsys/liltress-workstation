@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/boot-check.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -63,34 +63,34 @@ locate_python_dir() {
     return 1
 }
 
-set -u
-BASE="${BASE:-/opt/liltress-workstation}"
-if [[ -f "${BASE}/bin/log.sh" ]]; then
-    # shellcheck disable=SC1091
-    source "${BASE}/bin/log.sh"
-elif [[ -f "${BASE}/service/cron/watchdogs/log.sh" ]]; then
-    # shellcheck disable=SC1091
-    source "${BASE}/service/cron/watchdogs/log.sh"
-elif [[ -f "${BASE}/core/log/log.sh" ]]; then
-    # shellcheck disable=SC1091
-    source "${BASE}/core/log/log.sh"
-fi
-if ! declare -F get_text >/dev/null 2>&1; then
-    printf '%s\n' "get_text absent" >&2
-    exit 1
-fi
-if [[ -f "${BASE}/config/global.conf" ]]; then
-    read_language_file "${BASE}/config/global.conf"
-fi
-
-if [[ "${EUID}" -ne 0 ]]; then
-    printf "$(get_text log.run-this-command-with-sudo-n)" >&2
-    exit 1
-fi
-
-ok_n=0
-ecart_n=0
-cours_n=0
+run_boot_check_part_01() {
+    set -u
+    BASE="${BASE:-/opt/liltress-workstation}"
+    if [[ -f "${BASE}/bin/log.sh" ]]; then
+        # shellcheck disable=SC1091
+        source "${BASE}/bin/log.sh"
+    elif [[ -f "${BASE}/service/cron/watchdogs/log.sh" ]]; then
+        # shellcheck disable=SC1091
+        source "${BASE}/service/cron/watchdogs/log.sh"
+    elif [[ -f "${BASE}/core/log/log.sh" ]]; then
+        # shellcheck disable=SC1091
+        source "${BASE}/core/log/log.sh"
+    fi
+    if ! declare -F get_text >/dev/null 2>&1; then
+        printf '%s\n' "get_text absent" >&2
+        exit 1
+    fi
+    if [[ -f "${BASE}/config/global.conf" ]]; then
+        read_language_file "${BASE}/config/global.conf"
+    fi
+    if [[ "${EUID}" -ne 0 ]]; then
+        printf "$(get_text log.run-this-command-with-sudo-n)" >&2
+        exit 1
+    fi
+    ok_n=0
+    ecart_n=0
+    cours_n=0
+}
 
 record_boot_mark() {
     case "$1" in
@@ -105,102 +105,7 @@ get_millisecond() {
     python3 "$(locate_python_dir)/boot-duration.py" "$1"
 }
 
-nproc_n="$(nproc)"
-limit=50
-nice_want=19
-global_conf=""
-for candidate in \
-    "${BASE}/config/global.conf" \
-    "${BASE}/config/global.conf"; do
-    if [[ -f "${candidate}" ]]; then
-        global_conf="${candidate}"
-        break
-    fi
-done
-if [[ -n "${global_conf}" ]]; then
-    value="$(grep -E '^WATCHDOG_CPU_LIMIT=' "${global_conf}" | tail -1 | cut -d= -f2-)"
-    [[ "${value}" =~ ^[0-9]+$ ]] && limit="${value}"
-    value="$(grep -E '^WATCHDOG_LIMIT_NICE=' "${global_conf}" | tail -1 | cut -d= -f2-)"
-    [[ "${value}" =~ ^[0-9]+$ ]] && nice_want="${value}"
-fi
-want_pct=$((limit * nproc_n))
-want_ms=$((want_pct * 10))
-boot_epoch="$(date -d "$(uptime -s)" +%s 2>/dev/null || echo 0)"
-
-printf '%s\n' "$(get_text log.host-date-start-nproc "$(hostname)" "$(date -Iseconds)" "$(uptime -s)" "${nproc_n}")"
-printf '%s\n' "$(get_text log.expected-chain-after-multi-user-target-nice-io-i "${nice_want}" "${want_pct}")"
-printf "$(get_text log.n)"
-
-printf "$(get_text log.persistent-services-n)"
-for unit in ssh clamav-daemon clamav-freshclam crowdsec crowdsec-firewall-bouncer fail2ban auditd apparmor unattended-upgrades unbound systemd-resolved; do
-    enabled="$(systemctl is-enabled "${unit}" 2>/dev/null || echo absent)"
-    active="$(systemctl is-active "${unit}" 2>/dev/null || echo absent)"
-    if [[ "${active}" == "active" ]]; then
-        record_boot_mark OK "${unit} enabled=${enabled} active=${active}"
-    else
-        record_boot_mark ECART "${unit} enabled=${enabled} active=${active}"
-    fi
-done
-if systemctl is-active --quiet clamav-clamonacc.service || systemctl is-active --quiet clamonacc.service; then
-    record_boot_mark OK "clamonacc actif"
-else
-    record_boot_mark ECART "clamonacc inactif"
-fi
-if systemctl is-active --quiet usbguard; then
-    record_boot_mark OK "usbguard actif"
-elif [[ -f /etc/usbguard/rules.conf ]] && ! grep -qF 'allow with-interface equals { 03:*:* }' /etc/usbguard/rules.conf; then
-    record_boot_mark OK "usbguard arrêté : ligne clavier/souris absente"
-else
-    record_boot_mark ECART "usbguard inactif"
-fi
-ufw_line="$(ufw status 2>/dev/null | head -1 || true)"
-if printf '%s' "${ufw_line}" | grep -Eqi 'inactive|inactif'; then
-    record_boot_mark ECART "ufw ${ufw_line}"
-elif printf '%s' "${ufw_line}" | grep -Eqi 'active|actif'; then
-    record_boot_mark OK "ufw ${ufw_line}"
-else
-    record_boot_mark ECART "ufw ${ufw_line:-illisible}"
-fi
-if [[ -f "${BASE}/cron/mail.conf" ]] && grep -q '^MAIL_ALERTS="1"$' "${BASE}/cron/mail.conf"; then
-    if systemctl is-active --quiet postfix; then
-        record_boot_mark OK "postfix actif"
-    else
-        record_boot_mark ECART "postfix inactif"
-    fi
-else
-    record_boot_mark OK "alertes e-mail coupées"
-fi
-root_login="$(sshd -T 2>/dev/null | awk 'tolower($1)=="permitrootlogin"{print tolower($2); exit}')"
-password_auth="$(sshd -T 2>/dev/null | awk 'tolower($1)=="passwordauthentication"{print tolower($2); exit}')"
-if [[ "${root_login}" == "no" && "${password_auth}" == "yes" ]]; then
-    record_boot_mark OK "sshd PermitRootLogin=no PasswordAuthentication=yes"
-else
-    record_boot_mark ECART "sshd PermitRootLogin=${root_login:-?} PasswordAuthentication=${password_auth:-?}"
-fi
-
-printf '\n===== minuteries =====\n'
-for timer in w-boot-chain w-periodic-scan w-reboot-notice; do
-    enabled="$(systemctl is-enabled "${timer}.timer" 2>/dev/null || echo absent)"
-    active="$(systemctl is-active "${timer}.timer" 2>/dev/null || echo absent)"
-    if [[ "${enabled}" == "enabled" && "${active}" == "active" ]]; then
-        record_boot_mark OK "${timer}.timer"
-    else
-        record_boot_mark ECART "${timer}.timer enabled=${enabled} active=${active}"
-    fi
-done
-if [[ -f /etc/systemd/system/w-boot-scan.timer ]]; then
-    record_boot_mark ECART "w-boot-scan.timer encore présent"
-else
-    record_boot_mark OK "w-boot-scan.timer absent"
-fi
-if grep -q '^OnBootSec=' /etc/systemd/system/w-reboot-notice.timer 2>/dev/null; then
-    record_boot_mark ECART "l'avis de redémarrage a un délai fixe au démarrage"
-else
-    record_boot_mark OK "l'avis de redémarrage n'a pas de délai fixe au démarrage"
-fi
-
-printf '\n===== plafond CPU =====\n'
-for unit in w-boot-scan w-periodic-scan w-reboot-notice; do
+run_boot_check_part_02() {
     unit_file="/etc/systemd/system/${unit}.service"
     file_quota="$(grep -E '^CPUQuota=' "${unit_file}" 2>/dev/null | cut -d= -f2-)"
     file_nice="$(grep -E '^Nice=' "${unit_file}" 2>/dev/null | cut -d= -f2-)"
@@ -214,30 +119,150 @@ for unit in w-boot-scan w-periodic-scan w-reboot-notice; do
     else
         record_boot_mark ECART "${unit} fichier=${file_quota:-absent} effectif=${show_quota:-absent} attendu=${want_pct}%"
     fi
-done
+}
 
-chain_state="$(systemctl show -p ActiveState --value w-boot-chain.service)"
-printf "$(get_text log.n-passes-of-this-start-n)"
-if [[ "${chain_state}" == "active" || "${chain_state}" == "activating" ]]; then
-    record_boot_mark EN_COURS "w-boot-chain.service état=${chain_state}"
-else
-    chain_result="$(systemctl show -p Result --value w-boot-chain.service)"
-    chain_when="$(systemctl show -p ExecMainStartTimestamp --value w-boot-chain.service)"
-    chain_epoch=0
-    if [[ -n "${chain_when}" && "${chain_when}" != "n/a" ]]; then
-        chain_epoch="$(date -d "${chain_when}" +%s 2>/dev/null || echo 0)"
+run_boot_check_part_03() {
+    nproc_n="$(nproc)"
+    limit=50
+    nice_want=19
+    global_conf=""
+    for candidate in \
+        "${BASE}/config/global.conf" \
+        "${BASE}/config/global.conf"; do
+        if [[ -f "${candidate}" ]]; then
+            global_conf="${candidate}"
+            break
+        fi
+    done
+    if [[ -n "${global_conf}" ]]; then
+        value="$(grep -E '^WATCHDOG_CPU_LIMIT=' "${global_conf}" | tail -1 | cut -d= -f2-)"
+        [[ "${value}" =~ ^[0-9]+$ ]] && limit="${value}"
+        value="$(grep -E '^WATCHDOG_LIMIT_NICE=' "${global_conf}" | tail -1 | cut -d= -f2-)"
+        [[ "${value}" =~ ^[0-9]+$ ]] && nice_want="${value}"
     fi
-    if [[ "${chain_epoch}" -ge "${boot_epoch}" && "${chain_result}" == "success" ]]; then
-        record_boot_mark OK "w-boot-chain.service result=success début=${chain_when}"
+    want_pct=$((limit * nproc_n))
+    want_ms=$((want_pct * 10))
+    boot_epoch="$(date -d "$(uptime -s)" +%s 2>/dev/null || echo 0)"
+    printf '%s\n' "$(get_text log.host-date-start-nproc "$(hostname)" "$(date -Iseconds)" "$(uptime -s)" "${nproc_n}")"
+    printf '%s\n' "$(get_text log.expected-chain-after-multi-user-target-nice-io-i "${nice_want}" "${want_pct}")"
+    printf "$(get_text log.n)"
+    printf "$(get_text log.persistent-services-n)"
+}
+
+run_boot_check_part_04() {
+    for unit in ssh clamav-daemon clamav-freshclam crowdsec crowdsec-firewall-bouncer fail2ban auditd apparmor unattended-upgrades unbound systemd-resolved; do
+        enabled="$(systemctl is-enabled "${unit}" 2>/dev/null || echo absent)"
+        active="$(systemctl is-active "${unit}" 2>/dev/null || echo absent)"
+        if [[ "${active}" == "active" ]]; then
+            record_boot_mark OK "${unit} enabled=${enabled} active=${active}"
+        else
+            record_boot_mark ECART "${unit} enabled=${enabled} active=${active}"
+        fi
+    done
+    if systemctl is-active --quiet clamav-clamonacc.service || systemctl is-active --quiet clamonacc.service; then
+        record_boot_mark OK "clamonacc actif"
     else
-        record_boot_mark ECART "w-boot-chain.service result=${chain_result:-?} début=${chain_when:-jamais}"
+        record_boot_mark ECART "clamonacc inactif"
     fi
-fi
+}
 
-# A oneshot unit without a timer is unloaded: ExecMainStartTimestamp
-# disappears and Result becomes success. This boot's journal keeps
-# the job id, independent of language.
-# 7d4958e8 start, 39f53479 success, be02cf68 or d9b373ed failure.
+run_boot_check_part_05() {
+    if systemctl is-active --quiet usbguard; then
+        record_boot_mark OK "usbguard actif"
+    elif [[ -f /etc/usbguard/rules.conf ]] && ! grep -qF 'allow with-interface equals { 03:*:* }' /etc/usbguard/rules.conf; then
+        record_boot_mark OK "usbguard arrêté : ligne clavier/souris absente"
+    else
+        record_boot_mark ECART "usbguard inactif"
+    fi
+    ufw_line="$(ufw status 2>/dev/null | head -1 || true)"
+    if printf '%s' "${ufw_line}" | grep -Eqi 'inactive|inactif'; then
+        record_boot_mark ECART "ufw ${ufw_line}"
+    elif printf '%s' "${ufw_line}" | grep -Eqi 'active|actif'; then
+        record_boot_mark OK "ufw ${ufw_line}"
+    else
+        record_boot_mark ECART "ufw ${ufw_line:-illisible}"
+    fi
+}
+
+run_boot_check_part_06() {
+    if [[ -f "${BASE}/cron/mail.conf" ]] && grep -q '^MAIL_ALERTS="1"$' "${BASE}/cron/mail.conf"; then
+        if systemctl is-active --quiet postfix; then
+            record_boot_mark OK "postfix actif"
+        else
+            record_boot_mark ECART "postfix inactif"
+        fi
+    else
+        record_boot_mark OK "alertes e-mail coupées"
+    fi
+    root_login="$(sshd -T 2>/dev/null | awk 'tolower($1)=="permitrootlogin"{print tolower($2); exit}')"
+    password_auth="$(sshd -T 2>/dev/null | awk 'tolower($1)=="passwordauthentication"{print tolower($2); exit}')"
+    if [[ "${root_login}" == "no" && "${password_auth}" == "yes" ]]; then
+        record_boot_mark OK "sshd PermitRootLogin=no PasswordAuthentication=yes"
+    else
+        record_boot_mark ECART "sshd PermitRootLogin=${root_login:-?} PasswordAuthentication=${password_auth:-?}"
+    fi
+    printf '\n===== minuteries =====\n'
+}
+
+run_boot_check_part_07() {
+    for timer in w-boot-chain w-periodic-scan w-reboot-notice; do
+        enabled="$(systemctl is-enabled "${timer}.timer" 2>/dev/null || echo absent)"
+        active="$(systemctl is-active "${timer}.timer" 2>/dev/null || echo absent)"
+        if [[ "${enabled}" == "enabled" && "${active}" == "active" ]]; then
+            record_boot_mark OK "${timer}.timer"
+        else
+            record_boot_mark ECART "${timer}.timer enabled=${enabled} active=${active}"
+        fi
+    done
+    if [[ -f /etc/systemd/system/w-boot-scan.timer ]]; then
+        record_boot_mark ECART "w-boot-scan.timer encore présent"
+    else
+        record_boot_mark OK "w-boot-scan.timer absent"
+    fi
+    if grep -q '^OnBootSec=' /etc/systemd/system/w-reboot-notice.timer 2>/dev/null; then
+        record_boot_mark ECART "l'avis de redémarrage a un délai fixe au démarrage"
+    else
+        record_boot_mark OK "l'avis de redémarrage n'a pas de délai fixe au démarrage"
+    fi
+    printf '\n===== plafond CPU =====\n'
+    for unit in w-boot-scan w-periodic-scan w-reboot-notice; do
+        run_boot_check_part_02 "$@"
+    done
+    chain_state="$(systemctl show -p ActiveState --value w-boot-chain.service)"
+    printf "$(get_text log.n-passes-of-this-start-n)"
+}
+
+run_boot_check_part_08() {
+    if [[ "${chain_state}" == "active" || "${chain_state}" == "activating" ]]; then
+        record_boot_mark EN_COURS "w-boot-chain.service état=${chain_state}"
+    else
+        chain_result="$(systemctl show -p Result --value w-boot-chain.service)"
+        chain_when="$(systemctl show -p ExecMainStartTimestamp --value w-boot-chain.service)"
+        chain_epoch=0
+        if [[ -n "${chain_when}" && "${chain_when}" != "n/a" ]]; then
+            chain_epoch="$(date -d "${chain_when}" +%s 2>/dev/null || echo 0)"
+        fi
+        if [[ "${chain_epoch}" -ge "${boot_epoch}" && "${chain_result}" == "success" ]]; then
+            record_boot_mark OK "w-boot-chain.service result=success début=${chain_when}"
+        else
+            record_boot_mark ECART "w-boot-chain.service result=${chain_result:-?} début=${chain_when:-jamais}"
+        fi
+    fi
+    # A oneshot unit without a timer is unloaded: ExecMainStartTimestamp
+    # disappears and Result becomes success. This boot's journal keeps
+    # the job id, independent of language.
+    # 7d4958e8 start, 39f53479 success, be02cf68 or d9b373ed failure.
+}
+
+run_boot_check_part_09() {
+    run_boot_check_part_03 "$@"
+    run_boot_check_part_04 "$@"
+    run_boot_check_part_05 "$@"
+    run_boot_check_part_06 "$@"
+    run_boot_check_part_07 "$@"
+    run_boot_check_part_08 "$@"
+}
+
 get_journal_mark() {
     local unit="$1"
     local rows last started when
@@ -293,11 +318,12 @@ check_boot_unit() {
     fi
 }
 
-check_boot_unit w-boot-scan.service
-check_boot_unit w-periodic-scan.service
-check_boot_unit w-reboot-notice.service
-
-printf "$(get_text log.n-journals-since-this-start-n)"
+run_boot_check_part_10() {
+    check_boot_unit w-boot-scan.service
+    check_boot_unit w-periodic-scan.service
+    check_boot_unit w-reboot-notice.service
+    printf "$(get_text log.n-journals-since-this-start-n)"
+}
 
 get_latest_log() {
     local name="$1" dir found=""
@@ -310,34 +336,51 @@ get_latest_log() {
     printf '%s\n' "${found}"
 }
 
-for name in aide rkhunter chkrootkit debsums clamav auditd integrity egress reboot-notice; do
-    log_file="$(get_latest_log "${name}")"
-    if [[ -z "${log_file}" ]]; then
-        if [[ "${chain_state}" == "active" || "${chain_state}" == "activating" ]]; then
-            record_boot_mark EN_COURS "${name} : journal pas encore écrit"
-        else
-            record_boot_mark ECART "${name} : aucun journal depuis le démarrage"
+run_boot_check_part_11() {
+    for name in aide rkhunter chkrootkit debsums clamav auditd integrity egress reboot-notice; do
+        log_file="$(get_latest_log "${name}")"
+        if [[ -z "${log_file}" ]]; then
+            if [[ "${chain_state}" == "active" || "${chain_state}" == "activating" ]]; then
+                record_boot_mark EN_COURS "${name} : journal pas encore écrit"
+            else
+                record_boot_mark ECART "${name} : aucun journal depuis le démarrage"
+            fi
+            continue
         fi
-        continue
-    fi
-    last_line="$(grep -E '.' "${log_file}" | tail -1 || true)"
-    if [[ -z "${last_line}" ]]; then
-        record_boot_mark ECART "${name} $(basename "${log_file}") vide"
-    elif printf '%s' "${last_line}" | grep -Eq 'planté|erreur rc='; then
-        record_boot_mark ECART "${name} $(basename "${log_file}") | ${last_line}"
-    else
-        record_boot_mark OK "${name} $(basename "${log_file}") | ${last_line}"
-    fi
-done
+        last_line="$(grep -E '.' "${log_file}" | tail -1 || true)"
+        if [[ -z "${last_line}" ]]; then
+            record_boot_mark ECART "${name} $(basename "${log_file}") vide"
+        elif printf '%s' "${last_line}" | grep -Eq 'planté|erreur rc='; then
+            record_boot_mark ECART "${name} $(basename "${log_file}") | ${last_line}"
+        else
+            record_boot_mark OK "${name} $(basename "${log_file}") | ${last_line}"
+        fi
+    done
+    printf "$(get_text log.n)"
+}
 
-printf "$(get_text log.n)"
-if [[ "${ecart_n}" -eq 0 && "${cours_n}" -eq 0 ]]; then
-    printf "$(get_text log.check-of-start-ok-n)"
-    exit 0
-fi
-if [[ "${ecart_n}" -eq 0 ]]; then
-    printf "$(get_text log.check-of-start-in-progress-n)"
+run_boot_check_part_12() {
+    if [[ "${ecart_n}" -eq 0 && "${cours_n}" -eq 0 ]]; then
+        printf "$(get_text log.check-of-start-ok-n)"
+        exit 0
+    fi
+    if [[ "${ecart_n}" -eq 0 ]]; then
+        printf "$(get_text log.check-of-start-in-progress-n)"
+        exit 1
+    fi
+    printf "$(get_text log.check-of-start-carts-n)"
     exit 1
-fi
-printf "$(get_text log.check-of-start-carts-n)"
-exit 1
+}
+
+run_boot_check_part_13() {
+    run_boot_check_part_11 "$@"
+    run_boot_check_part_12 "$@"
+}
+
+run_boot_check_part_01 "$@"
+
+run_boot_check_part_09 "$@"
+
+run_boot_check_part_10 "$@"
+
+run_boot_check_part_13 "$@"

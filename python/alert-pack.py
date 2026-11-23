@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/alert-pack.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -123,5 +123,6 @@ def build_pack(phase, state_dir, log_dir, dest):
         add_host_logs(archive)
 
 
-phase, state_dir, log_dir, dest = sys.argv[1:5]
-build_pack(phase, state_dir, log_dir, dest)
+if __name__ == "__main__":
+    phase, state_dir, log_dir, dest = sys.argv[1:5]
+    build_pack(phase, state_dir, log_dir, dest)

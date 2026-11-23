@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/check-yaml.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -31,5 +31,6 @@ def load_yaml(path):
         raise SystemExit(f"no yaml keys in {path}")
 
 
-for path in sys.argv[1:]:
-    load_yaml(path)
+if __name__ == "__main__":
+    for path in sys.argv[1:]:
+        load_yaml(path)

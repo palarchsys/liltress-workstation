@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/scan-skip-apply.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -79,4 +79,5 @@ def apply_scan_skip():
     print("changed" if new != old else "same")
 
 
-apply_scan_skip()
+if __name__ == "__main__":
+    apply_scan_skip()

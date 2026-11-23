@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/sysctl/w-sysctl-apply.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,9 +11,25 @@
 # -----------------------------------------------------------------------------
 
 
-set -u
-conf="/etc/sysctl.d/99-zzz-liltress-workstation.conf"
-[[ -f "${conf}" ]] || exit 0
+run_w_sysctl_apply_part_01() {
+    set -u
+    conf="/etc/sysctl.d/99-zzz-liltress-workstation.conf"
+    [[ -f "${conf}" ]] || exit 0
+}
+
+run_w_sysctl_apply_part_03() {
+    run_w_sysctl_apply_part_01 "$@"
+}
+
+run_w_sysctl_apply_part_02() {
+    exit 0
+}
+
+run_w_sysctl_apply_part_04() {
+    run_w_sysctl_apply_part_02 "$@"
+}
+
+run_w_sysctl_apply_part_03 "$@" "$@"
 while IFS= read -r line || [[ -n "${line}" ]]; do
     line="${line%%#*}"
     line="${line#"${line%%[![:space:]]*}"}"
@@ -37,4 +53,5 @@ while IFS= read -r line || [[ -n "${line}" ]]; do
 
     printf "$(get_text log.ignored "${err}")" >&2
 done <"${conf}"
-exit 0
+
+run_w_sysctl_apply_part_04 "$@" "$@"

@@ -12,18 +12,20 @@
 
 
 
+read_python_candidate() {
+    local candidate="$1"
+    [[ -n "${candidate}" && -d "${candidate}" ]] || return 1
+    (cd -- "${candidate}" && pwd -P)
+}
+
 locate_python_dir() {
-    local dir hops=0 candidate
+    local dir="" hops=0 candidate=""
     for candidate in \
         "${CONFIG_BASE_DIRECTORY:-}/python" \
         "${BASE:-}/python" \
         "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"
-    do
-        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
-            (cd -- "${candidate}" && pwd -P)
-            return 0
-        fi
+        "${INSTALL_DIRECTORY:-}/../share/python"; do
+        read_python_candidate "${candidate}" && return 0
     done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
@@ -31,10 +33,7 @@ locate_python_dir() {
             printf '%s\n' "${dir}/share/python"
             return 0
         fi
-        if [[ -d "${dir}/python" ]]; then
-            (cd -- "${dir}/python" && pwd -P)
-            return 0
-        fi
+        read_python_candidate "${dir}/python" && return 0
         dir="$(dirname -- "${dir}")"
         hops=$((hops + 1))
     done

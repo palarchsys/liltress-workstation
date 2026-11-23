@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/alert-quarantine.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -41,6 +41,7 @@ def infected_paths(source, log_path):
     return seen
 
 
-found = infected_paths(sys.argv[1], Path(sys.argv[2]))
-if found:
-    sys.stdout.write("\n".join(found) + "\n")
+if __name__ == "__main__":
+    found = infected_paths(sys.argv[1], Path(sys.argv[2]))
+    if found:
+        sys.stdout.write("\n".join(found) + "\n")

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/02_file_graph.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,18 +12,20 @@
 
 
 
+read_python_candidate() {
+    local candidate="$1"
+    [[ -n "${candidate}" && -d "${candidate}" ]] || return 1
+    (cd -- "${candidate}" && pwd -P)
+}
+
 locate_python_dir() {
-    local dir hops=0 candidate
+    local dir="" hops=0 candidate=""
     for candidate in \
         "${CONFIG_BASE_DIRECTORY:-}/python" \
         "${BASE:-}/python" \
         "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"
-    do
-        if [[ -n "${candidate}" && -d "${candidate}" ]]; then
-            (cd -- "${candidate}" && pwd -P)
-            return 0
-        fi
+        "${INSTALL_DIRECTORY:-}/../share/python"; do
+        read_python_candidate "${candidate}" && return 0
     done
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
@@ -31,10 +33,7 @@ locate_python_dir() {
             printf '%s\n' "${dir}/share/python"
             return 0
         fi
-        if [[ -d "${dir}/python" ]]; then
-            (cd -- "${dir}/python" && pwd -P)
-            return 0
-        fi
+        read_python_candidate "${dir}/python" && return 0
         dir="$(dirname -- "${dir}")"
         hops=$((hops + 1))
     done
@@ -111,11 +110,18 @@ if awk '
     /if check_ubuntu_lts; then/ { state = 1; next }
     state == 1 && /^else$/ { state = 2; next }
     state == 2 && /^fi$/ { state = 0; closed = 1; next }
-    state == 1 && /pro enable/ { inn++ }
-    state == 1 && /esm-infra esm-apps/ { names = 1 }
-    state == 1 && /pro enable livepatch/ { live = 1 }
-    state == 2 && /pro enable/ { bad = 1 }
-    END { exit !(inn == 2 && names && live && !bad && closed) }
+    state == 1 && /run_pro_services/ { call = 1 }
+    state == 2 && /pro enable|run_pro_service/ { bad = 1 }
+    /^run_pro_service\(\)/ { svc = 1 }
+    svc && /^}/ { svc = 0 }
+    svc && /pro enable/ { inn++ }
+    /^run_pro_services\(\)/ { bundle = 1 }
+    bundle && /^}/ { bundle = 0 }
+    bundle && /esm-infra esm-apps/ { names = 1 }
+    /^run_pro_livepatch\(\)/ { livefn = 1 }
+    livefn && /^}/ { livefn = 0 }
+    livefn && /pro enable livepatch/ { live = 1 }
+    END { exit !(call && inn == 1 && names && live && !bad && closed) }
 ' "${T_ROOT}/service/ubuntu-pro/install.sh" \
    && grep -q 'check_ubuntu_lts' "${T_ROOT}/script/verify/workstation.sh" \
    && grep -qF 'non demandés : version intermédiaire' "${T_ROOT}/script/verify/workstation.sh"; then
@@ -849,10 +855,21 @@ else
     t_fail "graph.modes" "cron ou log redevient lisible par le compte local"
 fi
 
-t_section "noms des fichiers de configuration"
+t_check_config_parts() {
+    local domain="$1" sub="$2" base="$3" stem token
+    [[ "${domain}" =~ ^[a-z][a-z0-9]*(-[a-z0-9]+)*$ ]] || return 1
+    if [[ -n "${sub}" ]]; then
+        [[ "${sub}" =~ ^[a-z][a-z0-9]*(-[a-z0-9]+)*$ ]] || return 1
+    fi
+    [[ "${base}" =~ ^[a-z][a-z0-9]*(-[a-z0-9]+)*\.(conf|list|paths|rules|ignore|yaml|json|service|timer|path|cron|keys|acl)$ ]] || return 1
+    stem="${base%%.*}"
+    token="${stem%%-*}"
+    [[ "${token}" != "${domain}" ]]
+}
+
 t_check_config_name() {
     local rel="$1"
-    local domain sub base stem token
+    local domain sub base
     case "${rel}" in
         global.conf|user.conf|secrets.conf) return 0 ;;
         service/aide/aide.conf|service/fail2ban/jail.local|service/rkhunter/rkhunter.conf.local) return 0 ;;
@@ -872,15 +889,19 @@ t_check_config_name() {
     elif [[ -n "${base}" && "${base}" == */* ]]; then
         return 1
     fi
-    [[ "${domain}" =~ ^[a-z][a-z0-9]*(-[a-z0-9]+)*$ ]] || return 1
-    if [[ -n "${sub}" ]]; then
-        [[ "${sub}" =~ ^[a-z][a-z0-9]*(-[a-z0-9]+)*$ ]] || return 1
-    fi
-    [[ "${base}" =~ ^[a-z][a-z0-9]*(-[a-z0-9]+)*\.(conf|list|paths|rules|ignore|yaml|json|service|timer|path|cron|keys|acl)$ ]] || return 1
-    stem="${base%%.*}"
-    token="${stem%%-*}"
-    [[ "${token}" != "${domain}" ]]
+    t_check_config_parts "${domain}" "${sub}" "${base}"
 }
+
+t_check_section_mark() {
+    local file="$1"
+    awk '
+        /^# Shared$/ || /^# Server$/ || /^# Workstation$/ { bad = 1 }
+        /^[WS]_[A-Z0-9_]+=/ { bad = 1 }
+        END { exit bad ? 1 : 0 }
+    ' "${file}"
+}
+
+t_section "noms des fichiers de configuration"
 config_bad=""
 while IFS= read -r rel; do
     [[ -z "${rel}" ]] && continue
@@ -896,14 +917,6 @@ else
 fi
 
 t_section "marques Shared Server Workstation"
-t_check_section_mark() {
-    local file="$1"
-    awk '
-        /^# Shared$/ || /^# Server$/ || /^# Workstation$/ { bad = 1 }
-        /^[WS]_[A-Z0-9_]+=/ { bad = 1 }
-        END { exit bad ? 1 : 0 }
-    ' "${file}"
-}
 prefix_bad=""
 while IFS= read -r rel; do
     [[ -z "${rel}" ]] && continue

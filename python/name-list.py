@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/name-list.py
-# Updated at : 2026-11-17
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,9 @@
 # -----------------------------------------------------------------------------
 
 
+import ast
 import csv
+import importlib.util
 import os
 import re
 from pathlib import Path
@@ -42,7 +44,10 @@ scope_of = {
     "t": "test",
     "n": "shared",
 }
-shared_vars = """
+
+
+def load_shared_head():
+    return """
 ACCOUNT_SNAPSHOT ACCOUNT_USER AIDE_REFRESH ANTIBOT_HMAC_SECRET API_BASE_URL
 ARTIFACTS BANNER_MESSAGE BASE BOOT_ACCURACY BOOT_ON_BOOT_SEC
 BRANCH CHKROOTKIT_IGNORE CLAMAV_EVENT_FILE CLAMAV_EVENT_KIND
@@ -68,6 +73,11 @@ INSTALL_DIRECTORY INSTALL_LOG_DIR INSTALL_LOG_FILE INSTALL_ROOT JWT_URL
 KEYCLOAK_CLIENT KEYCLOAK_PUBLIC_BASE_URL KEYCLOAK_REALM LANGUAGE LIMIT_WRAP
 LIVEKIT_URL LOGS_COLLECTED LOG_SYS LYNIS_MIN_SCORE
 MAIL_ABOUT MAIL_ACTIONS MAIL_ALERTS MAIL_ATTACH MAIL_BLOCK_ACTIONS MAIL_BLOCK_FILES MAIL_BLOCK_IGNORE MAIL_BLOCK_SERVICES MAIL_FILES MAIL_FOOTER MAIL_IGNORE MAIL_REDACT MAIL_REQUIRE_FLAG MAIL_SERVICES MAIL_SUBTITLE MAIL_TEMPLATE
+""".split()
+
+
+def load_shared_tail():
+    return """
 MAIL_TEMPLATE_FILE MAIN_GROUP MAIN_USER MATRIX_ADMIN_ACCESS_TOKEN
 MATRIX_ADMIN_PASSWORD MATRIX_ADMIN_USER MATRIX_PUBLIC_BASE_URL
 MATRIX_REGISTRATION_SHARED_SECRET MATRIX_SERVER_NAME MODE_DEV MODE_TEST
@@ -90,7 +100,13 @@ QUARANTINE_PID RCLONE REBOOT_ACCURACY REBOOT_EVERY REPO_URL RKHUNTER_REFRESH
 ROUTE_ROOT RUN_LOG SCAN_SKIP_BAD SCAN_SKIP_FILE SCAN_SKIP_HOME SCAN_SKIP_VALID
 SECRET_DIRECTORY SECRET_PREPARED SEEN SENT SERVER_TYPE SSH_BANNER_PATH
 SSH_CLIENT_ALIVE_COUNT_MAX SSH_CLIENT_ALIVE_INTERVAL SSH_LOGIN_GRACE_TIME
-SSH_MAX_AUTH_TRIES SSH_PORT SSH_SERVICE_NAME SWAP_FILE SWAP_MAPPER_NAME
+SSH_MAX_AUTH_TRIES SSH_PORT SSH_SERVICE_NAME
+""".split()
+
+
+def load_shared_end():
+    return """
+SWAP_FILE SWAP_MAPPER_NAME
 SWAP_SIZE TEMPLATE TEMPLATE_WORKSTATION_RESTORE_BEGIN
 TEMPLATE_WORKSTATION_RESTORE_END TEMPLATE_WORKSTATION_SAVE_BEGIN
 TEMPLATE_WORKSTATION_SAVE_END TEXT_DIR TEXT_DIR_LOADED TEXT_ENGLISH
@@ -114,11 +130,14 @@ WEB_IMAGE_TAG WEB_REGISTRY WEB_UPDATE_SCRIPT WIREGUARD_ADMIN_PASSWORD
 WIREGUARD_ALLOWED_IP WIREGUARD_DEFAULT_ADDRESS WIREGUARD_DEFAULT_DNS
 WIREGUARD_HOST WIREGUARD_UI_URL
 """.split()
+
+
+shared_vars = load_shared_head() + load_shared_tail() + load_shared_end()
 var_re = re.compile(
     r"\b((?:W|S|T)_[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*|" + "|".join(sorted(shared_vars, key=len, reverse=True)) + r")\b"
 )
 fn_re = re.compile(r"\b(t_[a-z][a-z0-9]*(?:_[a-z0-9]+)*)\b")
-def_re = re.compile(r"^[ \t]*([a-z][a-z0-9_]*)\s*\(")
+def_re = re.compile(r"^[ \t]*([a-z][a-z0-9_]*)\s*\(\s*\)")
 slug_re = re.compile(r"high-fortress\.com|liltress(?:-workstation|-server)?", re.IGNORECASE)
 token_re = re.compile(r"[^\s\"'`<>()\[\]{},;]+")
 cartouche_re = re.compile(r"^#(?:\s[-=]{10,}|\s(?:File|Updated at|Creator|Purpose|Note|Tool)\b)")
@@ -130,6 +149,413 @@ def shorten(text):
     if len(flat) <= text_limit:
         return flat
     return flat[: text_limit - 3] + "..."
+
+
+# A semantic signature is the normalized intent plus the callees.
+# Same text on two names is the proximity signal used before a merge.
+branch_re = re.compile(r"(^|[^A-Za-z0-9_])(if|elif|while|until|for|case)([^A-Za-z0-9_]|$)")
+word_re = re.compile(r"\b[a-z_][a-z0-9_]*\b")
+metrics = {}
+python_mod = None
+
+
+def shell_skip_words():
+    return {
+        "if",
+        "elif",
+        "while",
+        "until",
+        "for",
+        "case",
+        "in",
+        "fi",
+        "do",
+        "done",
+        "esac",
+        "then",
+        "else",
+        "time",
+        "coproc",
+        "select",
+        "function",
+        "local",
+        "return",
+        "export",
+        "declare",
+        "typeset",
+        "readonly",
+        "eval",
+        "exec",
+    }
+
+
+def maintainability(span, complexity):
+    value = 100 - 50 * (span / 40) - 50 * (complexity / 8)
+    if value <= 0:
+        return "0"
+    if value >= 100:
+        return "100"
+    return str(int(value + 0.5))
+
+
+def remember_metric(name, language, span, complexity, signature):
+    metrics.setdefault(name, []).append(
+        {
+            "language": language,
+            "complexity": complexity,
+            "maintainability": maintainability(span, complexity),
+            "signature": signature,
+        }
+    )
+
+
+def signature_text(intent, calls, verb):
+    names = ",".join(sorted(set(calls)))
+    if intent and names:
+        text = intent + " :: " + names
+    elif intent:
+        text = intent
+    elif names:
+        text = names
+    else:
+        text = verb
+    return shorten(text)
+
+
+def metric_columns(name):
+    rows = metrics.get(name, [])
+    if not rows:
+        return ["", "", "", ""]
+    languages = ";".join(sorted({row["language"] for row in rows}))
+    complexity = max(row["complexity"] for row in rows)
+    score = min(int(row["maintainability"]) for row in rows)
+    signatures = []
+    for row in rows:
+        if row["signature"] not in signatures:
+            signatures.append(row["signature"])
+    return [languages, str(complexity), str(score), shorten(" || ".join(signatures))]
+
+
+def python_quality():
+    global python_mod
+    if python_mod is not None:
+        return python_mod
+    path = root / "scripts" / "quality-python.py"
+    spec = importlib.util.spec_from_file_location("quality_python", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    python_mod = module
+    return module
+
+
+def python_calls(node):
+    names = []
+    for child in ast.walk(node):
+        if not isinstance(child, ast.Call):
+            continue
+        if isinstance(child.func, ast.Name) and child.func.id != node.name and child.func.id in defined:
+            names.append(child.func.id)
+    return names
+
+
+def python_signature(node):
+    intent = ast.get_docstring(node) or ""
+    return signature_text(intent, python_calls(node), node.name.split("_", 1)[0])
+
+
+def shell_comment(lines, index):
+    picked = []
+    cursor = index - 1
+    while cursor >= 0 and lines[cursor].strip() == "":
+        cursor -= 1
+    while cursor >= 0 and lines[cursor].lstrip().startswith("#"):
+        text = lines[cursor].lstrip()[1:].strip()
+        if text.startswith("!") or text.startswith(("====", "----", "File", "Updated", "Creator", "Purpose", "Note")):
+            break
+        if text:
+            picked.append(text)
+        cursor -= 1
+    picked.reverse()
+    return " ".join(picked)
+
+
+def take_heredoc(line, index, state):
+    cursor = index + 2
+    tabs = False
+    if cursor < len(line) and line[cursor] == "-":
+        tabs = True
+        cursor += 1
+    word, cursor = heredoc_word(line, cursor)
+    if word:
+        state["heredoc"] = word
+        state["tabs"] = tabs
+    return cursor
+
+
+def heredoc_word(line, cursor):
+    if cursor < len(line) and line[cursor] in "'\"":
+        return quoted_heredoc_word(line, cursor)
+    return bare_heredoc_word(line, cursor)
+
+
+def quoted_heredoc_word(line, cursor):
+    quote = line[cursor]
+    cursor += 1
+    word = ""
+    while cursor < len(line) and line[cursor] != quote:
+        word += line[cursor]
+        cursor += 1
+    return word, cursor + 1
+
+
+def bare_heredoc_word(line, cursor):
+    word = ""
+    while cursor < len(line) and (line[cursor].isalnum() or line[cursor] == "_"):
+        word += line[cursor]
+        cursor += 1
+    return word, cursor
+
+
+def shell_plain(line, state):
+    if state["heredoc"]:
+        token = line.lstrip("\t") if state["tabs"] else line
+        if token.strip() == state["heredoc"]:
+            state["heredoc"] = ""
+        return "", True
+    return plain_shell_code(line, state), False
+
+
+def plain_shell_code(line, state):
+    out = []
+    index = 0
+    while index < len(line):
+        index, piece, stop = plain_shell_step(line, index, state)
+        if stop:
+            break
+        if piece:
+            out.append(piece)
+    return "".join(out)
+
+
+def plain_shell_step(line, index, state):
+    char = line[index]
+    nxt = line[index + 1] if index + 1 < len(line) else ""
+    if state["single"] or state["double"]:
+        return quoted_shell_step(line, index, state)
+    if char == "#":
+        return index, "", True
+    if char in "'\"":
+        state["single"] = char == "'"
+        state["double"] = char == '"'
+        return index + 1, "", False
+    return code_shell_step(line, index, char, nxt, state)
+
+
+def quoted_shell_step(line, index, state):
+    if state["single"]:
+        state["single"] = line[index] != "'"
+        return index + 1, "", False
+    return skip_double(line, index, state), "", False
+
+
+def code_shell_step(line, index, char, nxt, state):
+    if char == "$" and nxt == "#":
+        return index + 2, " ", False
+    if char == "$" and nxt == "{":
+        return skip_braces(line, index + 2), " ", False
+    if char == "<" and nxt == "<":
+        return redirect_step(line, index, state)
+    return index + 1, char, False
+
+
+def redirect_step(line, index, state):
+    third = line[index + 2] if index + 2 < len(line) else ""
+    if third == "<":
+        return index + 3, " ", False
+    return take_heredoc(line, index, state), " ", False
+
+
+def skip_double(line, index, state):
+    char = line[index]
+    if char == "\\" and index + 1 < len(line):
+        return index + 2
+    if char == '"':
+        state["double"] = False
+    return index + 1
+
+
+def skip_braces(line, index):
+    nest = 1
+    while index < len(line) and nest:
+        if line[index] == "{":
+            nest += 1
+        elif line[index] == "}":
+            nest -= 1
+        index += 1
+    return index
+
+
+def shell_calls(plain, name):
+    found = []
+    skipped = shell_skip_words()
+    for call in word_re.findall(plain):
+        if call == name or call in skipped or call not in defined:
+            continue
+        found.append(call)
+    return found
+
+
+def close_shell_frame(stack, index):
+    frame = stack.pop()
+    span = index - frame["start"] + 1
+    intent = frame["intent"]
+    signature = signature_text(intent, frame["calls"], frame["name"].split("_", 1)[0])
+    remember_metric(frame["name"], "bash", span, frame["score"], signature)
+
+
+def language_words():
+    return {
+        "if",
+        "elif",
+        "else",
+        "fi",
+        "then",
+        "for",
+        "while",
+        "until",
+        "case",
+        "esac",
+        "do",
+        "done",
+        "in",
+        "function",
+        "index",
+        "match",
+        "split",
+        "sub",
+        "gsub",
+    }
+
+
+def shell_header(lines, index):
+    found = def_re.match(lines[index])
+    if not found or found.group(1) in language_words():
+        return ""
+    if "{" not in lines[index].split("#", 1)[0] and not next_brace(lines, index):
+        return ""
+    return found.group(1)
+
+
+def next_brace(lines, index):
+    cursor = index + 1
+    while cursor < len(lines) and lines[cursor].strip() == "":
+        cursor += 1
+    return cursor < len(lines) and lines[cursor].strip() == "{"
+
+
+def open_shell_frame(stack, line, index, lines, depth, plain):
+    name = shell_header(lines, index)
+    if not name or f"{name}()" not in plain:
+        return
+    defined.add(name)
+    stack.append(
+        {
+            "name": name,
+            "start": index,
+            "base": depth,
+            "opened": False,
+            "score": 1,
+            "calls": [],
+            "intent": shell_comment(lines, index),
+        }
+    )
+
+
+def note_shell_frame(frame, plain):
+    frame["score"] += len(branch_re.findall(plain))
+    frame["score"] += plain.count("&&")
+    frame["score"] += plain.count("||")
+    frame["calls"].extend(shell_calls(plain, frame["name"]))
+
+
+def move_shell_depth(frame, plain, depth):
+    for char in plain:
+        if char == "{":
+            depth += 1
+            frame["opened"] = True
+        elif char == "}" and depth > 0:
+            depth -= 1
+    return depth
+
+
+def measure_shell(path):
+    try:
+        lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    except OSError:
+        return
+    measure_shell_lines(lines)
+
+
+def measure_shell_lines(lines):
+    state = {"single": False, "double": False, "heredoc": "", "tabs": False}
+    depth = 0
+    stack = []
+    for index, line in enumerate(lines):
+        plain, interior = shell_plain(line, state)
+        if interior:
+            continue
+        open_shell_frame(stack, line, index, lines, depth, plain)
+        for frame in stack:
+            note_shell_frame(frame, plain)
+        if not stack:
+            continue
+        depth = move_shell_depth(stack[-1], plain, depth)
+        if stack[-1]["opened"] and depth <= stack[-1]["base"]:
+            close_shell_frame(stack, index)
+    while stack:
+        close_shell_frame(stack, max(len(lines) - 1, 0))
+
+
+def measure_hidden(start, missing):
+    for dirpath, dirnames, filenames in os.walk(start):
+        dirnames[:] = child_dirs(dirpath, dirnames)
+        for filename in sorted(filenames):
+            if not filename.endswith(".sh"):
+                continue
+            path = Path(dirpath) / filename
+            if path.is_symlink():
+                continue
+            rel = path.relative_to(root).as_posix()
+            if log_path(rel) or skip_path(rel):
+                continue
+            read_hidden(path, missing)
+
+
+def read_hidden(path, missing):
+    try:
+        lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    except OSError:
+        return
+    for index, _line in enumerate(lines):
+        name = shell_header(lines, index)
+        if name in missing:
+            measure_shell_lines(lines[index:])
+
+
+def measure_python(path):
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+    except OSError, SyntaxError:
+        return
+    mod = python_quality()
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        if not re.fullmatch(r"[a-z][a-z0-9_]*", node.name):
+            continue
+        span = mod.node_span(node)
+        score = mod.function_score(node)
+        remember_metric(node.name, "python", span, score, python_signature(node))
 
 
 def rewrite(value):
@@ -200,12 +626,6 @@ def first_mark(line):
     return marks[0][1]
 
 
-variables = {}
-functions = {}
-comments = []
-references = {}
-
-
 def add_name(table, name, prefix_map):
     prefix = name.split("_", 1)[0]
     if prefix not in prefix_map:
@@ -234,9 +654,6 @@ def add_name(table, name, prefix_map):
     return row
 
 
-defined = set()
-
-
 def child_dirs(dirpath, dirnames):
     kept = []
     for name in dirnames:
@@ -257,13 +674,25 @@ def log_path(rel):
 
 def shell_defs(path):
     try:
-        text = path.read_text(encoding="utf-8", errors="ignore")
+        lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
     except OSError:
         return
-    for line in text.splitlines():
-        found = def_re.match(line)
-        if found and not found.group(1).startswith("t_"):
-            defined.add(found.group(1))
+    for index, _line in enumerate(lines):
+        name = shell_header(lines, index)
+        if name:
+            defined.add(name)
+
+
+def python_defs(path):
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+    except OSError, SyntaxError:
+        return
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        if re.fullmatch(r"[a-z][a-z0-9_]*", node.name):
+            defined.add(node.name)
 
 
 def walk_shell(start):
@@ -281,12 +710,54 @@ def walk_shell(start):
             shell_defs(path)
 
 
+def walk_python(start):
+    for dirpath, dirnames, filenames in os.walk(start):
+        dirnames[:] = child_dirs(dirpath, dirnames)
+        for filename in sorted(filenames):
+            if not filename.endswith(".py"):
+                continue
+            path = Path(dirpath) / filename
+            if path.is_symlink():
+                continue
+            rel = path.relative_to(root).as_posix()
+            if log_path(rel) or skip_path(rel):
+                continue
+            python_defs(path)
+
+
 def collect_defined():
     for base in roots:
         start = root / base
         if not start.is_dir():
             continue
         walk_shell(start)
+        walk_python(start)
+
+
+def measure_tree(start):
+    for dirpath, dirnames, filenames in os.walk(start):
+        dirnames[:] = child_dirs(dirpath, dirnames)
+        for filename in sorted(filenames):
+            path = Path(dirpath) / filename
+            if path.is_symlink():
+                continue
+            rel = path.relative_to(root).as_posix()
+            if log_path(rel) or skip_path(rel):
+                continue
+            if filename.endswith(".sh"):
+                measure_shell(path)
+            elif filename.endswith(".py"):
+                measure_python(path)
+
+
+def collect_metrics():
+    for base in roots:
+        start = root / base
+        if not start.is_dir():
+            continue
+        measure_tree(start)
+        missing = {name for name in defined if name not in metrics}
+        measure_hidden(start, missing)
 
 
 def compile_functions():
@@ -295,7 +766,7 @@ def compile_functions():
         return
     names = sorted(defined, key=len, reverse=True)
     body = "|".join(re.escape(name) for name in names)
-    pattern = r"\b(" + body + r"|t_[a-z][a-z0-9]*(?:_[a-z0-9]+)*)\b"
+    pattern = r"\b(" + body + r")\b"
     fn_re = re.compile(pattern)
 
 
@@ -425,15 +896,45 @@ def write_csv(name, header, rows):
         writer.writerows(rows)
 
 
+def function_header():
+    return [
+        "name",
+        "scope",
+        "prefix",
+        "verb",
+        "target",
+        "count",
+        "files",
+        "language",
+        "complexity",
+        "maintainability",
+        "semantic_signature",
+    ]
+
+
+def function_row(row):
+    language, complexity, score, signature = metric_columns(row["name"])
+    return [
+        row["name"],
+        row["scope"],
+        row["prefix"],
+        row["verb"],
+        row["target"],
+        row["count"],
+        files_of(row),
+        language,
+        complexity,
+        score,
+        signature,
+    ]
+
+
 def emit_names():
     var_rows = [
         [row["name"], row["scope"], row["prefix"], row["target"], row["count"], files_of(row)]
         for row in sorted(variables.values(), key=lambda item: item["name"])
     ]
-    fn_rows = [
-        [row["name"], row["scope"], row["prefix"], row["verb"], row["target"], row["count"], files_of(row)]
-        for row in sorted(functions.values(), key=lambda item: item["name"])
-    ]
+    fn_rows = [function_row(row) for row in sorted(functions.values(), key=lambda item: item["name"])]
     comment_rows = [
         [path, line, kind, found, text]
         for path, line, kind, found, text in sorted(comments, key=lambda item: (item[0], item[1], item[3]))
@@ -443,16 +944,25 @@ def emit_names():
         for row in sorted(references.values(), key=lambda item: (item["kind"], item["value"]))
     ]
     write_csv("name-variables.csv", ["name", "scope", "prefix", "target", "count", "files"], var_rows)
-    write_csv("name-functions.csv", ["name", "scope", "prefix", "verb", "target", "count", "files"], fn_rows)
+    write_csv("name-functions.csv", function_header(), fn_rows)
     write_csv("name-comments.csv", ["path", "line", "kind", "match", "text"], comment_rows)
     write_csv("name-references.csv", ["kind", "value", "target", "count", "files"], ref_rows)
 
 
 def run_name_list():
+    global variables, functions, comments, references, defined
+    metrics.clear()
+    variables = {}
+    functions = {}
+    comments = []
+    references = {}
+    defined = set()
     collect_defined()
     compile_functions()
     scan_tree()
+    collect_metrics()
     emit_names()
 
 
-run_name_list()
+if __name__ == "__main__":
+    run_name_list()

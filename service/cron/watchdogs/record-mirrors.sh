@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/record-mirrors.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,8 +11,6 @@
 # Note       : The stamp mode is 600.
 # -----------------------------------------------------------------------------
 
-
-set -euo pipefail
 
 load_mirror_base() {
     local here="" dir="" hops=0
@@ -32,6 +30,7 @@ load_mirror_base() {
         hops=$((hops + 1))
     done
 }
+set -euo pipefail
 
 load_mirror_base
 if [[ -z "${BASE:-}" ]]; then

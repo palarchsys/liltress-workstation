@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/config-check.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -23,17 +23,6 @@ else
     printf 'bootstrap core not found from %s\n' "${PRODUCT_ROOT}" >&2
     exit 1
 fi
-source_core config/config-validators.sh
-source_core log/log.sh
-
-# Running this file alone is refused.
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-    printf '%s\n' "$(get_text configure.use-liltress-configures-check-n)" >&2
-    exit 1
-fi
-
-# Refused values stay here until the caller prints them.
-CONFIG_ERRORS=()
 
 # A token is 6 to 100 letters or digits.
 check_pro_token() {
@@ -103,7 +92,7 @@ write_global_opening() {
     cat >"${dest}" <<EOF
 # =============================================================================
 # File       : config/global.conf
-# Updated at : 2026-11-11
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -175,7 +164,7 @@ write_user_config() {
     cat >"${dest}" <<EOF
 # =============================================================================
 # File       : config/user.conf
-# Updated at : 2026-11-11
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -197,7 +186,7 @@ write_secret_config() {
     cat >"${dest}" <<EOF
 # =============================================================================
 # File       : config/secrets.conf
-# Updated at : 2026-11-11
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -435,3 +424,14 @@ require_prepared_config() {
     validate_values
     emit_config
 }
+source_core config/config-validators.sh
+source_core log/log.sh
+
+# Running this file alone is refused.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    printf '%s\n' "$(get_text configure.use-liltress-configures-check-n)" >&2
+    exit 1
+fi
+
+# Refused values stay here until the caller prints them.
+CONFIG_ERRORS=()

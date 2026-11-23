@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/run.sh
-# Updated at : 2026-11-22
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -47,7 +47,6 @@ trap install_exit EXIT
 
 # shellcheck disable=SC1091
 source "${INSTALL_DIRECTORY}/service/unbound/dns.sh"
-clear_dns_override
 
 # A pending kernel or service change requests a reboot.
 show_reboot_notice() {
@@ -91,6 +90,7 @@ run_install_action() {
             ;;
     esac
 }
+clear_dns_override
 
 run_install_plan "${INSTALL_DIRECTORY}" "${INSTALL_DIRECTORY}/config/schema/installation.json"
 # The watched files are already in their installed state.

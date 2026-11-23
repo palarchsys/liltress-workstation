@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/pro-status.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -37,5 +37,6 @@ def rows_of(payload):
     return rows
 
 
-for row in rows_of(json.load(sys.stdin)):
-    print(row)
+if __name__ == "__main__":
+    for row in rows_of(json.load(sys.stdin)):
+        print(row)

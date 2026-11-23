@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/unbound-docker.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -34,4 +34,5 @@ def write_dns(path, cidr):
         handle.write("\n")
 
 
-write_dns(sys.argv[1], sys.argv[2])
+if __name__ == "__main__":
+    write_dns(sys.argv[1], sys.argv[2])

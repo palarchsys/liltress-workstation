@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/check-locale.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -105,4 +105,5 @@ def run_check_locale():
     sys.exit("mode python refusé")
 
 
-run_check_locale()
+if __name__ == "__main__":
+    run_check_locale()

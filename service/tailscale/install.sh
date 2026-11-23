@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/tailscale/install.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,7 +18,6 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 
 source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
-require_root
 
 read_os_codename() {
     local codename=""
@@ -74,5 +73,6 @@ install_tailscale_package() {
     systemctl enable --now tailscaled
     log_success "${INSTALL_WATCHER}" "install.tailscale.ready"
 }
+require_root
 
 install_tailscale_package

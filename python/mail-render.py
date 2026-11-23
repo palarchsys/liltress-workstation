@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/mail-render.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -270,4 +270,5 @@ def render():
     sys.stdout.write(tpl)
 
 
-render()
+if __name__ == "__main__":
+    render()

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/usbguard/configure.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,51 +12,57 @@
 # -----------------------------------------------------------------------------
 
 
-INSTALL_WATCHER="${1:-BASH}"
-INSTALL_DIRECTORY="${2:-}"
-export INSTALL_WATCHER INSTALL_DIRECTORY
-
-source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
-source "${INSTALL_DIRECTORY}/config/global.conf"
-require_root
-get_current_user
-
-log_info "${INSTALL_WATCHER}" "configure.write-of-the-rules-usbguard"
-install -d -m 750 /etc/usbguard /etc/usbguard/IPCAccessControl.d
-rules=/etc/usbguard/rules.conf
-: >"${rules}"
-if command -v usbguard >/dev/null 2>&1; then
-    usbguard generate-policy >"${rules}.gen" 2>/dev/null || true
-    if [[ -s "${rules}.gen" ]]; then
-        cat "${rules}.gen" >"${rules}"
+run_configure_part_01() {
+    INSTALL_WATCHER="${1:-BASH}"
+    INSTALL_DIRECTORY="${2:-}"
+    export INSTALL_WATCHER INSTALL_DIRECTORY
+    source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
+    source "${INSTALL_DIRECTORY}/config/global.conf"
+    require_root
+    get_current_user
+    log_info "${INSTALL_WATCHER}" "configure.write-of-the-rules-usbguard"
+    install -d -m 750 /etc/usbguard /etc/usbguard/IPCAccessControl.d
+    rules=/etc/usbguard/rules.conf
+    : >"${rules}"
+    if command -v usbguard >/dev/null 2>&1; then
+        usbguard generate-policy >"${rules}.gen" 2>/dev/null || true
+        if [[ -s "${rules}.gen" ]]; then
+            cat "${rules}.gen" >"${rules}"
+        fi
+        rm -f "${rules}.gen"
     fi
-    rm -f "${rules}.gen"
-fi
-grep -v '^#' "$(locate_config_file service/usbguard/hid.rules)" >>"${rules}"
-chmod 600 "${rules}"
-if ! grep -qF 'allow with-interface equals { 03:*:* }' "${rules}"; then
-    log_warn "${INSTALL_WATCHER}" "configure.usbguard-left-stopped-the-rule-clavier-is-missin"
-    run_optional "${INSTALL_WATCHER}" "configure.usbguard.error" systemctl disable --now usbguard
-    exit 0
-fi
+    grep -v '^#' "$(locate_config_file service/usbguard/hid.rules)" >>"${rules}"
+    chmod 600 "${rules}"
+    if ! grep -qF 'allow with-interface equals { 03:*:* }' "${rules}"; then
+        log_warn "${INSTALL_WATCHER}" "configure.usbguard-left-stopped-the-rule-clavier-is-missin"
+        run_optional "${INSTALL_WATCHER}" "configure.usbguard.error" systemctl disable --now usbguard
+        exit 0
+    fi
+    daemon_conf=/etc/usbguard/usbguard-daemon.conf
+    if [[ ! -f "${daemon_conf}" ]]; then
+        install -m 600 /dev/null "${daemon_conf}"
+    fi
+    load_usb_rule
+    set_usb_rule IPCAllowedUsers "root ${CURRENT_USER}"
+    chmod 600 "${daemon_conf}"
+}
 
-daemon_conf=/etc/usbguard/usbguard-daemon.conf
-if [[ ! -f "${daemon_conf}" ]]; then
-    install -m 600 /dev/null "${daemon_conf}"
-fi
+run_configure_part_02() {
+    ipc="/etc/usbguard/IPCAccessControl.d/${CURRENT_USER}"
+    grep -v '^#' "$(locate_config_file service/usbguard/ipc.acl)" >"${ipc}"
+    chmod 600 "${ipc}"
+    log_info "${INSTALL_WATCHER}" "configure.activation-of-usbguard"
+    if systemctl enable --now usbguard >/dev/null 2>&1; then
+        log_success "${INSTALL_WATCHER}" "configure.active-usbguard-appareils-pr-sents-and-hid-autor"
+    else
+        log_warn "${INSTALL_WATCHER}" "configure.usbguard-did-not-started-service-left-stopped"
+        run_optional "${INSTALL_WATCHER}" "configure.usbguard.error" systemctl disable --now usbguard
+    fi
+}
 
-load_usb_rule
-set_usb_rule IPCAllowedUsers "root ${CURRENT_USER}"
-chmod 600 "${daemon_conf}"
+run_configure_part_03() {
+    run_configure_part_01 "$@"
+    run_configure_part_02 "$@"
+}
 
-ipc="/etc/usbguard/IPCAccessControl.d/${CURRENT_USER}"
-grep -v '^#' "$(locate_config_file service/usbguard/ipc.acl)" >"${ipc}"
-chmod 600 "${ipc}"
-
-log_info "${INSTALL_WATCHER}" "configure.activation-of-usbguard"
-if systemctl enable --now usbguard >/dev/null 2>&1; then
-    log_success "${INSTALL_WATCHER}" "configure.active-usbguard-appareils-pr-sents-and-hid-autor"
-else
-    log_warn "${INSTALL_WATCHER}" "configure.usbguard-did-not-started-service-left-stopped"
-    run_optional "${INSTALL_WATCHER}" "configure.usbguard.error" systemctl disable --now usbguard
-fi
+run_configure_part_03 "$@"

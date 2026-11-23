@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/apply-scan-skip.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -83,10 +83,6 @@ restart_scan_skip_service() {
     done
 }
 
-if [[ -n "${SCAN_SKIP_HOME:-}" ]]; then
-    ensure_scan_skip_file "${SCAN_SKIP_HOME}"
-fi
-
 load_onaccess_exclude() {
     local candidate found=""
     ONACCESS_FIXED_EXCLUDE="${ONACCESS_FIXED_EXCLUDE:-/var/lib/snapd /snap /var/lib/clamav/quarantine /var/lib/clamav/tmp /var/log}"
@@ -138,6 +134,10 @@ read_scan_run_dir() {
     done
     printf '%s\n' "/run/liltress-workstation"
 }
+
+if [[ -n "${SCAN_SKIP_HOME:-}" ]]; then
+    ensure_scan_skip_file "${SCAN_SKIP_HOME}"
+fi
 
 load_onaccess_exclude
 collect_scan_skip_path

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-skip-lib.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -63,8 +63,6 @@ locate_python_dir() {
     printf '%s\n' "dossier python introuvable" >&2
     return 1
 }
-
-BASE="${BASE:-/opt/liltress-workstation}"
 
 render_scan_skip_path() {
     python3 "$(locate_python_dir)/scan-skip-path.py" norm "$1"
@@ -287,5 +285,7 @@ ensure_scan_skip_file() {
     [[ -f "${template}" ]] || return 1
     render_scan_skip_template "${template}" "${dest}" "${home}"
 }
+
+BASE="${BASE:-/opt/liltress-workstation}"
 
 SCAN_SKIP_FILE="$(locate_scan_skip_file)"

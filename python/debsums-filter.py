@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/debsums-filter.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -220,4 +220,5 @@ def run_filter():
     sys.exit("mode python refusé")
 
 
-run_filter()
+if __name__ == "__main__":
+    run_filter()

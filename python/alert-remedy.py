@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/alert-remedy.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -30,5 +30,6 @@ def actions_of(catalog, tool, class_id, branch):
     return []
 
 
-for action in actions_of(*sys.argv[1:]):
-    print(action)
+if __name__ == "__main__":
+    for action in actions_of(*sys.argv[1:]):
+        print(action)

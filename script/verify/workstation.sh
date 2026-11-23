@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/verify/workstation.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,15 +18,6 @@ export INSTALL_WATCHER INSTALL_DIRECTORY
 
 source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
 source "${INSTALL_DIRECTORY}/config/global.conf"
-require_root
-get_current_user
-get_ssh_port
-get_operating_system
-
-PASS=0
-FAIL=0
-WARNN=0
-REPORT="${INSTALL_LOG_DIR:-.}/verify-report-WORKSTATION-$(date +%Y%m%d-%H%M%S).md"
 
 report_pass() {
     PASS=$((PASS + 1))
@@ -37,245 +28,286 @@ report_pass() {
     fi
     echo "$(get_text log.ok-4 "$*")" >>"${REPORT}"
 }
+
 report_fail() {
     FAIL=$((FAIL + 1))
     note_bash fault "$*"
     echo "- FAIL  $*" >>"${REPORT}"
 }
+
 report_warn() {
     WARNN=$((WARNN + 1))
     log_warn "${INSTALL_WATCHER}" "verify.workstation.warn" "WARN  $*"
     echo "- WARN  $*" >>"${REPORT}"
 }
 
-mkdir -p "$(dirname "${REPORT}")"
-{
-    echo "$(get_text log.liltress-workstation-check-workstation)"
-    echo
-    echo "$(get_text log.date-4 "$(date -Iseconds)")"
-    echo "$(get_text log.user "${CURRENT_USER}")"
-    echo "$(get_text log.os-2 "${OS_PRETTY}")"
-    echo
-} >"${REPORT}"
+check_workstation_part_01() {
+    mkdir -p "$(dirname "${REPORT}")"
+    {
+        echo "$(get_text log.liltress-workstation-check-workstation)"
+        echo
+        echo "$(get_text log.date-4 "$(date -Iseconds)")"
+        echo "$(get_text log.user "${CURRENT_USER}")"
+        echo "$(get_text log.os-2 "${OS_PRETTY}")"
+        echo
+    } >"${REPORT}"
 
-root_hash="$(awk -F: '$1=="root"{print $2}' /etc/shadow)"
-user_hash="$(awk -F: -v u="${CURRENT_USER}" '$1==u{print $2}' /etc/shadow)"
-if [[ -z "${root_hash}" ]]; then
-    report_fail "shadow root vide"
-elif [[ "${root_hash}" == "*" || "${root_hash}" == "!" || "${root_hash}" == "!!" || "${root_hash}" == "!*" ]]; then
-    report_pass "compte root verrouillé par Ubuntu (ce programme ne pose pas de mot de passe root)"
-else
-    report_pass "root : hash présent, non réécrit par HFU"
-fi
-if [[ -z "${user_hash}" || "${user_hash}" == "!" || "${user_hash}" == "*" ]]; then
-    report_fail "compte ${CURRENT_USER} sans mot de passe utilisable"
-else
-    report_pass "compte ${CURRENT_USER} : hash intact (HFU n'appelle jamais chpasswd)"
-fi
+    root_hash="$(awk -F: '$1=="root"{print $2}' /etc/shadow)"
+    user_hash="$(awk -F: -v u="${CURRENT_USER}" '$1==u{print $2}' /etc/shadow)"
+    if [[ -z "${root_hash}" ]]; then
+        report_fail "shadow root vide"
+    elif [[ "${root_hash}" == "*" || "${root_hash}" == "!" || "${root_hash}" == "!!" || "${root_hash}" == "!*" ]]; then
+        report_pass "compte root verrouillé par Ubuntu (ce programme ne pose pas de mot de passe root)"
+    else
+        report_pass "root : hash présent, non réécrit par HFU"
+    fi
+}
 
-maxdays="$(LANG=C LC_ALL=C chage -l "${CURRENT_USER}" 2>/dev/null | awk -F: '/Maximum/{gsub(/ /,"",$2); print $2}')"
-if [[ "${maxdays}" == "90" ]]; then
-    report_warn "chage MAXDAYS=90 sur ${CURRENT_USER}"
-else
-    report_pass "chage ${CURRENT_USER} non forcé à 90 jours"
-fi
+check_workstation_part_02() {
+    if [[ -z "${user_hash}" || "${user_hash}" == "!" || "${user_hash}" == "*" ]]; then
+        report_fail "compte ${CURRENT_USER} sans mot de passe utilisable"
+    else
+        report_pass "compte ${CURRENT_USER} : hash intact (HFU n'appelle jamais chpasswd)"
+    fi
 
-for b in gcc g++ cc make; do
-    if command -v "${b}" >/dev/null 2>&1; then
-        mode="$(stat -c '%a' "$(command -v "${b}")")"
-        if [[ "${mode}" == "700" ]]; then
-            report_fail "compilateur ${b} en 700"
+    maxdays="$(LANG=C LC_ALL=C chage -l "${CURRENT_USER}" 2>/dev/null | awk -F: '/Maximum/{gsub(/ /,"",$2); print $2}')"
+    if [[ "${maxdays}" == "90" ]]; then
+        report_warn "chage MAXDAYS=90 sur ${CURRENT_USER}"
+    else
+        report_pass "chage ${CURRENT_USER} non forcé à 90 jours"
+    fi
+
+    for b in gcc g++ cc make; do
+        if command -v "${b}" >/dev/null 2>&1; then
+            mode="$(stat -c '%a' "$(command -v "${b}")")"
+            if [[ "${mode}" == "700" ]]; then
+                report_fail "compilateur ${b} en 700"
+            else
+                report_pass "compilateur ${b} mode ${mode}"
+            fi
+        fi
+    done
+
+    root_login="$(get_sshd_value permitrootlogin)"
+}
+
+check_workstation_part_03() {
+    if [[ "${root_login}" == "no" ]]; then
+        report_pass "PermitRootLogin no"
+    else
+        report_fail "PermitRootLogin n'est pas no (valeur effective : ${root_login:-inconnue})"
+    fi
+    if [[ "$(get_sshd_value passwordauthentication)" == "yes" ]]; then
+        report_pass "PasswordAuthentication yes (le mot de passe du compte est accepté en SSH)"
+    else
+        report_fail "PasswordAuthentication n'est pas yes"
+    fi
+    tcp_fwd="$(get_sshd_value allowtcpforwarding)"
+    agent_fwd="$(get_sshd_value allowagentforwarding)"
+    if [[ "${tcp_fwd}" == "no" && "${agent_fwd}" == "no" ]]; then
+        report_pass "relais SSH coupé"
+    else
+        report_fail "relais SSH ouvert (tcp ${tcp_fwd:-inconnu}, agent ${agent_fwd:-inconnu})"
+    fi
+    if sshd -t 2>/dev/null; then
+        report_pass "sshd -t"
+    else
+        report_fail "sshd -t échoue"
+    fi
+
+    if LANG=C LC_ALL=C LANGUAGE=C ufw status | grep -qw "Status: active"; then
+        report_pass "UFW actif"
+    else
+        report_fail "UFW inactif"
+    fi
+    if LANG=C LC_ALL=C LANGUAGE=C ufw status verbose | grep -qiE 'Default: deny \(incoming\), allow \(outgoing\)'; then
+        report_pass "UFW outgoing ALLOW"
+    else
+        report_fail "UFW outgoing n'est pas allow"
+    fi
+}
+
+check_workstation_part_04() {
+    ufw_rules="$(LANG=C LC_ALL=C LANGUAGE=C ufw status 2>/dev/null || true)"
+    if grep -qF 'OpenSSH via Tailscale only' <<<"${ufw_rules}"; then
+        report_pass "SSH ouvert seulement via Tailscale"
+    else
+        report_fail "règle SSH Tailscale absente"
+    fi
+
+    tmp_opts="$(findmnt -no OPTIONS /tmp 2>/dev/null || true)"
+    if echo "${tmp_opts}" | grep -qw noexec; then
+        report_fail "/tmp est noexec"
+    else
+        report_pass "/tmp sans noexec"
+    fi
+
+    if [[ "$(sysctl -n net.ipv4.ip_forward 2>/dev/null || echo 0)" == "1" ]]; then
+        report_pass "ip_forward=1"
+    else
+        report_fail "ip_forward n'est pas 1"
+    fi
+}
+
+check_workstation_part_05() {
+    if [[ "$(sysctl -n kernel.yama.ptrace_scope 2>/dev/null || echo missing)" == "1" ]]; then
+        report_pass "ptrace_scope=1"
+    else
+        report_fail "ptrace_scope n'est pas 1"
+    fi
+    ipv6_all="$(sysctl -n net.ipv6.conf.all.disable_ipv6 2>/dev/null || echo 0)"
+    ipv6_default="$(sysctl -n net.ipv6.conf.default.disable_ipv6 2>/dev/null || echo 0)"
+    if [[ "${ipv6_all}" == "1" && "${ipv6_default}" == "1" ]]; then
+        report_pass "IPv6 coupé"
+    else
+        report_fail "IPv6 encore actif"
+    fi
+}
+
+check_workstation_part_06() {
+    if [[ -n "$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || true)" &&
+    "$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || echo 1)" == "0" ]]; then
+        report_fail "unprivileged_userns_clone=0"
+    else
+        report_pass "user namespaces non désactivés par sysctl"
+    fi
+    if grep -RqsE 'apparmor_restrict_unprivileged_userns[[:space:]]*=[[:space:]]*0' /etc/sysctl.d /etc/sysctl.conf 2>/dev/null; then
+        report_fail "un fichier sysctl désactive la restriction userns AppArmor au lieu d'un profil"
+    else
+        report_pass "restriction userns AppArmor non désactivée par HFU"
+    fi
+    if [[ "$(dpkg --print-architecture)" == "amd64" ]]; then
+        if dpkg --print-foreign-architectures | grep -qx i386; then
+            report_pass "architecture i386 activée"
         else
-            report_pass "compilateur ${b} mode ${mode}"
+            report_fail "architecture i386 absente"
         fi
     fi
-done
+}
 
-root_login="$(get_sshd_value permitrootlogin)"
-if [[ "${root_login}" == "no" ]]; then
-    report_pass "PermitRootLogin no"
-else
-    report_fail "PermitRootLogin n'est pas no (valeur effective : ${root_login:-inconnue})"
-fi
-if [[ "$(get_sshd_value passwordauthentication)" == "yes" ]]; then
-    report_pass "PasswordAuthentication yes (le mot de passe du compte est accepté en SSH)"
-else
-    report_fail "PasswordAuthentication n'est pas yes"
-fi
-tcp_fwd="$(get_sshd_value allowtcpforwarding)"
-agent_fwd="$(get_sshd_value allowagentforwarding)"
-if [[ "${tcp_fwd}" == "no" && "${agent_fwd}" == "no" ]]; then
-    report_pass "relais SSH coupé"
-else
-    report_fail "relais SSH ouvert (tcp ${tcp_fwd:-inconnu}, agent ${agent_fwd:-inconnu})"
-fi
-if sshd -t 2>/dev/null; then
-    report_pass "sshd -t"
-else
-    report_fail "sshd -t échoue"
-fi
-
-if LANG=C LC_ALL=C LANGUAGE=C ufw status | grep -qw "Status: active"; then
-    report_pass "UFW actif"
-else
-    report_fail "UFW inactif"
-fi
-if LANG=C LC_ALL=C LANGUAGE=C ufw status verbose | grep -qiE 'Default: deny \(incoming\), allow \(outgoing\)'; then
-    report_pass "UFW outgoing ALLOW"
-else
-    report_fail "UFW outgoing n'est pas allow"
-fi
-ufw_rules="$(LANG=C LC_ALL=C LANGUAGE=C ufw status 2>/dev/null || true)"
-if grep -qF 'OpenSSH via Tailscale only' <<<"${ufw_rules}"; then
-    report_pass "SSH ouvert seulement via Tailscale"
-else
-    report_fail "règle SSH Tailscale absente"
-fi
-
-tmp_opts="$(findmnt -no OPTIONS /tmp 2>/dev/null || true)"
-if echo "${tmp_opts}" | grep -qw noexec; then
-    report_fail "/tmp est noexec"
-else
-    report_pass "/tmp sans noexec"
-fi
-
-if [[ "$(sysctl -n net.ipv4.ip_forward 2>/dev/null || echo 0)" == "1" ]]; then
-    report_pass "ip_forward=1"
-else
-    report_fail "ip_forward n'est pas 1"
-fi
-if [[ "$(sysctl -n kernel.yama.ptrace_scope 2>/dev/null || echo missing)" == "1" ]]; then
-    report_pass "ptrace_scope=1"
-else
-    report_fail "ptrace_scope n'est pas 1"
-fi
-ipv6_all="$(sysctl -n net.ipv6.conf.all.disable_ipv6 2>/dev/null || echo 0)"
-ipv6_default="$(sysctl -n net.ipv6.conf.default.disable_ipv6 2>/dev/null || echo 0)"
-if [[ "${ipv6_all}" == "1" && "${ipv6_default}" == "1" ]]; then
-    report_pass "IPv6 coupé"
-else
-    report_fail "IPv6 encore actif"
-fi
-if [[ -n "$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || true)" &&
-"$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || echo 1)" == "0" ]]; then
-    report_fail "unprivileged_userns_clone=0"
-else
-    report_pass "user namespaces non désactivés par sysctl"
-fi
-if grep -RqsE 'apparmor_restrict_unprivileged_userns[[:space:]]*=[[:space:]]*0' /etc/sysctl.d /etc/sysctl.conf 2>/dev/null; then
-    report_fail "un fichier sysctl désactive la restriction userns AppArmor au lieu d'un profil"
-else
-    report_pass "restriction userns AppArmor non désactivée par HFU"
-fi
-if [[ "$(dpkg --print-architecture)" == "amd64" ]]; then
-    if dpkg --print-foreign-architectures | grep -qx i386; then
-        report_pass "architecture i386 activée"
+check_workstation_part_07() {
+    if [[ -f /etc/sudoers.d/liltress-workstation-umask ]] \
+        && visudo -cf /etc/sudoers.d/liltress-workstation-umask >/dev/null \
+        && grep -q 'umask_override' /etc/sudoers.d/liltress-workstation-umask; then
+        report_pass "sudo umask 0022 (apt ne hérite pas de 027)"
     else
-        report_fail "architecture i386 absente"
+        report_fail "sudoers umask absent ou invalide"
     fi
-fi
-if [[ -f /etc/sudoers.d/liltress-workstation-umask ]] \
-    && visudo -cf /etc/sudoers.d/liltress-workstation-umask >/dev/null \
-    && grep -q 'umask_override' /etc/sudoers.d/liltress-workstation-umask; then
-    report_pass "sudo umask 0022 (apt ne hérite pas de 027)"
-else
-    report_fail "sudoers umask absent ou invalide"
-fi
-if [[ -f /etc/sudoers.d/liltress-workstation-timeout ]] \
-    && visudo -cf /etc/sudoers.d/liltress-workstation-timeout >/dev/null 2>&1 \
-    && grep -qx 'Defaults timestamp_timeout=5' /etc/sudoers.d/liltress-workstation-timeout; then
-    report_pass "sudo redemande le mot de passe après 5 minutes"
-else
-    report_fail "délai sudo absent ou invalide"
-fi
-if grep -q '^DEFAULT_FORWARD_POLICY="ACCEPT"' /etc/default/ufw 2>/dev/null; then
-    report_pass "UFW DEFAULT_FORWARD_POLICY=ACCEPT"
-else
-    report_fail "UFW forward policy n'est pas ACCEPT"
-fi
-if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
-    if systemctl is-active --quiet postfix; then
-        report_pass "Postfix actif"
+    if [[ -f /etc/sudoers.d/liltress-workstation-timeout ]] \
+        && visudo -cf /etc/sudoers.d/liltress-workstation-timeout >/dev/null 2>&1 \
+        && grep -qx 'Defaults timestamp_timeout=5' /etc/sudoers.d/liltress-workstation-timeout; then
+        report_pass "sudo redemande le mot de passe après 5 minutes"
     else
-        report_fail "Postfix inactif"
+        report_fail "délai sudo absent ou invalide"
     fi
-    postfix_listen="$(postconf -h inet_interfaces 2>/dev/null | tr -d '[:space:]' || true)"
-    case "${postfix_listen}" in
-        loopback-only | localhost | 127.0.0.1 | "[::1]")
-            report_pass "Postfix écoute seulement localhost"
-            ;;
-        *)
-            report_fail "Postfix n'est pas limité à localhost (${postfix_listen:-inconnu})"
-            ;;
-    esac
-else
-    report_pass "alertes e-mail coupées"
-fi
-
-systemctl daemon-reload >/dev/null 2>&1 || true
-
-for svc in apparmor fail2ban auditd clamav-daemon clamav-freshclam unattended-upgrades unbound; do
-    if systemctl is-enabled --quiet "${svc}" 2>/dev/null || systemctl is-active --quiet "${svc}" 2>/dev/null; then
-        report_pass "service ${svc} enabled/active"
+    if grep -q '^DEFAULT_FORWARD_POLICY="ACCEPT"' /etc/default/ufw 2>/dev/null; then
+        report_pass "UFW DEFAULT_FORWARD_POLICY=ACCEPT"
     else
-        report_warn "service ${svc} inactif"
+        report_fail "UFW forward policy n'est pas ACCEPT"
     fi
-done
+}
 
-if systemctl is-active --quiet clamav-clamonacc.service 2>/dev/null \
-    || systemctl is-active --quiet clamonacc.service 2>/dev/null; then
-    report_pass "ClamAV surveille les dossiers à risque en continu"
-else
-    report_fail "clamonacc inactif ($(systemctl is-active clamav-clamonacc.service 2>/dev/null || systemctl is-active clamonacc.service 2>/dev/null || echo absent))"
-fi
-if systemctl is-enabled --quiet w-boot-chain.timer 2>/dev/null; then
-    report_pass "chaîne de sécurité au démarrage"
-else
-    report_fail "timer de la chaîne de démarrage absent"
-fi
-if systemctl is-enabled --quiet w-reboot-notice.timer 2>/dev/null; then
-    report_pass "avis de redémarrage planifié"
-else
-    report_fail "timer d'avis de redémarrage absent"
-fi
-if systemctl is-enabled --quiet w-periodic-scan.timer 2>/dev/null; then
-    report_pass "chaîne périodique toutes les 1 h"
-else
-    report_fail "timer de la chaîne périodique absent"
-fi
-boot_bin="${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/boot-scan.sh"
-if [[ -f "${boot_bin}" ]] \
-    && grep -q 'chain-periodic.sh' "${boot_bin}" \
-    && grep -q 'arm-onaccess.sh' "${boot_bin}" \
-    && grep -q 'arm-periodic-scan.sh' "${boot_bin}" \
-    && grep -q 'reboot-notice.sh' "${boot_bin}"; then
-    report_pass "chaîne, accès, période et avis dans le démarrage"
-else
-    report_fail "chaîne de démarrage incomplète"
-fi
-clam_conf="/etc/clamav/clamd.conf"
-if [[ -f "${clam_conf}" ]] \
-    && grep -q '^OnAccessIncludePath /tmp$' "${clam_conf}" \
-    && grep -q '^OnAccessIncludePath /var/tmp$' "${clam_conf}" \
-    && grep -q '^OnAccessIncludePath /opt$' "${clam_conf}" \
-    && ! grep -q '^OnAccessIncludePath /$' "${clam_conf}" \
-    && ! grep -q '^OnAccessIncludePath /home$' "${clam_conf}"; then
-    report_pass "surveillance continue sur /tmp, /var/tmp et /opt"
-else
-    report_fail "surveillance continue incomplète"
-fi
-if [[ -f "${clam_conf}" ]] \
-    && grep -q '/var/lib/clamav/quarantine' "${clam_conf}" \
-    && grep -q '/var/lib/clamav/tmp' "${clam_conf}" \
-    && grep -q '/var/log' "${clam_conf}" \
-    && ! grep -Eq '^OnAccessExcludePath[[:space:]]+\^?/opt/liltress-workstation/?\$?[[:space:]]*$' "${clam_conf}"; then
-    report_pass "exclusions minimales présentes"
-else
-    report_fail "exclusions minimales absentes"
-fi
-# shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/config/service/clamav/onaccess.conf"
-if [[ "${ONACCESS_MOUNTS}" == "1" ]]; then
+check_workstation_part_08() {
+    if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
+        if systemctl is-active --quiet postfix; then
+            report_pass "Postfix actif"
+        else
+            report_fail "Postfix inactif"
+        fi
+        postfix_listen="$(postconf -h inet_interfaces 2>/dev/null | tr -d '[:space:]' || true)"
+        case "${postfix_listen}" in
+            loopback-only | localhost | 127.0.0.1 | "[::1]")
+                report_pass "Postfix écoute seulement localhost"
+                ;;
+            *)
+                report_fail "Postfix n'est pas limité à localhost (${postfix_listen:-inconnu})"
+                ;;
+        esac
+    else
+        report_pass "alertes e-mail coupées"
+    fi
+
+    systemctl daemon-reload >/dev/null 2>&1 || true
+
+}
+
+check_workstation_part_09() {
+    for svc in apparmor fail2ban auditd clamav-daemon clamav-freshclam unattended-upgrades unbound; do
+        if systemctl is-enabled --quiet "${svc}" 2>/dev/null || systemctl is-active --quiet "${svc}" 2>/dev/null; then
+            report_pass "service ${svc} enabled/active"
+        else
+            report_warn "service ${svc} inactif"
+        fi
+    done
+
+    if systemctl is-active --quiet clamav-clamonacc.service 2>/dev/null \
+        || systemctl is-active --quiet clamonacc.service 2>/dev/null; then
+        report_pass "ClamAV surveille les dossiers à risque en continu"
+    else
+        report_fail "clamonacc inactif ($(systemctl is-active clamav-clamonacc.service 2>/dev/null || systemctl is-active clamonacc.service 2>/dev/null || echo absent))"
+    fi
+}
+
+check_workstation_part_10() {
+    if systemctl is-enabled --quiet w-boot-chain.timer 2>/dev/null; then
+        report_pass "chaîne de sécurité au démarrage"
+    else
+        report_fail "timer de la chaîne de démarrage absent"
+    fi
+    if systemctl is-enabled --quiet w-reboot-notice.timer 2>/dev/null; then
+        report_pass "avis de redémarrage planifié"
+    else
+        report_fail "timer d'avis de redémarrage absent"
+    fi
+    if systemctl is-enabled --quiet w-periodic-scan.timer 2>/dev/null; then
+        report_pass "chaîne périodique toutes les 1 h"
+    else
+        report_fail "timer de la chaîne périodique absent"
+    fi
+    boot_bin="${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/boot-scan.sh"
+}
+
+check_workstation_part_11() {
+    if [[ -f "${boot_bin}" ]] \
+        && grep -q 'chain-periodic.sh' "${boot_bin}" \
+        && grep -q 'arm-onaccess.sh' "${boot_bin}" \
+        && grep -q 'arm-periodic-scan.sh' "${boot_bin}" \
+        && grep -q 'reboot-notice.sh' "${boot_bin}"; then
+        report_pass "chaîne, accès, période et avis dans le démarrage"
+    else
+        report_fail "chaîne de démarrage incomplète"
+    fi
+    clam_conf="/etc/clamav/clamd.conf"
+}
+
+check_workstation_part_12() {
+    if [[ -f "${clam_conf}" ]] \
+        && grep -q '^OnAccessIncludePath /tmp$' "${clam_conf}" \
+        && grep -q '^OnAccessIncludePath /var/tmp$' "${clam_conf}" \
+        && grep -q '^OnAccessIncludePath /opt$' "${clam_conf}" \
+        && ! grep -q '^OnAccessIncludePath /$' "${clam_conf}" \
+        && ! grep -q '^OnAccessIncludePath /home$' "${clam_conf}"; then
+        report_pass "surveillance continue sur /tmp, /var/tmp et /opt"
+    else
+        report_fail "surveillance continue incomplète"
+    fi
+}
+
+check_workstation_part_13() {
+    if [[ -f "${clam_conf}" ]] \
+        && grep -q '/var/lib/clamav/quarantine' "${clam_conf}" \
+        && grep -q '/var/lib/clamav/tmp' "${clam_conf}" \
+        && grep -q '/var/log' "${clam_conf}" \
+        && ! grep -Eq '^OnAccessExcludePath[[:space:]]+\^?/opt/liltress-workstation/?\$?[[:space:]]*$' "${clam_conf}"; then
+        report_pass "exclusions minimales présentes"
+    else
+        report_fail "exclusions minimales absentes"
+    fi
+    # shellcheck disable=SC1091
+    source "${INSTALL_DIRECTORY}/config/service/clamav/onaccess.conf"
+}
+
+check_onaccess_mounts() {
     mount_ok=1
     if [[ -d /media ]] && ! grep -q '^OnAccessIncludePath /media$' "${clam_conf}"; then
         mount_ok=0
@@ -283,210 +315,280 @@ if [[ "${ONACCESS_MOUNTS}" == "1" ]]; then
     if [[ -d /mnt ]] && ! grep -q '^OnAccessIncludePath /mnt$' "${clam_conf}"; then
         mount_ok=0
     fi
-    if [[ "${mount_ok}" == "1" ]]; then
-        report_pass "surveillance continue de /media et /mnt"
-    else
-        report_fail "/media ou /mnt absents de la surveillance continue"
-    fi
-elif grep -q '^OnAccessIncludePath /media$' "${clam_conf}" \
-    || grep -q '^OnAccessIncludePath /mnt$' "${clam_conf}"; then
-    report_fail "/media ou /mnt surveillés alors que ONACCESS_MOUNTS=0"
-else
-    report_pass "montages hors surveillance continue"
-fi
-# shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/config/service/ufw/egress.conf"
-response="${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/clamav-response.sh"
-if [[ -f "${response}" ]] \
-    && grep -q 'kill -TERM' "${response}" \
-    && ! grep -q 'CLAMAV_KILL' "${response}" \
-    && grep -q 'inet w_isolate' "${response}" \
-    && ! grep -q 'NET_ISOLATE:-' "${response}"; then
-    report_pass "signal et isolation après une détection (${NET_ISOLATE_SEC}s)"
-else
-    report_fail "signal ou isolation absent de clamav-response.sh"
-fi
-if [[ -x "${INSTALL_DIRECTORY}/service/apparmor/detect-and-apply.sh" ]]; then
-    report_pass "détection AppArmor exécutable"
-else
-    report_fail "detect-and-apply.sh absent ou non exécutable"
-fi
-if command -v cscli >/dev/null 2>&1; then
-    crowd_list="$(cscli collections list 2>/dev/null || true)"
-    for crowd_name in crowdsecurity/linux crowdsecurity/sshd crowdsecurity/postfix; do
-        if grep -Fq "${crowd_name}" <<<"${crowd_list}"; then
-            report_pass "collection ${crowd_name}"
+}
+
+check_workstation_part_14() {
+    if [[ "${ONACCESS_MOUNTS}" == "1" ]]; then
+        check_onaccess_mounts
+        if [[ "${mount_ok}" == "1" ]]; then
+            report_pass "surveillance continue de /media et /mnt"
         else
-            report_fail "collection ${crowd_name} absente"
+            report_fail "/media ou /mnt absents de la surveillance continue"
         fi
-    done
-else
-    report_fail "cscli absent"
-fi
-usb_mod="usb-storage"
-if grep -RqsE "^[[:space:]]*(install|blacklist)[[:space:]]+${usb_mod}([[:space:]]|$)" /etc/modprobe.d /etc/modprobe.conf 2>/dev/null; then
-    report_fail "module usb-storage bloqué au chargement"
-else
-    report_pass "stockage USB non bloqué au chargement"
-fi
-usb_rules="/etc/usbguard/rules.conf"
-usb_hid='allow with-interface equals { 03:*:* }'
-usb_hub='allow with-interface equals { 09:*:* }'
-if [[ ! -f "${usb_rules}" ]] || ! grep -qF "${usb_hid}" "${usb_rules}"; then
-    report_warn "USBGuard sans autorisation clavier et souris"
-elif ! systemctl is-active --quiet usbguard; then
-    report_fail "USBGuard inactif alors que la politique existe"
-elif ! grep -qF "${usb_hub}" "${usb_rules}"; then
-    report_warn "USBGuard sans concentrateur"
-else
-    report_pass "USBGuard actif (appareils présents et HID autorisés)"
-fi
-if systemctl is-active --quiet crowdsec 2>/dev/null \
-    && systemctl is-active --quiet crowdsec-firewall-bouncer 2>/dev/null; then
-    report_pass "CrowdSec et bouncer actifs"
-else
-    report_fail "CrowdSec inactif"
-fi
+    elif grep -q '^OnAccessIncludePath /media$' "${clam_conf}" \
+        || grep -q '^OnAccessIncludePath /mnt$' "${clam_conf}"; then
+        report_fail "/media ou /mnt surveillés alors que ONACCESS_MOUNTS=0"
+    else
+        report_pass "montages hors surveillance continue"
+    fi
+}
 
-if systemctl is-enabled --quiet unbound 2>/dev/null && systemctl is-active --quiet unbound; then
-    report_pass "Unbound actif au démarrage"
-else
-    report_fail "Unbound inactif"
-fi
-if [[ -f /usr/share/dns/root.hints && -f /etc/unbound/unbound.conf.d/liltress-workstation.conf ]]; then
-    report_pass "liste des serveurs racine et configuration Unbound présentes"
-else
-    report_fail "configuration Unbound ou root.hints absente"
-fi
-if systemctl is-enabled --quiet w-unbound-root-hints.path 2>/dev/null; then
-    report_pass "rechargement Unbound quand les serveurs racine changent"
-else
-    report_fail "surveillance des serveurs racine DNS absente"
-fi
-if ss -H -lntu src 127.0.0.1:53 2>/dev/null | grep -q .; then
-    report_pass "Unbound écoute 127.0.0.1:53"
-else
-    report_fail "Unbound n'écoute pas 127.0.0.1:53"
-fi
-if ss -H -lntu src 0.0.0.0:53 2>/dev/null | grep -q .; then
-    report_fail "Unbound écoute hors de la machine"
-fi
-if grep -q '^DNS=127.0.0.1' /etc/systemd/resolved.conf.d/90-liltress-workstation.conf 2>/dev/null; then
-    report_pass "systemd-resolved pointe vers Unbound"
-else
-    report_fail "systemd-resolved n'est pas pointé vers Unbound"
-fi
+check_workstation_part_15() {
+    # shellcheck disable=SC1091
+    source "${INSTALL_DIRECTORY}/config/service/ufw/egress.conf"
+    response="${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/clamav-response.sh"
+    if [[ -f "${response}" ]] \
+        && grep -q 'kill -TERM' "${response}" \
+        && ! grep -q 'CLAMAV_KILL' "${response}" \
+        && grep -q 'inet w_isolate' "${response}" \
+        && ! grep -q 'NET_ISOLATE:-' "${response}"; then
+        report_pass "signal et isolation après une détection (${NET_ISOLATE_SEC}s)"
+    else
+        report_fail "signal ou isolation absent de clamav-response.sh"
+    fi
+    if [[ -x "${INSTALL_DIRECTORY}/service/apparmor/detect-and-apply.sh" ]]; then
+        report_pass "détection AppArmor exécutable"
+    else
+        report_fail "detect-and-apply.sh absent ou non exécutable"
+    fi
+}
 
-if ! command -v pro >/dev/null 2>&1; then
-    report_fail "ubuntu-pro-client absent"
-elif check_ubuntu_pro; then
-    report_pass "Ubuntu Pro attaché"
-    if check_ubuntu_lts; then
-        seen=""
-        while IFS=$'\t' read -r svc_name svc_status svc_detail; do
-            seen="${seen} ${svc_name}"
-            case "${svc_status}" in
-                enabled | active)
-                    report_pass "${svc_name} activé"
-                    ;;
-                warning)
-                    report_pass "${svc_name} activé, redémarrage encore utile${svc_detail:+ : ${svc_detail}}"
-                    ;;
-                *)
-                    report_warn "${svc_name} non activé (état : ${svc_status:-inconnu}${svc_detail:+ : ${svc_detail}})"
-                    ;;
-            esac
-        done < <(pro status --format json 2>/dev/null | python3 "$(locate_python_dir)/pro-status.py")
-        for svc in esm-infra esm-apps livepatch; do
-            case " ${seen} " in
-                *" ${svc} "*) ;;
-                *) report_warn "${svc} absent de pro status" ;;
-            esac
+check_workstation_part_16() {
+    if command -v cscli >/dev/null 2>&1; then
+        crowd_list="$(cscli collections list 2>/dev/null || true)"
+        for crowd_name in crowdsecurity/linux crowdsecurity/sshd crowdsecurity/postfix; do
+            if grep -Fq "${crowd_name}" <<<"${crowd_list}"; then
+                report_pass "collection ${crowd_name}"
+            else
+                report_fail "collection ${crowd_name} absente"
+            fi
         done
     else
-        report_pass "esm-infra, esm-apps et livepatch non demandés : version intermédiaire"
+        report_fail "cscli absent"
     fi
-else
-    report_fail "Ubuntu Pro non attaché (obligatoire)"
-fi
-
-if command -v lynis >/dev/null 2>&1; then
-    report_pass "lynis installé"
-    if [[ -f /etc/lynis/custom.prf ]]; then
-        report_pass "custom.prf présent"
+    usb_mod="usb-storage"
+    if grep -RqsE "^[[:space:]]*(install|blacklist)[[:space:]]+${usb_mod}([[:space:]]|$)" /etc/modprobe.d /etc/modprobe.conf 2>/dev/null; then
+        report_fail "module usb-storage bloqué au chargement"
     else
-        report_warn "custom.prf manquant"
+        report_pass "stockage USB non bloqué au chargement"
     fi
-else
-    report_fail "lynis absent"
-fi
+    usb_rules="/etc/usbguard/rules.conf"
+    usb_hid='allow with-interface equals { 03:*:* }'
+    usb_hub='allow with-interface equals { 09:*:* }'
+}
 
-if dpkg-query -W -f '${Status}' snapd 2>/dev/null | grep -q 'install ok'; then
-    report_pass "snapd installé"
-else
-    report_fail "snapd absent"
-fi
-root_src="$(findmnt -no SOURCE / 2>/dev/null || true)"
-if [[ -n "${root_src}" ]] && lsblk -sno TYPE "${root_src}" 2>/dev/null | grep -qx crypt; then
-    report_pass "racine sur LUKS"
-else
-    report_warn "racine sans LUKS constaté"
-fi
-if command -v mokutil >/dev/null 2>&1 && mokutil --sb-state 2>/dev/null | grep -qi 'SecureBoot enabled'; then
-    report_pass "Secure Boot actif"
-else
-    report_warn "Secure Boot non actif"
-fi
-
-if [[ -f /etc/apt/sources.list ]]; then
-    if grep -q 'liltress' /etc/apt/sources.list; then
-        report_fail "sources.list a été réécrit"
+check_workstation_part_17() {
+    if [[ ! -f "${usb_rules}" ]] || ! grep -qF "${usb_hid}" "${usb_rules}"; then
+        report_warn "USBGuard sans autorisation clavier et souris"
+    elif ! systemctl is-active --quiet usbguard; then
+        report_fail "USBGuard inactif alors que la politique existe"
+    elif ! grep -qF "${usb_hub}" "${usb_rules}"; then
+        report_warn "USBGuard sans concentrateur"
     else
-        report_pass "sources.list non réécrit par HFU"
+        report_pass "USBGuard actif (appareils présents et HID autorisés)"
     fi
-fi
-report_pass "dépôt Lynis CISOfy ajouté uniquement (lynis.list)"
+    if systemctl is-active --quiet crowdsec 2>/dev/null \
+        && systemctl is-active --quiet crowdsec-firewall-bouncer 2>/dev/null; then
+        report_pass "CrowdSec et bouncer actifs"
+    else
+        report_fail "CrowdSec inactif"
+    fi
 
-# shellcheck disable=SC1091
-source "${INSTALL_DIRECTORY}/service/vpn/lib.sh"
-vpn_state="$(get_vpn_verify_state || true)"
-vpn_kind="${vpn_state%% *}"
-vpn_name="${vpn_state#* }"
-case "${vpn_kind}" in
-    off) ;;
-    ok)
-        report_pass "$(get_text vpn.verify.ok "${vpn_name}")"
-        ;;
-    down)
-        report_fail "$(get_text vpn.verify.down "${vpn_name}")"
-        ;;
-    stale)
-        report_fail "$(get_text vpn.verify.stale "${vpn_name}" "${VPN_HANDSHAKE_TIMEOUT:-25}")"
-        ;;
-esac
+}
 
-{
-    echo
-    echo "$(get_text log.total)"
-    echo
-    echo "$(get_text log.ok-5 "${PASS}")"
-    echo "$(get_text log.warn-2 "${WARNN}")"
-    echo "$(get_text log.fail-2 "${FAIL}")"
-} >>"${REPORT}"
+check_workstation_part_18() {
+    if systemctl is-enabled --quiet unbound 2>/dev/null && systemctl is-active --quiet unbound; then
+        report_pass "Unbound actif au démarrage"
+    else
+        report_fail "Unbound inactif"
+    fi
+    if [[ -f /usr/share/dns/root.hints && -f /etc/unbound/unbound.conf.d/liltress-workstation.conf ]]; then
+        report_pass "liste des serveurs racine et configuration Unbound présentes"
+    else
+        report_fail "configuration Unbound ou root.hints absente"
+    fi
+    if systemctl is-enabled --quiet w-unbound-root-hints.path 2>/dev/null; then
+        report_pass "rechargement Unbound quand les serveurs racine changent"
+    else
+        report_fail "surveillance des serveurs racine DNS absente"
+    fi
+    if ss -H -lntu src 127.0.0.1:53 2>/dev/null | grep -q .; then
+        report_pass "Unbound écoute 127.0.0.1:53"
+    else
+        report_fail "Unbound n'écoute pas 127.0.0.1:53"
+    fi
+    if ss -H -lntu src 0.0.0.0:53 2>/dev/null | grep -q .; then
+        report_fail "Unbound écoute hors de la machine"
+    fi
+}
 
-chmod 644 "${REPORT}" 2>/dev/null || true
-mkdir -p "${INSTALL_LOG_DIR:-.}"
-status_file="${INSTALL_LOG_DIR:-.}/verify-status"
-cat >"${status_file}" <<EOF
+check_workstation_part_19() {
+    if grep -q '^DNS=127.0.0.1' /etc/systemd/resolved.conf.d/90-liltress-workstation.conf 2>/dev/null; then
+        report_pass "systemd-resolved pointe vers Unbound"
+    else
+        report_fail "systemd-resolved n'est pas pointé vers Unbound"
+    fi
+
+}
+
+check_workstation_part_20() {
+    if ! command -v pro >/dev/null 2>&1; then
+        report_fail "ubuntu-pro-client absent"
+    elif check_ubuntu_pro; then
+        report_pass "Ubuntu Pro attaché"
+        if check_ubuntu_lts; then
+            seen=""
+            while IFS=$'\t' read -r svc_name svc_status svc_detail; do
+                seen="${seen} ${svc_name}"
+                case "${svc_status}" in
+                    enabled | active)
+                        report_pass "${svc_name} activé"
+                        ;;
+                    warning)
+                        report_pass "${svc_name} activé, redémarrage encore utile${svc_detail:+ : ${svc_detail}}"
+                        ;;
+                    *)
+                        report_warn "${svc_name} non activé (état : ${svc_status:-inconnu}${svc_detail:+ : ${svc_detail}})"
+                        ;;
+                esac
+            done < <(pro status --format json 2>/dev/null | python3 "$(locate_python_dir)/pro-status.py")
+            for svc in esm-infra esm-apps livepatch; do
+                case " ${seen} " in
+                    *" ${svc} "*) ;;
+                    *) report_warn "${svc} absent de pro status" ;;
+                esac
+            done
+        else
+            report_pass "esm-infra, esm-apps et livepatch non demandés : version intermédiaire"
+        fi
+    else
+        report_fail "Ubuntu Pro non attaché (obligatoire)"
+    fi
+
+}
+
+check_workstation_part_21() {
+    if command -v lynis >/dev/null 2>&1; then
+        report_pass "lynis installé"
+        if [[ -f /etc/lynis/custom.prf ]]; then
+            report_pass "custom.prf présent"
+        else
+            report_warn "custom.prf manquant"
+        fi
+    else
+        report_fail "lynis absent"
+    fi
+
+    if dpkg-query -W -f '${Status}' snapd 2>/dev/null | grep -q 'install ok'; then
+        report_pass "snapd installé"
+    else
+        report_fail "snapd absent"
+    fi
+    root_src="$(findmnt -no SOURCE / 2>/dev/null || true)"
+    if [[ -n "${root_src}" ]] && lsblk -sno TYPE "${root_src}" 2>/dev/null | grep -qx crypt; then
+        report_pass "racine sur LUKS"
+    else
+        report_warn "racine sans LUKS constaté"
+    fi
+}
+
+check_workstation_part_22() {
+    if command -v mokutil >/dev/null 2>&1 && mokutil --sb-state 2>/dev/null | grep -qi 'SecureBoot enabled'; then
+        report_pass "Secure Boot actif"
+    else
+        report_warn "Secure Boot non actif"
+    fi
+
+    if [[ -f /etc/apt/sources.list ]]; then
+        if grep -q 'liltress' /etc/apt/sources.list; then
+            report_fail "sources.list a été réécrit"
+        else
+            report_pass "sources.list non réécrit par HFU"
+        fi
+    fi
+    report_pass "dépôt Lynis CISOfy ajouté uniquement (lynis.list)"
+
+    # shellcheck disable=SC1091
+    source "${INSTALL_DIRECTORY}/service/vpn/lib.sh"
+    vpn_state="$(get_vpn_verify_state || true)"
+    vpn_kind="${vpn_state%% *}"
+    vpn_name="${vpn_state#* }"
+    case "${vpn_kind}" in
+        off) ;;
+        ok)
+            report_pass "$(get_text vpn.verify.ok "${vpn_name}")"
+            ;;
+        down)
+            report_fail "$(get_text vpn.verify.down "${vpn_name}")"
+            ;;
+        stale)
+            report_fail "$(get_text vpn.verify.stale "${vpn_name}" "${VPN_HANDSHAKE_TIMEOUT:-25}")"
+            ;;
+    esac
+
+}
+
+check_workstation_part_23() {
+    {
+        echo
+        echo "$(get_text log.total)"
+        echo
+        echo "$(get_text log.ok-5 "${PASS}")"
+        echo "$(get_text log.warn-2 "${WARNN}")"
+        echo "$(get_text log.fail-2 "${FAIL}")"
+    } >>"${REPORT}"
+
+    chmod 644 "${REPORT}" 2>/dev/null || true
+    mkdir -p "${INSTALL_LOG_DIR:-.}"
+    status_file="${INSTALL_LOG_DIR:-.}/verify-status"
+    cat >"${status_file}" <<EOF
 PASS=${PASS}
 WARN=${WARNN}
 FAIL=${FAIL}
 REPORT=${REPORT}
 EOF
-chmod 644 "${status_file}" 2>/dev/null || true
-if [[ "${FAIL}" -gt 0 ]]; then
-    while IFS= read -r line; do
-        note_bash fault "${line#- }"
-    done < <(grep '^- FAIL' "${REPORT}" || true)
-    log_error "${INSTALL_WATCHER}" "log.check-failure-s" "${FAIL}"
-fi
+    chmod 644 "${status_file}" 2>/dev/null || true
+    if [[ "${FAIL}" -gt 0 ]]; then
+        while IFS= read -r line; do
+            note_bash fault "${line#- }"
+        done < <(grep '^- FAIL' "${REPORT}" || true)
+        log_error "${INSTALL_WATCHER}" "log.check-failure-s" "${FAIL}"
+    fi
+}
+
+run_workstation_checks() {
+    check_workstation_part_01
+    check_workstation_part_02
+    check_workstation_part_03
+    check_workstation_part_04
+    check_workstation_part_05
+    check_workstation_part_06
+    check_workstation_part_07
+    check_workstation_part_08
+    check_workstation_part_09
+    check_workstation_part_10
+    check_workstation_part_11
+    check_workstation_part_12
+    check_workstation_part_13
+    check_workstation_part_14
+    check_workstation_part_15
+    check_workstation_part_16
+    check_workstation_part_17
+    check_workstation_part_18
+    check_workstation_part_19
+    check_workstation_part_20
+    check_workstation_part_21
+    check_workstation_part_22
+    check_workstation_part_23
+}
+require_root
+get_current_user
+get_ssh_port
+get_operating_system
+
+PASS=0
+FAIL=0
+WARNN=0
+REPORT="${INSTALL_LOG_DIR:-.}/verify-report-WORKSTATION-$(date +%Y%m%d-%H%M%S).md"
+
+run_workstation_checks

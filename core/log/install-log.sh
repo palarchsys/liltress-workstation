@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/install-log.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -176,29 +176,52 @@ get_distribution_label() {
     finish_distribution_label "${os_pretty}" "${os_version}"
 }
 
+read_conf_value() {
+    local root="$1"
+    local key="$2"
+    awk -F= -v key="${key}" '$1 == key {
+        gsub(/["\047]/, "", $2)
+        gsub(/[[:space:]]/, "", $2)
+        print $2
+        exit
+    }' "${root}/config/global.conf"
+}
+
+check_workstation_slug() {
+    [[ "${1:-}" == "liltress-workstation" || "${PROJECT_SLUG:-}" == "liltress-workstation" ]]
+}
+
+get_tree_kind() {
+    local root="$1"
+    local slug="$2"
+    local kind=""
+    if check_workstation_slug "${slug}"; then
+        kind="workstation"
+    elif declare -F check_workstation >/dev/null 2>&1 && check_workstation; then
+        kind="workstation"
+    elif [[ -n "${root}" && "$(basename -- "${root}")" == "workstation" ]]; then
+        kind="workstation"
+    elif [[ -n "${root}" && "$(basename -- "${root}")" == "server" ]]; then
+        kind="server"
+    else
+        kind="unknown"
+    fi
+    printf '%s\n' "${kind}"
+}
+
 log_product_kind() {
     local root="${1:-}"
     local kind="${SERVER_TYPE:-}"
     local slug=""
     if [[ -z "${kind}" && -n "${root}" && -f "${root}/config/global.conf" ]]; then
-        kind=$(awk -F= '/^SERVER_TYPE=/{gsub(/["'\'']/, "", $2); gsub(/[[:space:]]/, "", $2); print $2; exit}' "${root}/config/global.conf")
-        slug=$(awk -F= '/^PROJECT_SLUG=/{gsub(/["'\'']/, "", $2); gsub(/[[:space:]]/, "", $2); print $2; exit}' "${root}/config/global.conf")
+        kind=$(read_conf_value "${root}" SERVER_TYPE)
+        slug=$(read_conf_value "${root}" PROJECT_SLUG)
     fi
     if [[ "${kind}" == "WORKSTATION" ]]; then
         kind=""
     fi
     if [[ -z "${kind}" ]]; then
-        if [[ "${slug}" == "liltress-workstation" || "${PROJECT_SLUG:-}" == "liltress-workstation" ]]; then
-            kind="workstation"
-        elif declare -F check_workstation >/dev/null 2>&1 && check_workstation; then
-            kind="workstation"
-        elif [[ -n "${root}" && "$(basename -- "${root}")" == "workstation" ]]; then
-            kind="workstation"
-        elif [[ -n "${root}" && "$(basename -- "${root}")" == "server" ]]; then
-            kind="server"
-        else
-            kind="unknown"
-        fi
+        kind=$(get_tree_kind "${root}" "${slug}")
     fi
     printf '%s\n' "${kind}"
 }
@@ -247,10 +270,8 @@ init_install_log() {
     publish_repo_logs "${INSTALL_LOG_DIR}"
 }
 
-collect_common_snapshot() {
+write_host_snapshot() {
     local snap="$1"
-    mkdir -p "${snap}"
-
     {
         hostnamectl 2>/dev/null || hostname
         echo "---"
@@ -263,30 +284,43 @@ collect_common_snapshot() {
         echo "CURRENT_USER=${CURRENT_USER:-}"
         echo "SERVER_TYPE=${SERVER_TYPE:-}"
     } >"${snap}/host.txt" 2>&1 || true
+}
 
+write_system_snapshot() {
+    local snap="$1"
     {
         echo "=== ip ==="
         ip -br a 2>/dev/null || ifconfig 2>/dev/null || true
         echo "=== df ==="
-        df -h 2>/dev/null || true
+        df -h 2>/dev/null
         echo "=== units failed ==="
-        systemctl --failed --no-pager 2>/dev/null || true
+        systemctl --failed --no-pager 2>/dev/null
         echo "=== timers ==="
-        systemctl list-timers --no-pager 2>/dev/null || true
+        systemctl list-timers --no-pager 2>/dev/null
         echo "=== kvm ==="
-        ls -l /dev/kvm 2>/dev/null || true
+        ls -l /dev/kvm 2>/dev/null
         echo "=== virsh ==="
-        virsh list --all 2>/dev/null || true
+        virsh list --all 2>/dev/null
     } >"${snap}/system.txt" 2>&1 || true
+}
 
-    journalctl -b --no-pager -n 4000 >"${snap}/journalctl-boot.txt" 2>&1 || true
-    dmesg -T 2>/dev/null | tail -n 500 >"${snap}/dmesg.txt" || true
-    copy_installed_logs "${snap}" || true
-
+write_service_snapshot() {
+    local snap="$1"
     ufw status verbose >"${snap}/ufw-status.txt" 2>&1 || true
     sshd -t >"${snap}/sshd-t.txt" 2>&1 || true
     sshd -T >"${snap}/sshd-T.txt" 2>&1 || true
     aa-status >"${snap}/apparmor-status.txt" 2>&1 || true
+}
+
+collect_common_snapshot() {
+    local snap="$1"
+    mkdir -p "${snap}"
+    write_host_snapshot "${snap}"
+    write_system_snapshot "${snap}"
+    journalctl -b --no-pager -n 4000 >"${snap}/journalctl-boot.txt" 2>&1 || true
+    dmesg -T 2>/dev/null | tail -n 500 >"${snap}/dmesg.txt" || true
+    copy_installed_logs "${snap}" || true
+    write_service_snapshot "${snap}"
 }
 
 collect_install_log() {

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/clamav-kind.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -64,5 +64,6 @@ def kind_of(text):
     return "ok"
 
 
-argument = sys.argv[1] if len(sys.argv) > 1 else ""
-sys.stdout.write(kind_of(read_log(argument)))
+if __name__ == "__main__":
+    argument = sys.argv[1] if len(sys.argv) > 1 else ""
+    sys.stdout.write(kind_of(read_log(argument)))

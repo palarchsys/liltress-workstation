@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/boot-duration.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -27,4 +27,5 @@ def milliseconds_of(span):
     return 0
 
 
-print(milliseconds_of(sys.argv[1]))
+if __name__ == "__main__":
+    print(milliseconds_of(sys.argv[1]))
