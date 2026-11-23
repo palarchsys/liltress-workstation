@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/report.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -153,6 +153,7 @@ mail_service_label() {
         fail2ban) printf 'Fail2ban' ;;
         crowdsec) printf 'CrowdSec' ;;
         ufw) printf 'UFW' ;;
+        fingerprint) printf 'Fingerprint' ;;
         *) printf '%s' "$1" ;;
     esac
 }

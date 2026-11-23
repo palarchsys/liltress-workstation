@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/fr/watchdog.txt
-# Updated at : 2026-11-11
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -115,6 +115,12 @@ intégrité inchangée
 
 [watchdog.integrity-fingerprint-changed]
 intégrité : empreinte modifiée
+
+[watchdog.recording-of-the-fingerprint]
+Enregistrement de l'empreinte
+
+[watchdog.fingerprint-stored]
+Empreinte enregistrée
 
 [watchdog.signal.abort]
 abandon du programme

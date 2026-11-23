@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/alert-decide.py
-# Updated at : 2026-11-17
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -153,7 +153,7 @@ def package_of(path):
         return ""
     try:
         out = subprocess.check_output(["dpkg", "-S", path], text=True, stderr=subprocess.DEVNULL)
-    except subprocess.CalledProcessError, OSError, FileNotFoundError:
+    except (subprocess.CalledProcessError, OSError, FileNotFoundError):  # fmt: skip
         return ""
     token = out.split(":", 1)[0].split(",")[0].strip()
     if re.match(r"^[A-Za-z0-9][A-Za-z0-9.+-]*(?::[A-Za-z0-9]+)?$", token):
@@ -230,7 +230,7 @@ def snap_explains(path):
         return False
     try:
         out = subprocess.check_output(["snap", "changes"], text=True, stderr=subprocess.DEVNULL)
-    except subprocess.CalledProcessError, OSError, FileNotFoundError:
+    except (subprocess.CalledProcessError, OSError, FileNotFoundError):  # fmt: skip
         return False
     base = os.path.basename(path).replace("\\x2d", "-")
     token = re.sub(r"^snap-|-\d+\.mount$", "", base)

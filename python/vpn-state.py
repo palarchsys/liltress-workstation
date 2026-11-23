@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/vpn-state.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -78,7 +78,7 @@ def load_state():
     try:
         with open(path, encoding="utf-8") as handle:
             raw = json.load(handle)
-    except OSError, json.JSONDecodeError, UnicodeError:
+    except (OSError, json.JSONDecodeError, UnicodeError):  # fmt: skip
         return blank_state(), False
     if not isinstance(raw, dict):
         return blank_state(), False

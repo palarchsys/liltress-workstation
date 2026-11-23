@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/deliver.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -120,6 +120,7 @@ invoke_alert_shell() {
     local send="$1"
     TITLE="${TITLE}" \
         MODULE_NAME="${2}" \
+        MAIL_SERVICE="${MAIL_SERVICE:-}" \
         CONTENT="${3}
 
 ${4}" \
@@ -140,6 +141,7 @@ invoke_alert_sudo() {
     local send="$1"
     TITLE="${TITLE}" \
         MODULE_NAME="${2}" \
+        MAIL_SERVICE="${MAIL_SERVICE:-}" \
         CONTENT="${3}
 
 ${4}" \

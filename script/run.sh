@@ -93,4 +93,7 @@ run_install_action() {
 }
 
 run_install_plan "${INSTALL_DIRECTORY}" "${INSTALL_DIRECTORY}/config/schema/installation.json"
+# The watched files are already in their installed state.
+CONFIG_BASE_DIRECTORY="${CONFIG_BASE_DIRECTORY:-${INSTALL_DIRECTORY}}" \
+    bash "${INSTALL_DIRECTORY}/service/cron/watchdogs/scan-fingerprint.sh" refresh
 printf '\n' >&2

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/tailscale-prefs.py
-# Updated at : 2026-11-21
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -36,7 +36,7 @@ def run_tailscale_prefs():
     try:
         raw = subprocess.check_output(["tailscale", "debug", "prefs"], text=True)
         prefs = json.loads(raw)
-    except OSError, subprocess.CalledProcessError, json.JSONDecodeError:
+    except (OSError, subprocess.CalledProcessError, json.JSONDecodeError):  # fmt: skip
         return 1
     return 0 if prefs_ok(prefs) else 1
 

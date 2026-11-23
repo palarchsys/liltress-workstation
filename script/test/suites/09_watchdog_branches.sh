@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/09_watchdog_branches.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-22
 # Creator    : palarchsys
 # =============================================================================
 
@@ -131,6 +131,7 @@ EOF
 t_write_runner() {
     local script="$1"
     local extra="${2:-}"
+    local script_args="${3:-}"
     cat > "${work}/run.sh" << EOF
 #!/usr/bin/env bash
 export PATH="${work}/path"
@@ -138,7 +139,7 @@ export BASE="${base}"
 export CLAMAV_QUARANTINE_DIR="${work}/quarantine"
 ${extra}
 set +e
-/usr/bin/bash "${script}" > "${work}/stdout.txt" 2> "${work}/stderr.txt"
+/usr/bin/bash "${script}" ${script_args} > "${work}/stdout.txt" 2> "${work}/stderr.txt"
 printf '%s\n' "\$?" > "${work}/status"
 EOF
 }
@@ -169,7 +170,8 @@ t_run_user() {
     local script="$1"
     local proc_bind="${2:-}"
     local extra="${3:-}"
-    t_write_runner "${script}" "${extra}"
+    local script_args="${4:-}"
+    t_write_runner "${script}" "${extra}" "${script_args}"
     if ! t_show_box "${proc_bind}"; then
         printf '%s\n' "bwrap" > "${work}/status"
     fi
@@ -294,7 +296,34 @@ if [[ "$(t_check_got_status)" == "0" ]] && t_check_alert "intégrité : empreint
 else
     t_fail "branch.usr.integrity.change" "statut $(t_check_got_status) $(tr '\n' ' ' < "${work}/stderr.txt" 2>/dev/null || true)"
 fi
-rm -f "${saved}"
+printf 'gamma\n' > "${base}/file-a"
+cat > "${bin}/send.sh" << EOF
+#!/bin/bash
+printf '%s\n' "\${MAIL_SERVICE:-}" "\${TITLE:-}" > "${base}/subject.log"
+exit 0
+EOF
+chmod 755 "${bin}/send.sh"
+t_run_user "${bin}/scan-fingerprint.sh" "" "export MAIL_ALERTS=1
+export WATCHDOG_MAIL=alert@example.test
+export CRON_BIN_PATH=${bin}"
+if [[ "$(t_check_got_status)" == "0" ]] && t_check_alert "intégrité : empreinte modifiée" \
+    && grep -F -q 'Fingerprint' "${base}/subject.log" \
+    && grep -F -q 'Alerte intégrité' "${base}/subject.log"; then
+    t_pass "branch.usr.integrity.subject" "objet Fingerprint"
+else
+    t_fail "branch.usr.integrity.subject" "statut $(t_check_got_status) $(tr '\n' ' ' < "${base}/subject.log" 2>/dev/null || true)"
+fi
+rm -rf "${base}/cron/alerts" "${base}/alert.log" "${base}/subject.log"
+printf 'delta\n' > "${base}/file-a"
+t_run_user "${bin}/scan-fingerprint.sh" "" "" refresh
+sha256sum -- "${base}/file-a" > "${work}/expect.sha"
+if [[ "$(t_check_got_status)" == "0" ]] && t_no_alert && cmp -s "${work}/expect.sha" "${stamp}" \
+    && grep -F -q 'Empreinte enregistrée' "${work}/stdout.txt" "${work}/stderr.txt"; then
+    t_pass "branch.usr.integrity.refresh" "empreinte réécrite, pas de courrier"
+else
+    t_fail "branch.usr.integrity.refresh" "statut $(t_check_got_status) $(tr '\n' ' ' < "${work}/stderr.txt" 2>/dev/null || true)"
+fi
+rm -f "${saved}" "${work}/expect.sha"
 
 t_set_user scan-auditd.sh
 rm -f "${work}/path/ausearch"

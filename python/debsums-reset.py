@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/debsums-reset.py
-# Updated at : 2026-11-15
+# Updated at : 2026-11-23
 # Creator    : palarchsys
 # =============================================================================
 
@@ -55,7 +55,7 @@ def package_of(path):
             text=True,
             stderr=subprocess.DEVNULL,
         )
-    except subprocess.CalledProcessError, OSError:
+    except (subprocess.CalledProcessError, OSError):  # fmt: skip
         return ""
     token = out.split(":", 1)[0].split(",")[0].strip()
     if NAME_RE.match(token):
