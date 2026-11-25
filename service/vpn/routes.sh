@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/routes.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -28,7 +28,7 @@ ensure_vpn_table() {
     chmod 644 "${file}"
 }
 
-vpn_route_field() {
+get_vpn_route_field() {
     local line="$1" key="$2" prev="" word
     for word in ${line}; do
         if [[ "${prev}" == "${key}" ]]; then
@@ -40,12 +40,12 @@ vpn_route_field() {
     return 1
 }
 
-vpn_route_is_tunnel() {
+check_vpn_route_tunnel() {
     local dev="$1"
     [[ "${dev}" == "${VPN_IFACE_OVPN}" || "${dev}" == "${VPN_IFACE_WG}" || "${dev}" == "tun-probe" || "${dev}" == "wgl-probe" || "${dev}" == "tailscale0" ]]
 }
 
-vpn_route_lookup() {
+get_vpn_route_lookup() {
     load_vpn_settings
     if [[ -f "$(get_vpn_home)/direct.ok" ]]; then
         printf '%s\n' "${VPN_TABLE_DIRECT_NAME}"
@@ -67,7 +67,7 @@ clear_vpn_rule_prio() {
 
 add_vpn_rule_to() {
     local prio="$1" cidr="$2" table
-    table="$(vpn_route_lookup)"
+    table="$(get_vpn_route_lookup)"
     if [[ "${cidr}" == *:* ]]; then
         ip -6 rule add priority "${prio}" to "${cidr}" lookup "${table}"
     else
@@ -77,7 +77,7 @@ add_vpn_rule_to() {
 
 add_vpn_rule_from() {
     local prio="$1" cidr="$2" table
-    table="$(vpn_route_lookup)"
+    table="$(get_vpn_route_lookup)"
     if [[ "${cidr}" == *:* ]]; then
         ip -6 rule add priority "${prio}" from "${cidr}" lookup "${table}"
     else
@@ -107,7 +107,7 @@ apply_vpn_endpoint_routes() {
     load_vpn_settings
     ensure_vpn_table
     clear_vpn_rule_prio "${VPN_RULE_PRIO_ENDPOINT}"
-    table="$(vpn_route_lookup)"
+    table="$(get_vpn_route_lookup)"
     ep4="$(get_vpn_meta "${name}" endpoint4 2>/dev/null || true)"
     ep6="$(get_vpn_meta "${name}" endpoint6 2>/dev/null || true)"
     for ip in ${ep4}; do
@@ -135,7 +135,7 @@ apply_vpn_ssh() {
     local table
     load_vpn_settings
     ensure_vpn_table
-    table="$(vpn_route_lookup)"
+    table="$(get_vpn_route_lookup)"
     clear_vpn_rule_prio "${VPN_RULE_PRIO_SSH}"
     ip -4 rule add priority "${VPN_RULE_PRIO_SSH}" fwmark "${VPN_SSH_MARK}" lookup "${table}"
     ip -6 rule add priority "${VPN_RULE_PRIO_SSH}" fwmark "${VPN_SSH_MARK}" lookup "${table}"
@@ -156,9 +156,9 @@ clear_vpn_routes() {
 read_vpn_lan_dev() {
     local line dev
     while IFS= read -r line; do
-        dev="$(vpn_route_field "${line}" dev 2>/dev/null || true)"
+        dev="$(get_vpn_route_field "${line}" dev 2>/dev/null || true)"
         [[ -n "${dev}" ]] || continue
-        vpn_route_is_tunnel "${dev}" && continue
+        check_vpn_route_tunnel "${dev}" && continue
         printf '%s\n' "${dev}"
         return 0
     done < <(ip -4 route show default 2>/dev/null)
@@ -191,10 +191,10 @@ apply_vpn_lan_routes() {
 # Take the first default that is not a tunnel device.
 read_vpn_direct_ipv4() {
     while IFS= read -r line; do
-        dev="$(vpn_route_field "${line}" dev 2>/dev/null || true)"
+        dev="$(get_vpn_route_field "${line}" dev 2>/dev/null || true)"
         [[ -n "${dev}" ]] || continue
-        vpn_route_is_tunnel "${dev}" && continue
-        via="$(vpn_route_field "${line}" via 2>/dev/null || true)"
+        check_vpn_route_tunnel "${dev}" && continue
+        via="$(get_vpn_route_field "${line}" via 2>/dev/null || true)"
         found=1
         break
     done < <(ip -4 route show default 2>/dev/null)
@@ -214,13 +214,13 @@ apply_vpn_direct_ipv4() {
 read_vpn_direct_ipv6() {
     v6dev=""
     while IFS= read -r line; do
-        v6dev="$(vpn_route_field "${line}" dev 2>/dev/null || true)"
+        v6dev="$(get_vpn_route_field "${line}" dev 2>/dev/null || true)"
         [[ -n "${v6dev}" ]] || continue
-        if vpn_route_is_tunnel "${v6dev}"; then
+        if check_vpn_route_tunnel "${v6dev}"; then
             v6dev=""
             continue
         fi
-        v6via="$(vpn_route_field "${line}" via 2>/dev/null || true)"
+        v6via="$(get_vpn_route_field "${line}" via 2>/dev/null || true)"
         break
     done < <(ip -6 route show default 2>/dev/null)
 }
@@ -237,7 +237,7 @@ apply_vpn_direct_ipv6() {
     fi
 }
 
-remember_vpn_direct_route() {
+record_vpn_direct_route() {
     local line dev via v6dev="" v6via="" found=0 stamp
     load_vpn_settings
     ensure_vpn_table || return 1
@@ -251,7 +251,7 @@ remember_vpn_direct_route() {
     chmod 600 "${stamp}"
 }
 
-release_vpn_direct() {
+clear_vpn_direct() {
     load_vpn_settings
     ip route flush table "${VPN_TABLE_DIRECT_ID}" >/dev/null 2>&1 || true
     ip -6 route flush table "${VPN_TABLE_DIRECT_ID}" >/dev/null 2>&1 || true

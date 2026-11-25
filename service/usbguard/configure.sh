@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/usbguard/configure.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_configure_part_01() {
+usbguard_configure_01_run_01_get() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -47,7 +47,7 @@ run_configure_part_01() {
     chmod 600 "${daemon_conf}"
 }
 
-run_configure_part_02() {
+usbguard_configure_01_run_02_locate() {
     ipc="/etc/usbguard/IPCAccessControl.d/${CURRENT_USER}"
     grep -v '^#' "$(locate_config_file service/usbguard/ipc.acl)" >"${ipc}"
     chmod 600 "${ipc}"
@@ -60,9 +60,9 @@ run_configure_part_02() {
     fi
 }
 
-run_configure_part_03() {
-    run_configure_part_01 "$@"
-    run_configure_part_02 "$@"
+usbguard_configure_01_run_03_run() {
+    usbguard_configure_01_run_01_get "$@"
+    usbguard_configure_01_run_02_locate "$@"
 }
 
-run_configure_part_03 "$@"
+usbguard_configure_01_run_03_run "$@"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/alert-advice.py
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -47,7 +47,7 @@ def load_text_file(path, data):
         store_text(data, key, value)
 
 
-def read_text_dir(directory, data):
+def read_text_directory(directory, data):
     if not directory or not os.path.isdir(directory):
         return
     for name in sorted(os.listdir(directory)):
@@ -59,16 +59,16 @@ def read_text_dir(directory, data):
         load_text_file(path, data)
 
 
-def load_dirs(spec):
+def load_directories(spec):
     data = {}
     for directory in (spec or "").split(":"):
         if directory:
-            read_text_dir(directory, data)
+            read_text_directory(directory, data)
     return data
 
 
-LANG_TEXT = load_dirs(os.environ.get("TEXT_LANG_DIRS", ""))
-EN_TEXT = load_dirs(os.environ.get("TEXT_EN_DIRS", ""))
+LANG_TEXT = load_directories(os.environ.get("TEXT_LANG_DIRS", ""))
+EN_TEXT = load_directories(os.environ.get("TEXT_EN_DIRS", ""))
 
 
 def text_get(key):

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/up.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -62,7 +62,7 @@ clear_vpn_active() {
 remove_vpn_iface() {
     local name="$1" iface pid file
     [[ -n "${name}" ]] || return 0
-    file="$(get_vpn_profile_dir "${name}")/pid"
+    file="$(get_vpn_profile_directory "${name}")/pid"
     if [[ -f "${file}" ]]; then
         pid="$(tr -d '[:space:]' <"${file}")"
         if [[ "${pid}" =~ ^[0-9]+$ ]]; then
@@ -86,7 +86,7 @@ refresh_vpn_ipv6() {
             v6=1
         fi
     done < <(ip -6 -o addr show dev "${iface}" 2>/dev/null | awk '{print $4}')
-    meta="$(get_vpn_profile_dir "${name}")/meta"
+    meta="$(get_vpn_profile_directory "${name}")/meta"
     sed -i "s/^has_ipv6=.*/has_ipv6=${v6}/" "${meta}"
     chmod 600 "${meta}"
 }
@@ -97,7 +97,7 @@ apply_vpn_profile() {
     if check_vpn_encrypted "${name}" && ! check_vpn_passphrase; then
         return 2
     fi
-    raise_vpn_link "${name}"
+    set_vpn_link "${name}"
 }
 
 # Accept a recent WireGuard greeting.
@@ -125,12 +125,12 @@ read_vpn_ovpn_state() {
 
 # Store a success stamp when the OpenVPN journal says the greeting finished.
 check_vpn_ovpn_handshake() {
-    local dir="$1" now="$2" state=0
-    read_vpn_ovpn_state "${dir}/openvpn.log" || state=$?
+    local directory="$1" now="$2" state=0
+    read_vpn_ovpn_state "${directory}/openvpn.log" || state=$?
     if ((state == 0)); then
-        printf 'CONNECTED\n' >"${dir}/status"
-        printf '%s\n' "${now}" >"${dir}/handshake"
-        chmod 600 "${dir}/status" "${dir}/handshake"
+        printf 'CONNECTED\n' >"${directory}/status"
+        printf '%s\n' "${now}" >"${directory}/handshake"
+        chmod 600 "${directory}/status" "${directory}/handshake"
         return 0
     fi
     return "${state}"
@@ -138,18 +138,18 @@ check_vpn_ovpn_handshake() {
 
 # Decide whether the live tunnel finished its greeting.
 check_vpn_handshake() {
-    local name="$1" proto iface dir now
+    local name="$1" proto iface directory now
     proto="$(get_vpn_meta "${name}" proto)"
     iface="$(get_vpn_meta "${name}" iface)"
-    dir="$(get_vpn_profile_dir "${name}")"
+    directory="$(get_vpn_profile_directory "${name}")"
     now="$(date +%s)"
     if [[ "${proto}" == "wireguard" ]]; then
         check_vpn_wg_age "${iface}" "${now}" || return 1
-        printf '%s\n' "${now}" >"${dir}/handshake"
-        chmod 600 "${dir}/handshake"
+        printf '%s\n' "${now}" >"${directory}/handshake"
+        chmod 600 "${directory}/handshake"
         return 0
     fi
-    check_vpn_ovpn_handshake "${dir}" "${now}" || return $?
+    check_vpn_ovpn_handshake "${directory}" "${now}" || return $?
     return 0
 }
 
@@ -182,7 +182,7 @@ check_vpn_tunnel() {
         check_vpn_handshake "${name}"
         return
     fi
-    if declare -F vpn_nm_activated >/dev/null 2>&1 && vpn_nm_activated "${name}"; then
+    if declare -F check_vpn_nm_activated >/dev/null 2>&1 && check_vpn_nm_activated "${name}"; then
         return 0
     fi
     check_vpn_handshake "${name}"
@@ -216,8 +216,8 @@ arm_vpn_closed() {
 add_vpn_probe_routes() {
     local name="$1" ep4 ep6 ip table
     load_vpn_settings
-    if declare -F vpn_route_lookup >/dev/null 2>&1; then
-        table="$(vpn_route_lookup)"
+    if declare -F get_vpn_route_lookup >/dev/null 2>&1; then
+        table="$(get_vpn_route_lookup)"
     else
         table="main"
     fi
@@ -236,13 +236,13 @@ add_vpn_probe_routes() {
 
 # Stop the probe process and delete its interface.
 clear_vpn_probe() {
-    local iface="$1" dir="$2" pid
-    if [[ -f "${dir}/probe.pid" ]]; then
-        pid="$(tr -d '[:space:]' <"${dir}/probe.pid")"
+    local iface="$1" directory="$2" pid
+    if [[ -f "${directory}/probe.pid" ]]; then
+        pid="$(tr -d '[:space:]' <"${directory}/probe.pid")"
         if [[ "${pid}" =~ ^[0-9]+$ ]]; then
             kill "${pid}" >/dev/null 2>&1 || true
         fi
-        rm -f "${dir}/probe.pid"
+        rm -f "${directory}/probe.pid"
     fi
     if [[ -n "${iface}" ]]; then
         ip link del "${iface}" >/dev/null 2>&1 || true
@@ -252,11 +252,11 @@ clear_vpn_probe() {
 
 # Start a temporary WireGuard interface.
 apply_vpn_probe_wireguard() {
-    local dir="$1" runtime="$2" iface="wgl-probe" stripped address
+    local directory="$1" runtime="$2" iface="wgl-probe" stripped address
     check_vpn_module || return 1
     ip link del "${iface}" >/dev/null 2>&1 || true
     ip link add dev "${iface}" type wireguard
-    stripped="$(mktemp "${dir}/.probe.XXXXXX")"
+    stripped="$(mktemp "${directory}/.probe.XXXXXX")"
     strip_vpn_wg "${runtime}" "${stripped}"
     if ! wg setconf "${iface}" "${stripped}" >/dev/null 2>&1; then
         rm -f "${stripped}"
@@ -274,15 +274,15 @@ apply_vpn_probe_wireguard() {
 
 # Start a temporary OpenVPN process with no pulled routes.
 apply_vpn_probe_openvpn() {
-    local name="$1" dir="$2" runtime="$3" iface="tun-probe"
+    local name="$1" directory="$2" runtime="$3" iface="tun-probe"
     if check_vpn_encrypted "${name}" && ! check_vpn_passphrase; then
         return 2
     fi
-    : >"${dir}/probe.log"
-    chmod 600 "${dir}/probe.log"
+    : >"${directory}/probe.log"
+    chmod 600 "${directory}/probe.log"
     ip link del "${iface}" >/dev/null 2>&1 || true
     openvpn \
-        --cd "${dir}" \
+        --cd "${directory}" \
         --config "${runtime}" \
         --dev "${iface}" \
         --dev-type tun \
@@ -294,8 +294,8 @@ apply_vpn_probe_openvpn() {
         --connect-timeout "${VPN_HANDSHAKE_TIMEOUT}" \
         --connect-retry-max 1 \
         --daemon \
-        --writepid "${dir}/probe.pid" \
-        --log-append "${dir}/probe.log" \
+        --writepid "${directory}/probe.pid" \
+        --log-append "${directory}/probe.log" \
         --verb 3 >/dev/null 2>&1 || {
         ip link del "${iface}" >/dev/null 2>&1 || true
         return 1
@@ -305,29 +305,29 @@ apply_vpn_probe_openvpn() {
 
 # Start the probe that matches the profile protocol.
 apply_vpn_probe() {
-    local name="$1" proto dir runtime
+    local name="$1" proto directory runtime
     proto="$(get_vpn_meta "${name}" proto)"
-    dir="$(get_vpn_profile_dir "${name}")"
-    runtime="${dir}/runtime"
+    directory="$(get_vpn_profile_directory "${name}")"
+    runtime="${directory}/runtime"
     if [[ "${proto}" == "wireguard" ]]; then
-        apply_vpn_probe_wireguard "${dir}" "${runtime}" || return $?
+        apply_vpn_probe_wireguard "${directory}" "${runtime}" || return $?
         return 0
     fi
-    apply_vpn_probe_openvpn "${name}" "${dir}" "${runtime}" || return $?
+    apply_vpn_probe_openvpn "${name}" "${directory}" "${runtime}" || return $?
     return 0
 }
 
 # Decide whether the probe finished its greeting.
 check_vpn_probe() {
-    local name="$1" iface="$2" proto dir now
+    local name="$1" iface="$2" proto directory now
     proto="$(get_vpn_meta "${name}" proto)"
-    dir="$(get_vpn_profile_dir "${name}")"
+    directory="$(get_vpn_profile_directory "${name}")"
     now="$(date +%s)"
     if [[ "${proto}" == "wireguard" ]]; then
         check_vpn_wg_age "${iface}" "${now}" || return $?
         return 0
     fi
-    read_vpn_ovpn_state "${dir}/probe.log" || return $?
+    read_vpn_ovpn_state "${directory}/probe.log" || return $?
     return 0
 }
 
@@ -350,10 +350,10 @@ wait_vpn_probe() {
 }
 
 # Hand the interface back when NetworkManager is present.
-release_vpn_probe_iface() {
+clear_vpn_probe_iface() {
     local iface="$1"
-    if declare -F vpn_nm_unmanage >/dev/null 2>&1; then
-        vpn_nm_unmanage "${iface}"
+    if declare -F set_vpn_nm_unmanaged >/dev/null 2>&1; then
+        set_vpn_nm_unmanaged "${iface}"
     fi
 }
 
@@ -368,48 +368,48 @@ begin_vpn_probe_link() {
 }
 
 # Remove both probe interfaces and restore the filter.
-abort_vpn_probe_link() {
-    local active="$1" dir="$2"
-    clear_vpn_probe "wgl-probe" "${dir}"
-    clear_vpn_probe "tun-probe" "${dir}"
+fail_vpn_probe_link() {
+    local active="$1" directory="$2"
+    clear_vpn_probe "wgl-probe" "${directory}"
+    clear_vpn_probe "tun-probe" "${directory}"
     apply_vpn_nft "${active}" 1 || true
 }
 
 # Wait, then remove the probe and restore the filter.
 finish_vpn_probe_link() {
-    local name="$1" active="$2" dir="$3" iface="$4"
-    release_vpn_probe_iface "${iface}"
+    local name="$1" active="$2" directory="$3" iface="$4"
+    clear_vpn_probe_iface "${iface}"
     if ! wait_vpn_probe "${name}" "${iface}"; then
-        release_vpn_probe_iface "${iface}"
-        clear_vpn_probe "${iface}" "${dir}"
+        clear_vpn_probe_iface "${iface}"
+        clear_vpn_probe "${iface}" "${directory}"
         apply_vpn_nft "${active}" 1 || true
         return 1
     fi
-    release_vpn_probe_iface "${iface}"
-    clear_vpn_probe "${iface}" "${dir}"
+    clear_vpn_probe_iface "${iface}"
+    clear_vpn_probe "${iface}" "${directory}"
     apply_vpn_nft "${active}" 1 || true
     return 0
 }
 
 # Prove a profile during the time another tunnel stays in place.
 run_vpn_probe() {
-    local name="$1" active="$2" iface="" raised=0 dir
-    dir="$(get_vpn_profile_dir "${name}")"
+    local name="$1" active="$2" iface="" raised=0 directory
+    directory="$(get_vpn_profile_directory "${name}")"
     if check_vpn_encrypted "${name}" && ! check_vpn_passphrase; then
         return 2
     fi
     begin_vpn_probe_link "${name}" "${active}" || return 1
     iface="$(apply_vpn_probe "${name}")" || raised=$?
     if ((raised != 0)); then
-        abort_vpn_probe_link "${active}" "${dir}"
+        fail_vpn_probe_link "${active}" "${directory}"
         return "${raised}"
     fi
-    finish_vpn_probe_link "${name}" "${active}" "${dir}" "${iface}" || return 1
+    finish_vpn_probe_link "${name}" "${active}" "${directory}" "${iface}" || return 1
     return 0
 }
 
 # First error sentence, with directory names removed.
-vpn_fault_line() {
+get_vpn_fault_line() {
     local file="$1" line path base guard=0 class
     class='[^[:space:]'"'"'"]'
     [[ -f "${file}" && ! -L "${file}" ]] || return 1
@@ -426,32 +426,39 @@ vpn_fault_line() {
     printf '%s' "${line}"
 }
 
-# Choose the sentence a person sees after a refused proof.
-report_vpn_fail() {
-    local name="$1" dir line file
+# NetworkManager load and up faults use their own sentence.
+report_vpn_nm_fail() {
+    local name="$1"
     if [[ "${VPN_NM_FAULT:-}" == "load" || "${VPN_NM_FAULT:-}" == "up" ]]; then
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.nm.fail" "${name}"
-        note_vpn_log test "${name}" fail "networkmanager ${VPN_NM_FAULT}"
+        record_vpn_log test "${name}" fail "networkmanager ${VPN_NM_FAULT}"
         return 0
     fi
-    dir="$(get_vpn_profile_dir "${name}")"
-    for file in "${dir}/openvpn.log" "${dir}/probe.log"; do
+    return 1
+}
+
+# Choose the sentence a person sees after a refused proof.
+report_vpn_fail() {
+    local name="$1" directory line file
+    report_vpn_nm_fail "${name}" && return 0
+    directory="$(get_vpn_profile_directory "${name}")"
+    for file in "${directory}/openvpn.log" "${directory}/probe.log"; do
         [[ -f "${file}" ]] || continue
         if grep -q 'AUTH_FAILED' "${file}"; then
             log_info "${INSTALL_WATCHER:-BASH}" "vpn.import.auth-failed" "${name}"
-            note_vpn_log test "${name}" fail "AUTH_FAILED"
+            record_vpn_log test "${name}" fail "AUTH_FAILED"
             return 0
         fi
     done
-    for file in "${dir}/openvpn.log" "${dir}/probe.log"; do
-        line="$(vpn_fault_line "${file}" 2>/dev/null || true)"
+    for file in "${directory}/openvpn.log" "${directory}/probe.log"; do
+        line="$(get_vpn_fault_line "${file}" 2>/dev/null || true)"
         [[ -n "${line}" ]] || continue
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.test.fail-reason" "${name}" "${line}"
-        note_vpn_log test "${name}" fail "${line}"
+        record_vpn_log test "${name}" fail "${line}"
         return 0
     done
     log_info "${INSTALL_WATCHER:-BASH}" "vpn.test.fail" "${name}"
-    note_vpn_log test "${name}" fail ""
+    record_vpn_log test "${name}" fail ""
 }
 
 # Close the network before a proof when protection is armed.
@@ -464,73 +471,73 @@ begin_vpn_probe_guard() {
 }
 
 # Open the closed network again after the proof.
-restore_vpn_probe_guard() {
+reset_vpn_probe_guard() {
     if ((armed == 1)); then
         apply_vpn_nft "" 0 || true
     fi
 }
 
 # Drop the probe rules and open the network again.
-abort_vpn_probe_routes() {
+fail_vpn_probe_routes() {
     clear_vpn_rule_prio 41
-    restore_vpn_probe_guard
+    reset_vpn_probe_guard
 }
 
 # Delete both probe interfaces and open the network again.
-abort_vpn_probe_raise() {
-    local dir="$1"
-    clear_vpn_probe "wgl-probe" "${dir}"
-    clear_vpn_probe "tun-probe" "${dir}"
-    restore_vpn_probe_guard
+fail_vpn_probe_raise() {
+    local directory="$1"
+    clear_vpn_probe "wgl-probe" "${directory}"
+    clear_vpn_probe "tun-probe" "${directory}"
+    reset_vpn_probe_guard
 }
 
 # Wait, then delete the probe interface.
 finish_vpn_probe_wait() {
-    local name="$1" dir="$2" iface="$3"
-    release_vpn_probe_iface "${iface}"
+    local name="$1" directory="$2" iface="$3"
+    clear_vpn_probe_iface "${iface}"
     if ! wait_vpn_probe "${name}" "${iface}"; then
-        release_vpn_probe_iface "${iface}"
-        clear_vpn_probe "${iface}" "${dir}"
-        restore_vpn_probe_guard
+        clear_vpn_probe_iface "${iface}"
+        clear_vpn_probe "${iface}" "${directory}"
+        reset_vpn_probe_guard
         return 1
     fi
-    release_vpn_probe_iface "${iface}"
-    clear_vpn_probe "${iface}" "${dir}"
-    restore_vpn_probe_guard
+    clear_vpn_probe_iface "${iface}"
+    clear_vpn_probe "${iface}" "${directory}"
+    reset_vpn_probe_guard
     return 0
 }
 
 # Prove a profile without leaving its probe behind.
-prove_vpn_profile() {
-    local name="$1" armed=0 iface="" raised=0 dir
-    dir="$(get_vpn_profile_dir "${name}")"
+check_vpn_profile() {
+    local name="$1" armed=0 iface="" raised=0 directory
+    directory="$(get_vpn_profile_directory "${name}")"
     begin_vpn_probe_guard "${name}" || return 1
     if ! add_vpn_probe_routes "${name}"; then
-        abort_vpn_probe_routes
+        fail_vpn_probe_routes
         return 1
     fi
     iface="$(apply_vpn_probe "${name}")" || raised=$?
     if ((raised != 0)); then
-        abort_vpn_probe_raise "${dir}"
+        fail_vpn_probe_raise "${directory}"
         return "${raised}"
     fi
-    finish_vpn_probe_wait "${name}" "${dir}" "${iface}" || return 1
+    finish_vpn_probe_wait "${name}" "${directory}" "${iface}" || return 1
     return 0
 }
 
 # Refuse a bad name or a profile with no runtime file.
 require_vpn_test_name() {
     check_vpn_name "${name}" || log_error "${INSTALL_WATCHER:-BASH}" "vpn.import.bad-name" "${name}"
-    [[ -f "$(get_vpn_profile_dir "${name}")/runtime" ]] || log_error "${INSTALL_WATCHER:-BASH}" "vpn.profile.invalid" "${name}"
+    [[ -f "$(get_vpn_profile_directory "${name}")/runtime" ]] || log_error "${INSTALL_WATCHER:-BASH}" "vpn.profile.invalid" "${name}"
 }
 
 # Stop when the saved login file is not usable yet.
 apply_vpn_test_auth() {
     local auth_file
-    auth_file="$(get_vpn_profile_dir "${name}")/auth.txt"
+    auth_file="$(get_vpn_profile_directory "${name}")/auth.txt"
     if [[ -f "${auth_file}" ]] && ! check_vpn_auth_file "${auth_file}"; then
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.import.auth-wait" "${name}" "${auth_file}"
-        note_vpn_log test "${name}" fail "auth-wait"
+        record_vpn_log test "${name}" fail "auth-wait"
         return 1
     fi
     return 0
@@ -542,16 +549,22 @@ apply_vpn_test_same() {
     [[ -n "${active}" && "${active}" == "${name}" ]] && check_vpn_tunnel "${name}" || return 0
     record_vpn_attempt "${name}" 1
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.ok" "${name}"
-    note_vpn_log test "${name}" ok "up"
+    record_vpn_log test "${name}" ok "up"
     gate=0
+}
+
+# Another live tunnel is proved beside, not replaced.
+check_vpn_test_other_live() {
+    local active="$1" name="$2"
+    check_vpn_mode && [[ -n "${active}" && "${active}" != "${name}" ]] && check_vpn_tunnel "${active}"
 }
 
 # Prove beside a different live tunnel and keep that tunnel.
 apply_vpn_test_other() {
     gate=""
-    check_vpn_mode && [[ -n "${active}" && "${active}" != "${name}" ]] && check_vpn_tunnel "${active}" || return 0
+    check_vpn_test_other_live "${active}" "${name}" || return 0
     raised=0
-    prove_vpn_profile "${name}" || raised=$?
+    check_vpn_profile "${name}" || raised=$?
     if ((raised == 0)); then
         if ! VPN_NM_AUTOCONNECT=0 install_vpn_nm_connection "${name}"; then
             VPN_NM_FAULT="load"
@@ -562,7 +575,7 @@ apply_vpn_test_other() {
         fi
         record_vpn_attempt "${name}" 1
         log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.kept" "${name}"
-        note_vpn_log test "${name}" ok "kept"
+        record_vpn_log test "${name}" ok "kept"
         gate=0
         return 0
     fi
@@ -578,7 +591,7 @@ apply_vpn_test_prove() {
         first=1
     fi
     raised=0
-    prove_vpn_profile "${name}" || raised=$?
+    check_vpn_profile "${name}" || raised=$?
     ((raised == 0)) && return 0
     record_vpn_attempt "${name}" 0
     if check_vpn_mode; then
@@ -588,6 +601,14 @@ apply_vpn_test_prove() {
     fi
     report_vpn_fail "${name}"
     gate=1
+}
+
+# A refused first proof drops the NetworkManager copy when that helper is loaded.
+remove_vpn_test_nm() {
+    local name="$1"
+    if declare -F remove_vpn_nm_connection >/dev/null 2>&1; then
+        remove_vpn_nm_connection "${name}" || true
+    fi
 }
 
 # The first valid profile becomes the boot profile and comes up.
@@ -605,9 +626,7 @@ apply_vpn_test_first() {
         set_vpn_state_mode off
         load_vpn_settings
         apply_vpn_systemd || true
-        if declare -F remove_vpn_nm_connection >/dev/null 2>&1; then
-            remove_vpn_nm_connection "${name}" || true
-        fi
+        remove_vpn_test_nm "${name}"
         clear_vpn_network
         record_vpn_attempt "${name}" 0
         report_vpn_fail "${name}"
@@ -616,7 +635,7 @@ apply_vpn_test_first() {
     fi
     finish_vpn_open "${name}"
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.mode.on"
-    note_vpn_log test "${name}" ok "mode"
+    record_vpn_log test "${name}" ok "mode"
     gate=0
 }
 
@@ -639,7 +658,7 @@ apply_vpn_test_open() {
     fi
     finish_vpn_open "${name}"
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.ok" "${name}"
-    note_vpn_log test "${name}" ok "open"
+    record_vpn_log test "${name}" ok "open"
     gate=0
 }
 
@@ -657,7 +676,7 @@ apply_vpn_test_closed() {
     record_vpn_attempt "${name}" 1
     clear_vpn_network
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.test.ok" "${name}"
-    note_vpn_log test "${name}" ok "open"
+    record_vpn_log test "${name}" ok "open"
     gate=0
 }
 
@@ -668,7 +687,7 @@ run_vpn_test() {
     load_vpn_settings
     require_vpn_test_name
     log_info "${INSTALL_WATCHER:-BASH}" "vpn.test.start" "${name}"
-    note_vpn_log test "${name}" start ""
+    record_vpn_log test "${name}" start ""
     apply_vpn_test_auth || return 1
     active="$(get_vpn_active 2>/dev/null || true)"
     apply_vpn_test_same

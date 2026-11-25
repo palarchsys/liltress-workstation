@@ -13,32 +13,11 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
-
-source_python_boot
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../../core/boot/python.sh"
 
 render_scan_skip_path() {
-    python3 "$(locate_python_dir)/scan-skip-path.py" norm "$1"
+    python3 "$(locate_python_directory)/scan-skip-path.py" norm "$1"
 }
 
 check_scan_skip_forbidden() {
@@ -66,6 +45,20 @@ skip_scan_skip_note() {
     [[ -z "${trimmed}" || "${trimmed}" == \#* ]]
 }
 
+# A repeated home directory is stored once.
+record_scan_skip_home() {
+    local home="$1"
+    local homes="$2"
+    case "${homes}" in
+        *"|${home}|"*)
+            printf '%s\n' "${homes}"
+            ;;
+        *)
+            printf '%s\n' "${homes}|${home}|"
+            ;;
+    esac
+}
+
 # Paths that share one home directory name that directory.
 read_scan_skip_path_home() {
     local line trimmed home homes=""
@@ -75,10 +68,7 @@ read_scan_skip_path_home() {
         skip_scan_skip_note "${trimmed}" && continue
         if [[ "${trimmed}" =~ ^(/home/[^/]+)/ ]]; then
             home="${BASH_REMATCH[1]}"
-            case "${homes}" in
-                *"|${home}|"*) ;;
-                *) homes="${homes}|${home}|" ;;
-            esac
+            homes="$(record_scan_skip_home "${home}" "${homes}")"
         fi
     done <"${SCAN_SKIP_FILE}"
     homes="${homes#|}"
@@ -166,7 +156,7 @@ source_scan_skip_fs() {
 }
 
 # The first existing list is printed.
-find_scan_skip_candidate() {
+locate_scan_skip_candidate() {
     local here="$1"
     local candidate
     for candidate in \
@@ -193,7 +183,7 @@ locate_scan_skip_file() {
             return 0
         fi
     fi
-    if find_scan_skip_candidate "${here}"; then
+    if locate_scan_skip_candidate "${here}"; then
         return 0
     fi
     if [[ -n "${INSTALL_DIRECTORY:-}" ]]; then
@@ -204,7 +194,7 @@ locate_scan_skip_file() {
 }
 
 # A list outside the two known roots is stored under the product.
-choose_scan_skip_dest() {
+get_scan_skip_dest() {
     local dest="$1"
     if [[ "${dest}" != "${BASE}/"* ]]; then
         if [[ -z "${CONFIG_BASE_DIRECTORY:-}" || "${dest}" != "${CONFIG_BASE_DIRECTORY}/"* ]]; then
@@ -245,7 +235,7 @@ ensure_scan_skip_file() {
     local template legacy dest
     template="$(locate_scan_skip_file)"
     legacy="${BASE}/cron/scan-skip.paths"
-    dest="$(choose_scan_skip_dest "${template}")"
+    dest="$(get_scan_skip_dest "${template}")"
     SCAN_SKIP_FILE="${dest}"
     if [[ -f "${dest}" ]] && ! grep -q '__HOME__' "${dest}"; then
         return 0

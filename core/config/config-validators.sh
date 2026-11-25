@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/config/config-validators.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -50,6 +50,14 @@ check_drive_path() {
     return 0
 }
 
+# A failed copy stops before the probe file is removed.
+run_drive_probe() {
+    local remote="$1" path="$2" config="$3" probe="$4" err="$5"
+    RCLONE_CONFIG="${config}" rclone mkdir "${remote}:${path}" >"${err}" 2>&1 \
+        && RCLONE_CONFIG="${config}" rclone copyto "${probe}" "${remote}:${path}/liltress-probe.txt" >"${err}" 2>&1 \
+        && RCLONE_CONFIG="${config}" rclone deletefile "${remote}:${path}/liltress-probe.txt" >"${err}" 2>&1
+}
+
 check_drive_probe() {
     local remote="$1" path="$2" config="$3"
     local probe err
@@ -58,9 +66,7 @@ check_drive_probe() {
     probe="$(mktemp)"
     err="$(mktemp)"
     printf '%s\n' "liltress" >"${probe}"
-    if RCLONE_CONFIG="${config}" rclone mkdir "${remote}:${path}" >"${err}" 2>&1 \
-        && RCLONE_CONFIG="${config}" rclone copyto "${probe}" "${remote}:${path}/liltress-probe.txt" >"${err}" 2>&1 \
-        && RCLONE_CONFIG="${config}" rclone deletefile "${remote}:${path}/liltress-probe.txt" >"${err}" 2>&1; then
+    if run_drive_probe "${remote}" "${path}" "${config}" "${probe}" "${err}"; then
         rm -f "${probe}" "${err}"
         return 0
     fi

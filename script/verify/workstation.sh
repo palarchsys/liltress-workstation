@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/verify/workstation.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -24,14 +24,14 @@ report_pass() {
     if [[ "${INSTALL_WATCHER:-BASH}" == "GO" ]]; then
         log_success "${INSTALL_WATCHER}" "log.ok-3" "$*"
     else
-        note_bash success "$*"
+        record_bash_note success "$*"
     fi
     echo "$(get_text log.ok-4 "$*")" >>"${REPORT}"
 }
 
 report_fail() {
     FAIL=$((FAIL + 1))
-    note_bash fault "$*"
+    record_bash_note fault "$*"
     echo "- FAIL  $*" >>"${REPORT}"
 }
 
@@ -41,7 +41,7 @@ report_warn() {
     echo "- WARN  $*" >>"${REPORT}"
 }
 
-check_workstation_part_01() {
+workstation_verify_01_check_01_get() {
     mkdir -p "$(dirname "${REPORT}")"
     {
         echo "$(get_text log.liltress-workstation-check-workstation)"
@@ -63,7 +63,22 @@ check_workstation_part_01() {
     fi
 }
 
-check_workstation_part_02() {
+# Mode 700 hides a compiler. Any other mode is recorded.
+check_verify_compilers() {
+    local mode
+    for b in gcc g++ cc make; do
+        if command -v "${b}" >/dev/null 2>&1; then
+            mode="$(stat -c '%a' "$(command -v "${b}")")"
+            if [[ "${mode}" == "700" ]]; then
+                report_fail "compilateur ${b} en 700"
+            else
+                report_pass "compilateur ${b} mode ${mode}"
+            fi
+        fi
+    done
+}
+
+workstation_verify_01_check_02_report() {
     if [[ -z "${user_hash}" || "${user_hash}" == "!" || "${user_hash}" == "*" ]]; then
         report_fail "compte ${CURRENT_USER} sans mot de passe utilisable"
     else
@@ -77,21 +92,22 @@ check_workstation_part_02() {
         report_pass "chage ${CURRENT_USER} non forcé à 90 jours"
     fi
 
-    for b in gcc g++ cc make; do
-        if command -v "${b}" >/dev/null 2>&1; then
-            mode="$(stat -c '%a' "$(command -v "${b}")")"
-            if [[ "${mode}" == "700" ]]; then
-                report_fail "compilateur ${b} en 700"
-            else
-                report_pass "compilateur ${b} mode ${mode}"
-            fi
-        fi
-    done
+    check_verify_compilers
 
     root_login="$(get_sshd_value permitrootlogin)"
 }
 
-check_workstation_part_03() {
+# Both forwarding switches must be off together.
+check_verify_ssh_forwarding() {
+    local tcp_fwd="$1" agent_fwd="$2"
+    if [[ "${tcp_fwd}" == "no" && "${agent_fwd}" == "no" ]]; then
+        report_pass "relais SSH coupé"
+    else
+        report_fail "relais SSH ouvert (tcp ${tcp_fwd:-inconnu}, agent ${agent_fwd:-inconnu})"
+    fi
+}
+
+workstation_verify_01_check_03_report() {
     if [[ "${root_login}" == "no" ]]; then
         report_pass "PermitRootLogin no"
     else
@@ -104,11 +120,7 @@ check_workstation_part_03() {
     fi
     tcp_fwd="$(get_sshd_value allowtcpforwarding)"
     agent_fwd="$(get_sshd_value allowagentforwarding)"
-    if [[ "${tcp_fwd}" == "no" && "${agent_fwd}" == "no" ]]; then
-        report_pass "relais SSH coupé"
-    else
-        report_fail "relais SSH ouvert (tcp ${tcp_fwd:-inconnu}, agent ${agent_fwd:-inconnu})"
-    fi
+    check_verify_ssh_forwarding "${tcp_fwd}" "${agent_fwd}"
     if sshd -t 2>/dev/null; then
         report_pass "sshd -t"
     else
@@ -127,7 +139,7 @@ check_workstation_part_03() {
     fi
 }
 
-check_workstation_part_04() {
+workstation_verify_01_check_04_report() {
     ufw_rules="$(LANG=C LC_ALL=C LANGUAGE=C ufw status 2>/dev/null || true)"
     if grep -qF 'OpenSSH via Tailscale only' <<<"${ufw_rules}"; then
         report_pass "SSH ouvert seulement via Tailscale"
@@ -149,7 +161,7 @@ check_workstation_part_04() {
     fi
 }
 
-check_workstation_part_05() {
+workstation_verify_01_check_05_report() {
     if [[ "$(sysctl -n kernel.yama.ptrace_scope 2>/dev/null || echo missing)" == "1" ]]; then
         report_pass "ptrace_scope=1"
     else
@@ -164,7 +176,7 @@ check_workstation_part_05() {
     fi
 }
 
-check_workstation_part_06() {
+workstation_verify_01_check_06_report() {
     if [[ -n "$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || true)" &&
     "$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null || echo 1)" == "0" ]]; then
         report_fail "unprivileged_userns_clone=0"
@@ -185,7 +197,16 @@ check_workstation_part_06() {
     fi
 }
 
-check_workstation_part_07() {
+# Forwarded packets stay accepted so the tunnel can route.
+check_verify_ufw_forward() {
+    if grep -q '^DEFAULT_FORWARD_POLICY="ACCEPT"' /etc/default/ufw 2>/dev/null; then
+        report_pass "UFW DEFAULT_FORWARD_POLICY=ACCEPT"
+    else
+        report_fail "UFW forward policy n'est pas ACCEPT"
+    fi
+}
+
+workstation_verify_01_check_07_report() {
     if [[ -f /etc/sudoers.d/liltress-workstation-umask ]] \
         && visudo -cf /etc/sudoers.d/liltress-workstation-umask >/dev/null \
         && grep -q 'umask_override' /etc/sudoers.d/liltress-workstation-umask; then
@@ -200,14 +221,10 @@ check_workstation_part_07() {
     else
         report_fail "délai sudo absent ou invalide"
     fi
-    if grep -q '^DEFAULT_FORWARD_POLICY="ACCEPT"' /etc/default/ufw 2>/dev/null; then
-        report_pass "UFW DEFAULT_FORWARD_POLICY=ACCEPT"
-    else
-        report_fail "UFW forward policy n'est pas ACCEPT"
-    fi
+    check_verify_ufw_forward
 }
 
-check_workstation_part_08() {
+workstation_verify_01_check_08_report() {
     if [[ "${MAIL_ALERTS:-0}" == "1" ]]; then
         if systemctl is-active --quiet postfix; then
             report_pass "Postfix actif"
@@ -231,7 +248,7 @@ check_workstation_part_08() {
 
 }
 
-check_workstation_part_09() {
+workstation_verify_01_check_09_report() {
     for svc in apparmor fail2ban auditd clamav-daemon clamav-freshclam unattended-upgrades unbound; do
         if systemctl is-enabled --quiet "${svc}" 2>/dev/null || systemctl is-active --quiet "${svc}" 2>/dev/null; then
             report_pass "service ${svc} enabled/active"
@@ -248,7 +265,7 @@ check_workstation_part_09() {
     fi
 }
 
-check_workstation_part_10() {
+workstation_verify_01_check_10_report() {
     if systemctl is-enabled --quiet w-boot-chain.timer 2>/dev/null; then
         report_pass "chaîne de sécurité au démarrage"
     else
@@ -267,7 +284,7 @@ check_workstation_part_10() {
     boot_bin="${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/boot-scan.sh"
 }
 
-check_workstation_part_11() {
+workstation_verify_01_check_11_arm() {
     if [[ -f "${boot_bin}" ]] \
         && grep -q 'chain-periodic.sh' "${boot_bin}" \
         && grep -q 'arm-onaccess.sh' "${boot_bin}" \
@@ -280,7 +297,7 @@ check_workstation_part_11() {
     clam_conf="/etc/clamav/clamd.conf"
 }
 
-check_workstation_part_12() {
+workstation_verify_01_check_12_report() {
     if [[ -f "${clam_conf}" ]] \
         && grep -q '^OnAccessIncludePath /tmp$' "${clam_conf}" \
         && grep -q '^OnAccessIncludePath /var/tmp$' "${clam_conf}" \
@@ -293,7 +310,7 @@ check_workstation_part_12() {
     fi
 }
 
-check_workstation_part_13() {
+workstation_verify_01_check_13_report() {
     if [[ -f "${clam_conf}" ]] \
         && grep -q '/var/lib/clamav/quarantine' "${clam_conf}" \
         && grep -q '/var/lib/clamav/tmp' "${clam_conf}" \
@@ -317,7 +334,7 @@ check_onaccess_mounts() {
     fi
 }
 
-check_workstation_part_14() {
+workstation_verify_01_check_14_check() {
     if [[ "${ONACCESS_MOUNTS}" == "1" ]]; then
         check_onaccess_mounts
         if [[ "${mount_ok}" == "1" ]]; then
@@ -333,7 +350,7 @@ check_workstation_part_14() {
     fi
 }
 
-check_workstation_part_15() {
+workstation_verify_01_check_15_report() {
     # shellcheck disable=SC1091
     source "${INSTALL_DIRECTORY}/config/service/ufw/egress.conf"
     response="${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/clamav-response.sh"
@@ -353,7 +370,7 @@ check_workstation_part_15() {
     fi
 }
 
-check_workstation_part_16() {
+workstation_verify_01_check_16_list() {
     if command -v cscli >/dev/null 2>&1; then
         crowd_list="$(cscli collections list 2>/dev/null || true)"
         for crowd_name in crowdsecurity/linux crowdsecurity/sshd crowdsecurity/postfix; do
@@ -377,7 +394,7 @@ check_workstation_part_16() {
     usb_hub='allow with-interface equals { 09:*:* }'
 }
 
-check_workstation_part_17() {
+workstation_verify_01_check_17_report() {
     if [[ ! -f "${usb_rules}" ]] || ! grep -qF "${usb_hid}" "${usb_rules}"; then
         report_warn "USBGuard sans autorisation clavier et souris"
     elif ! systemctl is-active --quiet usbguard; then
@@ -396,7 +413,14 @@ check_workstation_part_17() {
 
 }
 
-check_workstation_part_18() {
+# A listener on every address means Unbound left the machine.
+check_verify_unbound_public() {
+    if ss -H -lntu src 0.0.0.0:53 2>/dev/null | grep -q .; then
+        report_fail "Unbound écoute hors de la machine"
+    fi
+}
+
+workstation_verify_01_check_18_report() {
     if systemctl is-enabled --quiet unbound 2>/dev/null && systemctl is-active --quiet unbound; then
         report_pass "Unbound actif au démarrage"
     else
@@ -417,12 +441,10 @@ check_workstation_part_18() {
     else
         report_fail "Unbound n'écoute pas 127.0.0.1:53"
     fi
-    if ss -H -lntu src 0.0.0.0:53 2>/dev/null | grep -q .; then
-        report_fail "Unbound écoute hors de la machine"
-    fi
+    check_verify_unbound_public
 }
 
-check_workstation_part_19() {
+workstation_verify_01_check_19_report() {
     if grep -q '^DNS=127.0.0.1' /etc/systemd/resolved.conf.d/90-liltress-workstation.conf 2>/dev/null; then
         report_pass "systemd-resolved pointe vers Unbound"
     else
@@ -431,7 +453,18 @@ check_workstation_part_19() {
 
 }
 
-check_workstation_part_20() {
+# A named service missing from pro status is only a warning.
+check_verify_pro_services() {
+    local seen="$1" svc
+    for svc in esm-infra esm-apps livepatch; do
+        case " ${seen} " in
+            *" ${svc} "*) ;;
+            *) report_warn "${svc} absent de pro status" ;;
+        esac
+    done
+}
+
+workstation_verify_01_check_20_report() {
     if ! command -v pro >/dev/null 2>&1; then
         report_fail "ubuntu-pro-client absent"
     elif check_ubuntu_pro; then
@@ -451,13 +484,8 @@ check_workstation_part_20() {
                         report_warn "${svc_name} non activé (état : ${svc_status:-inconnu}${svc_detail:+ : ${svc_detail}})"
                         ;;
                 esac
-            done < <(pro status --format json 2>/dev/null | python3 "$(locate_python_dir)/pro-status.py")
-            for svc in esm-infra esm-apps livepatch; do
-                case " ${seen} " in
-                    *" ${svc} "*) ;;
-                    *) report_warn "${svc} absent de pro status" ;;
-                esac
-            done
+            done < <(pro status --format json 2>/dev/null | python3 "$(locate_python_directory)/pro-status.py")
+            check_verify_pro_services "${seen}"
         else
             report_pass "esm-infra, esm-apps et livepatch non demandés : version intermédiaire"
         fi
@@ -467,7 +495,7 @@ check_workstation_part_20() {
 
 }
 
-check_workstation_part_21() {
+workstation_verify_01_check_21_report() {
     if command -v lynis >/dev/null 2>&1; then
         report_pass "lynis installé"
         if [[ -f /etc/lynis/custom.prf ]]; then
@@ -492,7 +520,7 @@ check_workstation_part_21() {
     fi
 }
 
-check_workstation_part_22() {
+workstation_verify_01_check_22_report() {
     if command -v mokutil >/dev/null 2>&1 && mokutil --sb-state 2>/dev/null | grep -qi 'SecureBoot enabled'; then
         report_pass "Secure Boot actif"
     else
@@ -528,7 +556,7 @@ check_workstation_part_22() {
 
 }
 
-check_workstation_part_23() {
+workstation_verify_01_check_23_get() {
     {
         echo
         echo "$(get_text log.total)"
@@ -550,36 +578,36 @@ EOF
     chmod 644 "${status_file}" 2>/dev/null || true
     if [[ "${FAIL}" -gt 0 ]]; then
         while IFS= read -r line; do
-            note_bash fault "${line#- }"
+            record_bash_note fault "${line#- }"
         done < <(grep '^- FAIL' "${REPORT}" || true)
         log_error "${INSTALL_WATCHER}" "log.check-failure-s" "${FAIL}"
     fi
 }
 
 run_workstation_checks() {
-    check_workstation_part_01
-    check_workstation_part_02
-    check_workstation_part_03
-    check_workstation_part_04
-    check_workstation_part_05
-    check_workstation_part_06
-    check_workstation_part_07
-    check_workstation_part_08
-    check_workstation_part_09
-    check_workstation_part_10
-    check_workstation_part_11
-    check_workstation_part_12
-    check_workstation_part_13
-    check_workstation_part_14
-    check_workstation_part_15
-    check_workstation_part_16
-    check_workstation_part_17
-    check_workstation_part_18
-    check_workstation_part_19
-    check_workstation_part_20
-    check_workstation_part_21
-    check_workstation_part_22
-    check_workstation_part_23
+    workstation_verify_01_check_01_get
+    workstation_verify_01_check_02_report
+    workstation_verify_01_check_03_report
+    workstation_verify_01_check_04_report
+    workstation_verify_01_check_05_report
+    workstation_verify_01_check_06_report
+    workstation_verify_01_check_07_report
+    workstation_verify_01_check_08_report
+    workstation_verify_01_check_09_report
+    workstation_verify_01_check_10_report
+    workstation_verify_01_check_11_arm
+    workstation_verify_01_check_12_report
+    workstation_verify_01_check_13_report
+    workstation_verify_01_check_14_check
+    workstation_verify_01_check_15_report
+    workstation_verify_01_check_16_list
+    workstation_verify_01_check_17_report
+    workstation_verify_01_check_18_report
+    workstation_verify_01_check_19_report
+    workstation_verify_01_check_20_report
+    workstation_verify_01_check_21_report
+    workstation_verify_01_check_22_report
+    workstation_verify_01_check_23_get
 }
 require_root
 get_current_user

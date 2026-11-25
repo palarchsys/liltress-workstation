@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/alert-pack.py
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -112,9 +112,9 @@ def add_host_logs(archive):
         add_text(archive, label, tail_text(candidate))
 
 
-def build_pack(phase, state_dir, log_dir, dest):
-    state = Path(state_dir)
-    logs = Path(log_dir) if log_dir else None
+def build_pack(phase, state_directory, log_directory, dest):
+    state = Path(state_directory)
+    logs = Path(log_directory) if log_directory else None
     target = Path(dest)
     with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         add_text(archive, "manifest.txt", manifest_text(phase, state))
@@ -124,5 +124,5 @@ def build_pack(phase, state_dir, log_dir, dest):
 
 
 if __name__ == "__main__":
-    phase, state_dir, log_dir, dest = sys.argv[1:5]
-    build_pack(phase, state_dir, log_dir, dest)
+    phase, state_directory, log_directory, dest = sys.argv[1:5]
+    build_pack(phase, state_directory, log_directory, dest)

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/runtime.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -25,7 +25,7 @@ set_statoverride_user_exec() {
 }
 
 # The caller owns have_npm and have_corepack.
-mark_npm_packages() {
+record_npm_packages() {
     have_npm=0
     have_corepack=0
     dpkg -s npm >/dev/null 2>&1 && have_npm=1
@@ -151,7 +151,7 @@ lock_npm_to_main_user() {
     local root="" locked=0
     [[ "${SERVER_TYPE:-}" == "MATRIX" ]] || return 0
     command -v dpkg-statoverride >/dev/null 2>&1 || return 0
-    mark_npm_packages || return 0
+    record_npm_packages || return 0
     require_npm_account
     scan_npm_files
     if [[ -n "${root}" ]]; then

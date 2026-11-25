@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-auditd.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -33,7 +33,7 @@ record_audit_stamp() {
     chmod 600 "${stamp}"
 }
 
-audit_line_is_own() {
+check_audit_line_own() {
     local line="$1"
     local root="${BASE}/service/cron/watchdogs"
     local cron="${BASE}/cron/bin"
@@ -43,12 +43,12 @@ audit_line_is_own() {
     return 1
 }
 
-audit_line_is_exec() {
+check_audit_line_exec() {
     [[ "$1" == *exec-tmp* ]] && return 0
     return 1
 }
 
-audit_line_is_anom() {
+check_audit_line_anom() {
     local line="$1"
     [[ "${line}" == *type=ANOM_* ]] && return 0
     [[ "${line}" == *type=USER_LOGIN* && "${line}" == *res=failed* ]] && return 0
@@ -60,8 +60,8 @@ collect_audit_hits() {
     local line=""
     : >"${kept}"
     while IFS= read -r line || [[ -n "${line}" ]]; do
-        audit_line_is_own "${line}" && continue
-        if audit_line_is_exec "${line}" || audit_line_is_anom "${line}"; then
+        check_audit_line_own "${line}" && continue
+        if check_audit_line_exec "${line}" || check_audit_line_anom "${line}"; then
             printf '%s\n' "${line}" >>"${kept}"
         fi
     done <"${found}"
@@ -77,7 +77,7 @@ invoke_ausearch() {
     "$@" >"${dest}" 2>&1
 }
 
-query_audit_window() {
+read_audit_window() {
     local bin="$1"
     local start="$2"
     local status=0
@@ -112,7 +112,7 @@ finish_audit_window() {
     printf '%s\n' "$(get_text watchdog.no-execution-temporary)"
 }
 
-run_scan_auditd_part_01() {
+auditd_scan_01_run_01_get() {
     set -euo pipefail
     HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     if [[ -r "${HERE}/watchdog.conf" ]]; then
@@ -134,15 +134,15 @@ run_scan_auditd_part_01() {
     LOG_FILE="${LOG_DIR}/auditd-${STAMP}.log"
     ALERT_FILE="${ALERT_DIR}/auditd-${STAMP}.txt"
     MODULE_NAME="Auditd"
-    if declare -F watchdog_runtime_file >/dev/null 2>&1; then
-        stamp="$(watchdog_runtime_file "${BASE}" behavior.stamp)"
+    if declare -F get_watchdog_runtime_file >/dev/null 2>&1; then
+        stamp="$(get_watchdog_runtime_file "${BASE}" behavior.stamp)"
     else
         stamp="${BASE}/cron/behavior.stamp"
     fi
     ausearch_bin="$(read_ausearch_bin || true)"
 }
 
-run_scan_auditd_part_02() {
+auditd_scan_01_run_02_get() {
     if [[ -z "${ausearch_bin}" ]]; then
         printf '%s\n' "$(get_text watchdog.ausearch-absent)"
         exit 0
@@ -157,14 +157,14 @@ run_scan_auditd_part_02() {
     kept="$(mktemp)"
     trap 'rm -f "${found}" "${extra}" "${kept}"' EXIT
     start="$(head -n 1 "${stamp}")"
-    query_audit_window "${ausearch_bin}" "${start}"
+    read_audit_window "${ausearch_bin}" "${start}"
     finish_audit_window
     exit 0
 }
 
-run_scan_auditd_part_03() {
-    run_scan_auditd_part_01 "$@"
-    run_scan_auditd_part_02 "$@"
+auditd_scan_01_run_03_run() {
+    auditd_scan_01_run_01_get "$@"
+    auditd_scan_01_run_02_get "$@"
 }
 
-run_scan_auditd_part_03 "$@"
+auditd_scan_01_run_03_run "$@"

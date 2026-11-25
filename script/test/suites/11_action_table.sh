@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/11_action_table.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -35,7 +35,7 @@ printf '0\t0\tfile\taide\t-\t/etc/foo\taide\taide.systemd\n' > "${work}/rows.tsv
 # The stub stays in this subshell. t_finish still calls the catalog get_text.
 (
     get_text() { printf 'Repair failed: %s' "${2:-}"; }
-    reinstall_watchdog_package() { return 1; }
+    install_watchdog_package() { return 1; }
     apply_watchdog_remedy integrity "${work}"
 )
 if grep -q 'Repair failed: aide' "${work}/actions.txt"; then

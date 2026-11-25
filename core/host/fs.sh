@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/fs.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -83,28 +83,28 @@ copy_backup() {
 
 # A missing account name falls back to root.
 apply_directory_owner() {
-    local dir="$1"
+    local directory="$1"
     local mode="$2"
     local user="$3"
     local group="$4"
     local effective_user="$user"
     local effective_group="$group"
-    mkdir -p "$dir"
-    chmod "$mode" "$dir"
+    mkdir -p "$directory"
+    chmod "$mode" "$directory"
     if ! id -u "$effective_user" >/dev/null 2>&1; then
         effective_user="root"
     fi
     if ! getent group "$effective_group" >/dev/null 2>&1; then
         effective_group="root"
     fi
-    chown "${effective_user}:${effective_group}" "$dir" 2>/dev/null || true
+    chown "${effective_user}:${effective_group}" "$directory" 2>/dev/null || true
 }
 
 ensure_directory() {
     local mode="700"
     local user="root"
     local group="root"
-    local dirs=()
+    local directories=()
 
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -114,7 +114,7 @@ ensure_directory() {
                 break
                 ;;
             *)
-                dirs+=("$1")
+                directories+=("$1")
                 shift
                 ;;
         esac
@@ -127,9 +127,9 @@ ensure_directory() {
         group="$2"
     fi
 
-    local dir=""
-    for dir in "${dirs[@]}"; do
-        apply_directory_owner "$dir" "$mode" "$user" "$group"
+    local directory=""
+    for directory in "${directories[@]}"; do
+        apply_directory_owner "$directory" "$mode" "$user" "$group"
     done
 }
 
@@ -158,7 +158,7 @@ load_usb_rule() {
     done <"$(locate_config_file service/usbguard/daemon.conf)"
 }
 
-mode_file() {
+read_file_mode() {
     local mode="$1"
     local path="$2"
     [[ -e "${path}" ]] || return 0
@@ -206,7 +206,7 @@ apply_tree_script_modes() {
         system/sysctl/sysctl-apply.sh \
         system/sysctl/w-sysctl-apply.sh \
         service/unbound/nm-dispatcher.sh; do
-        mode_file 755 "${root}/${rel}"
+        read_file_mode 755 "${root}/${rel}"
     done
     if [[ -d "${root}/service/cron/watchdogs" ]]; then
         find "${root}/service/cron/watchdogs" -type f -name '*.sh' \
@@ -226,6 +226,16 @@ apply_tree_config_modes() {
     fi
 }
 
+# A missing directory is left unchanged.
+apply_secrets_directory_modes() {
+    local root="$1"
+    if [[ -d "${root}/secrets" ]]; then
+        chmod 700 "${root}/secrets" || return 1
+        chown root:root "${root}/secrets" || return 1
+        find "${root}/secrets" -type f -exec chmod 600 {} + -exec chown root:root {} + || return 1
+    fi
+}
+
 # A failed mode returns 1. Every command here checks its own status.
 apply_tree_secret_modes() {
     local root="$1"
@@ -233,11 +243,7 @@ apply_tree_secret_modes() {
         chmod 600 "${root}/config/secrets.conf" || return 1
         chown root:root "${root}/config/secrets.conf" || return 1
     fi
-    if [[ -d "${root}/secrets" ]]; then
-        chmod 700 "${root}/secrets" || return 1
-        chown root:root "${root}/secrets" || return 1
-        find "${root}/secrets" -type f -exec chmod 600 {} + -exec chown root:root {} + || return 1
-    fi
+    apply_secrets_directory_modes "${root}" || return 1
     return 0
 }
 
@@ -286,13 +292,13 @@ set_tree_modes() {
 }
 
 # A hyphen, a dot, an underscore, or a tilde stays literal.
-keep_url_mark() {
+pass_url_mark() {
     local byte="$1"
     [[ "${byte}" -eq 45 || "${byte}" -eq 46 || "${byte}" -eq 95 || "${byte}" -eq 126 ]]
 }
 
 # A digit or a letter stays literal.
-keep_url_alnum() {
+pass_url_alnum() {
     local byte="$1"
     [[ ("${byte}" -ge 48 && "${byte}" -le 57) ||
         ("${byte}" -ge 65 && "${byte}" -le 90) ||
@@ -303,7 +309,7 @@ encode_url() {
     local s="$1" byte="" c="" out=""
     while IFS= read -r byte; do
         [[ -n "${byte}" ]] || continue
-        if keep_url_mark "${byte}" || keep_url_alnum "${byte}"; then
+        if pass_url_mark "${byte}" || pass_url_alnum "${byte}"; then
             printf -v c '%b' "$(printf '\\%03o' "${byte}")"
             out+="${c}"
         else

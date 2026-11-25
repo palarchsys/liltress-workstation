@@ -12,56 +12,35 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
-
-source_python_boot
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../core/boot/python.sh"
 
 load_scan_skip_text() {
-    local _text_dir _text_hops
-    _text_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    local _text_directory _text_hops
+    _text_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     _text_hops=0
-    while [[ "${_text_hops}" -lt 8 && "${_text_dir}" != "/" ]]; do
-        if [[ -f "${_text_dir}/text-load.sh" ]]; then
+    while [[ "${_text_hops}" -lt 8 && "${_text_directory}" != "/" ]]; do
+        if [[ -f "${_text_directory}/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${_text_dir}/text-load.sh"
+            source "${_text_directory}/text-load.sh"
             break
         fi
-        if [[ -f "${_text_dir}/share/core/text/text-load.sh" ]]; then
+        if [[ -f "${_text_directory}/share/core/text/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${_text_dir}/share/core/text/text-load.sh"
+            source "${_text_directory}/share/core/text/text-load.sh"
             break
         fi
-        if [[ -f "${_text_dir}/core/text/text-load.sh" ]]; then
+        if [[ -f "${_text_directory}/core/text/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${_text_dir}/core/text/text-load.sh"
+            source "${_text_directory}/core/text/text-load.sh"
             break
         fi
-        _text_dir="$(dirname -- "${_text_dir}")"
+        _text_directory="$(dirname -- "${_text_directory}")"
         _text_hops=$((_text_hops + 1))
     done
 }
 
-prepare_scan_skip() {
+init_scan_skip() {
     load_scan_skip_text
     if ! declare -F load_installed_text >/dev/null 2>&1; then
         printf '%s\n' "get_text absent" >&2
@@ -98,7 +77,7 @@ show_scan_skip_list() {
     fi
 }
 
-mark_scan_skip_found() {
+record_scan_skip_found() {
     local path
     found=0
     if [[ ${#SCAN_SKIP_VALID[@]} -gt 0 ]]; then
@@ -124,7 +103,7 @@ write_scan_skip_change() {
             printf '%s\n' "$(get_text log.path-absent-of-the-list "${norm}")" >&2
             exit 1
         fi
-        python3 "$(locate_python_dir)/scan-skip-path.py" edit "${SCAN_SKIP_FILE}" "${norm}"
+        python3 "$(locate_python_directory)/scan-skip-path.py" edit "${SCAN_SKIP_FILE}" "${norm}"
         printf "$(get_text log.path-removed "${norm}")"
     fi
     bash "${BASE}/service/cron/watchdogs/apply-scan-skip.sh"
@@ -133,7 +112,7 @@ write_scan_skip_change() {
 
 set -euo pipefail
 
-prepare_scan_skip
+init_scan_skip
 action="${1:-}"
 case "${action}" in
     list | add | del) ;;
@@ -159,5 +138,5 @@ if ! norm="$(check_scan_skip_path "$2")"; then
     exit 1
 fi
 collect_scan_skip_path
-mark_scan_skip_found
+record_scan_skip_found
 write_scan_skip_change

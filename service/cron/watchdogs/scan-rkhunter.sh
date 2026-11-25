@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-rkhunter.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -40,7 +40,7 @@ ensure_rkhunter_allows() {
     done
 }
 
-run_scan_rkhunter_part_01() {
+rkhunter_scan_01_run_01_get() {
     set -euo pipefail
     HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     # shellcheck disable=SC1091
@@ -67,7 +67,7 @@ run_scan_rkhunter_part_01() {
     rm -f "${confirmed_tmp}"
 }
 
-run_scan_rkhunter_part_02() {
+rkhunter_scan_01_run_02_check() {
     if [[ "${check_rc}" -ge 128 ]]; then
         log_alert "$(get_crash_sentence "rkhunter" "${check_rc}")"
     elif [[ "${check_rc}" -ne 0 || "${CONFIRMED_COUNT:-0}" -gt 0 ]]; then
@@ -84,9 +84,9 @@ run_scan_rkhunter_part_02() {
     exit 0
 }
 
-run_scan_rkhunter_part_03() {
-    run_scan_rkhunter_part_01 "$@"
-    run_scan_rkhunter_part_02 "$@"
+rkhunter_scan_01_run_03_run() {
+    rkhunter_scan_01_run_01_get "$@"
+    rkhunter_scan_01_run_02_check "$@"
 }
 
-run_scan_rkhunter_part_03 "$@"
+rkhunter_scan_01_run_03_run "$@"

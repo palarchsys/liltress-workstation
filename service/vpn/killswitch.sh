@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/killswitch.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -347,6 +347,12 @@ skip_vpn_conntrack_flow() {
     return 1
 }
 
+# One flow is dropped. A missing row is not a failure.
+clear_vpn_conntrack_row() {
+    local src="$1" dst="$2" proto="$3" sport="$4" dport="$5"
+    conntrack -D -s "${src}" -d "${dst}" -p "${proto}" --sport "${sport}" --dport "${dport}" >/dev/null 2>&1 || true
+}
+
 # Live rows that are not an exception are removed.
 clear_vpn_conntrack() {
     local line proto src dst sport dport
@@ -358,7 +364,7 @@ clear_vpn_conntrack() {
         read_vpn_conntrack_fields "${line}" || continue
         skip_vpn_conntrack_ssh && continue
         skip_vpn_conntrack_flow "${keep[@]}" && continue
-        conntrack -D -s "${src}" -d "${dst}" -p "${proto}" --sport "${sport}" --dport "${dport}" >/dev/null 2>&1 || true
+        clear_vpn_conntrack_row "${src}" "${dst}" "${proto}" "${sport}" "${dport}"
     done < <(conntrack -L 2>/dev/null || true)
 }
 

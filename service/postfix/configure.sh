@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/postfix/configure.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_configure_part_01() {
+postfix_configure_01_run_01_record() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -47,7 +47,7 @@ run_configure_part_01() {
     log_success "${INSTALL_WATCHER}" "configure.card-sasl-saved-reading-root-only"
 }
 
-run_configure_part_02() {
+postfix_configure_01_run_02_apply() {
     log_info "${INSTALL_WATCHER}" "configure.configuration-of-the-name-of-mail"
     printf '%s\n' "$(hostname -f)" >/etc/mailname
     chmod 644 /etc/mailname
@@ -63,12 +63,12 @@ run_configure_part_02() {
         log_error "${INSTALL_WATCHER}" "configure.postfix-is-not-active-after-the-configuration"
     fi
     log_success "${INSTALL_WATCHER}" "configure.postfix-enabled-listens-limited-to-localhost"
-    confirm_install_test_mail
+    ask_install_test_mail
 }
 
-run_configure_part_03() {
-    run_configure_part_01 "$@"
-    run_configure_part_02 "$@"
+postfix_configure_01_run_03_run() {
+    postfix_configure_01_run_01_record "$@"
+    postfix_configure_01_run_02_apply "$@"
 }
 
-run_configure_part_03 "$@"
+postfix_configure_01_run_03_run "$@"

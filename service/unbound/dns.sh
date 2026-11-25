@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/unbound/dns.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -17,7 +17,7 @@ check_unbound_port() {
 }
 
 # A present override file marks the network as changed.
-mark_dns_override_files() {
+record_dns_override_files() {
     local path
     for path in \
         /etc/systemd/resolved.conf.d/90-liltress-workstation.conf \
@@ -95,7 +95,7 @@ clear_dns_override() {
     if check_unbound_port; then
         return 0
     fi
-    mark_dns_override_files
+    record_dns_override_files
     collect_dns_connections
     [[ "${changed}" -eq 1 ]] || return 0
     log_info "${INSTALL_WATCHER}" "configure.return-to-the-network-dns"
@@ -140,8 +140,8 @@ apply_unbound_devices() {
 }
 
 apply_unbound_dns() {
-    local script_dir
-    script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+    local script_directory
+    script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
     ensure_directory /etc/systemd/resolved.conf.d 755
     grep -v '^#' "$(locate_config_file service/unbound/resolved.conf)" >/etc/systemd/resolved.conf.d/90-liltress-workstation.conf
     chmod 644 /etc/systemd/resolved.conf.d/90-liltress-workstation.conf
@@ -149,7 +149,7 @@ apply_unbound_dns() {
     grep -v '^#' "$(locate_config_file service/unbound/networkmanager.conf)" >/etc/NetworkManager/conf.d/90-liltress-workstation-dns.conf
     chmod 644 /etc/NetworkManager/conf.d/90-liltress-workstation-dns.conf
     install -d -m 755 /etc/NetworkManager/dispatcher.d
-    install -m 755 "${script_dir}/nm-dispatcher.sh" \
+    install -m 755 "${script_directory}/nm-dispatcher.sh" \
         /etc/NetworkManager/dispatcher.d/10-liltress-workstation-dns
     apply_unbound_connections
     run_optional "${INSTALL_WATCHER}" "configure.unbound.error.9" systemctl restart systemd-resolved.service

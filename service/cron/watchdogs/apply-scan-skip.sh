@@ -14,29 +14,8 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
-
-source_python_boot
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../../core/boot/python.sh"
 set -euo pipefail
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
@@ -53,6 +32,20 @@ restart_scan_skip_service() {
             return 0
         fi
     done
+}
+
+# Placeholders expand and the product source tree stays out.
+apply_onaccess_placeholder() {
+    local path
+    local kept=()
+    local rendered=""
+    for path in "${ONACCESS_FIXED[@]+"${ONACCESS_FIXED[@]}"}"; do
+        rendered="${path//__HF_BASE__/${BASE}}"
+        rendered="${rendered//__BASE__/${BASE}}"
+        [[ "${rendered}" == "${BASE}/src" ]] && continue
+        kept+=("${rendered}")
+    done
+    ONACCESS_FIXED=("${kept[@]+"${kept[@]}"}")
 }
 
 load_onaccess_exclude() {
@@ -77,15 +70,7 @@ load_onaccess_exclude() {
         [[ -n "${path}" ]] || continue
         ONACCESS_FIXED+=("${path}")
     done
-    local kept=()
-    local rendered=""
-    for path in "${ONACCESS_FIXED[@]+"${ONACCESS_FIXED[@]}"}"; do
-        rendered="${path//__HF_BASE__/${BASE}}"
-        rendered="${rendered//__BASE__/${BASE}}"
-        [[ "${rendered}" == "${BASE}/src" ]] && continue
-        kept+=("${rendered}")
-    done
-    ONACCESS_FIXED=("${kept[@]+"${kept[@]}"}")
+    apply_onaccess_placeholder
 }
 
 read_generated_clamav() {
@@ -100,7 +85,7 @@ read_generated_clamav() {
     done <"${file}"
 }
 
-read_scan_run_dir() {
+read_scan_run_directory() {
     local candidate="" line=""
     for candidate in \
         "${BASE}/config/service/clamav/scan.conf" \
@@ -109,8 +94,8 @@ read_scan_run_dir() {
         [[ -n "${candidate}" && -f "${candidate}" ]] || continue
         while IFS= read -r line || [[ -n "${line}" ]]; do
             case "${line}" in
-                run-dir=*)
-                    printf '%s\n' "${line#run-dir=}"
+                run-directory=*)
+                    printf '%s\n' "${line#run-directory=}"
                     return 0
                     ;;
             esac
@@ -138,12 +123,12 @@ if [[ ${#SCAN_SKIP_BAD[@]} -gt 0 ]]; then
 fi
 conf="/etc/clamav/clamd.conf"
 if [[ -f "${conf}" ]]; then
-    run_dir="$(read_scan_run_dir)"
-    install -d -m 755 "${run_dir}"
-    tmp="$(mktemp -p "${run_dir}")"
+    run_directory="$(read_scan_run_directory)"
+    install -d -m 755 "${run_directory}"
+    tmp="$(mktemp -p "${run_directory}")"
     trap 'rm -f "${tmp}"' EXIT
     changed="$(
-        python3 "$(locate_python_dir)/scan-skip-apply.py" "${conf}" "${tmp}" "${#ONACCESS_FIXED[@]}" "${ONACCESS_FIXED[@]}" "${SCAN_SKIP_VALID[@]}"
+        python3 "$(locate_python_directory)/scan-skip-apply.py" "${conf}" "${tmp}" "${#ONACCESS_FIXED[@]}" "${ONACCESS_FIXED[@]}" "${SCAN_SKIP_VALID[@]}"
     )"
     if [[ "${changed}" == "changed" ]]; then
         cat "${tmp}" >"${conf}"

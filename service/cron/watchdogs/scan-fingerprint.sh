@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-fingerprint.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -14,7 +14,7 @@
 # -----------------------------------------------------------------------------
 
 
-read_scan_run_dir() {
+read_scan_run_directory() {
     local candidate="" line=""
     for candidate in \
         "${BASE:-}/config/service/clamav/scan.conf" \
@@ -23,8 +23,8 @@ read_scan_run_dir() {
         [[ -n "${candidate}" && -f "${candidate}" ]] || continue
         while IFS= read -r line || [[ -n "${line}" ]]; do
             case "${line}" in
-                run-dir=*)
-                    printf '%s\n' "${line#run-dir=}"
+                run-directory=*)
+                    printf '%s\n' "${line#run-directory=}"
                     return 0
                     ;;
             esac
@@ -60,8 +60,8 @@ collect_fingerprint_lines() {
 
 # The runtime stamp path is printed.
 get_fingerprint_stamp() {
-    if declare -F watchdog_runtime_file >/dev/null 2>&1; then
-        watchdog_runtime_file "${BASE}" integrity.sha256
+    if declare -F get_watchdog_runtime_file >/dev/null 2>&1; then
+        get_watchdog_runtime_file "${BASE}" integrity.sha256
         return 0
     fi
     printf '%s\n' "${BASE}/cron/integrity.sha256"
@@ -78,14 +78,14 @@ write_fingerprint_stamp() {
 
 # Install stores the files that this run already wrote.
 refresh_fingerprint_stamp() {
-    local list="" current="" stamp="" run_dir=""
+    local list="" current="" stamp="" run_directory=""
     list="$(locate_fingerprint_list)" || return 0
-    run_dir="$(read_scan_run_dir)"
-    if ! install -d -m 755 "${run_dir}" 2>/dev/null; then
-        run_dir="${BASE}/cron"
-        mkdir -p -- "${run_dir}"
+    run_directory="$(read_scan_run_directory)"
+    if ! install -d -m 755 "${run_directory}" 2>/dev/null; then
+        run_directory="${BASE}/cron"
+        mkdir -p -- "${run_directory}"
     fi
-    current="$(mktemp -p "${run_dir}")"
+    current="$(mktemp -p "${run_directory}")"
     collect_fingerprint_lines "${list}" >"${current}"
     stamp="$(get_fingerprint_stamp)"
     write_fingerprint_stamp "${current}" "${stamp}"
@@ -94,7 +94,7 @@ refresh_fingerprint_stamp() {
     log_success "${INSTALL_WATCHER:-BASH}" "watchdog.fingerprint-stored"
 }
 
-run_scan_fingerprint_part_01() {
+fingerprint_scan_01_run_01_run() {
     set -euo pipefail
     HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     if [[ -r "${HERE}/watchdog.conf" ]]; then
@@ -120,7 +120,7 @@ run_scan_fingerprint_part_01() {
     fi
 }
 
-run_scan_fingerprint_part_02() {
+fingerprint_scan_01_run_02_refresh() {
     if [[ "${1:-}" == "refresh" ]]; then
         refresh_fingerprint_stamp
         exit 0
@@ -130,12 +130,12 @@ run_scan_fingerprint_part_02() {
         log_pass "$(get_text watchdog.list-of-integrity-absent)"
         exit 0
     fi
-    run_dir="$(read_scan_run_dir)"
-    if ! install -d -m 755 "${run_dir}" 2>/dev/null; then
-        run_dir="${BASE}/cron"
-        mkdir -p -- "${run_dir}"
+    run_directory="$(read_scan_run_directory)"
+    if ! install -d -m 755 "${run_directory}" 2>/dev/null; then
+        run_directory="${BASE}/cron"
+        mkdir -p -- "${run_directory}"
     fi
-    current="$(mktemp -p "${run_dir}")"
+    current="$(mktemp -p "${run_directory}")"
     trap 'rm -f "${current}"' EXIT
     stamp="$(get_fingerprint_stamp)"
     collect_fingerprint_lines "${list}" >"${current}"
@@ -153,9 +153,9 @@ run_scan_fingerprint_part_02() {
     TITLE="$(get_text alert.mail.integrity.title)"
 }
 
-run_scan_fingerprint_part_03() {
-    if declare -F mail_service_label >/dev/null 2>&1; then
-        MAIL_SERVICE="$(mail_service_label fingerprint)"
+fingerprint_scan_01_run_03_get() {
+    if declare -F get_mail_service_label >/dev/null 2>&1; then
+        MAIL_SERVICE="$(get_mail_service_label fingerprint)"
     else
         MAIL_SERVICE="Fingerprint"
     fi
@@ -165,10 +165,10 @@ run_scan_fingerprint_part_03() {
     exit 0
 }
 
-run_scan_fingerprint_part_04() {
-    run_scan_fingerprint_part_01 "$@"
-    run_scan_fingerprint_part_02 "$@"
-    run_scan_fingerprint_part_03 "$@"
+fingerprint_scan_01_run_04_run() {
+    fingerprint_scan_01_run_01_run "$@"
+    fingerprint_scan_01_run_02_refresh "$@"
+    fingerprint_scan_01_run_03_get "$@"
 }
 
-run_scan_fingerprint_part_04 "$@"
+fingerprint_scan_01_run_04_run "$@"

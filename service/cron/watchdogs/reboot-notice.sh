@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/reboot-notice.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_reboot_notice_part_01() {
+reboot_notice_watchdog_01_run_01_arm() {
     set -euo pipefail
     HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     # shellcheck disable=SC1091
@@ -38,7 +38,7 @@ run_reboot_notice_part_01() {
     fi
 }
 
-run_reboot_notice_part_02() {
+reboot_notice_watchdog_01_run_02_get() {
     if [[ ! -f /var/run/reboot-required && -z "${extra}" ]]; then
         log_pass "$(get_text watchdog.no-restart-useful)"
         exit 0
@@ -60,9 +60,9 @@ run_reboot_notice_part_02() {
     chmod 600 "${seen}"
 }
 
-run_reboot_notice_part_03() {
-    run_reboot_notice_part_01 "$@"
-    run_reboot_notice_part_02 "$@"
+reboot_notice_watchdog_01_run_03_run() {
+    reboot_notice_watchdog_01_run_01_arm "$@"
+    reboot_notice_watchdog_01_run_02_get "$@"
 }
 
-run_reboot_notice_part_03 "$@"
+reboot_notice_watchdog_01_run_03_run "$@"

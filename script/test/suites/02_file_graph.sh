@@ -12,37 +12,12 @@
 
 
 
-read_python_candidate() {
-    local candidate="$1"
-    [[ -n "${candidate}" && -d "${candidate}" ]] || return 1
-    (cd -- "${candidate}" && pwd -P)
-}
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../../core/boot/python.sh"
 
-locate_python_dir() {
-    local dir="" hops=0 candidate=""
-    for candidate in \
-        "${CONFIG_BASE_DIRECTORY:-}/python" \
-        "${BASE:-}/python" \
-        "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"; do
-        read_python_candidate "${candidate}" && return 0
-    done
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -d "${dir}/share/python" ]]; then
-            printf '%s\n' "${dir}/share/python"
-            return 0
-        fi
-        read_python_candidate "${dir}/python" && return 0
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
 
 t_get_plan_pos() {
-    python3 "$(locate_python_dir)/install-plan.py" index "${T_ROOT}/config/schema/installation.json" "$1"
+    python3 "$(locate_python_directory)/install-plan.py" index "${T_ROOT}/config/schema/installation.json" "$1"
 }
 
 t_section "étapes de run.sh"
@@ -53,7 +28,7 @@ while IFS= read -r step; do
     else
         t_fail "graph:${step}" "introuvable"
     fi
-done < <(python3 "$(locate_python_dir)/install-plan.py" paths "${T_ROOT}/config/schema/installation.json"
+done < <(python3 "$(locate_python_directory)/install-plan.py" paths "${T_ROOT}/config/schema/installation.json"
 )
 
 t_section "désinstallations avant system/install"
@@ -382,9 +357,9 @@ if grep -q '/var/lib/liltress-server/watchdog' "${server_boot}"; then
     logs_ok=0
 fi
 if [[ "${logs_ok}" -eq 1 ]]; then
-    t_pass "graph.logs.same-dir" "journaux et alertes sous cron"
+    t_pass "graph.logs.same-directory" "journaux et alertes sous cron"
 else
-    t_fail "graph.logs.same-dir" "le lecteur et les deux produits ne désignent pas cron"
+    t_fail "graph.logs.same-directory" "le lecteur et les deux produits ne désignent pas cron"
 fi
 
 t_section "alerte de plantage et incident"
@@ -647,7 +622,7 @@ done
 if grep -qF 'rclone.conf' "${T_ROOT}/README.md"; then
     alerts_ok=0
 fi
-if python3 "$(locate_python_dir)/install-plan.py" has-path "${T_ROOT}/config/schema/installation.json"
+if python3 "$(locate_python_directory)/install-plan.py" has-path "${T_ROOT}/config/schema/installation.json"
 then
     alerts_ok=0
 fi
@@ -729,7 +704,7 @@ grep -q 'ONACCESS_FIXED_EXCLUDE' "${root}/service/cron/watchdogs/apply-scan-skip
 grep -q 're.escape' "${root}/../share/python/scan-skip-apply.py"
 grep -q 'BASE}/src' "${root}/service/cron/watchdogs/apply-scan-skip.sh"
 ! grep -qF 'sub(/^\^/' "${root}/service/cron/watchdogs/scan-clamav.sh"
-grep -q 'mktemp -p "${run_dir}"' "${root}/service/cron/watchdogs/scan-clamav.sh"
+grep -q 'mktemp -p "${run_directory}"' "${root}/service/cron/watchdogs/scan-clamav.sh"
 grep -q '/run/liltress-workstation' "${root}/service/cron/watchdogs/scan-clamav.sh"
 grep -q 'periodic) kind_label="scan périodique"' "${root}/service/cron/watchdogs/clamav-response.sh"
 grep -q 'kind_label="accès"' "${root}/service/cron/watchdogs/clamav-response.sh"
@@ -873,7 +848,7 @@ t_check_config_name() {
     case "${rel}" in
         global.conf|user.conf|secrets.conf) return 0 ;;
         service/aide/aide.conf|service/fail2ban/jail.local|service/rkhunter/rkhunter.conf.local) return 0 ;;
-        system/pam/faillock|system/pam/faillock-preauth) return 0 ;;
+        system/pam/faillock|system/pam/faillock-preauth|system/sudoers/commands.csv) return 0 ;;
         service/ssh/00-liltress-workstation.conf|service/ssh/99-liltress-workstation.conf) return 0 ;;
         service/vpn/vpn.conf|service/vpn/bypass.cidrs) return 0 ;;
         service/unattended-upgrades/20auto-upgrades|service/unattended-upgrades/51liltress-workstation) return 0 ;;

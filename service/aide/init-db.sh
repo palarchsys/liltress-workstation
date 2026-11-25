@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/aide/init-db.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_init_db_part_01() {
+aide_init_db_01_run_01_take() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -35,7 +35,7 @@ run_init_db_part_01() {
     set_tree_modes || log_error "${INSTALL_WATCHER}" "configure.secrets-conf-mode" "600"
 }
 
-run_init_db_part_02() {
+aide_init_db_01_run_02_init() {
     if ! aide --config="/etc/aide/aide.conf" --init >"${aide_log}" 2>&1; then
         log_warn "${INSTALL_WATCHER}" "log.help-init-a-returned-an-error-detail" "${aide_log}"
     fi
@@ -50,9 +50,9 @@ run_init_db_part_02() {
     log_success "${INSTALL_WATCHER}" "log.baseline-help-saved"
 }
 
-run_init_db_part_03() {
-    run_init_db_part_01 "$@"
-    run_init_db_part_02 "$@"
+aide_init_db_01_run_03_run() {
+    aide_init_db_01_run_01_take "$@"
+    aide_init_db_01_run_02_init "$@"
 }
 
-run_init_db_part_03 "$@"
+aide_init_db_01_run_03_run "$@"

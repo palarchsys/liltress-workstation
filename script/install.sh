@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/install.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,7 +13,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_product_install_part_01() {
+product_install_01_run_01_get() {
     set -euo pipefail
 
     INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
@@ -34,8 +34,12 @@ run_product_install_part_01() {
 
 }
 
-run_product_install_part_02() {
-    if [[ -z "${INSTALL_ROOT}" || "${INSTALL_ROOT}" != /opt/* || "${INSTALL_ROOT}" == "/opt" || "${INSTALL_ROOT}" == "/" || "${INSTALL_ROOT}" == *..* || "${INSTALL_ROOT}" == *[[:space:]]* ]]; then
+check_install_root() {
+    [[ -n "${INSTALL_ROOT}" && "${INSTALL_ROOT}" == /opt/* && "${INSTALL_ROOT}" != "/opt" && "${INSTALL_ROOT}" != "/" && "${INSTALL_ROOT}" != *..* && "${INSTALL_ROOT}" != *[[:space:]]* ]]
+}
+
+product_install_01_run_02_check() {
+    if ! check_install_root; then
         if declare -F get_text >/dev/null 2>&1; then
             printf '%s\n' "$(get_text install.root-of-install-rejected "${INSTALL_ROOT}")" >&2
         else
@@ -53,7 +57,7 @@ run_product_install_part_02() {
 
 }
 
-save_prepared() {
+write_prepared_files() {
     local root="$1"
     if [[ -f "${root}/config/global.conf" ]] && grep -q '^CONFIG_PREPARED=1$' "${root}/config/global.conf"; then
         cp -a "${root}/config/global.conf" "${tmp}/keep/global.conf"
@@ -66,7 +70,7 @@ save_prepared() {
     fi
 }
 
-save_scan_skip() {
+write_saved_scan_skip() {
     local root="$1"
     if [[ -f "${tmp}/keep/scan-skip.paths" ]]; then
         return 0
@@ -76,7 +80,21 @@ save_scan_skip() {
     fi
 }
 
-save_runtime() {
+take_kept_cron() {
+    local root="$1"
+    local name
+    if [[ ! -d "${root}/cron" ]]; then
+        return 0
+    fi
+    mkdir -p "${tmp}/keep/cron"
+    for name in cron_logs security_logs alerts archives quarantine; do
+        if [[ -d "${root}/cron/${name}" && ! -e "${tmp}/keep/cron/${name}" ]]; then
+            mv "${root}/cron/${name}" "${tmp}/keep/cron/${name}"
+        fi
+    done
+}
+
+write_runtime_files() {
     local root="$1"
     local name
     for name in docker secrets; do
@@ -84,17 +102,10 @@ save_runtime() {
             mv "${root}/${name}" "${tmp}/keep/${name}"
         fi
     done
-    if [[ -d "${root}/cron" ]]; then
-        mkdir -p "${tmp}/keep/cron"
-        for name in cron_logs security_logs alerts archives quarantine; do
-            if [[ -d "${root}/cron/${name}" && ! -e "${tmp}/keep/cron/${name}" ]]; then
-                mv "${root}/cron/${name}" "${tmp}/keep/cron/${name}"
-            fi
-        done
-    fi
+    take_kept_cron "${root}"
 }
 
-restore_kept() {
+reset_kept_files() {
     if [[ -f "${tmp}/keep/global.conf" ]]; then
         cp -a "${tmp}/keep/global.conf" "${INSTALL_ROOT}/config/global.conf"
     fi
@@ -134,9 +145,9 @@ apply_kept_runtime() {
 }
 
 # Any answer other than O stops. An open frame is closed first.
-stop_install() {
+fail_install() {
     if [[ "${STEP_TREE:-0}" == "1" ]]; then
-        close_step_tree
+        finish_step_tree
     fi
     if [[ "${SECTION_OPEN:-0}" == "1" ]]; then
         show_section_close
@@ -174,13 +185,13 @@ show_install_identity() {
 
 # O continues. Any other answer stops.
 ask_install_step() {
-    ask_yes "$1" || stop_install
+    ask_yes "$1" || fail_install
 }
 
 # The check runs only after O. The result line stays in this tree.
 ask_config_gate() {
-    open_step_tree "script/config-check.sh"
-    mark_section_step
+    begin_step_tree "script/config-check.sh"
+    record_section_step
     ask_install_step "$(get_text install.check.ask)"
     if bash "${INSTALL_ROOT}/script/configure.sh" --check; then
         log_success "${INSTALL_WATCHER}" "install.check.valid"
@@ -191,9 +202,9 @@ ask_config_gate() {
 }
 
 # The runner is a new process. It closes this line, then its own section.
-launch_runner() {
-    open_step_tree "script/run.sh"
-    mark_section_step
+run_launch_runner() {
+    begin_step_tree "script/run.sh"
+    record_section_step
     ask_install_step "$(get_text install.run.ask)"
     log_success "${INSTALL_WATCHER}" "install.run.started"
     export STEP_TREE STEP_PENDING SECTION_OPEN SECTION_HAD_STEP
@@ -202,32 +213,32 @@ launch_runner() {
 }
 
 # A failed check closes the section and names the configurator.
-launch_configurator() {
-    close_step_tree
+run_launch_configurator() {
+    finish_step_tree
     set_step_hidden "$(get_text install.configuration.title)"
     show_closing_note "$(get_text install.configuration.launch)" "$(get_text install.configuration.command)"
     exec bash "${INSTALL_ROOT}/script/configure.sh"
 }
 
-run_product_install_part_03() {
+product_install_01_run_03_write() {
     mkdir -p "${INSTALL_ROOT}"
-    save_prepared "${INSTALL_ROOT}"
-    save_scan_skip "${INSTALL_ROOT}"
+    write_prepared_files "${INSTALL_ROOT}"
+    write_saved_scan_skip "${INSTALL_ROOT}"
     if [[ -f "${INSTALL_ROOT}/src/liltress" ]]; then
-        save_prepared "${INSTALL_ROOT}/src"
-        save_scan_skip "${INSTALL_ROOT}/src"
-        save_runtime "${INSTALL_ROOT}/src"
+        write_prepared_files "${INSTALL_ROOT}/src"
+        write_saved_scan_skip "${INSTALL_ROOT}/src"
+        write_runtime_files "${INSTALL_ROOT}/src"
     fi
 
     if [[ -d "${INSTALL_ROOT}/.git" ]]; then
         git -C "${INSTALL_ROOT}" fetch -q --depth 1 origin "${BRANCH}"
         trap - EXIT
-        save_runtime "${INSTALL_ROOT}"
+        write_runtime_files "${INSTALL_ROOT}"
         git -C "${INSTALL_ROOT}" clean -fdq
         git -C "${INSTALL_ROOT}" checkout -q -f -B "${BRANCH}" FETCH_HEAD
     else
         trap - EXIT
-        save_runtime "${INSTALL_ROOT}"
+        write_runtime_files "${INSTALL_ROOT}"
         find "${INSTALL_ROOT}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
         git clone -q --depth 1 --branch "${BRANCH}" "${REPO_URL}" "${INSTALL_ROOT}"
     fi
@@ -244,11 +255,11 @@ run_product_install_part_03() {
         fi
     fi
 
-    restore_kept
+    reset_kept_files
     trap 'rm -rf "$tmp"' EXIT
 }
 
-run_product_install_part_04() {
+product_install_01_run_04_read() {
     rm -rf "${INSTALL_ROOT:?}/src"
     chmod 755 "${INSTALL_ROOT}/liltress"
     INSTALL_DIRECTORY="${INSTALL_ROOT}" bash -c '
@@ -272,11 +283,11 @@ run_product_install_part_04() {
     printf '\n' >&2
     set_step_visible "$(get_text install.section)"
     if ask_config_gate; then
-        launch_runner
+        run_launch_runner
     fi
-    launch_configurator
+    run_launch_configurator
 }
-run_product_install_part_01 "$@"
-run_product_install_part_02 "$@"
-run_product_install_part_03 "$@"
-run_product_install_part_04 "$@"
+product_install_01_run_01_get "$@"
+product_install_01_run_02_check "$@"
+product_install_01_run_03_write "$@"
+product_install_01_run_04_read "$@"

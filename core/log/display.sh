@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/display.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,11 +11,11 @@
 # -----------------------------------------------------------------------------
 
 
-display_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+display_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
-source "${display_dir}/color.sh"
+source "${display_directory}/color.sh"
 # shellcheck disable=SC1091
-source "${display_dir}/step.sh"
+source "${display_directory}/step.sh"
 # shellcheck disable=SC1091
-source "${display_dir}/emit.sh"
-unset display_dir
+source "${display_directory}/emit.sh"
+unset display_directory

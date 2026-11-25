@@ -11,29 +11,8 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
-
-source_python_boot
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../boot/python.sh"
 
 get_alert_excerpt() {
     load_text "${LANGUAGE:-en}"
@@ -41,5 +20,5 @@ get_alert_excerpt() {
     TEXT_EXCERPT_ATTR="$(get_text alert.excerpt.attr)" \
     TEXT_REDACTED="$(get_text mail.redacted)" \
     TEXT_REDACTED_KEY="$(get_text mail.redacted-key)" \
-        python3 "$(locate_python_dir)/alert-excerpt.py" "${1:-}"
+        python3 "$(locate_python_directory)/alert-excerpt.py" "${1:-}"
 }

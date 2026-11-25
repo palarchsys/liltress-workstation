@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/rngd/install.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_install_part_01() {
+rngd_install_01_run_01_install() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -46,12 +46,12 @@ EOF
     run_silent "${INSTALL_WATCHER}" "install.rngd.error" systemctl enable rng-tools-debian
 }
 
-run_install_part_02() {
+rngd_install_01_run_02_restart() {
     rng_start_out=$(systemctl restart rng-tools-debian.service 2>&1) && rng_start_rc=0 || rng_start_rc=$?
     rng_result=$(systemctl show rng-tools-debian.service -p Result --value 2>/dev/null || true)
 }
 
-run_install_part_03() {
+rngd_install_01_run_03_install() {
     if systemctl is-active --quiet rng-tools-debian && pgrep -x rngd >/dev/null; then
         log_success "${INSTALL_WATCHER}" "install.rng-tools-debian-rngd-active-hwrng-feeds-the-poo"
     elif [[ ! -c /dev/hwrng ]]; then
@@ -64,10 +64,10 @@ run_install_part_03() {
     fi
 }
 
-run_install_part_04() {
-    run_install_part_01 "$@"
-    run_install_part_02 "$@"
-    run_install_part_03 "$@"
+rngd_install_01_run_04_run() {
+    rngd_install_01_run_01_install "$@"
+    rngd_install_01_run_02_restart "$@"
+    rngd_install_01_run_03_install "$@"
 }
 
-run_install_part_04 "$@"
+rngd_install_01_run_04_run "$@"

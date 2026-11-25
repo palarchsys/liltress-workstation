@@ -29,8 +29,20 @@ show_exclusion_alert() {
     done <"${extra}"
 }
 
+# The product file is printed when it is not the shared file already shown.
+read_product_exclude() {
+    local seen="$1"
+    local product=""
+    if declare -F locate_config_file >/dev/null 2>&1; then
+        product="$(locate_config_file service/alert/exclude.list 2>/dev/null || true)"
+        if [[ -n "${product}" && "${product}" != "${seen}" && -f "${product}" ]]; then
+            printf '%s\n' "${product}"
+        fi
+    fi
+}
+
 read_watchdog_exclude() {
-    local here shared product seen=""
+    local here shared seen=""
     here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     shared=""
     for shared in \
@@ -44,12 +56,7 @@ read_watchdog_exclude() {
         printf '%s\n' "${shared}"
         seen="${shared}"
     fi
-    if declare -F locate_config_file >/dev/null 2>&1; then
-        product="$(locate_config_file service/alert/exclude.list 2>/dev/null || true)"
-        if [[ -n "${product}" && "${product}" != "${seen}" && -f "${product}" ]]; then
-            printf '%s\n' "${product}"
-        fi
-    fi
+    read_product_exclude "${seen}"
     show_exclusion_alert "${seen}"
 }
 
@@ -104,39 +111,48 @@ pass_watchdog_log() {
     esac
 }
 
+# A journal outside this phase is left in place.
+copy_watchdog_log() {
+    local path="$1"
+    local dest_directory="$2"
+    local phase="$3"
+    local name=""
+    [[ -n "${path}" && -f "${path}" ]] || return 1
+    name="$(basename -- "${path}")"
+    pass_watchdog_log "${name}" "${phase}" || return 1
+    cp -f -- "${path}" "${dest_directory}/${name}" 2>/dev/null || true
+}
+
 collect_watchdog_logs() {
-    local source_dir="$1"
-    local dest_dir="$2"
+    local source_directory="$1"
+    local dest_directory="$2"
     local since="$3"
     local phase="${4:-}"
-    local path="" name=""
-    mkdir -p "${dest_dir}"
-    [[ -d "${source_dir}" ]] || return 0
+    local path=""
+    mkdir -p "${dest_directory}"
+    [[ -d "${source_directory}" ]] || return 0
     while IFS= read -r path; do
-        [[ -n "${path}" && -f "${path}" ]] || continue
-        name="$(basename -- "${path}")"
-        pass_watchdog_log "${name}" "${phase}" || continue
-        cp -f -- "${path}" "${dest_dir}/${name}" 2>/dev/null || true
-    done < <(find "${source_dir}" -maxdepth 1 -type f -newermt "@${since}" -print 2>/dev/null || true)
+        copy_watchdog_log "${path}" "${dest_directory}" "${phase}" || continue
+    done < <(find "${source_directory}" -maxdepth 1 -type f -newermt "@${since}" -print 2>/dev/null || true)
 }
 
 check_watchdog_phase() {
     local phase="$1"
-    local log_dir="$2"
+    local log_directory="$2"
     local since="$3"
     local repair_file="$4"
-    local state_dir="$5"
+    local state_directory="$5"
     local catalog here excludes="" apt_history dpkg_log
     here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     catalog="${here}/alert-advice.txt"
     apt_history="${6:-/var/log/apt/history.log}"
     dpkg_log="${7:-/var/log/dpkg.log}"
-    mkdir -p "${state_dir}"
+    mkdir -p "${state_directory}"
     excludes="$(read_watchdog_exclude | awk 'NR > 1 { printf ":" } { printf "%s", $0 }')"
     action_json="${here}/../../config/service/alert/action.json"
     WATCHDOG_STATUS="$(
         WATCHDOG_EXCLUDES="${excludes}" \
-            python3 "${here}/../../python/alert-decide.py" "${phase}" "${log_dir}" "${since}" "${repair_file}" "${catalog}" "${apt_history}" "${dpkg_log}" "${state_dir}" "${action_json}"
+            python3 "${here}/../../python/alert-decide.py" "${phase}" "${log_directory}" "${since}" "${repair_file}" "${catalog}" "${apt_history}" "${dpkg_log}" "${state_directory}" "${action_json}"
     )" || WATCHDOG_STATUS="real"
     export WATCHDOG_STATUS
     printf '%s\n' "${WATCHDOG_STATUS}"

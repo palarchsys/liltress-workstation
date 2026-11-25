@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/configure.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_configure_part_01() {
+vpn_configure_01_run_01_run() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -42,7 +42,7 @@ render_vpn_unit() {
     chmod 644 "${dest}"
 }
 
-run_configure_part_02() {
+vpn_configure_01_run_02_get() {
     home="$(get_vpn_home)"
     install -d -m 755 "${home}"
     install -d -m 700 "${home}/wireguard" "${home}/openvpn"
@@ -58,9 +58,9 @@ run_configure_part_02() {
     fi
     printf '17820 w_vpn\n17821 w_direct\n' >"${rt_file}"
     chmod 644 "${rt_file}"
-    disp_dir="/etc/NetworkManager/dispatcher.d"
-    disp_dest="${disp_dir}/10-liltress-workstation-vpn"
-    install -d -m 755 "${disp_dir}"
+    disp_directory="/etc/NetworkManager/dispatcher.d"
+    disp_dest="${disp_directory}/10-liltress-workstation-vpn"
+    install -d -m 755 "${disp_directory}"
     if [[ -f "${disp_dest}" ]]; then
         copy_backup "${disp_dest}"
     fi
@@ -76,6 +76,6 @@ run_configure_part_02() {
     log_success "${INSTALL_WATCHER}" "vpn.configure.ok"
 }
 
-run_configure_part_01 "$@"
+vpn_configure_01_run_01_run "$@"
 
-run_configure_part_02 "$@"
+vpn_configure_01_run_02_get "$@"

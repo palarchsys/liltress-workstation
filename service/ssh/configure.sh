@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ssh/configure.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -46,5 +46,5 @@ log_info "${INSTALL_WATCHER}" "configure.pass-of-ssh-in-service-not-only-the-act
 run_optional "${INSTALL_WATCHER}" "configure.ssh.error.3" systemctl disable --now ssh.socket
 run_optional "${INSTALL_WATCHER}" "configure.ssh.error.4" systemctl unmask "${SSH_SERVICE_NAME}.service"
 run_silent "${INSTALL_WATCHER}" "configure.ssh.error.5" systemctl enable --now "${SSH_SERVICE_NAME}.service"
-run_silent "${INSTALL_WATCHER}" "configure.ssh.error.6" reload_sshd_unit
+run_silent "${INSTALL_WATCHER}" "configure.ssh.error.6" run_sshd_reload
 log_success "${INSTALL_WATCHER}" "configure.hardened-ssh-root-forbidden-password-kept-port" "${SSH_PORT}"

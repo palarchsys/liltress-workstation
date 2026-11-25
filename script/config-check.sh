@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/config-check.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -245,6 +245,12 @@ check_prepared_notice() {
     [[ "${SSH_SERVICE_NAME:-}" == "ssh" ]] || log_config_error "$(get_text configure.g-ssh-service-name-invalid-example-ssh "${label_g}" "${SSH_SERVICE_NAME:-}")"
 }
 
+# The keepalive flag is only yes or no.
+check_prepared_keepalive() {
+    local label_g="$1"
+    [[ "${SSH_TCP_KEEPALIVE:-}" == "yes" || "${SSH_TCP_KEEPALIVE:-}" == "no" ]] || log_config_error "$(get_text configure.g-ssh-service-name-invalid-example-ssh "${label_g}" "${SSH_TCP_KEEPALIVE:-}")"
+}
+
 # Remote entry timings stay inside their ranges.
 check_prepared_ssh() {
     local label_g="$1"
@@ -253,7 +259,7 @@ check_prepared_ssh() {
     check_port "${SSH_CLIENT_ALIVE_COUNT_MAX:-x}" 0 10 || log_config_error "$(get_text configure.g-ssh-client-alive-count-max-invalid-example-2 "${label_g}" "${SSH_CLIENT_ALIVE_COUNT_MAX:-}")"
     check_port "${SSH_LOGIN_GRACE_TIME:-x}" 10 120 || log_config_error "$(get_text configure.w-ssh-login-grace-time-invalid-example-30 "${label_g}" "${SSH_LOGIN_GRACE_TIME:-}")"
     check_port "${SSH_MAX_SESSIONS:-x}" 1 10 || log_config_error "$(get_text configure.g-ssh-max-auth-tries-invalid-example-4 "${label_g}" "${SSH_MAX_SESSIONS:-}")"
-    [[ "${SSH_TCP_KEEPALIVE:-}" == "yes" || "${SSH_TCP_KEEPALIVE:-}" == "no" ]] || log_config_error "$(get_text configure.g-ssh-service-name-invalid-example-ssh "${label_g}" "${SSH_TCP_KEEPALIVE:-}")"
+    check_prepared_keepalive "${label_g}"
 }
 
 # The password length and the lockout timings stay inside their ranges.
@@ -273,14 +279,20 @@ check_prepared_watch() {
     check_port "${WATCHDOG_LIMIT_IO_NICE:-x}" 0 7 || log_config_error "$(get_text configure.g-watchdog-limit-io-nice-invalid-example-3 "${label_g}" "${WATCHDOG_LIMIT_IO_NICE:-}")"
 }
 
+# A named template must exist beside the other message files.
+check_prepared_template() {
+    local label_g="$1"
+    if [[ -n "${CONFIG_ROOT:-}" && -d "${CONFIG_ROOT}/template" && ! -f "${CONFIG_ROOT}/template/${MAIL_TEMPLATE:-mail.html}" ]]; then
+        log_config_error "$(get_text configure.g-mail-template-not-found-example-a-file-html-of "${label_g}" "${MAIL_TEMPLATE:-mail.html}")"
+    fi
+}
+
 # Message files and the two directories are confirmed.
 check_prepared_layout() {
     local label_g="$1"
     [[ "${MAIL_ALERTS:-}" =~ ^[01]$ ]] || log_config_error "$(get_text configure.g-mail-alerts-invalid-example-0-or-1 "${label_g}" "${MAIL_ALERTS:-}")"
     [[ "${MAIL_TEMPLATE:-mail.html}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*\.html$ ]] || log_config_error "$(get_text configure.g-mail-template-invalid-example-mail-html "${label_g}" "${MAIL_TEMPLATE:-}")"
-    if [[ -n "${CONFIG_ROOT:-}" && -d "${CONFIG_ROOT}/template" && ! -f "${CONFIG_ROOT}/template/${MAIL_TEMPLATE:-mail.html}" ]]; then
-        log_config_error "$(get_text configure.g-mail-template-not-found-example-a-file-html-of "${label_g}" "${MAIL_TEMPLATE:-mail.html}")"
-    fi
+    check_prepared_template "${label_g}"
     [[ "${CONFIG_BASE_DIRECTORY:-}" == "/opt/liltress-workstation" ]] || log_config_error "$(get_text configure.g-config-base-directory-invalid-example-opt-lilt "${label_g}" "${CONFIG_BASE_DIRECTORY:-}")"
     [[ "${SECRET_DIRECTORY:-}" == "/opt/liltress-workstation/secrets" ]] || log_config_error "$(get_text configure.g-secret-directory-invalid-example-opt-liltress "${label_g}" "${SECRET_DIRECTORY:-}")"
 }

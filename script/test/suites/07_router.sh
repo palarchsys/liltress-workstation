@@ -12,34 +12,9 @@
 
 
 
-read_python_candidate() {
-    local candidate="$1"
-    [[ -n "${candidate}" && -d "${candidate}" ]] || return 1
-    (cd -- "${candidate}" && pwd -P)
-}
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../../core/boot/python.sh"
 
-locate_python_dir() {
-    local dir="" hops=0 candidate=""
-    for candidate in \
-        "${CONFIG_BASE_DIRECTORY:-}/python" \
-        "${BASE:-}/python" \
-        "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"; do
-        read_python_candidate "${candidate}" && return 0
-    done
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -d "${dir}/share/python" ]]; then
-            printf '%s\n' "${dir}/share/python"
-            return 0
-        fi
-        read_python_candidate "${dir}/python" && return 0
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
 
 t_section "routeur"
 root=""
@@ -60,7 +35,7 @@ else
     t_fail "route.check" "$(tr '\n' ' ' < "${ARTIFACTS}/route.txt")"
 fi
 
-if [[ -n "${root}" ]] && python3 "$(locate_python_dir)/check-commands.py" csv "${root}/agents/maps/commands.csv" "${root}/share/core/run/launch.sh" > "${ARTIFACTS}/commands.txt" 2>&1
+if [[ -n "${root}" ]] && python3 "$(locate_python_directory)/check-commands.py" csv "${root}/agents/maps/commands.csv" "${root}/share/core/run/launch.sh" > "${ARTIFACTS}/commands.txt" 2>&1
 then
     t_pass "commands.csv" "liste alignée sur les commandes"
 else
@@ -134,7 +109,7 @@ if [[ -n "${root}" ]]; then
         t_fail "help.server" "écran serveur incomplet"
     fi
 
-    if python3 "$(locate_python_dir)/check-commands.py" order "${root}" > "${ARTIFACTS}/order.txt" 2>&1
+    if python3 "$(locate_python_directory)/check-commands.py" order "${root}" > "${ARTIFACTS}/order.txt" 2>&1
     then
         t_pass "order.maps" "tableaux alignés sur le plan d'installation"
     else
@@ -194,7 +169,7 @@ for product, groups in allowed.items():
         row = next(csv.reader([line]))
         if row[1] == product and row[2] in groups:
             expect.append(line if line.endswith("\n") else line + "\n")
-    got = (root / product / "system" / "sudoers" / "commands.csv").read_text(encoding="utf-8")
+    got = (root / product / "config" / "system" / "sudoers" / "commands.csv").read_text(encoding="utf-8")
     if got != "".join(expect):
         print(product)
         sys.exit(1)
@@ -235,7 +210,7 @@ fi
 t_section "exclusions du poste"
 exclude_work="$(mktemp -d)"
 exclude_src="${exclude_work}/entries.yaml"
-exclude_py="$(locate_python_dir)/exclusions.py"
+exclude_py="$(locate_python_directory)/exclusions.py"
 exclude_today="2026-11-23"
 printf 'entries: []\n' >"${exclude_src}"
 exclude_id="$(python3 "${exclude_py}" add "${exclude_src}" "/var/tmp/liltress-exclude" "clamav,aide" "cache" "${exclude_today}")"

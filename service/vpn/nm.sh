@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/nm.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,14 +13,14 @@
 
 
 # Saved file name of one profile.
-vpn_nm_connection_path() {
-    local name="$1" dir
-    dir="${VPN_NM_DIR:-/etc/NetworkManager/system-connections}"
-    printf '%s/liltress-%s.nmconnection\n' "${dir}" "${name}"
+get_vpn_nm_connection_path() {
+    local name="$1" directory
+    directory="${VPN_NM_DIR:-/etc/NetworkManager/system-connections}"
+    printf '%s/liltress-%s.nmconnection\n' "${directory}" "${name}"
 }
 
 # Profile name taken from that file name.
-vpn_nm_name_of() {
+get_vpn_nm_name() {
     local base
     base="$(basename -- "$1")"
     base="${base#liltress-}"
@@ -29,17 +29,17 @@ vpn_nm_name_of() {
 }
 
 # Counter file that pauses link events.
-vpn_nm_hold_path() {
+get_vpn_nm_hold_path() {
     printf '%s/nm.hold\n' "$(get_vpn_home)"
 }
 
 # Stamp file used during a profile change.
-vpn_nm_switch_path() {
+get_vpn_nm_switch_path() {
     printf '%s/nm.switch\n' "$(get_vpn_home)"
 }
 
 # Create that stamp with a private mode.
-vpn_nm_stamp_on() {
+set_vpn_nm_stamp_on() {
     local file old
     file="$1"
     mkdir -p "$(dirname -- "${file}")"
@@ -51,9 +51,9 @@ vpn_nm_stamp_on() {
 }
 
 # Raise the pause counter by one.
-vpn_nm_hold_on() {
+set_vpn_nm_hold_on() {
     local file count old
-    file="$(vpn_nm_hold_path)"
+    file="$(get_vpn_nm_hold_path)"
     mkdir -p "$(dirname -- "${file}")"
     if [[ -f "${file}" ]]; then
         count="$(tr -d '[:space:]' <"${file}")"
@@ -70,9 +70,9 @@ vpn_nm_hold_on() {
 }
 
 # Lower the pause counter, or delete it at one.
-vpn_nm_hold_off() {
+set_vpn_nm_hold_off() {
     local file count old
-    file="$(vpn_nm_hold_path)"
+    file="$(get_vpn_nm_hold_path)"
     [[ -f "${file}" ]] || return 0
     count="$(tr -d '[:space:]' <"${file}")"
     [[ "${count}" =~ ^[0-9]+$ ]] || count=1
@@ -89,27 +89,27 @@ vpn_nm_hold_off() {
 }
 
 # True when the pause counter file exists.
-vpn_nm_held() {
-    [[ -f "$(vpn_nm_hold_path)" ]]
+check_vpn_nm_held() {
+    [[ -f "$(get_vpn_nm_hold_path)" ]]
 }
 
 # Remember that a profile change is under way.
-vpn_nm_switch_on() {
-    vpn_nm_stamp_on "$(vpn_nm_switch_path)"
+set_vpn_nm_switch_on() {
+    set_vpn_nm_stamp_on "$(get_vpn_nm_switch_path)"
 }
 
 # Clear the profile-change stamp.
-vpn_nm_switch_off() {
-    rm -f "$(vpn_nm_switch_path)"
+set_vpn_nm_switch_off() {
+    rm -f "$(get_vpn_nm_switch_path)"
 }
 
 # True when a profile change is under way.
-vpn_nm_switching() {
-    [[ -f "$(vpn_nm_switch_path)" ]]
+check_vpn_nm_switching() {
+    [[ -f "$(get_vpn_nm_switch_path)" ]]
 }
 
 # True when this profile may start at boot.
-vpn_nm_wants_auto() {
+check_vpn_nm_wants_auto() {
     local name="$1" active chosen
     if [[ "${VPN_NM_AUTOCONNECT:-}" == "0" ]]; then
         return 1
@@ -135,7 +135,7 @@ check_vpn_nm_boot() {
 }
 
 # Each saved profile gets the boot choice above.
-vpn_nm_apply_autoconnect() {
+apply_vpn_nm_autoconnect() {
     local name active chosen want
     if declare -F load_vpn_settings >/dev/null 2>&1; then
         load_vpn_settings
@@ -146,12 +146,12 @@ vpn_nm_apply_autoconnect() {
         [[ -n "${name}" ]] || continue
         want="false"
         check_vpn_nm_boot "${name}" "${chosen}" "${active}" && want="true"
-        vpn_nm_set_autoconnect "${name}" "${want}" || true
-    done < <(vpn_nm_each)
+        set_vpn_nm_autoconnect "${name}" "${want}" || true
+    done < <(run_vpn_nm_each)
 }
 
 # Drop quotes and outer space from one field.
-vpn_nm_token() {
+get_vpn_nm_token() {
     local raw="$1"
     raw="$(strip_vpn_text "${raw}")"
     raw="${raw#\"}"
@@ -162,19 +162,19 @@ vpn_nm_token() {
 }
 
 # Absolute path, or the profile directory plus a relative one.
-vpn_nm_abs() {
-    local dir="$1" token="$2"
-    token="$(vpn_nm_token "${token}")"
+get_vpn_nm_absolute() {
+    local directory="$1" token="$2"
+    token="$(get_vpn_nm_token "${token}")"
     [[ -n "${token}" ]] || return 1
     if [[ "${token}" == /* ]]; then
         printf '%s\n' "${token}"
         return 0
     fi
-    printf '%s/%s\n' "${dir}" "${token}"
+    printf '%s/%s\n' "${directory}" "${token}"
 }
 
 # First word of the remainder of a line.
-vpn_nm_first() {
+get_vpn_nm_first() {
     local rest="$1"
     rest="$(strip_vpn_text "${rest}")"
     [[ -n "${rest}" ]] || return 1
@@ -182,7 +182,7 @@ vpn_nm_first() {
 }
 
 # Keep an existing id, or make a fresh one.
-vpn_nm_uuid() {
+get_vpn_nm_uuid() {
     local path="$1" line
     if [[ -f "${path}" ]]; then
         while IFS= read -r line || [[ -n "${line}" ]]; do
@@ -202,7 +202,7 @@ vpn_nm_uuid() {
 }
 
 # First line is the user. Second line is the secret.
-vpn_nm_auth_pair() {
+get_vpn_nm_auth_pair() {
     local file="$1" line n=0
     [[ -f "${file}" && ! -L "${file}" ]] || return 1
     while IFS= read -r line || [[ -n "${line}" ]]; do
@@ -221,8 +221,8 @@ vpn_nm_auth_pair() {
 # Endpoint, port, and tunnel name come from the profile meta.
 read_vpn_nm_openvpn_meta() {
     local name="$1"
-    dir="$(get_vpn_profile_dir "${name}")"
-    runtime="${dir}/runtime"
+    directory="$(get_vpn_profile_directory "${name}")"
+    runtime="${directory}/runtime"
     [[ -f "${runtime}" ]] || return 1
     load_vpn_settings
     iface="$(get_vpn_meta "${name}" iface 2>/dev/null || true)"
@@ -239,45 +239,45 @@ read_vpn_nm_openvpn_meta() {
 
 # Remember a certificate path from the runtime.
 read_vpn_nm_openvpn_file() {
-    local dir="$1" key="$2" val="$3"
+    local directory="$1" key="$2" val="$3"
     case "${key}" in
         ca)
-            ca="$(vpn_nm_abs "${dir}" "${val}")" || true
+            ca="$(get_vpn_nm_absolute "${directory}" "${val}")" || true
             ;;
         cert)
-            cert="$(vpn_nm_abs "${dir}" "${val}")" || true
+            cert="$(get_vpn_nm_absolute "${directory}" "${val}")" || true
             ;;
         key)
-            keyf="$(vpn_nm_abs "${dir}" "${val}")" || true
+            keyf="$(get_vpn_nm_absolute "${directory}" "${val}")" || true
             ;;
     esac
 }
 
 # Remember where the user secret lives.
 read_vpn_nm_openvpn_auth() {
-    local dir="$1" val="$2"
+    local directory="$1" val="$2"
     if [[ -n "${val}" ]]; then
-        auth="$(vpn_nm_abs "${dir}" "${val}")" || true
+        auth="$(get_vpn_nm_absolute "${directory}" "${val}")" || true
     else
-        auth="${dir}/auth.txt"
+        auth="${directory}/auth.txt"
     fi
 }
 
 # Remember extra TLS material from the runtime.
 read_vpn_nm_openvpn_tls() {
-    local dir="$1" key="$2" val="$3" rest="$4"
+    local directory="$1" key="$2" val="$3" rest="$4"
     case "${key}" in
         remote-cert-tls)
-            rcert="$(vpn_nm_token "${val}")"
+            rcert="$(get_vpn_nm_token "${val}")"
             ;;
         tls-crypt)
-            tcrypt="$(vpn_nm_abs "${dir}" "${val}")" || true
+            tcrypt="$(get_vpn_nm_absolute "${directory}" "${val}")" || true
             ;;
         tls-crypt-v2)
-            tcrypt2="$(vpn_nm_abs "${dir}" "${val}")" || true
+            tcrypt2="$(get_vpn_nm_absolute "${directory}" "${val}")" || true
             ;;
         tls-auth)
-            ta="$(vpn_nm_abs "${dir}" "${val}")" || true
+            ta="$(get_vpn_nm_absolute "${directory}" "${val}")" || true
             tadir="$(strip_vpn_text "${rest#"${val}"}")"
             tadir="${tadir%%[[:space:]]*}"
             ;;
@@ -286,35 +286,35 @@ read_vpn_nm_openvpn_tls() {
 
 # One runtime line. A blank or a hash line is skipped.
 read_vpn_nm_openvpn_line() {
-    local dir="$1" line trimmed key rest val
+    local directory="$1" line trimmed key rest val
     line="${2%$'\r'}"
     trimmed="$(strip_vpn_text "${line}")"
     [[ -z "${trimmed}" || "${trimmed}" == \#* || "${trimmed}" == \;* ]] && return 1
     key="${trimmed%%[[:space:]]*}"
     rest="$(strip_vpn_text "${trimmed#"${key}"}")"
-    val="$(vpn_nm_first "${rest}" 2>/dev/null || true)"
+    val="$(get_vpn_nm_first "${rest}" 2>/dev/null || true)"
     case "${key}" in
         ca | cert | key)
-            read_vpn_nm_openvpn_file "${dir}" "${key}" "${val}"
+            read_vpn_nm_openvpn_file "${directory}" "${key}" "${val}"
             ;;
         auth-user-pass)
-            read_vpn_nm_openvpn_auth "${dir}" "${val}"
+            read_vpn_nm_openvpn_auth "${directory}" "${val}"
             ;;
         remote-cert-tls | tls-crypt | tls-crypt-v2 | tls-auth)
-            read_vpn_nm_openvpn_tls "${dir}" "${key}" "${val}" "${rest}"
+            read_vpn_nm_openvpn_tls "${directory}" "${key}" "${val}" "${rest}"
             ;;
     esac
 }
 
 # Fill the user and the secret when that file exists.
 read_vpn_nm_openvpn_secret() {
-    local dir="$1"
-    if [[ -z "${auth}" && -f "${dir}/auth.txt" ]]; then
-        auth="${dir}/auth.txt"
+    local directory="$1"
+    if [[ -z "${auth}" && -f "${directory}/auth.txt" ]]; then
+        auth="${directory}/auth.txt"
     fi
     if [[ -n "${auth}" && -f "${auth}" ]]; then
-        user="$(vpn_nm_auth_pair "${auth}" | sed -n '1p')"
-        password="$(vpn_nm_auth_pair "${auth}" | sed -n '2p')"
+        user="$(get_vpn_nm_auth_pair "${auth}" | sed -n '1p')"
+        password="$(get_vpn_nm_auth_pair "${auth}" | sed -n '2p')"
     fi
 }
 
@@ -339,12 +339,12 @@ read_vpn_nm_openvpn_kind() {
 # Boot flag, transport, and the stable id.
 read_vpn_nm_openvpn_flags() {
     local name="$1" path="$2"
-    if vpn_nm_wants_auto "${name}"; then
+    if check_vpn_nm_wants_auto "${name}"; then
         auto="true"
     else
         auto="false"
     fi
-    uuid="$(vpn_nm_uuid "${path}")"
+    uuid="$(get_vpn_nm_uuid "${path}")"
     if [[ "${transport}" == "tcp" ]]; then
         tcp="yes"
     else
@@ -395,7 +395,7 @@ render_vpn_nm_openvpn_extra() {
     if [[ -n "${ta}" ]]; then
         printf 'ta=%s\n' "${ta}"
         [[ "${tadir}" == "0" || "${tadir}" == "1" ]] || tadir="1"
-        printf 'ta-dir=%s\n' "${tadir}"
+        printf 'ta-directory=%s\n' "${tadir}"
     fi
     if [[ -n "${tcrypt}" ]]; then
         printf 'tls-crypt=%s\n' "${tcrypt}"
@@ -445,16 +445,16 @@ render_vpn_nm_openvpn_net() {
 }
 
 # Build an OpenVPN profile from the runtime file.
-vpn_nm_render_openvpn() {
-    local name="$1" path="$2" dir runtime iface transport port remote v6
+render_vpn_nm_openvpn() {
+    local name="$1" path="$2" directory runtime iface transport port remote v6
     local line trimmed key rest val ca="" cert="" keyf="" auth="" user="" password=""
     local rcert="" ta="" tadir="" tcrypt="" tcrypt2="" kind auto uuid tcp enc
     read_vpn_nm_openvpn_meta "${name}" || return 1
     while IFS= read -r line || [[ -n "${line}" ]]; do
-        read_vpn_nm_openvpn_line "${dir}" "${line}" || continue
+        read_vpn_nm_openvpn_line "${directory}" "${line}" || continue
     done <"${runtime}"
     [[ -n "${ca}" ]] || return 1
-    read_vpn_nm_openvpn_secret "${dir}"
+    read_vpn_nm_openvpn_secret "${directory}"
     read_vpn_nm_openvpn_kind || return 1
     read_vpn_nm_openvpn_flags "${name}" "${path}"
     {
@@ -468,7 +468,7 @@ vpn_nm_render_openvpn() {
 }
 
 # One peer block, with a wide allowed range.
-vpn_nm_peer_block() {
+get_vpn_nm_peer_block() {
     local key="$1" endpoint="$2" keep="$3" psk="$4"
     printf '[wireguard-peer.%s]\n' "${key}"
     printf 'public-key=%s\n' "${key}"
@@ -488,8 +488,8 @@ vpn_nm_peer_block() {
 # Tunnel name and the private-field label.
 read_vpn_nm_wireguard_meta() {
     local name="$1"
-    dir="$(get_vpn_profile_dir "${name}")"
-    runtime="${dir}/runtime"
+    directory="$(get_vpn_profile_directory "${name}")"
+    runtime="${directory}/runtime"
     [[ -f "${runtime}" ]] || return 1
     load_vpn_settings
     iface="$(get_vpn_meta "${name}" iface 2>/dev/null || true)"
@@ -501,7 +501,7 @@ read_vpn_nm_wireguard_meta() {
 # Append the current peer when one is complete.
 read_vpn_nm_wireguard_peer() {
     if [[ "${section}" == "Peer" && -n "${pubkey}" ]]; then
-        peers="${peers}$(vpn_nm_peer_block "${pubkey}" "${endpoint}" "${keep}" "${psk}")"
+        peers="${peers}$(get_vpn_nm_peer_block "${pubkey}" "${endpoint}" "${keep}" "${psk}")"
     fi
 }
 
@@ -571,12 +571,12 @@ read_vpn_nm_wireguard_addrs() {
 # Boot flag and the stable id.
 read_vpn_nm_wireguard_auto() {
     local name="$1" path="$2"
-    if vpn_nm_wants_auto "${name}"; then
+    if check_vpn_nm_wants_auto "${name}"; then
         auto="true"
     else
         auto="false"
     fi
-    uuid="$(vpn_nm_uuid "${path}")"
+    uuid="$(get_vpn_nm_uuid "${path}")"
 }
 
 # Connection block and the private value.
@@ -635,8 +635,8 @@ render_vpn_nm_wireguard_ipv6() {
 }
 
 # Build a WireGuard profile from the runtime file.
-vpn_nm_render_wireguard() {
-    local name="$1" path="$2" dir runtime iface v6 line trimmed section=""
+render_vpn_nm_wireguard() {
+    local name="$1" path="$2" directory runtime iface v6 line trimmed section=""
     local key rest val field private="" pubkey="" endpoint="" keep="" psk=""
     local peers="" auto uuid addr n4=0 n6=0 v4text="" v6text=""
     read_vpn_nm_wireguard_meta "${name}" || return 1
@@ -671,21 +671,21 @@ render_vpn_nm_connection() {
     local name="$1" path="$2" proto
     proto="$(get_vpn_meta "${name}" proto 2>/dev/null || true)"
     if [[ "${proto}" == "wireguard" ]]; then
-        vpn_nm_render_wireguard "${name}" "${path}"
+        render_vpn_nm_wireguard "${name}" "${path}"
         return
     fi
-    vpn_nm_render_openvpn "${name}" "${path}"
+    render_vpn_nm_openvpn "${name}" "${path}"
 }
 
 # Store the profile, then tell the daemon when it is the system one.
 install_vpn_nm_connection() {
-    local name="$1" path dir
-    path="$(vpn_nm_connection_path "${name}")"
-    dir="$(dirname -- "${path}")"
+    local name="$1" path directory
+    path="$(get_vpn_nm_connection_path "${name}")"
+    directory="$(dirname -- "${path}")"
     if [[ -n "${VPN_NM_DIR:-}" ]]; then
-        install -d -m 700 "${dir}"
+        install -d -m 700 "${directory}"
     else
-        install -d -m 755 "${dir}"
+        install -d -m 755 "${directory}"
     fi
     render_vpn_nm_connection "${name}" "${path}" || return 1
     chmod 600 "${path}"
@@ -747,10 +747,10 @@ apply_vpn_nm_autoconnect_live() {
 }
 
 # Change the boot flag inside one saved profile.
-vpn_nm_set_autoconnect() {
+set_vpn_nm_autoconnect() {
     local name="$1" want="$2" file tmp line section="" seen=0
     read_vpn_nm_autoconnect_want "${want}"
-    file="$(vpn_nm_connection_path "${name}")"
+    file="$(get_vpn_nm_connection_path "${name}")"
     [[ -f "${file}" ]] || return 1
     tmp="$(mktemp "${file}.XXXXXX")"
     while IFS= read -r line || [[ -n "${line}" ]]; do
@@ -768,14 +768,14 @@ vpn_nm_set_autoconnect() {
 }
 
 # Each saved profile name, one per line.
-vpn_nm_each() {
-    local file name dir glob
-    dir="${VPN_NM_DIR:-/etc/NetworkManager/system-connections}"
-    [[ -d "${dir}" ]] || return 0
+run_vpn_nm_each() {
+    local file name directory glob
+    directory="${VPN_NM_DIR:-/etc/NetworkManager/system-connections}"
+    [[ -d "${directory}" ]] || return 0
     glob="$(shopt -p nullglob)"
     shopt -s nullglob
-    for file in "${dir}"/liltress-*.nmconnection; do
-        name="$(vpn_nm_name_of "${file}")"
+    for file in "${directory}"/liltress-*.nmconnection; do
+        name="$(get_vpn_nm_name "${file}")"
         [[ -n "${name}" ]] || continue
         printf '%s\n' "${name}"
     done
@@ -783,16 +783,16 @@ vpn_nm_each() {
 }
 
 # Same boot flag on every saved profile.
-vpn_nm_autoconnect_all() {
+set_vpn_nm_autoconnect_all() {
     local want="$1" name
     while IFS= read -r name; do
         [[ -n "${name}" ]] || continue
-        vpn_nm_set_autoconnect "${name}" "${want}" || true
-    done < <(vpn_nm_each)
+        set_vpn_nm_autoconnect "${name}" "${want}" || true
+    done < <(run_vpn_nm_each)
 }
 
 # Bring other profiles down, leaving one up.
-stop_vpn_nm_others() {
+clear_vpn_nm_others() {
     local keep="$1" name
     command -v nmcli >/dev/null 2>&1 || return 0
     [[ -z "${VPN_NM_DIR:-}" ]] || return 0
@@ -800,33 +800,33 @@ stop_vpn_nm_others() {
         [[ -n "${name}" ]] || continue
         [[ "${name}" == "${keep}" ]] && continue
         nmcli connection down id "${name}" >/dev/null 2>&1 || true
-    done < <(vpn_nm_each)
+    done < <(run_vpn_nm_each)
 }
 
 # Bring every saved profile down.
-stop_vpn_nm_all() {
-    stop_vpn_nm_others ""
+clear_vpn_nm_all() {
+    clear_vpn_nm_others ""
 }
 
 # Delete the daemon entry, then the saved file.
 remove_vpn_nm_connection() {
     local name="$1" path nested=0
-    path="$(vpn_nm_connection_path "${name}")"
+    path="$(get_vpn_nm_connection_path "${name}")"
     if [[ -z "${VPN_NM_DIR:-}" ]] && command -v nmcli >/dev/null 2>&1; then
-        if ! vpn_nm_held; then
-            vpn_nm_hold_on
+        if ! check_vpn_nm_held; then
+            set_vpn_nm_hold_on
             nested=1
         fi
         nmcli connection delete id "${name}" >/dev/null 2>&1 || true
         if ((nested == 1)); then
-            vpn_nm_hold_off
+            set_vpn_nm_hold_off
         fi
     fi
     rm -f "${path}"
 }
 
 # True when the daemon reports that profile as up.
-vpn_nm_activated() {
+check_vpn_nm_activated() {
     local name="$1" state
     [[ -z "${VPN_NM_DIR:-}" ]] || return 1
     command -v nmcli >/dev/null 2>&1 || return 1
@@ -835,14 +835,14 @@ vpn_nm_activated() {
 }
 
 # True when any saved profile is up.
-vpn_nm_any_up() {
+check_vpn_nm_any_up() {
     local name
     while IFS= read -r name; do
         [[ -n "${name}" ]] || continue
-        if vpn_nm_activated "${name}"; then
+        if check_vpn_nm_activated "${name}"; then
             return 0
         fi
-    done < <(vpn_nm_each)
+    done < <(run_vpn_nm_each)
     return 1
 }
 
@@ -851,7 +851,7 @@ wait_vpn_nm() {
     local name="$1" deadline
     deadline=$((SECONDS + VPN_HANDSHAKE_TIMEOUT))
     while ((SECONDS <= deadline)); do
-        if vpn_nm_activated "${name}"; then
+        if check_vpn_nm_activated "${name}"; then
             return 0
         fi
         sleep 1
@@ -860,7 +860,7 @@ wait_vpn_nm() {
 }
 
 # Ask the daemon to bring that profile up.
-vpn_nm_up() {
+check_vpn_nm_up() {
     local name="$1"
     [[ -z "${VPN_NM_DIR:-}" ]] || return 1
     command -v nmcli >/dev/null 2>&1 || return 1
@@ -868,7 +868,7 @@ vpn_nm_up() {
 }
 
 # Leave the tunnel device outside the daemon.
-vpn_nm_unmanage() {
+set_vpn_nm_unmanaged() {
     local iface="$1"
     [[ -n "${iface}" ]] || return 0
     [[ -z "${VPN_NM_DIR:-}" ]] || return 0
@@ -877,7 +877,7 @@ vpn_nm_unmanage() {
 }
 
 # Remember the active profile name.
-vpn_nm_set_active() {
+set_vpn_nm_active() {
     local name="$1" file
     if declare -F set_vpn_active >/dev/null 2>&1; then
         set_vpn_active "${name}"
@@ -894,9 +894,9 @@ apply_vpn_link_setup() {
     if ! install_vpn_nm_connection "${name}"; then
         rc=1
         VPN_NM_FAULT="load"
-    elif ! stop_vpn_nm_others "${name}"; then
+    elif ! clear_vpn_nm_others "${name}"; then
         rc=1
-    elif ! remember_vpn_direct_route; then
+    elif ! record_vpn_direct_route; then
         rc=1
     elif ! apply_vpn_endpoint_routes "${name}"; then
         rc=1
@@ -913,7 +913,7 @@ apply_vpn_link_tunnel() {
         rc=1
     elif ! apply_vpn_nft "${name}" 0; then
         rc=1
-    elif ! vpn_nm_up "${name}"; then
+    elif ! check_vpn_nm_up "${name}"; then
         rc=1
         VPN_NM_FAULT="up"
     elif ! wait_vpn_nm "${name}"; then
@@ -928,23 +928,23 @@ finish_vpn_link_up() {
     apply_vpn_tunnel_mtu "${name}"
     clear_vpn_tunnel_routes || true
     apply_vpn_nft "${name}" 1 || rc=1
-    vpn_nm_apply_autoconnect || true
+    apply_vpn_nm_autoconnect || true
 }
 
 # A failed attempt turns the boot flag off and drops the link.
 finish_vpn_link_down() {
     local name="$1"
-    vpn_nm_set_autoconnect "${name}" false || true
+    set_vpn_nm_autoconnect "${name}" false || true
     if [[ -z "${VPN_NM_DIR:-}" ]] && command -v nmcli >/dev/null 2>&1; then
         nmcli connection down id "${name}" >/dev/null 2>&1 || true
     fi
 }
 
 # Bring one profile up, and undo it when a step fails.
-raise_vpn_link() {
+set_vpn_link() {
     local name="$1" rc=0
     VPN_NM_FAULT=""
-    vpn_nm_hold_on
+    set_vpn_nm_hold_on
     apply_vpn_link_setup "${name}"
     apply_vpn_link_tunnel "${name}"
     if ((rc == 0)); then
@@ -952,7 +952,7 @@ raise_vpn_link() {
     else
         finish_vpn_link_down "${name}"
     fi
-    vpn_nm_hold_off
+    set_vpn_nm_hold_off
     return "${rc}"
 }
 
@@ -974,10 +974,16 @@ read_vpn_nm_profile_value() {
     return 1
 }
 
+# A saved connection file is a regular file with a path.
+check_vpn_nm_profile_file() {
+    local file="$1"
+    [[ -n "${file}" && -f "${file}" && ! -L "${file}" ]]
+}
+
 # Profile name stored in a saved connection file.
-vpn_nm_profile_mark() {
+record_vpn_nm_profile() {
     local file="${1:-}" line value=""
-    [[ -n "${file}" && -f "${file}" && ! -L "${file}" ]] || return 1
+    check_vpn_nm_profile_file "${file}" || return 1
     while IFS= read -r line || [[ -n "${line}" ]]; do
         line="${line%$'\r'}"
         read_vpn_nm_profile_value "${line}" || continue
@@ -989,16 +995,16 @@ vpn_nm_profile_mark() {
 }
 
 # Turn the tunnel off without a daemon event.
-quiet_vpn_down() {
+run_vpn_down_quiet() {
     apply_vpn_tunnel_mtu
-    vpn_nm_hold_on
+    set_vpn_nm_hold_on
     set_vpn_state_mode off
     load_vpn_settings
     apply_vpn_systemd || true
     clear_vpn_network
     restart_vpn_services || true
-    note_vpn_log mode-off "-" ok "nm"
-    vpn_nm_hold_off
+    record_vpn_log mode-off "-" ok "nm"
+    set_vpn_nm_hold_off
     if declare -F refresh_vpn_integrity >/dev/null 2>&1; then
         refresh_vpn_integrity || true
     fi
@@ -1009,7 +1015,7 @@ read_vpn_nm_event_profile() {
     local action="$1"
     case "${action}" in
         vpn-pre-up | vpn-up | vpn-down | vpn-pre-down)
-            profile="$(vpn_nm_profile_mark "${CONNECTION_FILENAME:-}" 2>/dev/null || true)"
+            profile="$(record_vpn_nm_profile "${CONNECTION_FILENAME:-}" 2>/dev/null || true)"
             [[ -n "${profile}" ]] || return 1
             ;;
     esac
@@ -1022,7 +1028,7 @@ apply_vpn_nm_pre_up() {
     set_vpn_state_mode on
     load_vpn_settings
     apply_vpn_systemd || true
-    remember_vpn_direct_route || true
+    record_vpn_direct_route || true
     apply_vpn_ssh || true
     apply_vpn_endpoint_routes "${profile}" || true
     apply_vpn_bypass_routes || true
@@ -1057,12 +1063,17 @@ apply_vpn_nm_up() {
     set_vpn_state_mode on
     apply_vpn_tunnel_mtu "${profile}"
     clear_vpn_tunnel_routes || true
-    vpn_nm_set_active "${profile}"
+    set_vpn_nm_active "${profile}"
     set_vpn_state_active "${profile}" || true
     record_vpn_attempt "${profile}" 1 || true
     apply_vpn_nft "${profile}" 1 || true
     restart_vpn_services || true
-    note_vpn_log mode-on "${profile}" ok "nm"
+    record_vpn_log mode-on "${profile}" ok "nm"
+    refresh_vpn_nm_integrity
+}
+
+# Integrity follows the tunnel when that helper is loaded.
+refresh_vpn_nm_integrity() {
     if declare -F refresh_vpn_integrity >/dev/null 2>&1; then
         refresh_vpn_integrity || true
     fi
@@ -1070,10 +1081,10 @@ apply_vpn_nm_up() {
 
 # Turn the tunnel off when no other profile remains.
 apply_vpn_nm_down() {
-    if vpn_nm_switching || vpn_nm_any_up; then
+    if check_vpn_nm_switching || check_vpn_nm_any_up; then
         return 0
     fi
-    quiet_vpn_down
+    run_vpn_down_quiet
 }
 
 # The killswitch must learn the new local prefix while the tunnel stays up.
@@ -1092,16 +1103,16 @@ apply_vpn_nm_dhcp() {
     load_vpn_settings
     [[ "${iface}" == "${VPN_IFACE_OVPN}" || "${iface}" == "${VPN_IFACE_WG}" ]] && return 0
     check_vpn_mode || return 0
-    remember_vpn_direct_route || true
+    record_vpn_direct_route || true
     apply_vpn_ssh || true
     apply_vpn_lan_routes || true
     refresh_vpn_lan_filter
 }
 
 # Dispatcher entry. A pause, or a foreign file, does nothing.
-handle_vpn_nm_event() {
+run_vpn_nm_event() {
     local iface="${1:-}" action="${2:-}" profile=""
-    if vpn_nm_held; then
+    if check_vpn_nm_held; then
         return 0
     fi
     read_vpn_nm_event_profile "${action}" || return 0

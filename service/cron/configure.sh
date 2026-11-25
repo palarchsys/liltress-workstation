@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/configure.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_configure_part_01() {
+cron_configure_01_run_01_get() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -47,16 +47,16 @@ run_configure_part_01() {
     chown root:root "/etc/cron.d/${PROJECT_SLUG}"
 }
 
-run_configure_part_02() {
+cron_configure_01_run_02_install() {
     chmod 600 "/etc/cron.d/${PROJECT_SLUG}"
     install -d -m 755 /etc/systemd/system
     systemctl_bin="$(command -v systemctl || true)"
     [[ -n "${systemctl_bin}" ]] || log_error "${INSTALL_WATCHER}" "configure.systemctl-not-found"
 }
 
-run_configure_part_03() {
-    run_configure_part_01 "$@"
-    run_configure_part_02 "$@"
+cron_configure_01_run_03_run() {
+    cron_configure_01_run_01_get "$@"
+    cron_configure_01_run_02_install "$@"
 }
 
 render_unit() {
@@ -81,7 +81,7 @@ render_unit() {
     chmod 644 "${dest}"
 }
 
-run_configure_part_04() {
+cron_configure_01_run_04_render() {
     render_unit w-boot-scan.service
     render_unit w-boot-chain.service
     render_unit w-boot-chain.timer
@@ -100,7 +100,7 @@ run_configure_part_04() {
     systemctl disable --now w-integrity.timer >/dev/null 2>&1 || true
 }
 
-run_configure_part_05() {
+cron_configure_01_run_05_scan() {
     systemctl disable --now w-integrity.service >/dev/null 2>&1 || true
     rm -f /etc/systemd/system/w-integrity.timer /etc/systemd/system/w-integrity.service
     systemctl disable --now w-behavior.timer >/dev/null 2>&1 || true
@@ -124,11 +124,11 @@ run_configure_part_05() {
     log_success "${INSTALL_WATCHER}" "configure.watchdogs-installed-in-cron-bin" "${CONFIG_BASE_DIRECTORY}"
 }
 
-run_configure_part_06() {
-    run_configure_part_04 "$@"
-    run_configure_part_05 "$@"
+cron_configure_01_run_06_run() {
+    cron_configure_01_run_04_render "$@"
+    cron_configure_01_run_05_scan "$@"
 }
 
-run_configure_part_03 "$@"
+cron_configure_01_run_03_run "$@"
 
-run_configure_part_06 "$@"
+cron_configure_01_run_06_run "$@"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/name-list.py
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -21,7 +21,7 @@ from pathlib import Path
 
 root = Path(os.environ["NAMES_ROOT"])
 roots = ("share", "scripts", "agents", "workstation", "server")
-skip_dirs = {".git", "logs", "node_modules", ".venv", "next_step", "__pycache__"}
+skip_directories = {".git", "logs", "node_modules", ".venv", "next_step", "__pycache__"}
 # The generators are not product code. The schema JSON stays in the count.
 skip_files = {
     "scripts/list-names.sh",
@@ -518,7 +518,7 @@ def measure_shell_lines(lines):
 
 def measure_hidden(start, missing):
     for dirpath, dirnames, filenames in os.walk(start):
-        dirnames[:] = child_dirs(dirpath, dirnames)
+        dirnames[:] = child_directories(dirpath, dirnames)
         for filename in sorted(filenames):
             if not filename.endswith(".sh"):
                 continue
@@ -626,6 +626,27 @@ def first_mark(line):
     return marks[0][1]
 
 
+def verb_names():
+    text = (
+        "add apply arm ask begin check clear collect copy deliver emit encode "
+        "ensure fail finish get init install invoke list load locate lock log "
+        "offer pass persist prompt publish quote read record refresh remove "
+        "render report require reset restart run scan section send set shorten "
+        "show signal skip source strip take validate wait warn write"
+    )
+    return set(text.split())
+
+
+def verb_token(name):
+    parts = name.split("_")
+    # A two-digit token before the final verb marks a split body or a cyclomatic piece.
+    if len(parts) < 4 or parts[-1] not in verb_names():
+        return parts[0]
+    if parts[-2].isdigit() and len(parts[-2]) == 2:
+        return parts[-1]
+    return parts[0]
+
+
 def add_name(table, name, prefix_map):
     prefix = name.split("_", 1)[0]
     if prefix not in prefix_map:
@@ -635,11 +656,11 @@ def add_name(table, name, prefix_map):
         if prefix == "n":
             rest = name
             target = name
-            verb = name.split("_", 1)[0]
+            verb = verb_token(name)
         else:
             rest = name[len(prefix) + 1 :]
             target = prefix_map[prefix] + rest
-            verb = rest.split("_", 1)[0]
+            verb = verb_token(rest)
         row = {
             "name": name,
             "scope": scope_of[prefix],
@@ -654,10 +675,10 @@ def add_name(table, name, prefix_map):
     return row
 
 
-def child_dirs(dirpath, dirnames):
+def child_directories(dirpath, dirnames):
     kept = []
     for name in dirnames:
-        if name in skip_dirs:
+        if name in skip_directories:
             continue
         if (Path(dirpath) / name).is_symlink():
             continue
@@ -697,7 +718,7 @@ def python_defs(path):
 
 def walk_shell(start):
     for dirpath, dirnames, filenames in os.walk(start):
-        dirnames[:] = child_dirs(dirpath, dirnames)
+        dirnames[:] = child_directories(dirpath, dirnames)
         for filename in filenames:
             if not filename.endswith(".sh"):
                 continue
@@ -712,7 +733,7 @@ def walk_shell(start):
 
 def walk_python(start):
     for dirpath, dirnames, filenames in os.walk(start):
-        dirnames[:] = child_dirs(dirpath, dirnames)
+        dirnames[:] = child_directories(dirpath, dirnames)
         for filename in sorted(filenames):
             if not filename.endswith(".py"):
                 continue
@@ -736,7 +757,7 @@ def collect_defined():
 
 def measure_tree(start):
     for dirpath, dirnames, filenames in os.walk(start):
-        dirnames[:] = child_dirs(dirpath, dirnames)
+        dirnames[:] = child_directories(dirpath, dirnames)
         for filename in sorted(filenames):
             path = Path(dirpath) / filename
             if path.is_symlink():
@@ -859,9 +880,9 @@ def read_scan(path, rel):
     scan_text(rel, data.decode("utf-8", errors="ignore"))
 
 
-def scan_dir(start):
+def scan_directory(start):
     for dirpath, dirnames, filenames in os.walk(start):
-        dirnames[:] = child_dirs(dirpath, dirnames)
+        dirnames[:] = child_directories(dirpath, dirnames)
         current = Path(dirpath)
         if output_pruned(current):
             dirnames[:] = []
@@ -881,7 +902,7 @@ def scan_tree():
         start = root / base
         if not start.is_dir():
             continue
-        scan_dir(start)
+        scan_directory(start)
 
 
 def files_of(row):

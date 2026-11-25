@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/sysctl/w-sysctl-apply.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,25 +11,25 @@
 # -----------------------------------------------------------------------------
 
 
-run_w_sysctl_apply_part_01() {
+sysctl_w_sysctl_apply_01_run_01_run() {
     set -u
     conf="/etc/sysctl.d/99-zzz-liltress-workstation.conf"
     [[ -f "${conf}" ]] || exit 0
 }
 
-run_w_sysctl_apply_part_03() {
-    run_w_sysctl_apply_part_01 "$@"
+sysctl_w_sysctl_apply_01_run_03_run() {
+    sysctl_w_sysctl_apply_01_run_01_run "$@"
 }
 
-run_w_sysctl_apply_part_02() {
+sysctl_w_sysctl_apply_01_run_02_run() {
     exit 0
 }
 
-run_w_sysctl_apply_part_04() {
-    run_w_sysctl_apply_part_02 "$@"
+sysctl_w_sysctl_apply_01_run_04_run() {
+    sysctl_w_sysctl_apply_01_run_02_run "$@"
 }
 
-run_w_sysctl_apply_part_03 "$@" "$@"
+sysctl_w_sysctl_apply_01_run_03_run "$@" "$@"
 while IFS= read -r line || [[ -n "${line}" ]]; do
     line="${line%%#*}"
     line="${line#"${line%%[![:space:]]*}"}"
@@ -54,4 +54,4 @@ while IFS= read -r line || [[ -n "${line}" ]]; do
     printf "$(get_text log.ignored "${err}")" >&2
 done <"${conf}"
 
-run_w_sysctl_apply_part_04 "$@" "$@"
+sysctl_w_sysctl_apply_01_run_04_run "$@" "$@"

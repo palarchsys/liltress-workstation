@@ -11,54 +11,33 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../core/boot/python.sh"
 
-source_python_boot
-
-run_ignore_log_part_01() {
+chkrootkit_ignore_log_01_run_01_load() {
     set -euo pipefail
-    _text_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    _text_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     _text_hops=0
-    while [[ "${_text_hops}" -lt 8 && "${_text_dir}" != "/" ]]; do
-        if [[ -f "${_text_dir}/text-load.sh" ]]; then
+    while [[ "${_text_hops}" -lt 8 && "${_text_directory}" != "/" ]]; do
+        if [[ -f "${_text_directory}/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${_text_dir}/text-load.sh"
+            source "${_text_directory}/text-load.sh"
             break
         fi
-        if [[ -f "${_text_dir}/share/core/text/text-load.sh" ]]; then
+        if [[ -f "${_text_directory}/share/core/text/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${_text_dir}/share/core/text/text-load.sh"
+            source "${_text_directory}/share/core/text/text-load.sh"
             break
         fi
-        if [[ -f "${_text_dir}/core/text/text-load.sh" ]]; then
+        if [[ -f "${_text_directory}/core/text/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${_text_dir}/core/text/text-load.sh"
+            source "${_text_directory}/core/text/text-load.sh"
             break
         fi
-        _text_dir="$(dirname -- "${_text_dir}")"
+        _text_directory="$(dirname -- "${_text_directory}")"
         _text_hops=$((_text_hops + 1))
     done
-    unset _text_dir _text_hops
+    unset _text_directory _text_hops
     if ! declare -F load_installed_text >/dev/null 2>&1; then
         printf '%s\n' "get_text absent" >&2
         exit 1
@@ -67,7 +46,7 @@ run_ignore_log_part_01() {
     BASE="${BASE:-/opt/liltress-workstation}"
 }
 
-run_ignore_log_part_02() {
+chkrootkit_ignore_log_01_run_02_get() {
     if [[ "${EUID}" -ne 0 ]]; then
         printf "$(get_text log.run-this-command-with-sudo-n)" >&2
         exit 1
@@ -78,12 +57,12 @@ run_ignore_log_part_02() {
         exit 1
     fi
 
-    python3 "$(locate_python_dir)/chkrootkit-filter.py" ignore "${BASE}" "$1"
+    python3 "$(locate_python_directory)/chkrootkit-filter.py" ignore "${BASE}" "$1"
 }
 
-run_ignore_log_part_03() {
-    run_ignore_log_part_01 "$@"
-    run_ignore_log_part_02 "$@"
+chkrootkit_ignore_log_01_run_03_run() {
+    chkrootkit_ignore_log_01_run_01_load "$@"
+    chkrootkit_ignore_log_01_run_02_get "$@"
 }
 
-run_ignore_log_part_03 "$@"
+chkrootkit_ignore_log_01_run_03_run "$@"

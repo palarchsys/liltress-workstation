@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/pam/configure.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_configure_part_01() {
+pam_configure_01_run_01_get() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -44,7 +44,7 @@ EOF
     log_info "${INSTALL_WATCHER}" "configure.configuration-of-pam-faillock-pam-auth-update-wi"
 }
 
-run_configure_part_02() {
+pam_configure_01_run_02_fail() {
     tee /etc/security/faillock.conf >/dev/null <<EOF
 deny = ${FAILLOCK_DENY}
 unlock_time = ${FAILLOCK_UNLOCK}
@@ -78,7 +78,7 @@ EOF
     fi
 }
 
-run_configure_part_03() {
+pam_configure_01_run_03_get() {
     if ! grep -q "^umask" /etc/bash.bashrc; then
         echo "$(get_text configure.umask-027-2)" >>/etc/bash.bashrc
     else
@@ -113,10 +113,10 @@ EOF
     log_success "${INSTALL_WATCHER}" "configure.sudo-asks-again-the-password-after-5-minutes"
 }
 
-run_configure_part_04() {
-    run_configure_part_01 "$@"
-    run_configure_part_02 "$@"
-    run_configure_part_03 "$@"
+pam_configure_01_run_04_run() {
+    pam_configure_01_run_01_get "$@"
+    pam_configure_01_run_02_fail "$@"
+    pam_configure_01_run_03_get "$@"
 }
 
-run_configure_part_04 "$@"
+pam_configure_01_run_04_run "$@"

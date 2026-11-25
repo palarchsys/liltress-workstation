@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/collect.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -79,15 +79,21 @@ collect_product_logs() {
         || true
 }
 
-collect_workstation_logs() {
+# Status and resolver output share one snapshot file.
+collect_unbound_status() {
     local snap="$1"
-    check_workstation || return 0
     {
         echo "=== unbound ==="
         systemctl status unbound --no-pager -l 2>&1 | head -n 80 || true
         echo "=== resolvectl ==="
         resolvectl status 2>&1 | head -n 120 || true
     } >"${snap}/unbound.txt" 2>&1 || true
+}
+
+collect_workstation_logs() {
+    local snap="$1"
+    check_workstation || return 0
+    collect_unbound_status "${snap}"
 
     if command -v pro >/dev/null 2>&1; then
         pro status 2>&1 | sed -E 's/[A-Za-z0-9]{20,}/[redacted]/g' >"${snap}/ubuntu-pro.txt" || true

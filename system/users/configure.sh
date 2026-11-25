@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/users/configure.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_configure_part_01() {
+users_configure_01_run_01_run() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -30,7 +30,7 @@ apply_password() {
     fi
 }
 
-run_configure_part_02() {
+users_configure_01_run_02_apply() {
     apply_password root "${ROOT_PASSWORD}"
     log_success "${INSTALL_WATCHER}" "configure.password-root-changed"
     log_info "${INSTALL_WATCHER}" "configure.change-of-the-password" "${SSH_USER}"
@@ -65,6 +65,6 @@ EOF
     unset MAIN_PASSWORD
 }
 
-run_configure_part_01 "$@"
+users_configure_01_run_01_run "$@"
 
-run_configure_part_02 "$@"
+users_configure_01_run_02_apply "$@"

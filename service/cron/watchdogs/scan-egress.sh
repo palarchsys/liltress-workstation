@@ -15,29 +15,8 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
-
-source_python_boot
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../../core/boot/python.sh"
 
 read_egress_key() {
     local candidate="" line=""
@@ -110,8 +89,8 @@ require_egress_journal() {
 }
 
 locate_egress_stamp() {
-    if declare -F watchdog_runtime_file >/dev/null 2>&1; then
-        stamp="$(watchdog_runtime_file "${BASE}" egress.stamp)"
+    if declare -F get_watchdog_runtime_file >/dev/null 2>&1; then
+        stamp="$(get_watchdog_runtime_file "${BASE}" egress.stamp)"
     else
         stamp="${BASE}/cron/egress.stamp"
     fi
@@ -242,7 +221,13 @@ list_egress_suspects() {
     local kernel="$1"
     local audit="$2"
     local registry="$3"
-    EGRESS_KERNEL="${kernel}" EGRESS_AUDIT="${audit}" EGRESS_REGISTRY="${registry}" python3 "$(locate_python_dir)/egress-body.py" watch
+    EGRESS_KERNEL="${kernel}" EGRESS_AUDIT="${audit}" EGRESS_REGISTRY="${registry}" python3 "$(locate_python_directory)/egress-body.py" watch
+}
+
+# Each address set rejects the matching destination.
+add_egress_hold_rules() {
+    nft add rule inet w_flow_hold output ip daddr . meta l4proto . th dport @v4 reject || return 1
+    nft add rule inet w_flow_hold output ip6 daddr . meta l4proto . th dport @v6 reject || return 1
 }
 
 ensure_egress_hold() {
@@ -253,8 +238,7 @@ ensure_egress_hold() {
     nft add set inet w_flow_hold v4 '{ type ipv4_addr . inet_proto . inet_service; flags timeout; }' || return 1
     nft add set inet w_flow_hold v6 '{ type ipv6_addr . inet_proto . inet_service; flags timeout; }' || return 1
     nft add chain inet w_flow_hold output '{ type filter hook output priority -10 ; policy accept ; }' || return 1
-    nft add rule inet w_flow_hold output ip daddr . meta l4proto . th dport @v4 reject || return 1
-    nft add rule inet w_flow_hold output ip6 daddr . meta l4proto . th dport @v6 reject || return 1
+    add_egress_hold_rules
 }
 
 install_egress_hold() {
@@ -321,20 +305,25 @@ collect_egress_audit() {
 }
 
 locate_egress_registry() {
-    if declare -F watchdog_runtime_file >/dev/null 2>&1; then
-        registry="$(watchdog_runtime_file "${BASE}" quarantine.registry)"
+    if declare -F get_watchdog_runtime_file >/dev/null 2>&1; then
+        registry="$(get_watchdog_runtime_file "${BASE}" quarantine.registry)"
     else
         registry="${BASE}/cron/quarantine.registry"
     fi
     list_egress_suspects "${found}" "${audit_tmp}" "${registry}" >"${suspects}" || true
 }
 
-apply_egress_holds() {
-    local sec flow_key proto dst dpt exe kline
+# An empty suspect list ends the scan without a hold.
+pass_egress_suspects() {
     if [[ ! -s "${suspects}" ]]; then
         log_pass "$(get_text watchdog.no-flow-suspicious-outbound)"
         exit 0
     fi
+}
+
+apply_egress_holds() {
+    local sec flow_key proto dst dpt exe kline
+    pass_egress_suspects
     sec="$(get_isolate_seconds)"
     declare -A held_flows=()
     blocked=0

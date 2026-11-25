@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/debsums-filter.py
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -108,11 +108,11 @@ def filter_workstation(log_path, ignore_paths, base_text):
     write_kept(Path(log_path), kept)
 
 
-def report_path(log_path, logs, wrong_dir, wrong_name, prefix):
+def report_path(log_path, logs, wrong_directory, wrong_name, prefix):
     try:
         log_path.relative_to(logs)
     except ValueError:
-        sys.stderr.write(wrong_dir)
+        sys.stderr.write(wrong_directory)
         sys.exit(1)
     if not log_path.name.startswith(prefix) or log_path.suffix != ".log":
         sys.stderr.write(wrong_name)

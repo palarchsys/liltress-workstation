@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/clamav-event.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -20,7 +20,7 @@ read_logger_tag() {
     printf '%s\n' "${tag}"
 }
 
-run_clamav_event_part_01() {
+clamav_event_watchdog_01_run_01_run() {
     set -euo pipefail
     HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     if [[ -r "${HERE}/watchdog.conf" ]]; then
@@ -44,7 +44,7 @@ run_clamav_event_part_01() {
     base="$(basename -- "${file}")"
 }
 
-run_clamav_event_part_02() {
+clamav_event_watchdog_01_run_02_lock() {
     [[ -n "${base}" && "${base}" != "/" ]] || base="inconnu"
     case "${base}" in
         .clamav-quarantine-lock.*) exit 0 ;;
@@ -72,9 +72,9 @@ run_clamav_event_part_02() {
     log_alert "$(get_text watchdog.clamav-in "${virus}" "${file}")"
 }
 
-run_clamav_event_part_03() {
-    run_clamav_event_part_01 "$@"
-    run_clamav_event_part_02 "$@"
+clamav_event_watchdog_01_run_03_run() {
+    clamav_event_watchdog_01_run_01_run "$@"
+    clamav_event_watchdog_01_run_02_lock "$@"
 }
 
-run_clamav_event_part_03 "$@"
+clamav_event_watchdog_01_run_03_run "$@"

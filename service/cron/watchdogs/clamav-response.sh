@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/clamav-response.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -40,7 +40,7 @@ read_logger_tag() {
     printf '%s\n' "${tag}"
 }
 
-run_clamav_response_part_01() {
+clamav_response_watchdog_01_run_01_run() {
     set -euo pipefail
     HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     if [[ -r "${HERE}/watchdog.conf" ]]; then
@@ -64,7 +64,7 @@ run_clamav_response_part_01() {
     fi
 }
 
-run_clamav_response_part_02() {
+clamav_response_watchdog_01_run_02_read() {
     if [[ -f "${BASE}/cron/egress.conf" ]]; then
         # shellcheck disable=SC1091
         source "${BASE}/cron/egress.conf"
@@ -83,9 +83,9 @@ run_clamav_response_part_02() {
     stored="inconnue"
 }
 
-run_clamav_response_part_03() {
-    run_clamav_response_part_01 "$@"
-    run_clamav_response_part_02 "$@"
+clamav_response_watchdog_01_run_03_run() {
+    clamav_response_watchdog_01_run_01_run "$@"
+    clamav_response_watchdog_01_run_02_read "$@"
 }
 
 check_clamav_denied() {
@@ -113,7 +113,7 @@ apply_clamav_move() {
 }
 
 # The directory belongs to the scanner account when that account exists.
-ensure_clamav_dir() {
+ensure_clamav_directory() {
     local quarantine="$1"
     if id clamav >/dev/null 2>&1; then
         install -d -m 750 -o clamav -g clamav "${quarantine}"
@@ -122,15 +122,11 @@ ensure_clamav_dir() {
     fi
 }
 
-apply_clamav_quarantine() {
-    local quarantine base stamp dest
-    quarantine="${CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
-    ensure_clamav_dir "${quarantine}"
-    base="$(basename -- "${file}")"
-    [[ -n "${base}" && "${base}" != "/" ]] || base="inconnu"
-    stamp="$(date +%Y%m%d-%H%M%S-%N)"
-    dest="${quarantine}/${stamp}-${base}"
-    stored="${dest}"
+# A file already in the quarantine directory is kept or renamed.
+apply_clamav_copy() {
+    local quarantine="$1"
+    local base="$2"
+    local dest="$3"
     if [[ "${file}" == "${quarantine}/"* && -e "${file}" ]]; then
         if [[ "${base}" =~ ^[0-9]{8}-[0-9]{6}- ]]; then
             stored="${file}"
@@ -138,6 +134,21 @@ apply_clamav_quarantine() {
             return 0
         fi
         apply_clamav_move "${file}" "${dest}" "renommé en quarantaine" "renommage refusé"
+        return 0
+    fi
+    return 1
+}
+
+apply_clamav_quarantine() {
+    local quarantine base stamp dest
+    quarantine="${CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
+    ensure_clamav_directory "${quarantine}"
+    base="$(basename -- "${file}")"
+    [[ -n "${base}" && "${base}" != "/" ]] || base="inconnu"
+    stamp="$(date +%Y%m%d-%H%M%S-%N)"
+    dest="${quarantine}/${stamp}-${base}"
+    stored="${dest}"
+    if apply_clamav_copy "${quarantine}" "${base}" "${dest}"; then
         return 0
     fi
     if [[ -e "${file}" ]]; then
@@ -194,11 +205,17 @@ signal_clamav_pid() {
     return 0
 }
 
+# An empty, missing, or unnamed path has no holder.
+check_clamav_target() {
+    local target="$1"
+    [[ -n "${target}" && "${target}" != "absent" && "${target}" != "inconnue" && -e "${target}" ]]
+}
+
 signal_clamav_holder() {
     local target pid
     action_process="processus non arrêté : aucun détenteur"
     for target in "${file}" "${stored}"; do
-        [[ -n "${target}" && "${target}" != "absent" && "${target}" != "inconnue" && -e "${target}" ]] || continue
+        check_clamav_target "${target}" || continue
         pid="$(read_clamav_holder "${target}")"
         [[ -n "${pid}" && "${pid}" =~ ^[0-9]+$ ]] || continue
         signal_clamav_pid "${pid}"
@@ -240,7 +257,7 @@ apply_net_isolate() {
     arm_isolate_timer "${sec}"
 }
 
-run_clamav_response_part_04() {
+clamav_response_watchdog_01_run_04_apply() {
     apply_clamav_quarantine
     if declare -F record_quarantine_origin >/dev/null 2>&1; then
         case "${action_quarantine}" in
@@ -270,6 +287,6 @@ run_clamav_response_part_04() {
         "ClamAV ${virus} type=${kind_label} origine=${file} quarantaine=${stored} actions=${action_quarantine}"
 }
 
-run_clamav_response_part_03 "$@"
+clamav_response_watchdog_01_run_03_run "$@"
 
-run_clamav_response_part_04 "$@"
+clamav_response_watchdog_01_run_04_apply "$@"

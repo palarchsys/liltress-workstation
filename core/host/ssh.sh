@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/ssh.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -44,7 +44,7 @@ install_sshd_dropin() {
     chmod 644 "${dest}"
 }
 
-reload_sshd_unit() {
+run_sshd_reload() {
     systemctl enable "${SSH_SERVICE_NAME}.service" >/dev/null 2>&1 || true
     if systemctl is-active --quiet "${SSH_SERVICE_NAME}.service"; then
         systemctl reload "${SSH_SERVICE_NAME}.service"

@@ -12,29 +12,8 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
-
-source_python_boot
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../../core/boot/python.sh"
 
 read_host_mode() {
     local candidate="" line=""
@@ -73,9 +52,9 @@ if [[ "${rc}" -ge 128 ]]; then
     crashed=1
 fi
 if [[ "${HOST_MODE}" == "server" ]]; then
-    python3 "$(locate_python_dir)/debsums-filter.py" server "${LOG_FILE}" "${BASE}"
+    python3 "$(locate_python_directory)/debsums-filter.py" server "${LOG_FILE}" "${BASE}"
 else
-    python3 "$(locate_python_dir)/debsums-filter.py" workstation "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}" "${BASE}"
+    python3 "$(locate_python_directory)/debsums-filter.py" workstation "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}" "${BASE}"
 fi
 if [[ "${crashed}" -eq 0 && -s "${LOG_FILE}" ]]; then
     summary="$(reset_debsums_log "${LOG_FILE}")"

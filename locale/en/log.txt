@@ -80,8 +80,8 @@ CUPS purged
 [log.date-2]
 date: {1}
 
-[log.dir-install-path-invalid]
-dir_install_path invalid: '{1}'
+[log.directory-install-path-invalid]
+directory_install_path invalid: '{1}'
 
 [log.directory]
 - **Directory**: `{1}`

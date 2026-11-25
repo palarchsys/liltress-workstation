@@ -13,36 +13,15 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
-
-source_python_boot
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../core/boot/python.sh"
 
 get_vpn_state_path() {
     printf '%s/vpn.json\n' "$(get_vpn_home)"
 }
 
 run_vpn_state() {
-    python3 "$(locate_python_dir)/vpn-state.py" "$@"
+    python3 "$(locate_python_directory)/vpn-state.py" "$@"
 }
 
 read_vpn_state() {
@@ -140,15 +119,15 @@ get_vpn_state_protocol() {
 }
 
 refresh_vpn_state() {
-    local home name proto kind dir
+    local home name proto kind directory
     local -a names=()
     home="$(get_vpn_home)"
     [[ -d "${home}" ]] || return 0
     shopt -s nullglob
     for kind in wireguard openvpn profiles; do
-        for dir in "${home}/${kind}"/*/; do
-            [[ -d "${dir}" ]] || continue
-            name="$(basename -- "${dir}")"
+        for directory in "${home}/${kind}"/*/; do
+            [[ -d "${directory}" ]] || continue
+            name="$(basename -- "${directory}")"
             check_vpn_name "${name}" || continue
             proto="$(get_vpn_state_protocol "${name}")"
             run_vpn_state ensure "$(get_vpn_state_path)" "${name}" "${proto}"
@@ -163,6 +142,16 @@ refresh_vpn_state() {
     run_vpn_state drop-missing "$(get_vpn_state_path)" "${names[@]}"
 }
 
+# The restart is announced, and Tailscale is named when that unit exists.
+log_vpn_service_restart() {
+    if declare -F log_info >/dev/null 2>&1; then
+        log_info "${INSTALL_WATCHER:-BASH}" "vpn.service.restart"
+        if systemctl cat tailscaled.service >/dev/null 2>&1; then
+            log_info "${INSTALL_WATCHER:-BASH}" "vpn.service.tailscale"
+        fi
+    fi
+}
+
 restart_vpn_services() {
     local unit
     for unit in unbound.service systemd-resolved.service tailscaled.service; do
@@ -173,10 +162,5 @@ restart_vpn_services() {
     if command -v resolvectl >/dev/null 2>&1; then
         resolvectl flush-caches >/dev/null 2>&1 || true
     fi
-    if declare -F log_info >/dev/null 2>&1; then
-        log_info "${INSTALL_WATCHER:-BASH}" "vpn.service.restart"
-        if systemctl cat tailscaled.service >/dev/null 2>&1; then
-            log_info "${INSTALL_WATCHER:-BASH}" "vpn.service.tailscale"
-        fi
-    fi
+    log_vpn_service_restart
 }

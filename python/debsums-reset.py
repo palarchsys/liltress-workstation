@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/debsums-reset.py
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -30,7 +30,7 @@ PATH_RE = re.compile(r"^debsums: changed file (.+?) \(from ")
 FAIL_RE = re.compile(r"(?:changed|missing) file (\S+)")
 ARCHIVE_ROOT = Path("/var/cache/apt/archives")
 
-cache_dir = None
+cache_directory = None
 
 
 def run_command(cmd):
@@ -135,16 +135,16 @@ def purge_cache():
 
 
 def private_cache():
-    global cache_dir
-    if cache_dir is None:
-        cache_dir = Path(tempfile.mkdtemp(prefix="hf-apt-"))
-        (cache_dir / "partial").mkdir()
-    return cache_dir
+    global cache_directory
+    if cache_directory is None:
+        cache_directory = Path(tempfile.mkdtemp(prefix="hf-apt-"))
+        (cache_directory / "partial").mkdir()
+    return cache_directory
 
 
 def remove_cache():
-    if cache_dir is not None:
-        shutil.rmtree(cache_dir, ignore_errors=True)
+    if cache_directory is not None:
+        shutil.rmtree(cache_directory, ignore_errors=True)
 
 
 def reinstall(pkg):
@@ -160,12 +160,12 @@ def reinstall(pkg):
 
 def fresh_debs(pkg):
     # The name must end in .deb. Text before a colon is the file prefix.
-    if cache_dir is None or not cache_dir.is_dir():
+    if cache_directory is None or not cache_directory.is_dir():
         return []
     prefix = pkg.split(":", 1)[0] + "_"
     found = []
     try:
-        entries = list(cache_dir.iterdir())
+        entries = list(cache_directory.iterdir())
     except OSError:
         return []
     for path in entries:

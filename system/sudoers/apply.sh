@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/sudoers/apply.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-part_is_wild() {
+check_part_wild() {
     [[ "${1}" == \<* || "${1}" == *"|"* || "${1}" == \[* ]]
 }
 
@@ -43,9 +43,9 @@ load_sudoers_user() {
         target_user="${SSH_USER:-}"
     fi
     require_sudoers_user
-    catalog="${INSTALL_DIRECTORY}/system/sudoers/commands.csv"
+    catalog="$(locate_config_file system/sudoers/commands.csv || true)"
     if [[ ! -f "${catalog}" ]]; then
-        log_error "${INSTALL_WATCHER}" "log.file-not-found" "${catalog}"
+        log_error "${INSTALL_WATCHER}" "log.file-not-found" "${catalog:-config/system/sudoers/commands.csv}"
     fi
 }
 
@@ -63,7 +63,7 @@ collect_sudoers_specs() {
         wild=0
         set -f
         for part in ${rest}; do
-            if part_is_wild "${part}"; then
+            if check_part_wild "${part}"; then
                 wild=1
                 break
             fi

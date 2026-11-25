@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/run/lynis.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_lynis_part_01() {
+lynis_run_01_run_01_get() {
     set -euo pipefail
     # shellcheck disable=SC1091
     source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/log.sh"
@@ -38,7 +38,7 @@ run_lynis_part_01() {
     lynis audit system --quick --no-colors --auditor "${auditor}" | tee "${out}/lynis-audit.txt"
 }
 
-run_lynis_part_02() {
+lynis_run_01_run_02_report() {
     cp -a /var/log/lynis.log "${out}/lynis.log" 2>/dev/null || true
     cp -a /var/log/lynis-report.dat "${out}/lynis-report.dat" 2>/dev/null || true
     chmod 640 /var/log/lynis.log /var/log/lynis-report.dat 2>/dev/null || true
@@ -56,9 +56,9 @@ run_lynis_part_02() {
     printf 'Rapport : %s\n' "$(show_path "${out}")"
 }
 
-run_lynis_part_03() {
-    run_lynis_part_01 "$@"
-    run_lynis_part_02 "$@"
+lynis_run_01_run_03_run() {
+    lynis_run_01_run_01_get "$@"
+    lynis_run_01_run_02_report "$@"
 }
 
-run_lynis_part_03 "$@"
+lynis_run_01_run_03_run "$@"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/base.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -22,22 +22,22 @@ get_product_base() {
     fi
 }
 
-watchdog_runtime_file() {
+get_watchdog_runtime_file() {
     local base="$1"
     local name="$2"
-    local dir=""
+    local directory=""
     case "${base}" in
         /opt/liltress-workstation | /opt/liltress-workstation/*)
-            dir="/var/lib/liltress-workstation/watchdog"
+            directory="/var/lib/liltress-workstation/watchdog"
             ;;
         /opt/liltress-server | /opt/liltress-server/* | /opt/liltress | /opt/liltress/*)
-            dir="/var/lib/liltress-server/watchdog"
+            directory="/var/lib/liltress-server/watchdog"
             ;;
     esac
-    if [[ -n "${dir}" ]]; then
-        mkdir -p -- "${dir}" 2>/dev/null || true
-        if [[ -d "${dir}" && -w "${dir}" ]]; then
-            printf '%s\n' "${dir}/${name}"
+    if [[ -n "${directory}" ]]; then
+        mkdir -p -- "${directory}" 2>/dev/null || true
+        if [[ -d "${directory}" && -w "${directory}" ]]; then
+            printf '%s\n' "${directory}/${name}"
             return 0
         fi
     fi

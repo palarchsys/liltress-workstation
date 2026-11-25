@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/installer.sh
-# Updated at : 2026-11-22
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,8 +18,8 @@ ask_line() {
     local __var="$2"
     local __answer=""
     if [[ "${STEP_TREE:-0}" == "1" ]]; then
-        step_flush_branch
-        printf '%s├── \e[34m?\e[0m %s : ' "$(step_bar)" "$(cut_text "${label}" 60)" >&2
+        render_step_branch
+        printf '%s├── \e[34m?\e[0m %s : ' "$(render_step_bar)" "$(shorten_text "${label}" 60)" >&2
     else
         printf '\n         \e[34m%s\e[0m : ' "${label}" >&2
     fi
@@ -50,8 +50,8 @@ ask_yes_line() {
     local label="$1"
     local answer=""
     if [[ "${STEP_TREE:-0}" == "1" ]]; then
-        step_flush_branch
-        printf '%s├── \e[34m?\e[0m %s : ' "$(step_bar)" "$(cut_text "${label}" 60)" >&2
+        render_step_branch
+        printf '%s├── \e[34m?\e[0m %s : ' "$(render_step_bar)" "$(shorten_text "${label}" 60)" >&2
     else
         printf '\n         \e[34m%s\e[0m : ' "${label}" >&2
     fi

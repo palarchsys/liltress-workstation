@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/ufw/configure.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_configure_part_01() {
+ufw_configure_01_run_01_get() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -36,7 +36,7 @@ run_configure_part_01() {
     run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw default "${UFW_DEFAULT_ROUTED}" routed
 }
 
-run_configure_part_02() {
+ufw_configure_01_run_02_get() {
     if grep -q '^IPT_MODULES=' /etc/default/ufw; then
         if ! awk -F= '/^IPT_MODULES=/{print}' /etc/default/ufw | grep -q "${UFW_IPT_EXTRA}"; then
             ipt_val="$(awk -F= '/^IPT_MODULES=/{print substr($0, index($0,"=")+1)}' /etc/default/ufw)"
@@ -62,9 +62,9 @@ run_configure_part_02() {
     log_info "${INSTALL_WATCHER}" "configure.ssh-limit-on-the-port-detected-tcp" "${SSH_PORT}"
 }
 
-run_configure_part_03() {
-    run_configure_part_01 "$@"
-    run_configure_part_02 "$@"
+ufw_configure_01_run_03_run() {
+    ufw_configure_01_run_01_get "$@"
+    ufw_configure_01_run_02_get "$@"
 }
 
 remove_ufw_marked() {
@@ -86,7 +86,7 @@ remove_ufw_marked() {
     done
 }
 
-run_configure_part_04() {
+ufw_configure_01_run_04_show() {
     mapfile -t ssh_prefixes < <(ip -o addr show up scope global 2>/dev/null | awk '$2 != "tailscale0" && $2 != "wg-liltress" && $2 != "tun-liltress" {print $4}')
     run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw allow out 41641/udp comment "Tailscale direct"
     run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw allow out 3478/udp comment "Tailscale STUN"
@@ -102,7 +102,7 @@ run_configure_part_04() {
     deduped_prefixes=()
 }
 
-run_configure_part_05() {
+ufw_configure_01_run_05_run() {
     for prefix in "${kept_prefixes[@]+"${kept_prefixes[@]}"}"; do
         already=0
         for seen_prefix in "${deduped_prefixes[@]+"${deduped_prefixes[@]}"}"; do
@@ -121,7 +121,7 @@ run_configure_part_05() {
     done
 }
 
-run_configure_part_06() {
+ufw_configure_01_run_06_remove() {
     if [[ ${#kept_prefixes[@]} -eq 0 ]]; then
         if ! LANG=C LC_ALL=C LANGUAGE=C ufw status | grep -qF "${UFW_SSH_COMMENT_OPEN}"; then
             run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw limit "${SSH_PORT}/tcp" comment "${UFW_SSH_COMMENT_OPEN}"
@@ -146,12 +146,12 @@ run_configure_part_06() {
     source "${INSTALL_DIRECTORY}/service/ufw/egress.sh"
 }
 
-run_configure_part_07() {
-    run_configure_part_04 "$@"
-    run_configure_part_05 "$@"
-    run_configure_part_06 "$@"
+ufw_configure_01_run_07_run() {
+    ufw_configure_01_run_04_show "$@"
+    ufw_configure_01_run_05_run "$@"
+    ufw_configure_01_run_06_remove "$@"
 }
 
-run_configure_part_03 "$@"
+ufw_configure_01_run_03_run "$@"
 
-run_configure_part_07 "$@"
+ufw_configure_01_run_07_run "$@"

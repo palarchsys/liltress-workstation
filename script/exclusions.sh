@@ -13,14 +13,14 @@
 
 
 read_exclusion_python() {
-    local dir
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-    if [[ -d "${dir}/python" ]]; then
-        printf '%s\n' "${dir}/python"
+    local directory
+    directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+    if [[ -d "${directory}/python" ]]; then
+        printf '%s\n' "${directory}/python"
         return 0
     fi
-    if [[ -d "${dir}/../share/python" ]]; then
-        printf '%s\n' "${dir}/../share/python"
+    if [[ -d "${directory}/../share/python" ]]; then
+        printf '%s\n' "${directory}/../share/python"
         return 0
     fi
     printf '%s\n' "dossier python introuvable" >&2
@@ -28,26 +28,26 @@ read_exclusion_python() {
 }
 
 load_exclusion_text() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    local directory hops
+    directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/text/text-load.sh" ]]; then
+    while [[ "${hops}" -lt 8 && "${directory}" != "/" ]]; do
+        if [[ -f "${directory}/core/text/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${dir}/core/text/text-load.sh"
+            source "${directory}/core/text/text-load.sh"
             return 0
         fi
-        if [[ -f "${dir}/share/core/text/text-load.sh" ]]; then
+        if [[ -f "${directory}/share/core/text/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${dir}/share/core/text/text-load.sh"
+            source "${directory}/share/core/text/text-load.sh"
             return 0
         fi
-        dir="$(dirname -- "${dir}")"
+        directory="$(dirname -- "${directory}")"
         hops=$((hops + 1))
     done
 }
 
-prepare_exclusion() {
+init_exclusion() {
     load_exclusion_text
     if ! declare -F get_text >/dev/null 2>&1; then
         printf '%s\n' "get_text absent" >&2
@@ -80,12 +80,12 @@ report_exclusion_error() {
 }
 
 run_exclusion_apply() {
-    local python dir
+    local python directory
     python="$(read_exclusion_python)"
-    dir="${BASE}/config/service/exclusions/generated"
-    python3 "${python}/exclusions.py" render "${EXCLUSION_FILE}" "${dir}" "$(date +%F)"
-    python3 "${python}/exclusions.py" splice /etc/aide/aide.conf "${dir}/aide.rules"
-    python3 "${python}/exclusions.py" splice /etc/rkhunter.conf.local "${dir}/rkhunter-allow.conf"
+    directory="${BASE}/config/service/exclusions/generated"
+    python3 "${python}/exclusions.py" render "${EXCLUSION_FILE}" "${directory}" "$(date +%F)"
+    python3 "${python}/exclusions.py" splice /etc/aide/aide.conf "${directory}/aide.rules"
+    python3 "${python}/exclusions.py" splice /etc/rkhunter.conf.local "${directory}/rkhunter-allow.conf"
     bash "${BASE}/service/cron/watchdogs/apply-scan-skip.sh"
     printf '%s\n' "$(get_text log.exclusion-applied)"
 }
@@ -203,5 +203,5 @@ run_exclusion_command() {
 
 set -euo pipefail
 
-prepare_exclusion
+init_exclusion
 run_exclusion_command "$@"

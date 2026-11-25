@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/tailscale/configure.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -21,7 +21,7 @@ source "${INSTALL_DIRECTORY}/config/global.conf"
 source "${INSTALL_DIRECTORY}/service/tailscale/common.sh"
 
 # tailscaled alone does not create the interface. UFW rejects a missing name.
-open_tailscale_ufw() {
+set_tailscale_ufw() {
     run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw allow in on tailscale0 to any port "${SSH_PORT}" proto tcp comment "OpenSSH via Tailscale only"
     run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw deny in on tailscale0 comment "Tailscale ingress is SSH only"
     run_silent "${INSTALL_WATCHER}" "configure.ufw.error" ufw allow out on tailscale0 to any port "${SSH_PORT}" proto tcp comment "Workstation SSH toward tailnet"
@@ -31,6 +31,6 @@ open_tailscale_ufw() {
 require_root
 
 run_tailscale_session
-open_tailscale_ufw
+set_tailscale_ufw
 ss -lnt | grep -q ":${SSH_PORT}[[:space:]]" || log_error "${INSTALL_WATCHER}" "configure.tailscale.bad"
 clear_public_ssh

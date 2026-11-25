@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/report.sh
-# Updated at : 2026-11-22
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-watchdog_phase_of() {
+get_watchdog_phase() {
     local tool="$1"
     local log_name="$2"
     case "${log_name}" in
@@ -53,17 +53,17 @@ take_service_name() {
     printf '%s' "${tool}"
 }
 
-remember_service() {
-    local state_dir="$1"
+record_service() {
+    local state_directory="$1"
     local service="$2"
     [[ -n "${service}" && "${service}" != "-" ]] || return 0
     [[ "${seen}" == *"|${service}|"* ]] && return 0
-    printf '%s\n' "${service}" >>"${state_dir}/services.txt"
+    printf '%s\n' "${service}" >>"${state_directory}/services.txt"
     seen="${seen}${service}|"
 }
 
 render_watchdog_row() {
-    local state_dir="$1"
+    local state_directory="$1"
     local explained="$2"
     local hold="$3"
     local name="$5"
@@ -72,46 +72,53 @@ render_watchdog_row() {
     local tool="$8"
     local class_id="$9"
     [[ "${explained}" == "0" ]] || return 0
-    remember_service "${state_dir}" "$(take_service_name "${tool}" "${name}")"
+    record_service "${state_directory}" "$(take_service_name "${tool}" "${name}")"
     if [[ -n "${path}" && "${path}" != "-" ]]; then
         set_watchdog_when "${path}"
-        printf '%s - %s\n' "${when}" "${path}" >>"${state_dir}/files.txt"
+        printf '%s - %s\n' "${when}" "${path}" >>"${state_directory}/files.txt"
     fi
 }
 
 render_watchdog_rows() {
-    local state_dir="$1"
+    local state_directory="$1"
     local explained="" hold="" kind="" name="" when="" path="" tool="" class_id=""
     local seen="|"
-    : >"${state_dir}/services.txt"
-    : >"${state_dir}/files.txt"
-    [[ -f "${state_dir}/rows.tsv" ]] || return 0
+    : >"${state_directory}/services.txt"
+    : >"${state_directory}/files.txt"
+    [[ -f "${state_directory}/rows.tsv" ]] || return 0
     while IFS=$'\t' read -r explained hold kind name when path tool class_id; do
-        render_watchdog_row "${state_dir}" "${explained}" "${hold}" "${kind}" "${name}" \
+        render_watchdog_row "${state_directory}" "${explained}" "${hold}" "${kind}" "${name}" \
             "${when}" "${path}" "${tool}" "${class_id}"
-    done <"${state_dir}/rows.tsv"
+    done <"${state_directory}/rows.tsv"
 }
 
-watchdog_block() {
+get_watchdog_block() {
     local file_path="$1"
     if [[ -s "${file_path}" ]]; then
         cat -- "${file_path}"
     fi
 }
 
-watchdog_ignore_commands() {
-    local state_dir="$1"
-    local base="" tool="" found=""
+# One real row for this tool is enough.
+read_watchdog_tool_hit() {
+    local state_directory="$1"
+    local tool="$2"
     local row_explained="" row_hold="" row_kind="" row_name="" row_when="" row_path="" row_tool="" row_class=""
+    while IFS=$'\t' read -r row_explained row_hold row_kind row_name row_when row_path row_tool row_class; do
+        [[ "${row_explained}" == "0" && "${row_tool}" == "${tool}" ]] || continue
+        printf '%s\n' "yes"
+        return 0
+    done <"${state_directory}/rows.tsv"
+    return 1
+}
+
+get_watchdog_ignore_commands() {
+    local state_directory="$1"
+    local base="" tool="" found=""
     base="$(get_product_base)"
-    [[ -f "${state_dir}/rows.tsv" ]] || return 0
+    [[ -f "${state_directory}/rows.tsv" ]] || return 0
     for tool in aide rkhunter; do
-        found=""
-        while IFS=$'\t' read -r row_explained row_hold row_kind row_name row_when row_path row_tool row_class; do
-            [[ "${row_explained}" == "0" && "${row_tool}" == "${tool}" ]] || continue
-            found="yes"
-            break
-        done <"${state_dir}/rows.tsv"
+        found="$(read_watchdog_tool_hit "${state_directory}" "${tool}")" || true
         [[ "${found}" == "yes" ]] || continue
         case "${tool}" in
             aide)
@@ -142,7 +149,7 @@ locate_alert_template() {
     return 0
 }
 
-mail_service_label() {
+get_mail_service_label() {
     case "$1" in
         aide) printf 'AIDE' ;;
         rkhunter) printf 'RKHunter' ;;
@@ -158,13 +165,13 @@ mail_service_label() {
     esac
 }
 
-mail_services_label() {
+get_mail_services_label() {
     local file="$1"
     local line label joined=""
     [[ -f "${file}" ]] || return 0
     while IFS= read -r line; do
         [[ -z "${line}" ]] && continue
-        label="$(mail_service_label "${line}")"
+        label="$(get_mail_service_label "${line}")"
         if [[ -n "${joined}" ]]; then
             joined="${joined}, ${label}"
         else
@@ -199,7 +206,7 @@ take_watchdog_content() {
 }
 
 set_watchdog_mail() {
-    local state_dir="$1"
+    local state_directory="$1"
     local title="$2"
     if [[ -z "${PROJECT_NAME:-}" ]]; then
         PROJECT_NAME="Liltress"
@@ -214,25 +221,25 @@ set_watchdog_mail() {
     MAIL_BLOCK_FILES="$(get_text alert.mail.files)"
     MAIL_BLOCK_ACTIONS="$(get_text alert.mail.actions)"
     MAIL_BLOCK_IGNORE="$(get_text alert.mail.ignore)"
-    MAIL_SERVICES="$(watchdog_block "${state_dir}/services.txt")"
-    MAIL_FILES="$(watchdog_block "${state_dir}/files.txt")"
-    MAIL_ACTIONS="$(watchdog_block "${state_dir}/actions.txt")"
-    MAIL_IGNORE="$(watchdog_ignore_commands "${state_dir}")"
+    MAIL_SERVICES="$(get_watchdog_block "${state_directory}/services.txt")"
+    MAIL_FILES="$(get_watchdog_block "${state_directory}/files.txt")"
+    MAIL_ACTIONS="$(get_watchdog_block "${state_directory}/actions.txt")"
+    MAIL_IGNORE="$(get_watchdog_ignore_commands "${state_directory}")"
     take_watchdog_content
 }
 
 send_watchdog_report() {
     local phase="$1"
-    local state_dir="$2"
+    local state_directory="$2"
     local zip_path="${3:-}"
     local title="" here="" template=""
     here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     locate_alert_template "${here}"
     load_text "${LANGUAGE:-en}"
     take_watchdog_title "${phase}"
-    render_watchdog_rows "${state_dir}"
-    MAIL_SERVICE="$(mail_services_label "${state_dir}/services.txt")"
-    set_watchdog_mail "${state_dir}" "${title}"
+    render_watchdog_rows "${state_directory}"
+    MAIL_SERVICE="$(get_mail_services_label "${state_directory}/services.txt")"
+    set_watchdog_mail "${state_directory}" "${title}"
     MAIL_TEMPLATE_FILE="${template}"
     MAIL_ATTACH="${zip_path}"
     export TITLE MODULE_NAME PROJECT_NAME HOSTNAME DATE CONTENT MAIL_SERVICE
@@ -257,40 +264,40 @@ take_report_tool() {
 # A real phase is repaired, packed, and mailed.
 report_real_watchdog() {
     local phase="$1"
-    local state_dir="$2"
+    local state_directory="$2"
     local log="$3"
     local zip_path=""
-    apply_watchdog_remedy "${phase}" "${state_dir}"
-    refresh_watchdog_rows "${state_dir}" || true
-    render_watchdog_rows "${state_dir}"
-    mkdir -p -- "${state_dir}/logs"
-    cp -f -- "${log}" "${state_dir}/logs/"
-    zip_path="$(write_watchdog_pack "${phase}" "${state_dir}" "${state_dir}/logs")"
-    send_watchdog_report "${phase}" "${state_dir}" "${zip_path}"
+    apply_watchdog_remedy "${phase}" "${state_directory}"
+    refresh_watchdog_rows "${state_directory}" || true
+    render_watchdog_rows "${state_directory}"
+    mkdir -p -- "${state_directory}/logs"
+    cp -f -- "${log}" "${state_directory}/logs/"
+    zip_path="$(write_watchdog_pack "${phase}" "${state_directory}" "${state_directory}/logs")"
+    send_watchdog_report "${phase}" "${state_directory}" "${zip_path}"
 }
 
 finish_watchdog_status() {
     local status="$1"
     local phase="$2"
-    local state_dir="$3"
+    local state_directory="$3"
     local log="$4"
     case "${status}" in
         clean)
-            rm -rf -- "${state_dir}"
+            rm -rf -- "${state_directory}"
             return 0
             ;;
         false)
-            refresh_watchdog_rows "${state_dir}" || true
-            rm -rf -- "${state_dir}"
+            refresh_watchdog_rows "${state_directory}" || true
+            rm -rf -- "${state_directory}"
             return 0
             ;;
         real)
-            report_real_watchdog "${phase}" "${state_dir}" "${log}"
-            rm -rf -- "${state_dir}"
+            report_real_watchdog "${phase}" "${state_directory}" "${log}"
+            rm -rf -- "${state_directory}"
             return 0
             ;;
         *)
-            rm -rf -- "${state_dir}"
+            rm -rf -- "${state_directory}"
             return 1
             ;;
     esac
@@ -300,15 +307,15 @@ report_watchdog_module() {
     local module="$1"
     local log="$2"
     local summary="$3"
-    local tool="" phase="" state_dir="" status=""
+    local tool="" phase="" state_directory="" status=""
     if [[ "${summary}" =~ planté|crashed|abgestürzt|bloqueó|erreur\ rc=|error\ rc=|did\ not\ finish|n.est\ pas\ allé\ au\ bout ]]; then
         return 1
     fi
     if ! tool="$(get_alert_tool "${module}" "${log}" "${summary}" 2>/dev/null)"; then
         take_report_tool "${module}" || return 1
     fi
-    phase="$(watchdog_phase_of "${tool}" "$(basename -- "${log:-}")")" || return 1
-    state_dir="$(mktemp -d)"
-    status="$(check_watchdog_phase "${phase}" "${log}" "0" "" "${state_dir}")"
-    finish_watchdog_status "${status}" "${phase}" "${state_dir}" "${log}"
+    phase="$(get_watchdog_phase "${tool}" "$(basename -- "${log:-}")")" || return 1
+    state_directory="$(mktemp -d)"
+    status="$(check_watchdog_phase "${phase}" "${log}" "0" "" "${state_directory}")"
+    finish_watchdog_status "${status}" "${phase}" "${state_directory}" "${log}"
 }

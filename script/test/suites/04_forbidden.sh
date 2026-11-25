@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/04_forbidden.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -100,7 +100,7 @@ else
     t_pass "forbid.tmp-noexec" "aucune ligne active"
 fi
 
-chpasswd_hits="$(grep -RIn --include='*.sh' --exclude-dir=test 'chpasswd' "${T_ROOT}" \
+chpasswd_hits="$(grep -RIn --include='*.sh' --exclude-directory=test 'chpasswd' "${T_ROOT}" \
     | grep -vE ':[0-9]+:[[:space:]]*#' \
     | grep -v 'system/users/configure.sh:' \
     | grep -v '\*chpasswd\*' \

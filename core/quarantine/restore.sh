@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/quarantine/restore.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,13 +12,13 @@
 # -----------------------------------------------------------------------------
 
 
-run_restore_part_01() {
+restore_quarantine_01_run_01_read() {
     set -euo pipefail
-    script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     for candidate in \
-        "${script_dir}/log.sh" \
-        "${script_dir}/../log/log.sh" \
-        "${script_dir}/../core/log/log.sh" \
+        "${script_directory}/log.sh" \
+        "${script_directory}/../log/log.sh" \
+        "${script_directory}/../core/log/log.sh" \
         "${CONFIG_BASE_DIRECTORY:-}/core/log/log.sh" \
         "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
         "${INSTALL_DIRECTORY:-}/core/log/log.sh"; do
@@ -28,8 +28,8 @@ run_restore_part_01() {
             break
         fi
     done
-    if [[ "$(basename -- "${script_dir}")" == "bin" ]]; then
-        base="$(dirname -- "${script_dir}")"
+    if [[ "$(basename -- "${script_directory}")" == "bin" ]]; then
+        base="$(dirname -- "${script_directory}")"
     else
         base="${CONFIG_BASE_DIRECTORY:-${BASE:-/opt/liltress}}"
     fi
@@ -38,7 +38,7 @@ run_restore_part_01() {
     fi
 }
 
-run_restore_part_02() {
+restore_quarantine_01_run_02_get() {
     if [[ "${EUID}" -ne 0 ]]; then
         if declare -F get_text >/dev/null 2>&1; then
             printf '%s\n' "$(get_text log.root-required)" >&2
@@ -64,10 +64,10 @@ run_restore_part_02() {
     esac
 }
 
-run_restore_part_03() {
-    if ! declare -F watchdog_runtime_file >/dev/null 2>&1; then
+restore_quarantine_01_run_03_get() {
+    if ! declare -F get_watchdog_runtime_file >/dev/null 2>&1; then
         for candidate in \
-            "${script_dir}/../core/watchdog/base.sh" \
+            "${script_directory}/../core/watchdog/base.sh" \
             "${base}/core/watchdog/base.sh" \
             "${base}/core/watchdog/base.sh"; do
             if [[ -f "${candidate}" ]]; then
@@ -77,8 +77,8 @@ run_restore_part_03() {
             fi
         done
     fi
-    if declare -F watchdog_runtime_file >/dev/null 2>&1; then
-        registry="$(watchdog_runtime_file "${base}" quarantine.registry)"
+    if declare -F get_watchdog_runtime_file >/dev/null 2>&1; then
+        registry="$(get_watchdog_runtime_file "${base}" quarantine.registry)"
     else
         registry="${base}/cron/quarantine.registry"
     fi
@@ -94,7 +94,7 @@ run_restore_part_03() {
     IFS=$'\t' read -r found_id _moment _source origin stored _signature <<<"${line}"
 }
 
-run_restore_part_04() {
+restore_quarantine_01_run_04_get() {
     if [[ "${found_id}" != "${id}" || -z "${origin}" || -z "${stored}" ]]; then
         printf '%s\n' "$(get_text quarantine.identifier-absent-of-the-registre)" >&2
         exit 1
@@ -117,7 +117,7 @@ run_restore_part_04() {
     fi
 }
 
-run_restore_part_05() {
+restore_quarantine_01_run_05_get() {
     if [[ -e "${origin}" ]]; then
         printf '%s\n' "$(get_text quarantine.location-original-busy)" >&2
         exit 1
@@ -127,12 +127,12 @@ run_restore_part_05() {
     exit 0
 }
 
-run_restore_part_06() {
-    run_restore_part_01 "$@"
-    run_restore_part_02 "$@"
-    run_restore_part_03 "$@"
-    run_restore_part_04 "$@"
-    run_restore_part_05 "$@"
+restore_quarantine_01_run_06_run() {
+    restore_quarantine_01_run_01_read "$@"
+    restore_quarantine_01_run_02_get "$@"
+    restore_quarantine_01_run_03_get "$@"
+    restore_quarantine_01_run_04_get "$@"
+    restore_quarantine_01_run_05_get "$@"
 }
 
-run_restore_part_06 "$@"
+restore_quarantine_01_run_06_run "$@"

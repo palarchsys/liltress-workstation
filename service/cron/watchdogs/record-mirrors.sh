@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/record-mirrors.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,20 +13,20 @@
 
 
 load_mirror_base() {
-    local here="" dir="" hops=0
+    local here="" directory="" hops=0
     here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     if [[ -r "${here}/watchdog.conf" ]]; then
         # shellcheck disable=SC1091
         source "${here}/watchdog.conf"
     fi
-    dir="${here}"
-    while [[ -z "${BASE:-}" && -z "${CONFIG_BASE_DIRECTORY:-}" && "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/config/global.conf" ]]; then
+    directory="${here}"
+    while [[ -z "${BASE:-}" && -z "${CONFIG_BASE_DIRECTORY:-}" && "${hops}" -lt 8 && "${directory}" != "/" ]]; do
+        if [[ -f "${directory}/config/global.conf" ]]; then
             # shellcheck disable=SC1091
-            source "${dir}/config/global.conf"
+            source "${directory}/config/global.conf"
             return 0
         fi
-        dir="$(dirname -- "${dir}")"
+        directory="$(dirname -- "${directory}")"
         hops=$((hops + 1))
     done
 }

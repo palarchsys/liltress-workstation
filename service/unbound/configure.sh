@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/unbound/configure.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_configure_part_01() {
+unbound_configure_01_write() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -47,7 +47,7 @@ run_configure_part_01() {
     run_silent "${INSTALL_WATCHER}" "configure.unbound.error.8" systemctl enable --now w-unbound-root-hints.path
 }
 
-run_configure_part_02() {
+unbound_configure_02_check() {
     ready=0
     for _ in 1 2 3 4 5 6 7 8 9 10; do
         if unbound-control status >/dev/null 2>&1; then
@@ -76,9 +76,9 @@ run_configure_part_02() {
     log_success "${INSTALL_WATCHER}" "configure.unbound-configured-resolution-on-the-workstation"
 }
 
-run_configure_part_03() {
-    run_configure_part_01 "$@"
-    run_configure_part_02 "$@"
+unbound_configure_03_run() {
+    unbound_configure_01_write "$@"
+    unbound_configure_02_check "$@"
 }
 
-run_configure_part_03 "$@"
+unbound_configure_03_run "$@"

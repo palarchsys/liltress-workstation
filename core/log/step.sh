@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/step.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 
 
-cut_text() {
+shorten_text() {
     local text="$1"
     local max="${2:-74}"
     local n="${#text}"
@@ -22,7 +22,7 @@ cut_text() {
     printf '%s…' "${text:0:$((max - 1))}"
 }
 
-repeat_char() {
+render_repeat_char() {
     local char="$1"
     local count="$2"
     local out="" i=0
@@ -35,13 +35,13 @@ repeat_char() {
 
 show_title_box() {
     local title
-    title="$(cut_text "$1" 74)"
+    title="$(shorten_text "$1" 74)"
     local top mid bot pad
-    top="╭$(repeat_char "─" 92)╮"
+    top="╭$(render_repeat_char "─" 92)╮"
     pad=$((90 - ${#title}))
     ((pad < 0)) && pad=0
-    mid="│  ${title}$(repeat_char " " "${pad}")│"
-    bot="╰$(repeat_char "─" 92)╯"
+    mid="│  ${title}$(render_repeat_char " " "${pad}")│"
+    bot="╰$(render_repeat_char "─" 92)╯"
     set_color_yellow "${top}"
     set_color_yellow "${mid}"
     set_color_yellow "${bot}"
@@ -49,10 +49,10 @@ show_title_box() {
 
 show_section_open() {
     local title dashes line
-    title="$(cut_text "$1" 70)"
+    title="$(shorten_text "$1" 70)"
     dashes=$((89 - ${#title}))
     ((dashes < 1)) && dashes=1
-    line="╭─ ${title} $(repeat_char "─" "${dashes}")╮"
+    line="╭─ ${title} $(render_repeat_char "─" "${dashes}")╮"
     set_color_yellow "${line}"
     set_color_yellow "│"
     SECTION_OPEN=1
@@ -63,14 +63,14 @@ show_section_open() {
 show_section_close() {
     [[ "${SECTION_OPEN:-0}" == "1" ]] || return 0
     set_color_yellow "│"
-    set_color_yellow "╰$(repeat_char "─" 92)╯"
+    set_color_yellow "╰$(render_repeat_char "─" 92)╯"
     printf '\n' >&2
     SECTION_OPEN=0
     SECTION_HAD_STEP=0
     export SECTION_OPEN SECTION_HAD_STEP
 }
 
-paint_note() {
+render_step_note() {
     local kind="$1"
     local text="$2"
     text="$(shorten_logs_paths "${text}")"
@@ -78,7 +78,7 @@ paint_note() {
     if [[ "${kind}" == "error" || "${kind}" == "fault" ]]; then
         max=160
     fi
-    text="$(cut_text "${text}" "${max}")"
+    text="$(shorten_text "${text}" "${max}")"
     case "${kind}" in
         info | debug) printf '\e[34m•\e[0m %s' "${text}" ;;
         success) printf '\e[32m✓\e[0m %s' "${text}" ;;
@@ -87,7 +87,7 @@ paint_note() {
     esac
 }
 
-step_bar() {
+render_step_bar() {
     if [[ "${SECTION_OPEN:-0}" == "1" ]]; then
         printf '\e[33m│\e[0m  '
     else
@@ -103,34 +103,34 @@ section_gap() {
     fi
 }
 
-step_flush_branch() {
+render_step_branch() {
     [[ -n "${STEP_PENDING:-}" ]] || return 0
-    printf '%s├── %s\n' "$(step_bar)" "${STEP_PENDING}" >&2
+    printf '%s├── %s\n' "$(render_step_bar)" "${STEP_PENDING}" >&2
     STEP_PENDING=""
 }
 
-open_step_tree() {
+begin_step_tree() {
     local label
-    close_step_tree
+    finish_step_tree
     if [[ "${SECTION_OPEN:-0}" == "1" && "${SECTION_HAD_STEP:-0}" == "1" ]]; then
         section_gap
     fi
-    label="$(cut_text "$1" 74)"
+    label="$(shorten_text "$1" 74)"
     STEP_TREE=1
     STEP_PENDING=""
-    printf '%s┌ \e[33m%s\e[0m\n' "$(step_bar)" "${label}" >&2
+    printf '%s┌ \e[33m%s\e[0m\n' "$(render_step_bar)" "${label}" >&2
 }
 
-mark_section_step() {
+record_section_step() {
     [[ "${SECTION_OPEN:-0}" == "1" ]] || return 0
     SECTION_HAD_STEP=1
     export SECTION_HAD_STEP
 }
 
-close_step_tree() {
+finish_step_tree() {
     [[ "${STEP_TREE:-0}" == "1" ]] || return 0
     if [[ -n "${STEP_PENDING:-}" ]]; then
-        printf '%s└── %s\n' "$(step_bar)" "${STEP_PENDING}" >&2
+        printf '%s└── %s\n' "$(render_step_bar)" "${STEP_PENDING}" >&2
     fi
     STEP_TREE=0
     STEP_PENDING=""
@@ -140,25 +140,25 @@ show_closing_note() {
     local title="$1"
     local text="$2"
     text="$(shorten_logs_paths "${text}")"
-    printf '  ┌ \e[33m%s\e[0m\n' "$(cut_text "${title}" 74)" >&2
-    printf '  └── \e[34m•\e[0m %s\n' "$(cut_text "${text}" 74)" >&2
+    printf '  ┌ \e[33m%s\e[0m\n' "$(shorten_text "${title}" 74)" >&2
+    printf '  └── \e[34m•\e[0m %s\n' "$(shorten_text "${text}" 74)" >&2
     printf '\n' >&2
 }
 
-note_bash() {
+record_bash_note() {
     local kind="$1"
     local text="$2"
     local rendered
-    rendered="$(paint_note "${kind}" "${text}")"
+    rendered="$(render_step_note "${kind}" "${text}")"
     if [[ "${STEP_TREE:-0}" == "1" ]]; then
         if [[ "${kind}" == "error" ]]; then
-            step_flush_branch
-            printf '%s└── %s\n' "$(step_bar)" "${rendered}" >&2
+            render_step_branch
+            printf '%s└── %s\n' "$(render_step_bar)" "${rendered}" >&2
             STEP_TREE=0
             STEP_PENDING=""
             return 0
         fi
-        step_flush_branch
+        render_step_branch
         STEP_PENDING="${rendered}"
         return 0
     fi

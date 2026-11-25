@@ -11,29 +11,8 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
-
-source_python_boot
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../boot/python.sh"
 
 # Return 0 when the stored file should be listed in the registry.
 check_quarantine_origin() {
@@ -46,6 +25,17 @@ check_quarantine_origin() {
     return 0
 }
 
+# The pending file stays beside the registry just written.
+write_quarantine_pending() {
+    local base="$1"
+    local directory="$2"
+    local id="$3"
+    local quoted=""
+    quoted="$(printf '%q' "${id}")"
+    printf '%s\n' "sudo bash ${base}/core/quarantine/restore.sh ${quoted}" >>"${directory}/quarantine.pending" || return 0
+    chmod 600 "${directory}/quarantine.pending" 2>/dev/null || true
+}
+
 # A registry line and a pending restore command are appended.
 write_quarantine_origin() {
     local source="$1"
@@ -53,14 +43,14 @@ write_quarantine_origin() {
     local stored="$3"
     local signature="$4"
     local id="$5"
-    local base="" dir="" registry="" moment="" quoted=""
+    local base="" directory="" registry="" moment=""
     base="$(get_product_base)"
-    registry="$(watchdog_runtime_file "${base}" quarantine.registry)"
-    dir="$(dirname -- "${registry}")"
-    if [[ ! -d "${dir}" ]]; then
-        mkdir -p "${dir}" 2>/dev/null || return 0
+    registry="$(get_watchdog_runtime_file "${base}" quarantine.registry)"
+    directory="$(dirname -- "${registry}")"
+    if [[ ! -d "${directory}" ]]; then
+        mkdir -p "${directory}" 2>/dev/null || return 0
     fi
-    [[ -w "${dir}" ]] || return 0
+    [[ -w "${directory}" ]] || return 0
     source="${source//$'\t'/ }"
     origin="${origin//$'\t'/ }"
     stored="${stored//$'\t'/ }"
@@ -70,9 +60,7 @@ write_quarantine_origin() {
     printf "$(get_text watchdog.t-t-t-t-t "${id}" "${moment}" "${source}" "${origin}" "${stored}" "${signature}")" \
         >>"${registry}" || return 0
     chmod 600 "${registry}" 2>/dev/null || true
-    quoted="$(printf '%q' "${id}")"
-    printf '%s\n' "sudo bash ${base}/core/quarantine/restore.sh ${quoted}" >>"${dir}/quarantine.pending" || return 0
-    chmod 600 "${dir}/quarantine.pending" 2>/dev/null || true
+    write_quarantine_pending "${base}" "${directory}" "${id}"
     return 0
 }
 
@@ -99,7 +87,7 @@ write_restore_pending() {
     local base="$1"
     local id="$2"
     local quoted="" pending=""
-    pending="$(watchdog_runtime_file "${base}" quarantine.pending)"
+    pending="$(get_watchdog_runtime_file "${base}" quarantine.pending)"
     quoted="$(printf '%q' "${id}")"
     printf '%s\n' "sudo bash ${base}/core/quarantine/restore.sh ${quoted}" >>"${pending}" || return 0
     chmod 600 "${pending}" 2>/dev/null || true
@@ -111,7 +99,7 @@ add_existing_restore() {
     local base="" registry="" id=""
     [[ -n "${stored}" && "${stored}" == /* ]] || return 0
     base="$(get_product_base)"
-    registry="$(watchdog_runtime_file "${base}" quarantine.registry)"
+    registry="$(get_watchdog_runtime_file "${base}" quarantine.registry)"
     id="$(read_restore_id "${registry}" "${stored}")"
     [[ -n "${id}" ]] || return 0
     [[ -w "$(dirname -- "${registry}")" ]] || return 0
@@ -120,7 +108,7 @@ add_existing_restore() {
 
 take_quarantine_note() {
     local pending body
-    pending="$(watchdog_runtime_file "$(get_product_base)" quarantine.pending)"
+    pending="$(get_watchdog_runtime_file "$(get_product_base)" quarantine.pending)"
     [[ -s "${pending}" ]] || return 1
     body="$(cat "${pending}" 2>/dev/null || true)"
     [[ -n "${body}" ]] || return 1
@@ -187,7 +175,7 @@ write_quarantine_holder() {
 }
 
 # The directory is created with the clamav account when that account exists.
-ensure_quarantine_dir() {
+ensure_quarantine_directory() {
     local quarantine="$1"
     if [[ ! -d "${quarantine}" ]]; then
         if id clamav >/dev/null 2>&1; then
@@ -217,6 +205,13 @@ apply_quarantine_move() {
     return 0
 }
 
+# An empty or root name is stored as unknown.
+read_quarantine_base() {
+    local base="$1"
+    [[ -n "${base}" && "${base}" != "/" && "${base}" != "." ]] || base="inconnu"
+    printf '%s\n' "${base}"
+}
+
 take_quarantine_file() {
     local origin="$1"
     local quarantine="" base=""
@@ -224,8 +219,8 @@ take_quarantine_file() {
     MOVE_ACTION="déplacement refusé"
     MOVE_STORED="${origin}"
     base="$(basename -- "${origin}")"
-    [[ -n "${base}" && "${base}" != "/" && "${base}" != "." ]] || base="inconnu"
-    ensure_quarantine_dir "${quarantine}" || return 0
+    base="$(read_quarantine_base "${base}")"
+    ensure_quarantine_directory "${quarantine}" || return 0
     if [[ ! -e "${origin}" ]]; then
         MOVE_ACTION="fichier déjà absent"
         MOVE_STORED="absent"
@@ -236,6 +231,17 @@ take_quarantine_file() {
     fi
     apply_quarantine_move "${origin}" "${quarantine}" "${base}"
     return 0
+}
+
+# TERM is reported as accepted or rejected.
+signal_quarantine_pid() {
+    local pid="$1"
+    local comm="$2"
+    if kill -TERM "${pid}" 2>/dev/null; then
+        printf '%s\n' "$(get_text watchdog.process-stopped "${pid}" "${comm}")"
+    else
+        printf '%s\n' "$(get_text watchdog.process-not-stopped-signal-rejected "${pid}")"
+    fi
 }
 
 signal_quarantine_holder() {
@@ -252,11 +258,7 @@ signal_quarantine_holder() {
         pid="${QUARANTINE_PID:-}"
         comm="${QUARANTINE_COMM:-}"
         [[ -n "${pid}" ]] || continue
-        if kill -TERM "${pid}" 2>/dev/null; then
-            printf '%s\n' "$(get_text watchdog.process-stopped "${pid}" "${comm}")"
-        else
-            printf '%s\n' "$(get_text watchdog.process-not-stopped-signal-rejected "${pid}")"
-        fi
+        signal_quarantine_pid "${pid}" "${comm}"
         return 0
     done
     printf '%s\n' "$(get_text watchdog.process-not-stopped-no-d-tenteur)"
@@ -283,6 +285,18 @@ skip_quarantine_path() {
     return 0
 }
 
+# Return 0 when this path can be moved aside.
+pass_quarantine_hit() {
+    local path="$1"
+    local quarantine="$2"
+    [[ -n "${path}" ]] || return 1
+    case "${path}" in
+        "${quarantine}" | "${quarantine}"/*) return 1 ;;
+    esac
+    [[ -f "${path}" && ! -L "${path}" ]] || return 1
+    return 0
+}
+
 # One infected path is moved or described. Protected paths stay in place.
 record_quarantine_hit() {
     local source="$1"
@@ -290,11 +304,7 @@ record_quarantine_hit() {
     shift 2
     local phrase="" quarantine="" quarantine_kept=0
     quarantine="${CLAMAV_QUARANTINE_DIR:-/var/lib/clamav/quarantine}"
-    [[ -n "${path}" ]] || return 0
-    case "${path}" in
-        "${quarantine}" | "${quarantine}"/*) return 0 ;;
-    esac
-    [[ -f "${path}" && ! -L "${path}" ]] || return 0
+    pass_quarantine_hit "${path}" "${quarantine}" || return 0
     CONFIRMED_COUNT=$((CONFIRMED_COUNT + 1))
     skip_quarantine_path "${path}" "$@"
     if [[ "${quarantine_kept}" -eq 1 ]]; then
@@ -323,7 +333,7 @@ record_quarantine_log() {
     while IFS= read -r path; do
         record_quarantine_hit "${source}" "${path}" "$@"
     done < <(
-        python3 "$(locate_python_dir)/alert-quarantine.py" "${source}" "${log}"
+        python3 "$(locate_python_directory)/alert-quarantine.py" "${source}" "${log}"
     )
     return 0
 }

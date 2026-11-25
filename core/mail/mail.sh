@@ -11,47 +11,34 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
-
-source_python_boot
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../boot/python.sh"
 
 check_mail_template_name() {
     [[ "${1:-}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*\.html$ ]]
+}
+
+# Install, config, and the caller directory are searched in that order.
+collect_mail_configs() {
+    local here="$1"
+    local -n mail_confs="$2"
+    mail_confs=()
+    [[ -n "${INSTALL_DIRECTORY:-}" ]] && mail_confs+=("${INSTALL_DIRECTORY}/config/global.conf")
+    [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]] && mail_confs+=("${CONFIG_BASE_DIRECTORY}/config/global.conf")
+    if [[ -n "${here}" ]]; then
+        mail_confs+=(
+            "${here}/../../config/global.conf"
+            "${here}/../../../config/global.conf"
+            "${here}/../config/global.conf"
+        )
+    fi
 }
 
 get_mail_name() {
     local here="${1:-}"
     local conf line
     local -a confs=()
-    [[ -n "${INSTALL_DIRECTORY:-}" ]] && confs+=("${INSTALL_DIRECTORY}/config/global.conf")
-    [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]] && confs+=("${CONFIG_BASE_DIRECTORY}/config/global.conf")
-    if [[ -n "${here}" ]]; then
-        confs+=(
-            "${here}/../../config/global.conf"
-            "${here}/../../../config/global.conf"
-            "${here}/../config/global.conf"
-        )
-    fi
+    collect_mail_configs "${here}" confs
     for conf in "${confs[@]}"; do
         [[ -f "${conf}" ]] || continue
         line=$(awk -F= '/^MAIL_TEMPLATE=/{gsub(/"/,"",$2); gsub(/[[:space:]]/,"",$2); print $2; exit}' "${conf}")
@@ -67,25 +54,33 @@ get_mail_name() {
     printf '%s\n' "mail.html"
 }
 
-locate_mail_template() {
-    local here="${1:-}"
-    local name dir
-    local -a dirs=()
-    name="$(get_mail_name "${here}")"
-    check_mail_template_name "${name}" || return 1
-    [[ -n "${INSTALL_DIRECTORY:-}" ]] && dirs+=("${INSTALL_DIRECTORY}/template")
-    [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]] && dirs+=("${CONFIG_BASE_DIRECTORY}/template")
-    [[ -n "${BASE:-}" ]] && dirs+=("${BASE}/template")
+# Install, config, base, and the caller directory are searched in that order.
+collect_mail_template_directories() {
+    local here="$1"
+    local -n mail_directories="$2"
+    mail_directories=()
+    [[ -n "${INSTALL_DIRECTORY:-}" ]] && mail_directories+=("${INSTALL_DIRECTORY}/template")
+    [[ -n "${CONFIG_BASE_DIRECTORY:-}" ]] && mail_directories+=("${CONFIG_BASE_DIRECTORY}/template")
+    [[ -n "${BASE:-}" ]] && mail_directories+=("${BASE}/template")
     if [[ -n "${here}" ]]; then
-        dirs+=(
+        mail_directories+=(
             "${here}/../../template"
             "${here}/../../../template"
             "${here}/../template"
         )
     fi
-    for dir in "${dirs[@]}"; do
-        if [[ -f "${dir}/${name}" ]]; then
-            printf '%s\n' "${dir}/${name}"
+}
+
+locate_mail_template() {
+    local here="${1:-}"
+    local name directory
+    local -a directories=()
+    name="$(get_mail_name "${here}")"
+    check_mail_template_name "${name}" || return 1
+    collect_mail_template_directories "${here}" directories
+    for directory in "${directories[@]}"; do
+        if [[ -f "${directory}/${name}" ]]; then
+            printf '%s\n' "${directory}/${name}"
             return 0
         fi
     done
@@ -135,6 +130,15 @@ apply_mail_labels() {
     mail_no_pre="template without a pre tag"
 }
 
+# The caller owns mail_seen. A caller label replaces the catalog line.
+apply_mail_seen_label() {
+    if [[ -n "${MAIL_SEEN_LABEL:-}" ]]; then
+        mail_seen="${MAIL_SEEN_LABEL}"
+    elif [[ "${MAIL_HIDE_SEEN:-}" == "1" ]]; then
+        mail_seen=""
+    fi
+}
+
 render_mail() {
     local template="$1"
     local mail_module="" mail_redacted="" mail_redacted_key="" mail_unreadable="" mail_no_pre=""
@@ -143,11 +147,7 @@ render_mail() {
         source_mail_log
     fi
     apply_mail_labels
-    if [[ -n "${MAIL_SEEN_LABEL:-}" ]]; then
-        mail_seen="${MAIL_SEEN_LABEL}"
-    elif [[ "${MAIL_HIDE_SEEN:-}" == "1" ]]; then
-        mail_seen=""
-    fi
+    apply_mail_seen_label
     if [[ -n "${MAIL_EXTRA_TITLE:-}" ]]; then
         mail_check="${MAIL_EXTRA_TITLE}"
     fi
@@ -168,7 +168,7 @@ render_mail() {
         TEXT_REDACTED_KEY="${mail_redacted_key}" \
         TEXT_TEMPLATE_UNREADABLE="${mail_unreadable}" \
         TEXT_TEMPLATE_NO_PRE="${mail_no_pre}" \
-        python3 "$(locate_python_dir)/mail-render.py"
+        python3 "$(locate_python_directory)/mail-render.py"
 }
 
 apply_postfix() {
@@ -208,7 +208,7 @@ load_mail_about() {
     esac
 }
 
-account_mail_row() {
+read_account_mail_row() {
     local label="$1"
     local value="$2"
     local pad=$((18 - ${#label}))
@@ -221,20 +221,20 @@ account_mail_row() {
 # Labels follow the chosen language. The colons stay in one column.
 write_account_mail() {
     local login="$1"
-    CONTENT="$(account_mail_row "$(get_text mail.account.project)" "${PROJECT_NAME} (liltress)")"
-    CONTENT+=$'\n'"$(account_mail_row "$(get_text mail.account.base)" "${CONFIG_BASE_DIRECTORY}")"
-    CONTENT+=$'\n\n'"$(account_mail_row "$(get_text mail.account.root-password)" "${ROOT_PASSWORD}")"
-    CONTENT+=$'\n\n'"$(account_mail_row "$(get_text mail.account.ssh-login)" "${login}")"
-    CONTENT+=$'\n'"$(account_mail_row "$(get_text mail.account.ssh-password)" "${MAIN_PASSWORD}")"
-    CONTENT+=$'\n\n'"$(account_mail_row "$(get_text mail.account.ssh-port)" "${SSH_PORT}")"
-    CONTENT+=$'\n'"$(account_mail_row "$(get_text mail.account.ssh-auth)" "$(get_text mail.account.ssh-auth-value)")"
+    CONTENT="$(read_account_mail_row "$(get_text mail.account.project)" "${PROJECT_NAME} (liltress)")"
+    CONTENT+=$'\n'"$(read_account_mail_row "$(get_text mail.account.base)" "${CONFIG_BASE_DIRECTORY}")"
+    CONTENT+=$'\n\n'"$(read_account_mail_row "$(get_text mail.account.root-password)" "${ROOT_PASSWORD}")"
+    CONTENT+=$'\n\n'"$(read_account_mail_row "$(get_text mail.account.ssh-login)" "${login}")"
+    CONTENT+=$'\n'"$(read_account_mail_row "$(get_text mail.account.ssh-password)" "${MAIN_PASSWORD}")"
+    CONTENT+=$'\n\n'"$(read_account_mail_row "$(get_text mail.account.ssh-port)" "${SSH_PORT}")"
+    CONTENT+=$'\n'"$(read_account_mail_row "$(get_text mail.account.ssh-auth)" "$(get_text mail.account.ssh-auth-value)")"
     TITLE="$(get_text mail.account.title)"
     MAIL_SEEN_LABEL="$(get_text mail.account.heading)"
     export CONTENT TITLE MAIL_SEEN_LABEL
 }
 
 # Every subject is product, host, then the translated title.
-mail_subject() {
+get_mail_subject() {
     local host object
     host="${HOSTNAME:-$(hostname -s 2>/dev/null || hostname)}"
     object="${1:-${TITLE:-${MODULE_NAME:-}}}"
@@ -289,7 +289,7 @@ ${detail}"
         record_mail_credentials
         return 0
     fi
-    echo "${MAIL_CONTENT}" | mail -s "$(mail_subject)" \
+    echo "${MAIL_CONTENT}" | mail -s "$(get_mail_subject)" \
         -a "Content-Type: text/html; charset=UTF-8" \
         "${WATCHDOG_MAIL}"
 }
@@ -327,7 +327,7 @@ send_install_test_mail() {
     fi
 }
 
-confirm_install_test_mail() {
+ask_install_test_mail() {
     send_install_test_mail
     [[ "${MAIL_ALERTS:-0}" == "1" ]] || return 0
     ask_yes "$(get_text install.mail-test-received)" || log_error "${INSTALL_WATCHER}" "install.stopped"

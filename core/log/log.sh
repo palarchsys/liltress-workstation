@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/log.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -31,17 +31,17 @@ locate_log_bootstrap() {
 }
 
 load_log_bootstrap() {
-    local log_dir=""
+    local log_directory=""
     local bootstrap_file=""
-    log_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    if [[ -f "${log_dir}/../boot/bootstrap.sh" ]]; then
-        bootstrap_file="${log_dir}/../boot/bootstrap.sh"
+    log_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    if [[ -f "${log_directory}/../boot/bootstrap.sh" ]]; then
+        bootstrap_file="${log_directory}/../boot/bootstrap.sh"
     fi
     if [[ -z "${bootstrap_file}" ]]; then
-        locate_log_bootstrap "${log_dir}"
+        locate_log_bootstrap "${log_directory}"
     fi
     if [[ -z "${bootstrap_file}" ]]; then
-        printf 'bootstrap.sh introuvable depuis %s\n' "${log_dir}" >&2
+        printf 'bootstrap.sh introuvable depuis %s\n' "${log_directory}" >&2
         exit 1
     fi
     # shellcheck disable=SC1090
@@ -58,8 +58,8 @@ source_core log/journal.sh
 load_product_text
 
 if [[ -n "${STEP_LABEL:-}" && "${STEP_TREE:-0}" != "1" && "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
-    open_step_tree "${STEP_LABEL}"
-    note_bash success "$(get_text log.execution)"
+    begin_step_tree "${STEP_LABEL}"
+    record_bash_note success "$(get_text log.execution)"
     unset STEP_LABEL
-    trap 'close_step_tree' EXIT
+    trap 'finish_step_tree' EXIT
 fi

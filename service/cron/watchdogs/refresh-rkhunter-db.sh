@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/refresh-rkhunter-db.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,7 +13,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_refresh_rkhunter_db_part_01() {
+refresh_rkhunter_db_watchdog_01_run_01_refresh() {
     set -euo pipefail
     HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     # shellcheck disable=SC1091
@@ -37,7 +37,7 @@ run_refresh_rkhunter_db_part_01() {
     rkhunter --update --nocolors >>"${LOG_FILE}" 2>&1 || rk_rc=$?
 }
 
-run_refresh_rkhunter_db_part_02() {
+refresh_rkhunter_db_watchdog_01_run_02_get() {
     if [[ "${rk_rc}" -eq 0 || "${rk_rc}" -eq 2 ]]; then
         bash "${mirrors}" save || true
     fi
@@ -47,9 +47,9 @@ run_refresh_rkhunter_db_part_02() {
     exit 0
 }
 
-run_refresh_rkhunter_db_part_03() {
-    run_refresh_rkhunter_db_part_01 "$@"
-    run_refresh_rkhunter_db_part_02 "$@"
+refresh_rkhunter_db_watchdog_01_run_03_run() {
+    refresh_rkhunter_db_watchdog_01_run_01_refresh "$@"
+    refresh_rkhunter_db_watchdog_01_run_02_get "$@"
 }
 
-run_refresh_rkhunter_db_part_03 "$@"
+refresh_rkhunter_db_watchdog_01_run_03_run "$@"

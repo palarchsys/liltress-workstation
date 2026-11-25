@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/alert-decide.py
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -508,11 +508,11 @@ def keep_log(log):
 
 
 def selected_logs():
-    if log_dir and log_dir.is_file():
-        return [log_dir]
-    if not log_dir or not log_dir.is_dir():
+    if log_directory and log_directory.is_file():
+        return [log_directory]
+    if not log_directory or not log_directory.is_dir():
         return []
-    return sorted(path for path in log_dir.iterdir() if path.is_file())
+    return sorted(path for path in log_directory.iterdir() if path.is_file())
 
 
 def collect_found():
@@ -633,20 +633,20 @@ def emit(found):
             real = True
         rows_out.append(row)
     status = status_of(rows_out, real)
-    write_rows(state_dir / "rows.tsv", rows_out)
-    (state_dir / "status").write_text(status + "\n")
-    write_rows(state_dir / "actions.tsv", known_actions(rows_out))
+    write_rows(state_directory / "rows.tsv", rows_out)
+    (state_directory / "status").write_text(status + "\n")
+    write_rows(state_directory / "actions.tsv", known_actions(rows_out))
     sys.stdout.write(status)
 
 
 def prepare():
-    global log_dir, since, repair, records, prefixes, ips, scenarios
-    global apt_text, dpkg_text, wanted, state_dir, action_table
-    log_dir = Path(sys.argv[2]) if sys.argv[2] else None
+    global log_directory, since, repair, records, prefixes, ips, scenarios
+    global apt_text, dpkg_text, wanted, state_directory, action_table
+    log_directory = Path(sys.argv[2]) if sys.argv[2] else None
     since = int(sys.argv[3] or "0")
     repair_file = Path(sys.argv[4]) if sys.argv[4] else None
     action_path = Path(sys.argv[9]) if len(sys.argv) > 9 and sys.argv[9] else None
-    state_dir = Path(sys.argv[8])
+    state_directory = Path(sys.argv[8])
     action_table = load_actions(action_path)
     records = load_catalog(Path(sys.argv[5]))
     prefixes, ips, scenarios = excludes_of(os.environ.get("WATCHDOG_EXCLUDES", ""))

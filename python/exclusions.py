@@ -299,9 +299,9 @@ def write_lines(path, lines):
     target.chmod(0o644)
 
 
-def render_fragments(path, out_dir, today):
+def render_fragments(path, out_directory, today):
     entries = read_entries(path)
-    directory = Path(out_dir)
+    directory = Path(out_directory)
     write_lines(directory / "clamav-skip.paths", paths_for(entries, today, "clamav"))
     write_lines(directory / "aide.rules", [f"!{item}" for item in paths_for(entries, today, "aide")])
     patterns = [f"^{re.escape(item)}(/|$)" for item in paths_for(entries, today, "chkrootkit")]

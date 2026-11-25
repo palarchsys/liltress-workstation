@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/refresh-integrity.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -65,7 +65,7 @@ refresh_path_stamp() {
         log_info "${INSTALL_WATCHER}" "vpn.integrity.skip" "integrity"
         return 0
     fi
-    if ! stamp="$(watchdog_runtime_file "${base}" integrity.sha256)"; then
+    if ! stamp="$(get_watchdog_runtime_file "${base}" integrity.sha256)"; then
         log_error "${INSTALL_WATCHER}" "vpn.integrity.stamp"
         return 0
     fi

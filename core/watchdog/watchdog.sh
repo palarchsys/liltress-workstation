@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/watchdog.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -30,15 +30,15 @@ if ! declare -F get_text >/dev/null 2>&1; then
 fi
 
 load_watchdog_parts() {
-    local watchdog_dir watchdog_part
-    watchdog_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    local watchdog_directory watchdog_part
+    watchdog_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     for watchdog_part in \
         base.sh crash.sh limit.sh excerpt.sh clamav.sh debsums.sh \
         quarantine.sh egress.sh advice.sh deliver.sh \
         decide.sh remedy.sh pack.sh report.sh; do
-        if [[ -f "${watchdog_dir}/${watchdog_part}" ]]; then
+        if [[ -f "${watchdog_directory}/${watchdog_part}" ]]; then
             # shellcheck disable=SC1090
-            source "${watchdog_dir}/${watchdog_part}"
+            source "${watchdog_directory}/${watchdog_part}"
         fi
     done
 }

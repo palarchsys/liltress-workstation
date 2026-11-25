@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/rkhunter/refresh-db.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,30 +11,30 @@
 # -----------------------------------------------------------------------------
 
 
-run_refresh_db_part_01() {
+rkhunter_refresh_db_01_run_01_load() {
     set -euo pipefail
-    _text_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    _text_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     _text_hops=0
-    while [[ "${_text_hops}" -lt 8 && "${_text_dir}" != "/" ]]; do
-        if [[ -f "${_text_dir}/text-load.sh" ]]; then
+    while [[ "${_text_hops}" -lt 8 && "${_text_directory}" != "/" ]]; do
+        if [[ -f "${_text_directory}/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${_text_dir}/text-load.sh"
+            source "${_text_directory}/text-load.sh"
             break
         fi
-        if [[ -f "${_text_dir}/share/core/text/text-load.sh" ]]; then
+        if [[ -f "${_text_directory}/share/core/text/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${_text_dir}/share/core/text/text-load.sh"
+            source "${_text_directory}/share/core/text/text-load.sh"
             break
         fi
-        if [[ -f "${_text_dir}/core/text/text-load.sh" ]]; then
+        if [[ -f "${_text_directory}/core/text/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${_text_dir}/core/text/text-load.sh"
+            source "${_text_directory}/core/text/text-load.sh"
             break
         fi
-        _text_dir="$(dirname -- "${_text_dir}")"
+        _text_directory="$(dirname -- "${_text_directory}")"
         _text_hops=$((_text_hops + 1))
     done
-    unset _text_dir _text_hops
+    unset _text_directory _text_hops
     if ! declare -F load_installed_text >/dev/null 2>&1; then
         printf '%s\n' "get_text absent" >&2
         exit 1
@@ -42,7 +42,7 @@ run_refresh_db_part_01() {
     load_installed_text
 }
 
-run_refresh_db_part_02() {
+rkhunter_refresh_db_01_run_02_get() {
     if [[ "${EUID}" -ne 0 ]]; then
         printf "$(get_text log.run-this-command-with-sudo-n)" >&2
         exit 1
@@ -63,9 +63,9 @@ run_refresh_db_part_02() {
     printf "$(get_text log.properties-baseline-rkhunter-saved-n)"
 }
 
-run_refresh_db_part_03() {
-    run_refresh_db_part_01 "$@"
-    run_refresh_db_part_02 "$@"
+rkhunter_refresh_db_01_run_03_run() {
+    rkhunter_refresh_db_01_run_01_load "$@"
+    rkhunter_refresh_db_01_run_02_get "$@"
 }
 
-run_refresh_db_part_03 "$@"
+rkhunter_refresh_db_01_run_03_run "$@"

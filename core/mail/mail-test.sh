@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/mail/mail-test.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,14 +12,14 @@
 # -----------------------------------------------------------------------------
 
 
-run_mail_test_part_01() {
+mail_test_mail_01_run_01_run() {
     set -euo pipefail
-    script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     for candidate in \
-        "${script_dir}/log.sh" \
-        "${script_dir}/../core/log/log.sh" \
-        "${script_dir}/../log/log.sh" \
-        "${script_dir}/../core/log/log.sh" \
+        "${script_directory}/log.sh" \
+        "${script_directory}/../core/log/log.sh" \
+        "${script_directory}/../log/log.sh" \
+        "${script_directory}/../core/log/log.sh" \
         "${CONFIG_BASE_DIRECTORY:-}/core/log/log.sh" \
         "${INSTALL_DIRECTORY:-}/core/log/log.sh" \
         "${INSTALL_DIRECTORY:-}/core/log/log.sh"; do
@@ -41,14 +41,14 @@ load_mail_test_secrets() {
 
 # The caller owns base.
 load_mail_test_config() {
-    local script_dir=""
+    local script_directory=""
     if ! declare -F get_text >/dev/null 2>&1; then
         printf '%s\n' "get_text absent" >&2
         exit 1
     fi
-    script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    if [[ "$(basename -- "${script_dir}")" == "bin" ]]; then
-        base="$(dirname -- "${script_dir}")"
+    script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    if [[ "$(basename -- "${script_directory}")" == "bin" ]]; then
+        base="$(dirname -- "${script_directory}")"
     else
         base="${CONFIG_BASE_DIRECTORY:-}"
     fi
@@ -136,9 +136,9 @@ send_mail_test() {
     deliver_mail_test "${base}"
 }
 
-run_mail_test_part_02() {
-    if [[ "$(basename -- "${script_dir}")" == "bin" ]]; then
-        base="$(dirname -- "${script_dir}")"
+mail_test_mail_01_run_02_read() {
+    if [[ "$(basename -- "${script_directory}")" == "bin" ]]; then
+        base="$(dirname -- "${script_directory}")"
     else
         base="${CONFIG_BASE_DIRECTORY:-}"
     fi
@@ -156,6 +156,6 @@ run_mail_test_part_02() {
     send_mail_test
 }
 
-run_mail_test_part_01 "$@"
+mail_test_mail_01_run_01_run "$@"
 
-run_mail_test_part_02 "$@"
+mail_test_mail_01_run_02_read "$@"

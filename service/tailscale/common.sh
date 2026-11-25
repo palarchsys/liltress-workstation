@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/tailscale/common.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -22,7 +22,7 @@ check_tailscale_route() {
     ip link show tailscale0 >/dev/null 2>&1 || return 1
     ip route show default 2>/dev/null | grep -q 'dev tailscale0' && return 1
     ip -6 route show default 2>/dev/null | grep -q 'dev tailscale0' && return 1
-    python3 "$(locate_python_dir)/tailscale-prefs.py"
+    python3 "$(locate_python_directory)/tailscale-prefs.py"
 }
 
 # The CLI writes this notice on stdout. UFW already owns the firewall.
@@ -61,12 +61,12 @@ run_tailscale_up() {
 
 # tailscaled restores its own policy rules each time the daemon starts.
 install_tailscale_route_unit() {
-    local dir="/etc/systemd/system/tailscaled.service.d"
-    local drop="${dir}/liltress-routes.conf"
+    local directory="/etc/systemd/system/tailscaled.service.d"
+    local drop="${directory}/liltress-routes.conf"
     local script="${INSTALL_DIRECTORY}/service/tailscale/apply-routes.sh"
     local want have
     [[ -f "${script}" ]] || log_error "${INSTALL_WATCHER}" "configure.tailscale.bad"
-    install -d -m 755 "${dir}"
+    install -d -m 755 "${directory}"
     want="$(printf '[Service]\nExecStartPost=-/bin/bash %s\n' "${script}")"
     if [[ -f "${drop}" ]]; then
         have="$(cat "${drop}")"
@@ -110,6 +110,6 @@ clear_public_ssh() {
         ufw --force delete "${n}" >/dev/null 2>&1 || true
     done
     sshd -t || log_error "${INSTALL_WATCHER}" "configure.sshd-t-a-failed-drop-in-removed"
-    reload_sshd_unit || log_error "${INSTALL_WATCHER}" "configure.tailscale.bad"
+    run_sshd_reload || log_error "${INSTALL_WATCHER}" "configure.tailscale.bad"
     log_success "${INSTALL_WATCHER}" "configure.tailscale.closed"
 }

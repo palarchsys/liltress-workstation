@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/brands/perso.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-vpn_brand_perso() {
+check_vpn_brand_perso() {
     [[ "$1" == "wireguard" ]] || return 1
-    vpn_brand_wireguard "$2"
+    check_vpn_brand_wireguard "$2"
 }

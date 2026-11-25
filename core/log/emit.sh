@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/emit.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -62,7 +62,7 @@ show_log_failure() {
     show_title_box "$(get_text log.installation-could-not-finish)"
     printf '\n' >&2
     if [[ -n "${INSTALL_LOG_DIR:-}" ]]; then
-        note_bash info "$(get_text log.journals "${INSTALL_LOG_DIR}")"
+        record_bash_note info "$(get_text log.journals "${INSTALL_LOG_DIR}")"
     fi
     printf '\n' >&2
 }
@@ -82,16 +82,16 @@ log_show() {
         return 0
     fi
     case "${type}" in
-        info | debug) note_bash info "${value}" ;;
-        success) note_bash success "${value}" ;;
-        warn) note_bash warn "${value}" ;;
-        fault) note_bash fault "${value}" ;;
+        info | debug) record_bash_note info "${value}" ;;
+        success) record_bash_note success "${value}" ;;
+        warn) record_bash_note warn "${value}" ;;
+        fault) record_bash_note fault "${value}" ;;
         title)
-            step_flush_branch
+            render_step_branch
             show_title_box "${value}"
             ;;
         error)
-            note_bash error "${value}"
+            record_bash_note error "${value}"
             show_log_failure "${value}"
             exit 1
             ;;
@@ -115,7 +115,7 @@ require_root() {
 }
 
 set_step_visible() {
-    close_step_tree
+    finish_step_tree
     if [[ "${SECTION_OPEN:-0}" == "1" ]]; then
         show_section_close
     fi
@@ -123,7 +123,7 @@ set_step_visible() {
 }
 
 set_step_hidden() {
-    close_step_tree
+    finish_step_tree
     if [[ "${SECTION_OPEN:-0}" == "1" ]]; then
         show_section_close
     fi

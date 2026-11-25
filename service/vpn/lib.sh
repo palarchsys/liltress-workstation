@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/lib.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -48,34 +48,34 @@ strip_vpn_log_fields() {
 }
 
 # The directory is mode 700. A missing tree restores the mask and stops quietly.
-ensure_vpn_log_dir() {
+ensure_vpn_log_directory() {
     root="$(get_vpn_root 2>/dev/null)" || return 1
     [[ -n "${root}" ]] || return 1
-    dir="${root}/log/vpn"
+    directory="${root}/log/vpn"
     old="$(umask)"
     umask 077
-    mkdir -p "${dir}" 2>/dev/null || {
+    mkdir -p "${directory}" 2>/dev/null || {
         umask "${old}"
         return 1
     }
-    chmod 700 "${dir}" 2>/dev/null || true
+    chmod 700 "${directory}" 2>/dev/null || true
 }
 
 # Append one daily row.
-note_vpn_log() {
+record_vpn_log() {
     local action="$1" name="${2:-}" result="${3:-}" detail="${4:-}"
-    local root dir file stamp old
+    local root directory file stamp old
     [[ "${action}" == "watch" ]] && return 0
     strip_vpn_log_fields
-    ensure_vpn_log_dir || return 0
-    file="${dir}/$(date '+%Y-%m-%d').log"
+    ensure_vpn_log_directory || return 0
+    file="${directory}/$(date '+%Y-%m-%d').log"
     stamp="$(date '+%Y-%m-%dT%H:%M:%S.%N%z')"
     {
         if command -v flock >/dev/null 2>&1; then
             flock -w 2 9 || true
         fi
         printf '%s\t%s\t%s\t%s\t%s\n' "${stamp}" "${action}" "${name}" "${result}" "${detail}" >>"${file}" || true
-    } 9>>"${dir}/day.lock"
+    } 9>>"${directory}/day.lock"
     chmod 600 "${file}" 2>/dev/null || true
     umask "${old}"
     return 0
@@ -87,25 +87,30 @@ get_vpn_home() {
     printf '%s/vpn\n' "${base}"
 }
 
+# One protocol directory contributes its saved names, in byte order.
+list_vpn_kind_names() {
+    local home="$1" kind="$2" directory name
+    local -a found=()
+    for directory in "${home}/${kind}"/*/; do
+        [[ -d "${directory}" ]] || continue
+        name="$(basename -- "${directory}")"
+        check_vpn_name "${name}" || continue
+        [[ -f "${directory}meta" ]] || continue
+        found+=("${name}")
+    done
+    if ((${#found[@]} > 0)); then
+        printf '%s\n' "${found[@]}" | LC_ALL=C sort
+    fi
+}
+
 # Names that have a meta file, in byte order, one protocol at a time.
 list_vpn_names() {
-    local home dir name kind
-    local -a found=()
+    local home kind
     home="$(get_vpn_home)"
     [[ -d "${home}" ]] || return 0
     shopt -s nullglob
     for kind in wireguard openvpn profiles; do
-        found=()
-        for dir in "${home}/${kind}"/*/; do
-            [[ -d "${dir}" ]] || continue
-            name="$(basename -- "${dir}")"
-            check_vpn_name "${name}" || continue
-            [[ -f "${dir}meta" ]] || continue
-            found+=("${name}")
-        done
-        if ((${#found[@]} > 0)); then
-            printf '%s\n' "${found[@]}" | LC_ALL=C sort
-        fi
+        list_vpn_kind_names "${home}" "${kind}"
     done
     shopt -u nullglob
 }
@@ -135,13 +140,13 @@ list_vpn_successors() {
 }
 
 # How many profile directories exist.
-count_vpn_profiles() {
-    local home kind dir total=0
+get_vpn_profile_count() {
+    local home kind directory total=0
     home="$(get_vpn_home)"
     shopt -s nullglob
     for kind in wireguard openvpn profiles; do
-        for dir in "${home}/${kind}"/*/; do
-            [[ -d "${dir}" ]] || continue
+        for directory in "${home}/${kind}"/*/; do
+            [[ -d "${directory}" ]] || continue
             total=$((total + 1))
         done
     done
@@ -188,6 +193,11 @@ read_vpn_setting_file() {
     fi
 }
 
+# Endpoint priority stays a plain number.
+check_vpn_setting_endpoint() {
+    [[ "${VPN_RULE_PRIO_ENDPOINT}" =~ ^[0-9]+$ ]] || VPN_RULE_PRIO_ENDPOINT=40
+}
+
 # Names, table numbers, and the handshake limit.
 check_vpn_setting_ifaces() {
     [[ "${VPN_FW_PRIORITY}" =~ ^-[0-9]+$ ]] || VPN_FW_PRIORITY=-150
@@ -196,7 +206,12 @@ check_vpn_setting_ifaces() {
     [[ "${VPN_IFACE_WG}" =~ ^[a-zA-Z0-9_-]{1,15}$ ]] || VPN_IFACE_WG=wg-liltress
     [[ "${VPN_IFACE_OVPN}" =~ ^[a-zA-Z0-9_-]{1,15}$ ]] || VPN_IFACE_OVPN=tun-liltress
     [[ "${VPN_HANDSHAKE_TIMEOUT}" =~ ^[0-9]+$ ]] || VPN_HANDSHAKE_TIMEOUT=25
-    [[ "${VPN_RULE_PRIO_ENDPOINT}" =~ ^[0-9]+$ ]] || VPN_RULE_PRIO_ENDPOINT=40
+    check_vpn_setting_endpoint
+}
+
+# The failover wait stays a plain number.
+check_vpn_setting_timeout() {
+    [[ "${VPN_FAILOVER_TIMEOUT}" =~ ^[0-9]+$ ]] || VPN_FAILOVER_TIMEOUT=10
 }
 
 # Rule priorities and the failover limits.
@@ -207,7 +222,12 @@ check_vpn_setting_rules() {
     [[ "${VPN_RULE_PRIO_SSH}" =~ ^[0-9]+$ ]] || VPN_RULE_PRIO_SSH=45
     [[ "${VPN_SSH_MARK}" =~ ^[0-9]+$ ]] || VPN_SSH_MARK=17820
     [[ "${VPN_FAILOVER_TRIES}" =~ ^[1-9][0-9]*$ ]] || VPN_FAILOVER_TRIES=3
-    [[ "${VPN_FAILOVER_TIMEOUT}" =~ ^[0-9]+$ ]] || VPN_FAILOVER_TIMEOUT=10
+    check_vpn_setting_timeout
+}
+
+# A tunnel MTU outside the accepted range falls back to the packaged value.
+check_vpn_setting_mtu() {
+    [[ "${VPN_TUN_MTU}" -ge 576 && "${VPN_TUN_MTU}" -le 1500 ]] || VPN_TUN_MTU=1200
 }
 
 # The direct table and the route metric.
@@ -216,7 +236,7 @@ check_vpn_setting_direct() {
     [[ "${VPN_TABLE_DIRECT_NAME}" =~ ^[a-z][a-z0-9_-]{0,14}$ ]] || VPN_TABLE_DIRECT_NAME=w_direct
     [[ "${VPN_ROUTE_METRIC}" =~ ^[0-9]+$ ]] || VPN_ROUTE_METRIC=50
     [[ "${VPN_TUN_MTU}" =~ ^[0-9]+$ ]] || VPN_TUN_MTU=1200
-    [[ "${VPN_TUN_MTU}" -ge 576 && "${VPN_TUN_MTU}" -le 1500 ]] || VPN_TUN_MTU=1200
+    check_vpn_setting_mtu
     [[ "${VPN_RULE_PRIO_LAN}" =~ ^[0-9]+$ ]] || VPN_RULE_PRIO_LAN=52
 }
 
@@ -255,7 +275,7 @@ check_vpn_name() {
 }
 
 # The protocol directory when it is known, otherwise the first one that exists.
-get_vpn_profile_dir() {
+get_vpn_profile_directory() {
     local name="$1" proto="${2:-}" home candidate
     home="$(get_vpn_home)"
     if [[ "${proto}" == "wireguard" || "${proto}" == "openvpn" ]]; then
@@ -298,7 +318,7 @@ show_vpn_text_err() {
 # The value stored beside that key.
 get_vpn_meta() {
     local name="$1" key="$2" file line
-    file="$(get_vpn_profile_dir "${name}")/meta"
+    file="$(get_vpn_profile_directory "${name}")/meta"
     [[ -f "${file}" ]] || return 1
     while IFS= read -r line || [[ -n "${line}" ]]; do
         line="${line%$'\r'}"
@@ -314,10 +334,10 @@ get_vpn_meta() {
 
 # Store the profile fields and keep the file private.
 write_vpn_meta() {
-    local dir="$1" proto="$2" ep4="$3" ep6="$4" port="$5"
+    local directory="$1" proto="$2" ep4="$3" ep6="$4" port="$5"
     local transport="$6" iface="$7" v6="$8" enc="$9" brand="${10:-}"
     umask 077
-    cat >"${dir}/meta" <<EOF
+    cat >"${directory}/meta" <<EOF
 proto=${proto}
 endpoint4=${ep4}
 endpoint6=${ep6}
@@ -328,7 +348,7 @@ has_ipv6=${v6}
 encrypted=${enc}
 brand=${brand}
 EOF
-    chmod 600 "${dir}/meta"
+    chmod 600 "${directory}/meta"
 }
 
 # The two halves of the key field name.
@@ -419,7 +439,7 @@ check_vpn_v6_shape() {
 }
 
 # Head and tail around one compression, or eight plain pieces.
-split_vpn_v6_sides() {
+read_vpn_v6_sides() {
     if ((doubles == 1)); then
         head="${addr%%::*}"
         tail="${addr#*::}"
@@ -473,7 +493,7 @@ get_vpn_v6_groups() {
     local -a left=() right=() groups=()
     local fill=0 doubles=0
     check_vpn_v6_shape || return 1
-    split_vpn_v6_sides || return 1
+    read_vpn_v6_sides || return 1
     check_vpn_v6_fill || return 1
     read_vpn_v6_pieces "${left[@]}" || return 1
     set_vpn_v6_zeros
@@ -537,6 +557,20 @@ check_vpn_cidr_mask() {
     return 1
 }
 
+# A v6 network is accepted, or the token is refused.
+check_vpn_cidr_v6() {
+    local token="$1"
+    if check_vpn_ipv6_syntax "${token}" >/dev/null 2>&1; then
+        if check_vpn_ipv6_network "${token}"; then
+            return 0
+        fi
+        fail_vpn_bypass network "${token}"
+        return 1
+    fi
+    fail_vpn_bypass bad "${token}"
+    return 1
+}
+
 # A v4 network, a v6 network, or a named refusal.
 check_vpn_cidr() {
     local token="$1"
@@ -554,15 +588,7 @@ check_vpn_cidr() {
         fail_vpn_bypass bad "${token}"
         return 1
     fi
-    if check_vpn_ipv6_syntax "${token}" >/dev/null 2>&1; then
-        if check_vpn_ipv6_network "${token}"; then
-            return 0
-        fi
-        fail_vpn_bypass network "${token}"
-        return 1
-    fi
-    fail_vpn_bypass bad "${token}"
-    return 1
+    check_vpn_cidr_v6 "${token}"
 }
 
 # Blank rows and hash rows stay out.
@@ -638,13 +664,9 @@ emit_vpn_bypass_found() {
     fi
 }
 
-# Bracket form or one token per row. Duplicates collapse.
-read_vpn_bypass() {
+# One row is either a bracket or a single token.
+read_vpn_bypass_lines() {
     local file="$1" line trimmed
-    local bracket=0 plain=0
-    local -a found=()
-    local -A seen=()
-    [[ -f "${file}" ]] || return 1
     while IFS= read -r line || [[ -n "${line}" ]]; do
         skip_vpn_bypass_line && continue
         if [[ "${trimmed}" == \[* ]]; then
@@ -653,17 +675,27 @@ read_vpn_bypass() {
         fi
         take_vpn_bypass_plain || return 1
     done <"${file}"
+}
+
+# Bracket form or one token per row. Duplicates collapse.
+read_vpn_bypass() {
+    local file="$1"
+    local bracket=0 plain=0
+    local -a found=()
+    local -A seen=()
+    [[ -f "${file}" ]] || return 1
+    read_vpn_bypass_lines "${file}" || return 1
     emit_vpn_bypass_found
     return 0
 }
 
 # A refused file leaves the previous set in place.
 write_vpn_bypass() {
-    local src="$1" dest="$2" dir tmp
+    local src="$1" dest="$2" directory tmp
     [[ -f "${src}" ]] || return 1
-    dir="$(dirname -- "${dest}")"
-    mkdir -p "${dir}" || return 1
-    tmp="$(mktemp "${dir}/.bypass.XXXXXX")" || return 1
+    directory="$(dirname -- "${dest}")"
+    mkdir -p "${directory}" || return 1
+    tmp="$(mktemp "${directory}/.bypass.XXXXXX")" || return 1
     if read_vpn_bypass "${src}" >"${tmp}"; then
         mv -f "${tmp}" "${dest}"
         return 0
@@ -867,7 +899,7 @@ read_vpn_verify_wg() {
 # The handshake file uses the same age limit.
 read_vpn_verify_stamp() {
     local stamp now age
-    stamp="$(get_vpn_profile_dir "${name}")/handshake"
+    stamp="$(get_vpn_profile_directory "${name}")/handshake"
     if [[ ! -f "${stamp}" ]]; then
         printf 'stale %s\n' "${name}"
         return 0

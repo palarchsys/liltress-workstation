@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/log/install-log.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -53,7 +53,7 @@ set_install_log_modes() {
 }
 
 # Root keeps the file when the tree owner is root.
-give_repo_log_owner() {
+set_repo_log_owner() {
     local file="$1"
     local owner="$2"
     if [[ -n "${owner}" && "${owner}" != "0:0" ]]; then
@@ -70,7 +70,7 @@ publish_log_file() {
         return 0
     fi
     chmod 640 "${path}" 2>/dev/null || true
-    give_repo_log_owner "${path}" "${owner}"
+    set_repo_log_owner "${path}" "${owner}"
 }
 
 # Private names leave the tree, and an empty accounts directory leaves with them.
@@ -97,7 +97,7 @@ apply_repo_log_modes() {
         else
             chmod 640 "${file}" 2>/dev/null || true
         fi
-        give_repo_log_owner "${file}" "${owner}"
+        set_repo_log_owner "${file}" "${owner}"
     done < <(find "${path}" -print 2>/dev/null)
 }
 
@@ -117,7 +117,7 @@ publish_repo_logs() {
     apply_repo_log_modes "${path}" "${og}"
 }
 
-publish_install_dir_logs() { publish_repo_logs "$@"; }
+publish_install_directory_logs() { publish_repo_logs "$@"; }
 
 log_index_append() {
     local step="$1"
@@ -191,6 +191,19 @@ check_workstation_slug() {
     [[ "${1:-}" == "liltress-workstation" || "${PROJECT_SLUG:-}" == "liltress-workstation" ]]
 }
 
+read_root_kind() {
+    local root="$1"
+    if [[ -n "${root}" && "$(basename -- "${root}")" == "workstation" ]]; then
+        printf '%s\n' workstation
+        return 0
+    fi
+    if [[ -n "${root}" && "$(basename -- "${root}")" == "server" ]]; then
+        printf '%s\n' server
+        return 0
+    fi
+    return 1
+}
+
 get_tree_kind() {
     local root="$1"
     local slug="$2"
@@ -199,10 +212,8 @@ get_tree_kind() {
         kind="workstation"
     elif declare -F check_workstation >/dev/null 2>&1 && check_workstation; then
         kind="workstation"
-    elif [[ -n "${root}" && "$(basename -- "${root}")" == "workstation" ]]; then
-        kind="workstation"
-    elif [[ -n "${root}" && "$(basename -- "${root}")" == "server" ]]; then
-        kind="server"
+    elif kind="$(read_root_kind "${root}")"; then
+        :
     else
         kind="unknown"
     fi
@@ -262,7 +273,7 @@ init_install_log() {
         echo "MODE_TEST   : ${MODE_TEST:-}"
         echo "MODE_DEV    : ${MODE_DEV:-}"
         echo "DIR         : ${root}"
-        echo "log dir     : ${INSTALL_LOG_DIR}"
+        echo "log directory     : ${INSTALL_LOG_DIR}"
         echo "uname       : $(uname -a 2>/dev/null || true)"
     } | tee "${INSTALL_LOG_DIR}/meta.txt" >/dev/null
 
@@ -323,6 +334,16 @@ collect_common_snapshot() {
     write_service_snapshot "${snap}"
 }
 
+collect_known_logs() {
+    local snap="$1"
+    if declare -F collect_product_logs >/dev/null 2>&1; then
+        collect_product_logs "${snap}" || true
+    fi
+    if declare -F collect_workstation_logs >/dev/null 2>&1; then
+        collect_workstation_logs "${snap}" || true
+    fi
+}
+
 collect_install_log() {
     [[ -n "${INSTALL_LOG_DIR:-}" && -d "${INSTALL_LOG_DIR}" ]] || return 0
     [[ "${LOGS_COLLECTED:-0}" == "1" ]] && return 0
@@ -333,13 +354,7 @@ collect_install_log() {
     mkdir -p "$snap"
     log_info "${INSTALL_WATCHER:-BASH}" "install.log.info" "${snap}"
     collect_common_snapshot "${snap}"
-
-    if declare -F collect_product_logs >/dev/null 2>&1; then
-        collect_product_logs "${snap}" || true
-    fi
-    if declare -F collect_workstation_logs >/dev/null 2>&1; then
-        collect_workstation_logs "${snap}" || true
-    fi
+    collect_known_logs "${snap}"
 
     {
         echo "$(get_text log.g-collect-install-log "$(date -Iseconds)")"

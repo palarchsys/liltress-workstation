@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/cli.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -58,12 +58,21 @@ validate_vpn_remove() {
     local name="$1"
     [[ -n "${name}" ]] || show_vpn_usage
     if ! check_vpn_name "${name}"; then
-        note_vpn_log rm "${name}" fail "bad-name"
+        record_vpn_log rm "${name}" fail "bad-name"
         log_error "${INSTALL_WATCHER}" "vpn.import.bad-name" "${name}"
     fi
-    if [[ ! -d "$(get_vpn_profile_dir "${name}")" || ! -f "$(get_vpn_profile_dir "${name}")/meta" ]]; then
-        note_vpn_log rm "${name}" fail "missing"
+    if [[ ! -d "$(get_vpn_profile_directory "${name}")" || ! -f "$(get_vpn_profile_directory "${name}")/meta" ]]; then
+        record_vpn_log rm "${name}" fail "missing"
         log_error "${INSTALL_WATCHER}" "vpn.rm.missing" "${name}"
+    fi
+}
+
+# An active profile that is not the default cannot be removed.
+fail_vpn_remove_active() {
+    local name="$1" active="$2" total="$3"
+    if [[ "${active}" == "${name}" && "${total}" != "1" && "${VPN_DEFAULT:-}" != "${name}" ]]; then
+        record_vpn_log rm "${name}" fail "active"
+        log_error "${INSTALL_WATCHER}" "vpn.rm.active" "${name}"
     fi
 }
 
@@ -73,24 +82,21 @@ remove_vpn_profile() {
     validate_vpn_remove "${name}"
     load_vpn_settings
     active="$(get_vpn_active 2>/dev/null || true)"
-    total="$(count_vpn_profiles)"
-    if [[ "${active}" == "${name}" && "${total}" != "1" && "${VPN_DEFAULT:-}" != "${name}" ]]; then
-        note_vpn_log rm "${name}" fail "active"
-        log_error "${INSTALL_WATCHER}" "vpn.rm.active" "${name}"
-    fi
+    total="$(get_vpn_profile_count)"
+    fail_vpn_remove_active "${name}" "${active}" "${total}"
     if [[ "${VPN_DEFAULT:-}" == "${name}" && "${total}" != "1" ]]; then
         mapfile -t successors < <(list_vpn_successors "${name}")
         if [[ "${active}" == "${name}" ]]; then
             was_active=1
         fi
         VPN_DEFER_INTEGRITY=1
-        forget_vpn_profile "${name}" "rm"
+        clear_vpn_profile "${name}" "rm"
         VPN_DEFER_INTEGRITY=0
         run_vpn_successor "${was_active}" "${successors[@]}" || true
         refresh_vpn_integrity
         return 0
     fi
-    forget_vpn_profile "${name}" "rm"
+    clear_vpn_profile "${name}" "rm"
 }
 
 show_vpn_default() {
@@ -106,29 +112,34 @@ set_vpn_default() {
     local name="${1:-}"
     [[ -n "${name}" ]] || show_vpn_usage
     if ! check_vpn_name "${name}"; then
-        note_vpn_log default "${name}" fail "bad-name"
+        record_vpn_log default "${name}" fail "bad-name"
         log_error "${INSTALL_WATCHER}" "vpn.import.bad-name" "${name}"
     fi
-    if [[ ! -f "$(get_vpn_profile_dir "${name}")/meta" ]]; then
-        note_vpn_log default "${name}" fail "missing"
+    if [[ ! -f "$(get_vpn_profile_directory "${name}")/meta" ]]; then
+        record_vpn_log default "${name}" fail "missing"
         log_error "${INSTALL_WATCHER}" "vpn.default.missing" "${name}"
     fi
     if ! check_vpn_profile_valid "${name}"; then
-        note_vpn_log default "${name}" fail "invalid"
+        record_vpn_log default "${name}" fail "invalid"
         log_error "${INSTALL_WATCHER}" "vpn.default.invalid" "${name}"
     fi
     set_vpn_state_default "${name}"
     load_vpn_settings
     apply_vpn_systemd || {
-        note_vpn_log default "${name}" fail "install"
+        record_vpn_log default "${name}" fail "install"
         log_error "${INSTALL_WATCHER}" "vpn.install.fail"
     }
-    if declare -F vpn_nm_apply_autoconnect >/dev/null 2>&1; then
-        vpn_nm_apply_autoconnect || true
-    fi
+    apply_vpn_default_autoconnect
     refresh_vpn_integrity
-    note_vpn_log default "${name}" ok ""
+    record_vpn_log default "${name}" ok ""
     log_success "${INSTALL_WATCHER}" "vpn.default.set" "${name}"
+}
+
+# NetworkManager follows the new default when that tool is present.
+apply_vpn_default_autoconnect() {
+    if declare -F apply_vpn_nm_autoconnect >/dev/null 2>&1; then
+        apply_vpn_nm_autoconnect || true
+    fi
 }
 
 clear_vpn_default() {
@@ -138,11 +149,11 @@ clear_vpn_default() {
     set_vpn_state_default ""
     load_vpn_settings
     apply_vpn_systemd || true
-    if declare -F vpn_nm_apply_autoconnect >/dev/null 2>&1; then
-        vpn_nm_apply_autoconnect || true
+    if declare -F apply_vpn_nm_autoconnect >/dev/null 2>&1; then
+        apply_vpn_nm_autoconnect || true
     fi
     refresh_vpn_integrity
-    note_vpn_log default "${previous:-"-"}" ok "off"
+    record_vpn_log default "${previous:-"-"}" ok "off"
     log_success "${INSTALL_WATCHER}" "vpn.default.cleared"
 }
 
@@ -150,11 +161,11 @@ clear_vpn_default() {
 show_vpn_profile_line() {
     local name="$1"
     local proto="" iface="" handshake="-"
-    if [[ -n "${name}" && -f "$(get_vpn_profile_dir "${name}")/meta" ]]; then
+    if [[ -n "${name}" && -f "$(get_vpn_profile_directory "${name}")/meta" ]]; then
         proto="$(get_vpn_meta "${name}" proto 2>/dev/null || true)"
         iface="$(get_vpn_meta "${name}" iface 2>/dev/null || true)"
-        if [[ -f "$(get_vpn_profile_dir "${name}")/handshake" ]]; then
-            handshake="$(tr -d '[:space:]' <"$(get_vpn_profile_dir "${name}")/handshake")"
+        if [[ -f "$(get_vpn_profile_directory "${name}")/handshake" ]]; then
+            handshake="$(tr -d '[:space:]' <"$(get_vpn_profile_directory "${name}")/handshake")"
         fi
         printf '%s\n' "$(get_text vpn.status.line "${name}" "${proto}" "${iface}" "${handshake}")"
     else
@@ -204,14 +215,14 @@ show_vpn_status() {
 }
 
 list_vpn_profiles() {
-    local home dir name proto found=0 kind valid validated observed tested state brand
+    local home directory name proto found=0 kind valid validated observed tested state brand
     home="$(get_vpn_home)"
     refresh_vpn_state
     shopt -s nullglob
     for kind in wireguard openvpn profiles; do
-        for dir in "${home}/${kind}"/*/; do
-            [[ -d "${dir}" ]] || continue
-            name="$(basename -- "${dir}")"
+        for directory in "${home}/${kind}"/*/; do
+            [[ -d "${directory}" ]] || continue
+            name="$(basename -- "${directory}")"
             check_vpn_name "${name}" || continue
             proto="$(get_vpn_meta "${name}" proto 2>/dev/null || echo "${kind}")"
             valid="false"
@@ -225,7 +236,7 @@ list_vpn_profiles() {
                 tested="$(printf '%s\n' "${state}" | sed -n '4p')"
             fi
             brand="$(get_vpn_meta "${name}" brand 2>/dev/null || true)"
-            printf '%s  %s\n' "$(get_text vpn.list.line "${name}" "${proto}" "${valid}" "${validated}" "${observed}" "${tested}" "${brand}")" "${dir%/}"
+            printf '%s  %s\n' "$(get_text vpn.list.line "${name}" "${proto}" "${valid}" "${validated}" "${observed}" "${tested}" "${brand}")" "${directory%/}"
             found=1
         done
     done

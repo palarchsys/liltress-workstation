@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/down.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -14,10 +14,17 @@
 
 # Hold NetworkManager across the profile stop.
 clear_vpn_nm() {
-    if declare -F vpn_nm_held >/dev/null 2>&1 && ! vpn_nm_held; then
-        vpn_nm_hold_on
-        stop_vpn_nm_all || true
-        vpn_nm_hold_off
+    if declare -F check_vpn_nm_held >/dev/null 2>&1 && ! check_vpn_nm_held; then
+        set_vpn_nm_hold_on
+        clear_vpn_nm_all || true
+        set_vpn_nm_hold_off
+    fi
+}
+
+# The direct route is removed when that helper is loaded.
+clear_vpn_direct_link() {
+    if declare -F clear_vpn_direct >/dev/null 2>&1; then
+        clear_vpn_direct || true
     fi
 }
 
@@ -30,9 +37,7 @@ clear_vpn_links() {
     ip link del "${VPN_IFACE_WG}" >/dev/null 2>&1 || true
     ip link del "${VPN_IFACE_OVPN}" >/dev/null 2>&1 || true
     clear_vpn_routes || true
-    if declare -F release_vpn_direct >/dev/null 2>&1; then
-        release_vpn_direct || true
-    fi
+    clear_vpn_direct_link
 }
 
 # Release the firewall hold and forget the active name.
@@ -43,8 +48,8 @@ finish_vpn_down() {
     else
         rm -f "$(get_vpn_home)/active"
     fi
-    if declare -F vpn_nm_apply_autoconnect >/dev/null 2>&1; then
-        vpn_nm_apply_autoconnect || true
+    if declare -F apply_vpn_nm_autoconnect >/dev/null 2>&1; then
+        apply_vpn_nm_autoconnect || true
     fi
     if declare -F restart_vpn_services >/dev/null 2>&1; then
         restart_vpn_services || true

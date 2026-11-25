@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/nm-dispatcher.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -32,5 +32,5 @@ source "${ROOT}/service/vpn/routes.sh"
 source "${ROOT}/service/vpn/nm.sh"
 # shellcheck disable=SC1091
 source "${ROOT}/service/vpn/down.sh"
-handle_vpn_nm_event "${1:-}" "${2:-}"
+run_vpn_nm_event "${1:-}" "${2:-}"
 exit 0

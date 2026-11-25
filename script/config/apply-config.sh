@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/config/apply-config.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,7 +13,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_apply_config_part_01() {
+workstation_apply_config_01_run_01_fail() {
     common="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
     # shellcheck disable=SC1090
     source "${common}"
@@ -29,9 +29,9 @@ run_apply_config_part_01() {
     asked_password="${POSTFIX_MAIL_PASSWORD:-}"
     asked_smtp="${POSTFIX_MAIL_SMTP:-}"
     asked_watchdog="${WATCHDOG_MAIL:-}"
-    script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     # shellcheck disable=SC1090
-    source "${script_dir}/../config-check.sh"
+    source "${script_directory}/../config-check.sh"
     LANGUAGE="${asked_language}"
     MAIL_ALERTS="${asked_mail:-0}"
     UBUNTU_PRO_TOKEN="${asked_token}"
@@ -45,7 +45,7 @@ run_apply_config_part_01() {
     fi
 }
 
-run_apply_config_part_02() {
+workstation_apply_config_01_run_02_clear() {
     case "${MAIL_ALERTS}" in
         0)
             clear_mail
@@ -80,14 +80,14 @@ run_apply_config_part_02() {
     printf 'error\n'
 }
 
-run_apply_config_part_03() {
+workstation_apply_config_01_run_03_run() {
     exit 1
 }
 
-run_apply_config_part_04() {
-    run_apply_config_part_01 "$@"
-    run_apply_config_part_02 "$@"
-    run_apply_config_part_03 "$@"
+workstation_apply_config_01_run_04_run() {
+    workstation_apply_config_01_run_01_fail "$@"
+    workstation_apply_config_01_run_02_clear "$@"
+    workstation_apply_config_01_run_03_run "$@"
 }
 
-run_apply_config_part_04 "$@"
+workstation_apply_config_01_run_04_run "$@"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/configure.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,7 +13,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_workstation_configure_part_01() {
+workstation_configure_01_run_01_check() {
     set -euo pipefail
     INSTALL_WATCHER="${INSTALL_WATCHER:-BASH}"
     export INSTALL_WATCHER
@@ -111,7 +111,7 @@ prompt() {
     log_error "${INSTALL_WATCHER}" "configure.three-attempts-without-an-accepted-answer-exampl" "${field_label}" "${field_example}"
 }
 
-run_workstation_configure_part_02() {
+workstation_configure_01_run_02_read() {
     if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
         read_language_file "${DIR_SCRIPT}/config/global.conf"
         show_usage
@@ -120,7 +120,7 @@ run_workstation_configure_part_02() {
 
 }
 
-run_workstation_configure_part_03() {
+workstation_configure_01_run_03_read() {
     if [[ -n "${1:-}" || $# -gt 0 ]]; then
         read_language_file "${DIR_SCRIPT}/config/global.conf"
         show_usage >&2
@@ -136,20 +136,20 @@ run_workstation_configure_part_03() {
 
     require_root
     set_step_visible "$(get_text install.configuration.title)"
-    open_step_tree "script/configure.sh"
+    begin_step_tree "script/configure.sh"
 
 }
 
-run_workstation_configure_part_04() {
+workstation_configure_01_run_04_load() {
     asked_language="${LANGUAGE}"
 
     set_config_default
 
-    saved_dir_set=0
-    saved_dir=""
+    saved_directory_set=0
+    saved_directory=""
     if [[ -n "${INSTALL_DIRECTORY+x}" ]]; then
-        saved_dir_set=1
-        saved_dir="${INSTALL_DIRECTORY}"
+        saved_directory_set=1
+        saved_directory="${INSTALL_DIRECTORY}"
         unset INSTALL_DIRECTORY || true
     fi
     if [[ -f "${DIR_SCRIPT}/config/global.conf" ]]; then
@@ -164,10 +164,10 @@ run_workstation_configure_part_04() {
         source "${DIR_SCRIPT}/config/user.conf"
         set -u
     fi
-    if [[ "${saved_dir_set}" == "1" ]]; then
-        INSTALL_DIRECTORY="${saved_dir}"
+    if [[ "${saved_directory_set}" == "1" ]]; then
+        INSTALL_DIRECTORY="${saved_directory}"
     fi
-    unset saved_dir saved_dir_set
+    unset saved_directory saved_directory_set
     LANGUAGE="${asked_language}"
     export LANGUAGE
     TEXT_READY=0
@@ -219,9 +219,9 @@ ask_smtp_values() {
     return 1
 }
 
-run_workstation_configure_part_06() {
+workstation_configure_01_run_06_get() {
     set_step_visible "$(get_text configure.enable-the-alerts-by-emails-y-n)"
-    open_step_tree "$(get_text configure.enable-the-alerts-by-emails-y-n)"
+    begin_step_tree "$(get_text configure.enable-the-alerts-by-emails-y-n)"
     log_info "${INSTALL_WATCHER}" "configure.enable-the-alerts-by-emails-y-n"
     mail_choice=""
     while true; do
@@ -244,10 +244,10 @@ run_workstation_configure_part_06() {
                 ;;
         esac
     done
-    close_step_tree
+    finish_step_tree
 
     set_step_visible "$(get_text configure.record-of-the-configuration)"
-    open_step_tree "$(get_text configure.record-of-the-configuration)"
+    begin_step_tree "$(get_text configure.record-of-the-configuration)"
     log_info "${INSTALL_WATCHER}" "configure.record-of-the-configuration"
     mkdir -p "${DIR_SCRIPT}/config"
     write_user_config "${DIR_SCRIPT}/config/user.conf"
@@ -256,18 +256,18 @@ run_workstation_configure_part_06() {
 
 }
 
-run_workstation_configure_part_07() {
+workstation_configure_01_run_07_pass() {
     if ! require_prepared_config "${DIR_SCRIPT}"; then
         log_error "${INSTALL_WATCHER}" "configure.the-files-written-pass-not-the-check"
     fi
 
     log_success "${INSTALL_WATCHER}" "configure.configuration-saved"
-    close_step_tree
+    finish_step_tree
     show_section_close
     exec bash "${DIR_SCRIPT}/script/run.sh"
 }
-run_workstation_configure_part_01 "$@"
-run_workstation_configure_part_02 "$@"
+workstation_configure_01_run_01_check "$@"
+workstation_configure_01_run_02_read "$@"
 if [[ "${1:-}" == "--check" ]]; then
     read_language_file "${DIR_SCRIPT}/config/global.conf"
     log_info "${INSTALL_WATCHER}" "configure.configuration-check"
@@ -277,10 +277,10 @@ if [[ "${1:-}" == "--check" ]]; then
     fi
     exit 1
 fi
-run_workstation_configure_part_03 "$@"
+workstation_configure_01_run_03_read "$@"
 ask_language
 
-run_workstation_configure_part_05() {
+workstation_configure_01_run_05_prompt() {
     if [[ -f "${DIR_SCRIPT}/config/secrets.conf" ]]; then
         set +u
         # shellcheck disable=SC1091
@@ -307,7 +307,7 @@ run_workstation_configure_part_05() {
     prompt SSH_USER "$(get_text configure.field.ssh-user)" "drawbridge" "${SSH_USER:-drawbridge}" user "$(get_text configure.hint.ssh-user)"
     prompt SSH_GROUP "$(get_text configure.field.ssh-group)" "drawbridge" "${SSH_GROUP:-drawbridge}" user "$(get_text configure.hint.ssh-group)"
     prompt SSH_PORT "$(get_text configure.field.ssh-port)" "2501" "${SSH_PORT:-2501}" ssh_port "$(get_text configure.hint.ssh-port)"
-    close_step_tree
+    finish_step_tree
 
 }
 
@@ -350,7 +350,7 @@ ask_smtp_from() {
         email \
         "$(get_text configure.enter-the-address-email-sender)"
 }
-run_workstation_configure_part_04 "$@"
-run_workstation_configure_part_05 "$@"
-run_workstation_configure_part_06 "$@"
-run_workstation_configure_part_07 "$@"
+workstation_configure_01_run_04_load "$@"
+workstation_configure_01_run_05_prompt "$@"
+workstation_configure_01_run_06_get "$@"
+workstation_configure_01_run_07_pass "$@"

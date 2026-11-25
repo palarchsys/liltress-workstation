@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/deliver.sh
-# Updated at : 2026-11-22
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,27 +13,31 @@
 # -----------------------------------------------------------------------------
 
 
+# An empty block is omitted.
+write_alert_sections() {
+    local summary="$1" excerpt="$2" advice="$3" note="$4" note_cmd="$5"
+    printf '%s\n' "${summary}"
+    if [[ -n "${excerpt}" ]]; then
+        printf '\n%s\n' "${excerpt}"
+    fi
+    if [[ -n "${advice}" ]]; then
+        printf '\n%s\n' "${advice}"
+    fi
+    if [[ -n "${note}" ]]; then
+        printf '\n%s\n' "${note}"
+    fi
+    if [[ -n "${note_cmd}" ]]; then
+        printf '\n%s\n' "${note_cmd}"
+    fi
+}
+
 write_alert_file() {
     local alert="$1" summary="$2" excerpt="$3" advice="$4" note="$5" note_cmd="$6"
-    local dir
+    local directory
     [[ -n "${alert}" ]] || return 0
-    dir="$(dirname -- "${alert}")"
-    mkdir -p "${dir}" 2>/dev/null || true
-    {
-        printf '%s\n' "${summary}"
-        if [[ -n "${excerpt}" ]]; then
-            printf '\n%s\n' "${excerpt}"
-        fi
-        if [[ -n "${advice}" ]]; then
-            printf '\n%s\n' "${advice}"
-        fi
-        if [[ -n "${note}" ]]; then
-            printf '\n%s\n' "${note}"
-        fi
-        if [[ -n "${note_cmd}" ]]; then
-            printf '\n%s\n' "${note_cmd}"
-        fi
-    } >"${alert}" || true
+    directory="$(dirname -- "${alert}")"
+    mkdir -p "${directory}" 2>/dev/null || true
+    write_alert_sections "${summary}" "${excerpt}" "${advice}" "${note}" "${note_cmd}" >"${alert}" || true
 }
 
 # The dated line is copied into the journal when one is open.
@@ -258,19 +262,19 @@ ${detail}"
 
 # The caller owns mail_script. The first existing file is kept.
 locate_mail_engine() {
-    local script_dir="$1"
+    local script_directory="$1"
     local candidate=""
     mail_script=""
     for candidate in \
-        "${script_dir}/mail.sh" \
+        "${script_directory}/mail.sh" \
         "${CONFIG_BASE_DIRECTORY:-}/core/mail/mail.sh" \
         "${INSTALL_DIRECTORY:-}/core/mail/mail.sh" \
         "${INSTALL_DIRECTORY:-}/../share/core/mail/mail.sh" \
-        "${script_dir}/../../../core/mail/mail.sh" \
-        "${script_dir}/../../../../share/core/mail/mail.sh" \
-        "${script_dir}/../share/core/mail/mail.sh" \
-        "${script_dir}/../../core/mail/mail.sh" \
-        "${script_dir}/../../core/mail/mail.sh"; do
+        "${script_directory}/../../../core/mail/mail.sh" \
+        "${script_directory}/../../../../share/core/mail/mail.sh" \
+        "${script_directory}/../share/core/mail/mail.sh" \
+        "${script_directory}/../../core/mail/mail.sh" \
+        "${script_directory}/../../core/mail/mail.sh"; do
         if [[ -n "${candidate}" && -f "${candidate}" ]]; then
             mail_script="${candidate}"
             return 0
@@ -340,9 +344,19 @@ send_html_mail() {
         "${WATCHDOG_MAIL}"
 }
 
+# A caller template wins. Otherwise the catalog path is located.
+read_mail_template() {
+    local script_directory="$1"
+    if [[ -n "${MAIL_TEMPLATE_FILE:-}" && -f "${MAIL_TEMPLATE_FILE}" ]]; then
+        printf '%s\n' "${MAIL_TEMPLATE_FILE}"
+        return 0
+    fi
+    locate_mail_template "${script_directory}"
+}
+
 deliver_mail() {
-    local script_dir="" detail="" tpl="" mail_script=""
-    script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[1]}")" && pwd)"
+    local script_directory="" detail="" tpl="" mail_script=""
+    script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[1]}")" && pwd)"
     detail="$(printf '%s' "${CONTENT:-}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
     if [[ -z "${detail}" ]]; then
         echo "$(get_text watchdog.mail-not-sent-empty-body "${MODULE_NAME:-?}")" >&2
@@ -353,21 +367,17 @@ deliver_mail() {
     export NOTE="${NOTE:-}"
     export NOTE_CMD="${NOTE_CMD:-}"
     export ADVICE="${ADVICE:-}"
-    locate_mail_engine "${script_dir}"
+    locate_mail_engine "${script_directory}"
     if [[ -z "${mail_script}" ]]; then
         echo "$(get_text watchdog.mail-not-sent-core-mail-sh-not-found "${MODULE_NAME}")" >&2
         exit 0
     fi
     # shellcheck disable=SC1090
     source "${mail_script}"
-    if [[ -n "${MAIL_TEMPLATE_FILE:-}" && -f "${MAIL_TEMPLATE_FILE}" ]]; then
-        tpl="${MAIL_TEMPLATE_FILE}"
-    else
-        tpl="$(locate_mail_template "${script_dir}")" || {
-            echo "$(get_text watchdog.mail-not-sent-template-html-not-found "${MODULE_NAME}")" >&2
-            exit 0
-        }
-    fi
+    tpl="$(read_mail_template "${script_directory}")" || {
+        echo "$(get_text watchdog.mail-not-sent-template-html-not-found "${MODULE_NAME}")" >&2
+        exit 0
+    }
     render_alert_html "${tpl}"
     if [[ -n "${HTML_REPORT:-}" ]]; then
         printf '%s\n' "${MAIL_CONTENT}" >"${HTML_REPORT}" || true

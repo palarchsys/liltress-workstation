@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-clamav.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,7 +13,7 @@
 # -----------------------------------------------------------------------------
 
 
-read_scan_run_dir() {
+read_scan_run_directory() {
     local candidate="" line=""
     for candidate in \
         "${BASE:-}/config/service/clamav/scan.conf" \
@@ -22,8 +22,8 @@ read_scan_run_dir() {
         [[ -n "${candidate}" && -f "${candidate}" ]] || continue
         while IFS= read -r line || [[ -n "${line}" ]]; do
             case "${line}" in
-                run-dir=*)
-                    printf '%s\n' "${line#run-dir=}"
+                run-directory=*)
+                    printf '%s\n' "${line#run-directory=}"
                     return 0
                     ;;
             esac
@@ -78,7 +78,7 @@ read_listed_paths() {
     done <"${file}"
 }
 
-append_prune_term() {
+add_prune_term() {
     local path="$1"
     if [[ "${path}" == /* ]]; then
         PRUNE_TERMS+=(-path "${path}" -o -path "${path}/*" -o)
@@ -105,35 +105,35 @@ load_scan_prunes() {
     [[ -n "${file}" ]] || return 0
     while IFS= read -r line; do
         [[ -n "${line}" ]] || continue
-        append_prune_term "${line}"
+        add_prune_term "${line}"
     done < <(read_listed_paths "${file}")
 }
 
-prepare_run_file() {
-    local run_dir=""
-    run_dir="$(read_scan_run_dir)"
-    if ! install -d -m 755 "${run_dir}" 2>/dev/null; then
-        run_dir="${BASE}/cron"
-        mkdir -p -- "${run_dir}"
+init_run_file() {
+    local run_directory=""
+    run_directory="$(read_scan_run_directory)"
+    if ! install -d -m 755 "${run_directory}" 2>/dev/null; then
+        run_directory="${BASE}/cron"
+        mkdir -p -- "${run_directory}"
     fi
-    mktemp -p "${run_dir}"
+    mktemp -p "${run_directory}"
 }
 
-say_pass() {
+log_scan_pass() {
     printf '%s\n' "$*"
 }
 
 take_clamav_lock() {
-    local run_dir=""
-    run_dir="$(read_scan_run_dir)"
-    install -d -m 755 "${run_dir}" 2>/dev/null || mkdir -p -- "${run_dir}"
-    if [[ ! -d "${run_dir}" ]]; then
-        run_dir="${BASE}/cron"
-        mkdir -p -- "${run_dir}"
+    local run_directory=""
+    run_directory="$(read_scan_run_directory)"
+    install -d -m 755 "${run_directory}" 2>/dev/null || mkdir -p -- "${run_directory}"
+    if [[ ! -d "${run_directory}" ]]; then
+        run_directory="${BASE}/cron"
+        mkdir -p -- "${run_directory}"
     fi
-    exec 9>"${run_dir}/clamav.lock"
+    exec 9>"${run_directory}/clamav.lock"
     if ! flock -n 9; then
-        say_pass "$(get_text watchdog.scan-clamav-already-in-progress)"
+        log_scan_pass "$(get_text watchdog.scan-clamav-already-in-progress)"
         exit 0
     fi
 }
@@ -148,7 +148,7 @@ write_quarantine_note() {
     find "${QUARANTINE_DIR}" -type f ! -name '.clamav-quarantine-lock.*' -printf '%p\n' 2>/dev/null | sort >>"${LOG_FILE}" || true
 }
 
-choose_clam_mode() {
+get_clam_mode() {
     CLAM_MODE=scan
     if [[ -S /run/clamav/clamd.ctl || -S /var/run/clamav/clamd.ctl ]]; then
         CLAM_MODE=daemon
@@ -178,7 +178,7 @@ write_walk_list() {
     find "${SCAN_ROOTS[@]}" -type f "${size_terms[@]}" -print0 >"${list}" 2>>"${LOG_FILE}" || true
 }
 
-raise_clamav_hits() {
+set_clamav_hits() {
     local line="" body="" virus="" origin="" response=""
     local -a found_lines=()
     mapfile -t found_lines < <(grep ' FOUND$' "${LOG_FILE}" || true)
@@ -210,7 +210,7 @@ report_walk_hits() {
     fi
     report_clamav || true
     if [[ "${kind}" == "infected" ]]; then
-        raise_clamav_hits
+        set_clamav_hits
         return 0
     fi
     if [[ "${kind}" == "error" ]]; then
@@ -218,14 +218,14 @@ report_walk_hits() {
         return 0
     fi
     if ! grep -q 'clamscan planté signal' "${LOG_FILE}"; then
-        say_pass "clamscan OK"
+        log_scan_pass "clamscan OK"
     fi
 }
 
 run_clamav_walk() {
     local list="" rc=0 max_size=""
     max_size="$(read_scan_value max-size || true)"
-    list="$(prepare_run_file)"
+    list="$(init_run_file)"
     trap 'rm -f "${list}"' EXIT
     write_walk_list "${list}" "${max_size}"
     set +e
@@ -237,7 +237,7 @@ run_clamav_walk() {
     report_walk_hits "${rc}"
 }
 
-run_scan_clamav_part_01() {
+clamav_scan_01_run_01_take() {
     set -euo pipefail
     HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     if [[ -r "${HERE}/watchdog.conf" ]]; then
@@ -262,12 +262,12 @@ run_scan_clamav_part_01() {
     QUARANTINE_DIR="/var/lib/clamav/quarantine"
     : >"${LOG_FILE}"
     take_clamav_lock
-    choose_clam_mode
+    get_clam_mode
 }
 
-run_scan_clamav_part_02() {
+clamav_scan_01_run_02_get() {
     if [[ "${CLAM_MODE}" != "daemon" ]] && ! command -v clamscan >/dev/null 2>&1; then
-        say_pass "$(get_text watchdog.clamscan-absent-skip)"
+        log_scan_pass "$(get_text watchdog.clamscan-absent-skip)"
         exit 0
     fi
     count="$(find "${QUARANTINE_DIR}" -type f ! -name '.clamav-quarantine-lock.*' -printf '%p\n' 2>/dev/null | wc -l)"
@@ -288,9 +288,9 @@ run_scan_clamav_part_02() {
     exit 0
 }
 
-run_scan_clamav_part_03() {
-    run_scan_clamav_part_01 "$@"
-    run_scan_clamav_part_02 "$@"
+clamav_scan_01_run_03_run() {
+    clamav_scan_01_run_01_take "$@"
+    clamav_scan_01_run_02_get "$@"
 }
 
-run_scan_clamav_part_03 "$@"
+clamav_scan_01_run_03_run "$@"

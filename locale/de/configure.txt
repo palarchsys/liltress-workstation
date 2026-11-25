@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/configure.txt
-# Updated at : 2026-11-22
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -877,6 +877,12 @@ clamonacc bleibt nicht aktiv. Detail: {1}/clamonacc.log
 
 [configure.clamav-launched-in-monitoring-continues-on]
 ClamAV gestartet in Überwachung fährt fort auf {1}
+
+[configure.clamav-onaccess-zones]
+die Benutzerordner, /tmp, /var/tmp und /opt
+
+[configure.clamav-onaccess-zones-mounts]
+die Benutzerordner, /tmp, /var/tmp und /opt, /media und /mnt
 
 [configure.chain-of-start-hourly-password-and-scan-all-the-2]
 Kette zum Start und periodische Kette alle 1 h installiert, begrenzt auf {1}% der gesamten CPU

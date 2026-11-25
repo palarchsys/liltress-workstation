@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/clamav/configure.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,16 +11,6 @@
 # Note       : A missing clamonacc unit stops the script.
 # -----------------------------------------------------------------------------
 
-
-INSTALL_WATCHER="${1:-BASH}"
-INSTALL_DIRECTORY="${2:-}"
-export INSTALL_WATCHER INSTALL_DIRECTORY
-
-source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
-source "${INSTALL_DIRECTORY}/config/global.conf"
-# shellcheck disable=SC1091
-# shellcheck source=../../config/service/clamav/onaccess.conf
-source "$(locate_config_file service/clamav/onaccess.conf)"
 
 add_onaccess_directory() {
     local path="$1"
@@ -39,7 +29,7 @@ ensure_xdg_directory() {
     local key="$1"
     local fallback="$2"
     local path
-    path="$(sudo -u "${CURRENT_USER}" -H xdg-user-dir "${key}" 2>/dev/null || true)"
+    path="$(sudo -u "${CURRENT_USER}" -H xdg-user-directory "${key}" 2>/dev/null || true)"
     [[ -n "${path}" && -d "${path}" ]] || path="${CURRENT_HOME}/${fallback}"
     install -d -m 755 -o "${CURRENT_USER}" -g "${CURRENT_USER}" "${path}"
     printf '%s\n' "${path}"
@@ -61,15 +51,15 @@ refresh_clamav_signatures() {
     run_silent "${INSTALL_WATCHER}" "configure.clamav.error" systemctl enable --now clamav-daemon
 }
 
-set_clamav_dirs() {
+set_clamav_directories() {
     get_current_user
     rm -f "${CONFIG_BASE_DIRECTORY}/cron/clamav.conf"
-    download_dir="$(ensure_xdg_directory DOWNLOAD Downloads)"
-    desktop_dir="$(ensure_xdg_directory DESKTOP Desktop)"
-    documents_dir="$(ensure_xdg_directory DOCUMENTS Documents)"
-    music_dir="$(ensure_xdg_directory MUSIC Music)"
-    pictures_dir="$(ensure_xdg_directory PICTURES Pictures)"
-    videos_dir="$(ensure_xdg_directory VIDEOS Videos)"
+    download_directory="$(ensure_xdg_directory DOWNLOAD Downloads)"
+    desktop_directory="$(ensure_xdg_directory DESKTOP Desktop)"
+    documents_directory="$(ensure_xdg_directory DOCUMENTS Documents)"
+    music_directory="$(ensure_xdg_directory MUSIC Music)"
+    pictures_directory="$(ensure_xdg_directory PICTURES Pictures)"
+    videos_directory="$(ensure_xdg_directory VIDEOS Videos)"
     event="${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/clamav-event.sh"
     clam_conf="/etc/clamav/clamd.conf"
 }
@@ -82,12 +72,12 @@ ensure_onaccess_marker() {
 }
 
 add_onaccess_places() {
-    add_onaccess_directory "${download_dir}"
-    add_onaccess_directory "${desktop_dir}"
-    add_onaccess_directory "${documents_dir}"
-    add_onaccess_directory "${music_dir}"
-    add_onaccess_directory "${pictures_dir}"
-    add_onaccess_directory "${videos_dir}"
+    add_onaccess_directory "${download_directory}"
+    add_onaccess_directory "${desktop_directory}"
+    add_onaccess_directory "${documents_directory}"
+    add_onaccess_directory "${music_directory}"
+    add_onaccess_directory "${pictures_directory}"
+    add_onaccess_directory "${videos_directory}"
     add_onaccess_directory /tmp
     add_onaccess_directory /var/tmp
     add_onaccess_directory /opt
@@ -100,8 +90,7 @@ add_onaccess_places() {
     fi
 }
 
-write_onaccess_rules() {
-    local virus_line
+write_onaccess_identity() {
     grep -qx "OnAccessExcludeUname ${ONACCESS_EXCLUDE_UNAME}" "${clam_conf}" \
         || printf 'OnAccessExcludeUname %s\n' "${ONACCESS_EXCLUDE_UNAME}" >>"${clam_conf}"
     grep -qx "OnAccessExcludeRootUID ${ONACCESS_EXCLUDE_ROOTUID}" "${clam_conf}" \
@@ -111,6 +100,10 @@ write_onaccess_rules() {
     else
         printf 'OnAccessMaxFileSize %s\n' "${ONACCESS_MAX_FILE_SIZE}" >>"${clam_conf}"
     fi
+}
+
+write_onaccess_event() {
+    local virus_line
     grep -qx "OnAccessPrevention ${ONACCESS_PREVENTION}" "${clam_conf}" \
         || printf 'OnAccessPrevention %s\n' "${ONACCESS_PREVENTION}" >>"${clam_conf}"
     grep -qx "OnAccessExtraScanning ${ONACCESS_EXTRA_SCANNING}" "${clam_conf}" \
@@ -124,6 +117,11 @@ write_onaccess_rules() {
     if ! grep -q '^TemporaryDirectory ' "${clam_conf}"; then
         printf 'TemporaryDirectory %s\n' "${CLAMAV_TEMPORARY_DIRECTORY}" >>"${clam_conf}"
     fi
+}
+
+write_onaccess_rules() {
+    write_onaccess_identity
+    write_onaccess_event
 }
 
 apply_clamav_onaccess() {
@@ -193,17 +191,30 @@ run_clamonacc() {
     if grep -q "can't exclude" "${clam_log}"; then
         log_error "${INSTALL_WATCHER}" "configure.clamonacc-exclude-stopped-the-watches" "${INSTALL_LOG_DIR:-/var/log/liltress-workstation}"
     fi
-    zone_label="les dossiers utilisateur, /tmp, /var/tmp et /opt"
     if [[ "${ONACCESS_MOUNTS}" == "1" ]]; then
-        zone_label="${zone_label}, /media et /mnt"
+        zone_label="$(get_text configure.clamav-onaccess-zones-mounts)"
+    else
+        zone_label="$(get_text configure.clamav-onaccess-zones)"
     fi
     log_success "${INSTALL_WATCHER}" "configure.clamav-launched-in-monitoring-continues-on" "${zone_label}"
 }
-require_root
 
-refresh_clamav_signatures
-set_clamav_dirs
-apply_clamav_onaccess
-write_clamav_sudoers
-install_clamonacc_unit
-run_clamonacc
+clamav_configure_01_run_01_restart() {
+    INSTALL_WATCHER="${1:-BASH}"
+    INSTALL_DIRECTORY="${2:-}"
+    export INSTALL_WATCHER INSTALL_DIRECTORY
+    source "${INSTALL_DIRECTORY}/core/boot/lib.sh"
+    source "${INSTALL_DIRECTORY}/config/global.conf"
+    # shellcheck disable=SC1091
+    # shellcheck source=../../config/service/clamav/onaccess.conf
+    source "$(locate_config_file service/clamav/onaccess.conf)"
+    require_root
+    refresh_clamav_signatures
+    set_clamav_directories
+    apply_clamav_onaccess
+    write_clamav_sudoers
+    install_clamonacc_unit
+    run_clamonacc
+}
+
+clamav_configure_01_run_01_restart "$@"

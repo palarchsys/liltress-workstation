@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/vpn/failover.sh
-# Updated at : 2026-11-16
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -14,11 +14,11 @@
 
 # NetworkManager stays quiet across the full stop.
 arm_vpn_nm_hold() {
-    if declare -F vpn_nm_hold_on >/dev/null 2>&1; then
-        vpn_nm_hold_on
-        vpn_nm_autoconnect_all false || true
-        stop_vpn_nm_all || true
-        vpn_nm_hold_off
+    if declare -F set_vpn_nm_hold_on >/dev/null 2>&1; then
+        set_vpn_nm_hold_on
+        set_vpn_nm_autoconnect_all false || true
+        clear_vpn_nm_all || true
+        set_vpn_nm_hold_off
     fi
     return 0
 }
@@ -99,16 +99,16 @@ check_vpn_failover_live() {
 
 # Zero profiles turn the mode off. Any profile left closes the network.
 finish_vpn_failover_none() {
-    if [[ "$(count_vpn_profiles)" == "0" ]]; then
+    if [[ "$(get_vpn_profile_count)" == "0" ]]; then
         send_vpn_alert "-" "-" "-" "failover"
         run_vpn_mode_off
-        note_vpn_log failover "-" none ""
+        record_vpn_log failover "-" none ""
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.none"
     else
         arm_vpn_lockdown
         restart_vpn_services
         send_vpn_alert "-" "-" "-" "failover"
-        note_vpn_log failover "-" hold ""
+        record_vpn_log failover "-" hold ""
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.mode.hold"
     fi
 }
@@ -127,13 +127,13 @@ finish_vpn_failover_open() {
         load_vpn_settings
     fi
     apply_vpn_systemd || true
-    if declare -F vpn_nm_apply_autoconnect >/dev/null 2>&1; then
-        vpn_nm_apply_autoconnect || true
+    if declare -F apply_vpn_nm_autoconnect >/dev/null 2>&1; then
+        apply_vpn_nm_autoconnect || true
     fi
-    if declare -F vpn_nm_switch_off >/dev/null 2>&1; then
-        vpn_nm_switch_off
+    if declare -F set_vpn_nm_switch_off >/dev/null 2>&1; then
+        set_vpn_nm_switch_off
     fi
-    note_vpn_log failover "${name}" ok ""
+    record_vpn_log failover "${name}" ok ""
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.failover.ok" "${name}"
 }
 
@@ -143,7 +143,7 @@ run_vpn_failover_tries() {
     try=1
     while ((try <= VPN_FAILOVER_TRIES)); do
         raised=0
-        note_vpn_log failover "${name}" try "${try}"
+        record_vpn_log failover "${name}" try "${try}"
         run_vpn_profile "${name}" "${VPN_FAILOVER_TIMEOUT}" || raised=$?
         if ((raised == 0)); then
             finish_vpn_failover_open "${name}"
@@ -164,7 +164,7 @@ run_vpn_failover_names() {
             continue
         fi
         run_vpn_failover_tries "${name}" && return 0
-        forget_vpn_profile "${name}" "dead"
+        clear_vpn_profile "${name}" "dead"
     done
     return 1
 }
@@ -187,38 +187,49 @@ run_vpn_failover() {
         finish_vpn_failover_none
         return 0
     fi
-    if declare -F vpn_nm_switch_on >/dev/null 2>&1; then
-        vpn_nm_switch_on
+    if declare -F set_vpn_nm_switch_on >/dev/null 2>&1; then
+        set_vpn_nm_switch_on
     fi
-    note_vpn_log failover "-" start ""
+    record_vpn_log failover "-" start ""
     log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.start"
     run_vpn_failover_names "${names[@]}" && return 0
-    if declare -F vpn_nm_switch_off >/dev/null 2>&1; then
-        vpn_nm_switch_off
-    fi
+    clear_vpn_failover_switch
     finish_vpn_failover_none
 }
 
-# The profile directory goes away. Integrity is visited three times.
-forget_vpn_profile() {
-    local name="$1" reason="${2:-rm}" total saved_defer
-    [[ -n "${name}" ]] || return 1
-    total="$(count_vpn_profiles)"
-    remove_vpn_iface "${name}" || true
+# The hold ends when no candidate came up.
+clear_vpn_failover_switch() {
+    if declare -F set_vpn_nm_switch_off >/dev/null 2>&1; then
+        set_vpn_nm_switch_off
+    fi
+}
+
+# NetworkManager drops its copy when that helper is loaded.
+remove_vpn_nm_profile() {
+    local name="$1"
     if declare -F remove_vpn_nm_connection >/dev/null 2>&1; then
         remove_vpn_nm_connection "${name}" || true
     fi
-    rm -rf "$(get_vpn_profile_dir "${name}")"
+}
+
+# The profile directory goes away. Integrity is visited three times.
+clear_vpn_profile() {
+    local name="$1" reason="${2:-rm}" total saved_defer
+    [[ -n "${name}" ]] || return 1
+    total="$(get_vpn_profile_count)"
+    remove_vpn_iface "${name}" || true
+    remove_vpn_nm_profile "${name}"
+    rm -rf "$(get_vpn_profile_directory "${name}")"
     if declare -F remove_vpn_state >/dev/null 2>&1; then
         remove_vpn_state "${name}"
     fi
     if [[ "${reason}" == "dead" ]]; then
-        note_vpn_log failover "${name}" drop "${reason}"
+        record_vpn_log failover "${name}" drop "${reason}"
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.drop" "${name}"
         refresh_vpn_integrity
         return 0
     fi
-    note_vpn_log rm "${name}" ok "${reason}"
+    record_vpn_log rm "${name}" ok "${reason}"
     if [[ "${total}" == "1" ]]; then
         saved_defer="${VPN_DEFER_INTEGRITY:-0}"
         VPN_DEFER_INTEGRITY=1
@@ -245,10 +256,10 @@ apply_vpn_successor_live() {
     set_vpn_state_mode on
     load_vpn_settings
     apply_vpn_systemd || true
-    if declare -F vpn_nm_apply_autoconnect >/dev/null 2>&1; then
-        vpn_nm_apply_autoconnect || true
+    if declare -F apply_vpn_nm_autoconnect >/dev/null 2>&1; then
+        apply_vpn_nm_autoconnect || true
     fi
-    note_vpn_log rm "${name}" ok "default"
+    record_vpn_log rm "${name}" ok "default"
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.default.promoted" "${name}"
     return 0
 }
@@ -256,8 +267,8 @@ apply_vpn_successor_live() {
 # A quiet removal stores the next profile without opening a tunnel.
 record_vpn_successor() {
     local name="$1" raised=0
-    if declare -F prove_vpn_profile >/dev/null 2>&1; then
-        prove_vpn_profile "${name}" || raised=$?
+    if declare -F check_vpn_profile >/dev/null 2>&1; then
+        check_vpn_profile "${name}" || raised=$?
     else
         raised=1
     fi
@@ -268,10 +279,10 @@ record_vpn_successor() {
     set_vpn_state_default "${name}"
     load_vpn_settings
     apply_vpn_systemd || true
-    if declare -F vpn_nm_apply_autoconnect >/dev/null 2>&1; then
-        vpn_nm_apply_autoconnect || true
+    if declare -F apply_vpn_nm_autoconnect >/dev/null 2>&1; then
+        apply_vpn_nm_autoconnect || true
     fi
-    note_vpn_log rm "${name}" ok "default"
+    record_vpn_log rm "${name}" ok "default"
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.default.promoted" "${name}"
     return 0
 }
@@ -295,7 +306,7 @@ run_vpn_successor() {
     shift
     for name in "$@"; do
         [[ -n "${name}" ]] || continue
-        [[ -f "$(get_vpn_profile_dir "${name}")/meta" ]] || continue
+        [[ -f "$(get_vpn_profile_directory "${name}")/meta" ]] || continue
         if [[ "${was_active}" == "1" ]]; then
             apply_vpn_successor_live "${name}" && return 0
             continue
@@ -315,8 +326,16 @@ run_vpn_mode_off() {
     clear_vpn_network
     restart_vpn_services
     refresh_vpn_integrity
-    note_vpn_log mode-off "-" ok ""
+    record_vpn_log mode-off "-" ok ""
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.mode.off"
+}
+
+# No saved profile can be opened.
+fail_vpn_mode_none() {
+    if ! check_vpn_any_valid; then
+        record_vpn_log mode-on "-" fail "none"
+        log_error "${INSTALL_WATCHER:-BASH}" "vpn.mode.none"
+    fi
 }
 
 # The mode goes on, then a pass seeks a tunnel.
@@ -326,23 +345,20 @@ run_vpn_mode_on() {
     load_vpn_settings
     active="$(get_vpn_active 2>/dev/null || true)"
     if check_vpn_mode && [[ -n "${active}" ]] && check_vpn_tunnel "${active}"; then
-        note_vpn_log mode-on "${active}" ok "same"
+        record_vpn_log mode-on "${active}" ok "same"
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.mode.same" "${active}"
         return 0
     fi
     if ! check_vpn_mode; then
-        if ! check_vpn_any_valid; then
-            note_vpn_log mode-on "-" fail "none"
-            log_error "${INSTALL_WATCHER:-BASH}" "vpn.mode.none"
-        fi
+        fail_vpn_mode_none
         set_vpn_state_mode on
         load_vpn_settings
         apply_vpn_systemd || {
-            note_vpn_log mode-on "-" fail "install"
+            record_vpn_log mode-on "-" fail "install"
             log_error "${INSTALL_WATCHER:-BASH}" "vpn.install.fail"
         }
     elif ! check_vpn_any_valid; then
-        note_vpn_log mode-on "-" hold ""
+        record_vpn_log mode-on "-" hold ""
         log_info "${INSTALL_WATCHER:-BASH}" "vpn.mode.hold"
         return 0
     fi
@@ -350,7 +366,7 @@ run_vpn_mode_on() {
     run_vpn_failover
     VPN_DEFER_INTEGRITY=0
     refresh_vpn_integrity
-    note_vpn_log mode-on "-" ok ""
+    record_vpn_log mode-on "-" ok ""
     log_success "${INSTALL_WATCHER:-BASH}" "vpn.mode.on"
 }
 

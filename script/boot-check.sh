@@ -12,31 +12,10 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../core/boot/python.sh"
 
-source_python_boot
-
-run_boot_check_part_01() {
+workstation_boot_check_01_run_01_get() {
     set -u
     BASE="${BASE:-/opt/liltress-workstation}"
     if [[ -f "${BASE}/bin/log.sh" ]]; then
@@ -75,10 +54,10 @@ record_boot_mark() {
 }
 
 get_millisecond() {
-    python3 "$(locate_python_dir)/boot-duration.py" "$1"
+    python3 "$(locate_python_directory)/boot-duration.py" "$1"
 }
 
-run_boot_check_part_02() {
+workstation_boot_check_01_run_02_show() {
     unit_file="/etc/systemd/system/${unit}.service"
     file_quota="$(grep -E '^CPUQuota=' "${unit_file}" 2>/dev/null | cut -d= -f2-)"
     file_nice="$(grep -E '^Nice=' "${unit_file}" 2>/dev/null | cut -d= -f2-)"
@@ -94,7 +73,7 @@ run_boot_check_part_02() {
     fi
 }
 
-run_boot_check_part_03() {
+workstation_boot_check_01_run_03_get() {
     nproc_n="$(nproc)"
     limit=50
     nice_want=19
@@ -122,7 +101,7 @@ run_boot_check_part_03() {
     printf "$(get_text log.persistent-services-n)"
 }
 
-run_boot_check_part_04() {
+workstation_boot_check_01_run_04_record() {
     for unit in ssh clamav-daemon clamav-freshclam crowdsec crowdsec-firewall-bouncer fail2ban auditd apparmor unattended-upgrades unbound systemd-resolved; do
         enabled="$(systemctl is-enabled "${unit}" 2>/dev/null || echo absent)"
         active="$(systemctl is-active "${unit}" 2>/dev/null || echo absent)"
@@ -139,7 +118,7 @@ run_boot_check_part_04() {
     fi
 }
 
-run_boot_check_part_05() {
+workstation_boot_check_01_run_05_record() {
     if systemctl is-active --quiet usbguard; then
         record_boot_mark OK "usbguard actif"
     elif [[ -f /etc/usbguard/rules.conf ]] && ! grep -qF 'allow with-interface equals { 03:*:* }' /etc/usbguard/rules.conf; then
@@ -157,7 +136,7 @@ run_boot_check_part_05() {
     fi
 }
 
-run_boot_check_part_06() {
+workstation_boot_check_01_run_06_record() {
     if [[ -f "${BASE}/cron/mail.conf" ]] && grep -q '^MAIL_ALERTS="1"$' "${BASE}/cron/mail.conf"; then
         if systemctl is-active --quiet postfix; then
             record_boot_mark OK "postfix actif"
@@ -177,7 +156,7 @@ run_boot_check_part_06() {
     printf '\n===== minuteries =====\n'
 }
 
-run_boot_check_part_07() {
+workstation_boot_check_01_run_07_scan() {
     for timer in w-boot-chain w-periodic-scan w-reboot-notice; do
         enabled="$(systemctl is-enabled "${timer}.timer" 2>/dev/null || echo absent)"
         active="$(systemctl is-active "${timer}.timer" 2>/dev/null || echo absent)"
@@ -199,13 +178,13 @@ run_boot_check_part_07() {
     fi
     printf '\n===== plafond CPU =====\n'
     for unit in w-boot-scan w-periodic-scan w-reboot-notice; do
-        run_boot_check_part_02 "$@"
+        workstation_boot_check_01_run_02_show "$@"
     done
     chain_state="$(systemctl show -p ActiveState --value w-boot-chain.service)"
     printf "$(get_text log.n-passes-of-this-start-n)"
 }
 
-run_boot_check_part_08() {
+workstation_boot_check_01_run_08_record() {
     if [[ "${chain_state}" == "active" || "${chain_state}" == "activating" ]]; then
         record_boot_mark EN_COURS "w-boot-chain.service état=${chain_state}"
     else
@@ -227,13 +206,13 @@ run_boot_check_part_08() {
     # 7d4958e8 start, 39f53479 success, be02cf68 or d9b373ed failure.
 }
 
-run_boot_check_part_09() {
-    run_boot_check_part_03 "$@"
-    run_boot_check_part_04 "$@"
-    run_boot_check_part_05 "$@"
-    run_boot_check_part_06 "$@"
-    run_boot_check_part_07 "$@"
-    run_boot_check_part_08 "$@"
+workstation_boot_check_01_run_09_run() {
+    workstation_boot_check_01_run_03_get "$@"
+    workstation_boot_check_01_run_04_record "$@"
+    workstation_boot_check_01_run_05_record "$@"
+    workstation_boot_check_01_run_06_record "$@"
+    workstation_boot_check_01_run_07_scan "$@"
+    workstation_boot_check_01_run_08_record "$@"
 }
 
 get_journal_mark() {
@@ -291,7 +270,7 @@ check_boot_unit() {
     fi
 }
 
-run_boot_check_part_10() {
+workstation_boot_check_01_run_10_check() {
     check_boot_unit w-boot-scan.service
     check_boot_unit w-periodic-scan.service
     check_boot_unit w-reboot-notice.service
@@ -299,17 +278,17 @@ run_boot_check_part_10() {
 }
 
 get_latest_log() {
-    local name="$1" dir found=""
-    for dir in "/var/lib/liltress-workstation/watchdog/security_logs" "${BASE}/cron/security_logs"; do
-        [[ -d "${dir}" ]] || continue
-        found="$(find "${dir}" -maxdepth 1 -type f -name "${name}-*.log" -newermt "$(uptime -s)" -printf '%T@ %p\n' 2>/dev/null \
+    local name="$1" directory found=""
+    for directory in "/var/lib/liltress-workstation/watchdog/security_logs" "${BASE}/cron/security_logs"; do
+        [[ -d "${directory}" ]] || continue
+        found="$(find "${directory}" -maxdepth 1 -type f -name "${name}-*.log" -newermt "$(uptime -s)" -printf '%T@ %p\n' 2>/dev/null \
             | sort -n | tail -1 | cut -d' ' -f2-)"
         [[ -n "${found}" ]] && break
     done
     printf '%s\n' "${found}"
 }
 
-run_boot_check_part_11() {
+workstation_boot_check_01_run_11_get() {
     for name in aide rkhunter chkrootkit debsums clamav auditd integrity egress reboot-notice; do
         log_file="$(get_latest_log "${name}")"
         if [[ -z "${log_file}" ]]; then
@@ -332,7 +311,7 @@ run_boot_check_part_11() {
     printf "$(get_text log.n)"
 }
 
-run_boot_check_part_12() {
+workstation_boot_check_01_run_12_get() {
     if [[ "${ecart_n}" -eq 0 && "${cours_n}" -eq 0 ]]; then
         printf "$(get_text log.check-of-start-ok-n)"
         exit 0
@@ -345,15 +324,15 @@ run_boot_check_part_12() {
     exit 1
 }
 
-run_boot_check_part_13() {
-    run_boot_check_part_11 "$@"
-    run_boot_check_part_12 "$@"
+workstation_boot_check_01_run_13_run() {
+    workstation_boot_check_01_run_11_get "$@"
+    workstation_boot_check_01_run_12_get "$@"
 }
 
-run_boot_check_part_01 "$@"
+workstation_boot_check_01_run_01_get "$@"
 
-run_boot_check_part_09 "$@"
+workstation_boot_check_01_run_09_run "$@"
 
-run_boot_check_part_10 "$@"
+workstation_boot_check_01_run_10_check "$@"
 
-run_boot_check_part_13 "$@"
+workstation_boot_check_01_run_13_run "$@"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/chain-periodic.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -31,7 +31,7 @@ run_periodic_chain() {
     local base="" lock_path="" previous=""
     base="$(get_product_base)"
     mkdir -p -- "${base}/cron" "${base}/log"
-    lock_path="$(watchdog_runtime_file "${base}" watchdog-chain.lock)"
+    lock_path="$(get_watchdog_runtime_file "${base}" watchdog-chain.lock)"
     exec 9>"${lock_path}"
     if ! flock -n 9; then
         return 0
@@ -42,7 +42,7 @@ run_periodic_chain() {
     run_periodic_link scan-fingerprint.sh "empreinte"
     run_periodic_link scan-egress.sh "journal sortant"
     run_periodic_link scan-usbguard.sh "USBGuard"
-    previous="$(watchdog_runtime_file "${base}" watchdog-chain.stamp)"
+    previous="$(get_watchdog_runtime_file "${base}" watchdog-chain.stamp)"
     date +%s >"${previous}"
     chmod 600 "${previous}" 2>/dev/null || true
 }

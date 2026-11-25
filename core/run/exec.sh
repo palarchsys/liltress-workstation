@@ -11,29 +11,8 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
-
-source_python_boot
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../boot/python.sh"
 
 # GO streams each line. The caller owns nothing from this path.
 run_watch_go() {
@@ -164,10 +143,10 @@ run_silent_apt() {
 
 # The caller owns step_exit.
 run_one_step() {
-    local dir_install_path="$1"
+    local directory_install_path="$1"
     local server_type="$2"
     local step="$3"
-    local full_path="${dir_install_path}/${step}"
+    local full_path="${directory_install_path}/${step}"
     local step_log=""
     if [[ ! -f "$full_path" ]]; then
         log_error "${INSTALL_WATCHER:-BASH}" "log.file-not-found" "$full_path"
@@ -180,31 +159,41 @@ run_one_step() {
         mkdir -p "${INSTALL_LOG_DIR}/steps"
         set +e
         if [[ "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
-            SECTION_OPEN="${SECTION_OPEN:-0}" SECTION_HAD_STEP="${SECTION_HAD_STEP:-0}" STEP_LABEL="${step}" bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type" 2>&1 | tee -a "$step_log"
+            SECTION_OPEN="${SECTION_OPEN:-0}" SECTION_HAD_STEP="${SECTION_HAD_STEP:-0}" STEP_LABEL="${step}" bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$directory_install_path" "$server_type" 2>&1 | tee -a "$step_log"
         else
-            bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type" 2>&1 | tee -a "$step_log"
+            bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$directory_install_path" "$server_type" 2>&1 | tee -a "$step_log"
         fi
         step_exit=${PIPESTATUS[0]}
         set -e
-        mark_section_step
+        record_section_step
         log_index_append "${step}" "${step_exit}" "${step_log}"
         publish_repo_logs "${INSTALL_LOG_DIR}"
         return 0
     fi
     set +e
     if [[ "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
-        SECTION_OPEN="${SECTION_OPEN:-0}" SECTION_HAD_STEP="${SECTION_HAD_STEP:-0}" STEP_LABEL="${step}" bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type"
+        SECTION_OPEN="${SECTION_OPEN:-0}" SECTION_HAD_STEP="${SECTION_HAD_STEP:-0}" STEP_LABEL="${step}" bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$directory_install_path" "$server_type"
     else
-        bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$dir_install_path" "$server_type"
+        bash "$full_path" "${INSTALL_WATCHER:-BASH}" "$directory_install_path" "$server_type"
     fi
     step_exit=$?
     set -e
-    mark_section_step
+    record_section_step
     log_index_append "${step}" "${step_exit}" ""
 }
 
+# An empty or missing install directory stops the step.
+check_install_directory() {
+    local directory_install_path="$1"
+    [[ -z "$directory_install_path" || ! -d "$directory_install_path" ]] && {
+        log_error "${INSTALL_WATCHER:-BASH}" "log.directory-install-path-invalid" "$directory_install_path"
+        return 1
+    }
+    return 0
+}
+
 run_step() {
-    local dir_install_path="$1"
+    local directory_install_path="$1"
     local server_type=""
     shift
 
@@ -225,13 +214,10 @@ run_step() {
         return 1
     }
 
-    [[ -z "$dir_install_path" || ! -d "$dir_install_path" ]] && {
-        log_error "${INSTALL_WATCHER:-BASH}" "log.dir-install-path-invalid" "$dir_install_path"
-        return 1
-    }
+    check_install_directory "$directory_install_path" || return 1
 
     for step in "${steps[@]}"; do
-        run_one_step "${dir_install_path}" "${server_type}" "${step}"
+        run_one_step "${directory_install_path}" "${server_type}" "${step}"
         if [[ $step_exit -ne 0 ]]; then
             exit $step_exit
         fi
@@ -292,11 +278,11 @@ run_plan_target() {
             ;;
         *)
             if [[ "${INSTALL_WATCHER:-BASH}" != "GO" ]]; then
-                open_step_tree "$(get_text log.execution-of "${target}")"
+                begin_step_tree "$(get_text log.execution-of "${target}")"
             fi
             run_install_action "${target}"
-            close_step_tree
-            mark_section_step
+            finish_step_tree
+            record_section_step
             ;;
     esac
 }
@@ -317,7 +303,7 @@ run_install_plan() {
         fi
         run_plan_target "${root}" "${profile}" "${kind}" "${target}" "${envspec}"
     done < <(
-        python3 "$(locate_python_dir)/install-plan.py" steps "${plan}"
+        python3 "$(locate_python_directory)/install-plan.py" steps "${plan}"
     )
 }
 

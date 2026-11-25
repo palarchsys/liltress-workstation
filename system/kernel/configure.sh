@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/kernel/configure.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -29,8 +29,8 @@ apply_strict_mode() {
 }
 require_root
 log_info "${INSTALL_WATCHER}" "configure.tightening-of-the-permissions-of-the-files-read"
-for cron_dir in /etc/cron.d /etc/cron.hourly /etc/cron.daily /etc/cron.weekly /etc/cron.monthly; do
-    apply_strict_mode 700 root root "${cron_dir}"
+for cron_directory in /etc/cron.d /etc/cron.hourly /etc/cron.daily /etc/cron.weekly /etc/cron.monthly; do
+    apply_strict_mode 700 root root "${cron_directory}"
 done
 apply_strict_mode 600 root root /etc/crontab
 apply_strict_mode 600 root root /etc/ssh/sshd_config

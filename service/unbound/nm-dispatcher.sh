@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # File       : service/unbound/nm-dispatcher.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_nm_dispatcher_part_01() {
+unbound_nm_dispatcher_01_run_01_show() {
     interface="${1:-}"
     action="${2:-}"
     case "${action}" in
@@ -38,7 +38,7 @@ run_nm_dispatcher_part_01() {
     fi
 }
 
-run_nm_dispatcher_part_02() {
+unbound_nm_dispatcher_01_run_02_run() {
     if ! timeout 1 bash -c ':</dev/tcp/127.0.0.1/53' >/dev/null 2>&1; then
         exit 0
     fi
@@ -49,9 +49,9 @@ run_nm_dispatcher_part_02() {
     exit 0
 }
 
-run_nm_dispatcher_part_03() {
-    run_nm_dispatcher_part_01 "$@"
-    run_nm_dispatcher_part_02 "$@"
+unbound_nm_dispatcher_01_run_03_run() {
+    unbound_nm_dispatcher_01_run_01_show "$@"
+    unbound_nm_dispatcher_01_run_02_run "$@"
 }
 
-run_nm_dispatcher_part_03 "$@"
+unbound_nm_dispatcher_01_run_03_run "$@"

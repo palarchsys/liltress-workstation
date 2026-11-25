@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/common.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_common_part_01() {
+common_watchdog_01_run_01_run() {
     set -euo pipefail
     if [[ -n "${LILTRESS_COMMON_LOADED:-}" ]]; then
         return 0
@@ -21,28 +21,35 @@ run_common_part_01() {
     # A watchdog.conf beside this file wins. Otherwise the nearest global.conf does.
 }
 
-load_common_product() {
-    local dir="" hops=0
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    if [[ -r "${dir}/watchdog.conf" ]]; then
-        # shellcheck disable=SC1091
-        source "${dir}/watchdog.conf"
-    fi
-    if [[ -n "${BASE:-}" || -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
-        return 0
-    fi
-    while [[ -n "${dir}" && "${dir}" != "/" && "${hops}" -lt 8 ]]; do
-        if [[ -f "${dir}/config/global.conf" ]]; then
+# The nearest global.conf above this file supplies the product.
+load_common_global() {
+    local directory="$1"
+    local hops=0
+    while [[ -n "${directory}" && "${directory}" != "/" && "${hops}" -lt 8 ]]; do
+        if [[ -f "${directory}/config/global.conf" ]]; then
             # shellcheck disable=SC1091
-            source "${dir}/config/global.conf"
+            source "${directory}/config/global.conf"
             return 0
         fi
-        dir="$(dirname -- "${dir}")"
+        directory="$(dirname -- "${directory}")"
         hops=$((hops + 1))
     done
 }
 
-run_common_part_02() {
+load_common_product() {
+    local directory=""
+    directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    if [[ -r "${directory}/watchdog.conf" ]]; then
+        # shellcheck disable=SC1091
+        source "${directory}/watchdog.conf"
+    fi
+    if [[ -n "${BASE:-}" || -n "${CONFIG_BASE_DIRECTORY:-}" ]]; then
+        return 0
+    fi
+    load_common_global "${directory}"
+}
+
+common_watchdog_01_run_02_load() {
     load_common_product
     if [[ -z "${BASE:-}" ]]; then
         BASE="${CONFIG_BASE_DIRECTORY:-/opt/liltress-workstation}"
@@ -64,7 +71,7 @@ run_common_part_02() {
 
 log_pass() { printf '%s %s\n' "$(date -Iseconds)" "$*" | tee -a "${LOG_FILE}"; }
 
-run_common_part_03() {
+common_watchdog_01_run_03_load() {
     here_watchdog="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     for candidate_watchdog in \
         "${BASE:-}/core/watchdog/load.sh" \
@@ -79,23 +86,23 @@ run_common_part_03() {
     done
 }
 
-run_common_part_04() {
+common_watchdog_01_run_04_load() {
     if ! declare -F load_shared_watchdog >/dev/null 2>&1; then
-        dir_watchdog="${here_watchdog}"
+        directory_watchdog="${here_watchdog}"
         hops_watchdog=0
-        while [[ -n "${dir_watchdog}" && "${dir_watchdog}" != "/" && "${hops_watchdog}" -lt 16 ]]; do
-            if [[ -f "${dir_watchdog}/core/watchdog/load.sh" ]]; then
+        while [[ -n "${directory_watchdog}" && "${directory_watchdog}" != "/" && "${hops_watchdog}" -lt 16 ]]; do
+            if [[ -f "${directory_watchdog}/core/watchdog/load.sh" ]]; then
                 # shellcheck disable=SC1090
-                source "${dir_watchdog}/core/watchdog/load.sh"
+                source "${directory_watchdog}/core/watchdog/load.sh"
                 break
             fi
-            dir_watchdog="$(dirname -- "${dir_watchdog}")"
+            directory_watchdog="$(dirname -- "${directory_watchdog}")"
             hops_watchdog=$((hops_watchdog + 1))
         done
     fi
 }
 
-run_common_part_05() {
+common_watchdog_01_run_05_load() {
     if declare -F load_shared_watchdog >/dev/null 2>&1; then
         load_shared_watchdog "${here_watchdog}" || exit 1
     else
@@ -107,14 +114,14 @@ run_common_part_05() {
     fi
 }
 
-run_common_part_06() {
-    run_common_part_03 "$@"
-    run_common_part_04 "$@"
-    run_common_part_05 "$@"
+common_watchdog_01_run_06_run() {
+    common_watchdog_01_run_03_load "$@"
+    common_watchdog_01_run_04_load "$@"
+    common_watchdog_01_run_05_load "$@"
 }
 
-run_common_part_01 "$@"
+common_watchdog_01_run_01_run "$@"
 
-run_common_part_02 "$@"
+common_watchdog_01_run_02_load "$@"
 
-run_common_part_06 "$@"
+common_watchdog_01_run_06_run "$@"

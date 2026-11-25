@@ -12,29 +12,8 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
-
-source_python_boot
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../../core/boot/python.sh"
 
 read_host_mode() {
     local candidate="" line=""
@@ -67,7 +46,7 @@ read_spare_names() {
     SPARE_NAMES=(systemd sshd unbound fail2ban)
 }
 
-run_scan_chkrootkit_part_01() {
+chkrootkit_scan_01_run_01_locate() {
     set -euo pipefail
     # shellcheck disable=SC1091
     source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/common.sh"
@@ -90,7 +69,7 @@ run_scan_chkrootkit_part_01() {
     fi
 }
 
-run_scan_chkrootkit_part_02() {
+chkrootkit_scan_01_run_02_get() {
     if [[ ! -f "${IGNORE}" && -f "${HERE}/chkrootkit.ignore" ]]; then
         IGNORE="${HERE}/chkrootkit.ignore"
     fi
@@ -109,7 +88,7 @@ run_scan_chkrootkit_part_02() {
         RAW="${LOG_FILE}.raw"
         sudo /usr/sbin/chkrootkit -x -q 2>&1 | tee "${RAW}" >/dev/null
         rc="${PIPESTATUS[0]}"
-        python3 "$(locate_python_dir)/chkrootkit-filter.py" server "${RAW}" "${LOG_FILE}" "${IGNORE}" || true
+        python3 "$(locate_python_directory)/chkrootkit-filter.py" server "${RAW}" "${LOG_FILE}" "${IGNORE}" || true
         rm -f "${RAW}"
     else
         chkrootkit -q -s 'NetworkManager|wpa_supplicant|systemd-networkd' >"${LOG_FILE}" 2>&1
@@ -136,22 +115,28 @@ read_chkrootkit_fragment() {
 
 run_chkrootkit_filter() {
     if [[ -n "${1:-}" ]]; then
-        python3 "$(locate_python_dir)/chkrootkit-filter.py" workstation "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}" "$1"
+        python3 "$(locate_python_directory)/chkrootkit-filter.py" workstation "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}" "$1"
         return 0
     fi
-    python3 "$(locate_python_dir)/chkrootkit-filter.py" workstation "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}"
+    python3 "$(locate_python_directory)/chkrootkit-filter.py" workstation "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}"
 }
 
-run_scan_chkrootkit_part_03() {
+# A workstation report is filtered when an ignore list or a fragment exists.
+apply_chkrootkit_ignore() {
+    local fragment="$1"
+    if [[ "${HOST_MODE}" != "server" && (-f "${IGNORE}" || -f "${LOCAL_IGNORE}" || -n "${fragment}") ]]; then
+        run_chkrootkit_filter "${fragment}"
+    fi
+}
+
+chkrootkit_scan_01_run_03_get() {
     local fragment=""
     if [[ "${rc}" -ge 128 ]]; then
         log_alert "$(get_crash_sentence "chkrootkit" "${rc}")"
         crashed=1
     fi
     fragment="$(read_chkrootkit_fragment)"
-    if [[ "${HOST_MODE}" != "server" && (-f "${IGNORE}" || -f "${LOCAL_IGNORE}" || -n "${fragment}") ]]; then
-        run_chkrootkit_filter "${fragment}"
-    fi
+    apply_chkrootkit_ignore "${fragment}"
     CONFIRMED_COUNT=0
     confirmed_tmp="$(mktemp)"
     record_quarantine_log chkrootkit "${LOG_FILE}" "${SPARE_NAMES[@]}" >"${confirmed_tmp}" || true
@@ -161,7 +146,7 @@ run_scan_chkrootkit_part_03() {
     rm -f "${confirmed_tmp}"
 }
 
-run_scan_chkrootkit_part_04() {
+chkrootkit_scan_01_run_04_get() {
     if [[ -s "${LOG_FILE}" ]]; then
         if [[ "${CONFIRMED_COUNT:-0}" -eq 0 ]]; then
             CHKROOTKIT_IGNORE=1 \
@@ -175,11 +160,11 @@ run_scan_chkrootkit_part_04() {
     exit 0
 }
 
-run_scan_chkrootkit_part_05() {
-    run_scan_chkrootkit_part_01 "$@"
-    run_scan_chkrootkit_part_02 "$@"
-    run_scan_chkrootkit_part_03 "$@"
-    run_scan_chkrootkit_part_04 "$@"
+chkrootkit_scan_01_run_05_run() {
+    chkrootkit_scan_01_run_01_locate "$@"
+    chkrootkit_scan_01_run_02_get "$@"
+    chkrootkit_scan_01_run_03_get "$@"
+    chkrootkit_scan_01_run_04_get "$@"
 }
 
-run_scan_chkrootkit_part_05 "$@"
+chkrootkit_scan_01_run_05_run "$@"

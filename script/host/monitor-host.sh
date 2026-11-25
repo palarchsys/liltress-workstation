@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/host/monitor-host.sh
-# Updated at : 2026-11-12
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -13,13 +13,13 @@
 
 set -u
 
-script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-product_root="$(cd -- "${script_dir}/../.." && pwd)"
-install_dir=""
+script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+product_root="$(cd -- "${script_directory}/../.." && pwd)"
+install_directory=""
 if [[ -f "${product_root}/config/global.conf" ]]; then
     # shellcheck disable=SC1091
     source "${product_root}/config/global.conf"
-    install_dir="${CONFIG_BASE_DIRECTORY:-}"
+    install_directory="${CONFIG_BASE_DIRECTORY:-}"
 fi
 
 read_host_name() {
@@ -48,7 +48,7 @@ read_os_field() {
 }
 
 read_install_state() {
-    if [[ -n "${install_dir}" && -d "${install_dir}" ]]; then
+    if [[ -n "${install_directory}" && -d "${install_directory}" ]]; then
         printf 'present'
         return 0
     fi

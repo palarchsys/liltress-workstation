@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/crowdsec/configure.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_configure_part_01() {
+crowdsec_configure_01_run_01_locate() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -47,7 +47,7 @@ run_configure_part_01() {
     log_success "${INSTALL_WATCHER}" "configure.block-installed" "${CROWDSEC_BAN_DURATION}"
 }
 
-run_configure_part_02() {
+crowdsec_configure_01_run_02_read() {
     log_info "${INSTALL_WATCHER}" "configure.configuration-of-the-journals-read-by-crowdsec"
     {
         grep -v '^#' "$(locate_config_file service/crowdsec/acquisition-journal.yaml)"
@@ -82,7 +82,7 @@ run_configure_part_02() {
     chmod 640 /etc/audit/rules.d/w-crowdsec.rules
 }
 
-run_configure_part_03() {
+crowdsec_configure_01_run_03_load() {
     run_silent "${INSTALL_WATCHER}" "configure.crowdsec.error" augenrules --load
     run_silent "${INSTALL_WATCHER}" "configure.crowdsec.error" systemctl enable --now crowdsec
     run_silent "${INSTALL_WATCHER}" "configure.crowdsec.error" systemctl enable --now crowdsec-firewall-bouncer
@@ -91,10 +91,10 @@ run_configure_part_03() {
     log_success "${INSTALL_WATCHER}" "configure.crowdsec-and-the-bouncer-enabled"
 }
 
-run_configure_part_04() {
-    run_configure_part_01 "$@"
-    run_configure_part_02 "$@"
-    run_configure_part_03 "$@"
+crowdsec_configure_01_run_04_run() {
+    crowdsec_configure_01_run_01_locate "$@"
+    crowdsec_configure_01_run_02_read "$@"
+    crowdsec_configure_01_run_03_load "$@"
 }
 
-run_configure_part_04 "$@"
+crowdsec_configure_01_run_04_run "$@"

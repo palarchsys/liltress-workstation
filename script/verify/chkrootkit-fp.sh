@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/verify/chkrootkit-fp.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,30 +12,30 @@
 # -----------------------------------------------------------------------------
 
 
-run_chkrootkit_fp_part_01() {
+chkrootkit_fp_verify_01_run_01_load() {
     set +e
-    _text_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    _text_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     _text_hops=0
-    while [[ "${_text_hops}" -lt 8 && "${_text_dir}" != "/" ]]; do
-        if [[ -f "${_text_dir}/text-load.sh" ]]; then
+    while [[ "${_text_hops}" -lt 8 && "${_text_directory}" != "/" ]]; do
+        if [[ -f "${_text_directory}/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${_text_dir}/text-load.sh"
+            source "${_text_directory}/text-load.sh"
             break
         fi
-        if [[ -f "${_text_dir}/share/core/text/text-load.sh" ]]; then
+        if [[ -f "${_text_directory}/share/core/text/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${_text_dir}/share/core/text/text-load.sh"
+            source "${_text_directory}/share/core/text/text-load.sh"
             break
         fi
-        if [[ -f "${_text_dir}/core/text/text-load.sh" ]]; then
+        if [[ -f "${_text_directory}/core/text/text-load.sh" ]]; then
             # shellcheck disable=SC1090
-            source "${_text_dir}/core/text/text-load.sh"
+            source "${_text_directory}/core/text/text-load.sh"
             break
         fi
-        _text_dir="$(dirname -- "${_text_dir}")"
+        _text_directory="$(dirname -- "${_text_directory}")"
         _text_hops=$((_text_hops + 1))
     done
-    unset _text_dir _text_hops
+    unset _text_directory _text_hops
     if ! declare -F load_installed_text >/dev/null 2>&1; then
         printf '%s\n' "get_text absent" >&2
         exit 1
@@ -43,7 +43,7 @@ run_chkrootkit_fp_part_01() {
     load_installed_text
 }
 
-run_chkrootkit_fp_part_02() {
+chkrootkit_fp_verify_01_run_02_get() {
     if [[ "${EUID}" -ne 0 ]]; then
         echo "$(get_text log.run-this-script-with-sudo-sudo-bash-verify-chkro)" >&2
         exit 1
@@ -52,10 +52,10 @@ run_chkrootkit_fp_part_02() {
         echo "$(get_text log.chkrootkit-is-absent)" >&2
         exit 1
     fi
-    log_dir="/var/log/liltress-workstation"
-    mkdir -p "${log_dir}"
+    log_directory="/var/log/liltress-workstation"
+    mkdir -p "${log_directory}"
     stamp="$(date +%Y%m%d-%H%M%S)"
-    log_file="${log_dir}/chkrootkit-fp-${stamp}.log"
+    log_file="${log_directory}/chkrootkit-fp-${stamp}.log"
     version="$(chkrootkit -V 2>&1 | head -5)"
     {
         echo "$(get_text log.liltress-workstation-report-chkrootkit-false-pos)"
@@ -78,7 +78,7 @@ run_chkrootkit_fp_part_02() {
     fi
 }
 
-run_chkrootkit_fp_part_03() {
+chkrootkit_fp_verify_01_run_03_get() {
     {
         echo
         echo "$(get_text log.end)"
@@ -89,10 +89,10 @@ run_chkrootkit_fp_part_03() {
     exit 0
 }
 
-run_chkrootkit_fp_part_04() {
-    run_chkrootkit_fp_part_01 "$@"
-    run_chkrootkit_fp_part_02 "$@"
-    run_chkrootkit_fp_part_03 "$@"
+chkrootkit_fp_verify_01_run_04_run() {
+    chkrootkit_fp_verify_01_run_01_load "$@"
+    chkrootkit_fp_verify_01_run_02_get "$@"
+    chkrootkit_fp_verify_01_run_03_get "$@"
 }
 
-run_chkrootkit_fp_part_04 "$@"
+chkrootkit_fp_verify_01_run_04_run "$@"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/rkhunter/init-db.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_init_db_part_01() {
+rkhunter_init_db_01_run_01_record() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -33,7 +33,7 @@ run_init_db_part_01() {
     esac
 }
 
-run_init_db_part_02() {
+rkhunter_init_db_01_run_02_record() {
     if [[ ("${rk_rc}" -eq 0 || "${rk_rc}" -eq 2) && -x "${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/record-mirrors.sh" ]]; then
         BASE="${CONFIG_BASE_DIRECTORY}" bash "${CONFIG_BASE_DIRECTORY}/service/cron/watchdogs/record-mirrors.sh" save || true
     fi
@@ -46,9 +46,9 @@ run_init_db_part_02() {
     log_success "${INSTALL_WATCHER}" "log.baseline-rkhunter-saved"
 }
 
-run_init_db_part_03() {
-    run_init_db_part_01 "$@"
-    run_init_db_part_02 "$@"
+rkhunter_init_db_01_run_03_run() {
+    rkhunter_init_db_01_run_01_record "$@"
+    rkhunter_init_db_01_run_02_record "$@"
 }
 
-run_init_db_part_03 "$@"
+rkhunter_init_db_01_run_03_run "$@"

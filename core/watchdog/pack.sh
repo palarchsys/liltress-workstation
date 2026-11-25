@@ -12,34 +12,13 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
-
-source_python_boot
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../boot/python.sh"
 
 write_watchdog_pack() {
     local phase="$1"
-    local state_dir="$2"
-    local log_dir="$3"
+    local state_directory="$2"
+    local log_directory="$3"
     local base stamp dest excludes
     base="$(get_product_base)"
     stamp="$(date '+%Y%m%d-%H%M%S')"
@@ -47,7 +26,7 @@ write_watchdog_pack() {
     dest="${base}/log/alert-${phase}-${stamp}.zip"
     excludes="$(read_watchdog_exclude | awk 'NR > 1 { printf ":" } { printf "%s", $0 }')"
     WATCHDOG_EXCLUDES="${excludes}" \
-        python3 "$(locate_python_dir)/alert-pack.py" "${phase}" "${state_dir}" "${log_dir}" "${dest}"
+        python3 "$(locate_python_directory)/alert-pack.py" "${phase}" "${state_directory}" "${log_directory}" "${dest}"
     chmod 600 "${dest}" 2>/dev/null || true
     printf '%s\n' "${dest}"
 }

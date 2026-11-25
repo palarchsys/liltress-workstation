@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/verify/lynis-audit.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_lynis_audit_part_01() {
+lynis_audit_verify_01_run_01_report() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -30,24 +30,24 @@ run_lynis_audit_part_01() {
     chmod 640 /var/log/lynis.log /var/log/lynis-report.dat 2>/dev/null || true
 }
 
-run_lynis_audit_part_02() {
+lynis_audit_verify_01_run_02_record() {
     if [[ "${score}" -ge "${LYNIS_MIN_SCORE}" ]]; then
         if [[ "${INSTALL_WATCHER}" == "GO" ]]; then
             log_success "${INSTALL_WATCHER}" "log.ok-3" "Lynis ${score} ≥ ${LYNIS_MIN_SCORE}"
         else
-            note_bash success "Lynis ${score} ≥ ${LYNIS_MIN_SCORE}"
+            record_bash_note success "Lynis ${score} ≥ ${LYNIS_MIN_SCORE}"
         fi
     else
         while IFS= read -r line; do
-            note_bash info "Lynis ${line}"
+            record_bash_note info "Lynis ${line}"
         done < <(awk -F= '/^warning\[\]=/{print $2}' /var/log/lynis-report.dat 2>/dev/null | head -20 || true)
         log_error "${INSTALL_WATCHER}" "verify.workstation.info.5" "Lynis ${score} < ${LYNIS_MIN_SCORE}"
     fi
 }
 
-run_lynis_audit_part_03() {
-    run_lynis_audit_part_01 "$@"
-    run_lynis_audit_part_02 "$@"
+lynis_audit_verify_01_run_03_run() {
+    lynis_audit_verify_01_run_01_report "$@"
+    lynis_audit_verify_01_run_02_record "$@"
 }
 
-run_lynis_audit_part_03 "$@"
+lynis_audit_verify_01_run_03_run "$@"

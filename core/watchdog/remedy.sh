@@ -12,52 +12,31 @@
 # -----------------------------------------------------------------------------
 
 
-source_python_boot() {
-    local dir hops
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    hops=0
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -f "${dir}/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/core/boot/python.sh"
-            return 0
-        fi
-        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
-            # shellcheck disable=SC1090
-            source "${dir}/share/core/boot/python.sh"
-            return 0
-        fi
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../boot/python.sh"
 
-source_python_boot
-
-watchdog_case_actions() {
+get_watchdog_case_actions() {
     local tool="$1"
     local class_id="$2"
     local branch="$3"
     local catalog=""
     catalog="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../config/service/alert/action.json"
     [[ -f "${catalog}" ]] || return 0
-    python3 "$(locate_python_dir)/alert-remedy.py" "${catalog}" "${tool}" "${class_id}" "${branch}"
+    python3 "$(locate_python_directory)/alert-remedy.py" "${catalog}" "${tool}" "${class_id}" "${branch}"
 }
 
-watchdog_case_has() {
+check_watchdog_case() {
     local tool="$1"
     local class_id="$2"
     local branch="$3"
     local action="$4"
     local found=""
-    found="$(watchdog_case_actions "${tool}" "${class_id}" "${branch}")"
+    found="$(get_watchdog_case_actions "${tool}" "${class_id}" "${branch}")"
     [[ -z "${found}" ]] && return 0
     grep -qx "${action}" <<<"${found}"
 }
 
-reinstall_watchdog_package() {
+install_watchdog_package() {
     local package="$1"
     local status=0
     [[ -n "${package}" && "${package}" != "-" ]] || return 1
@@ -69,19 +48,25 @@ reinstall_watchdog_package() {
     return "${status}"
 }
 
+# The product script wins. The package command is the fallback.
+refresh_aide_baseline() {
+    local base="$1"
+    if [[ -x "${base}/service/aide/refresh-db.sh" ]]; then
+        run_limited bash "${base}/service/aide/refresh-db.sh"
+    elif command -v aide >/dev/null 2>&1; then
+        run_limited aide --update
+    else
+        return 1
+    fi
+}
+
 refresh_watchdog_baseline() {
     local tool="$1"
     local base=""
     base="$(get_product_base)"
     case "${tool}" in
         aide)
-            if [[ -x "${base}/service/aide/refresh-db.sh" ]]; then
-                run_limited bash "${base}/service/aide/refresh-db.sh"
-            elif command -v aide >/dev/null 2>&1; then
-                run_limited aide --update
-            else
-                return 1
-            fi
+            refresh_aide_baseline "${base}" || return $?
             ;;
         rkhunter)
             if [[ -x "${base}/service/rkhunter/refresh-db.sh" ]]; then
@@ -108,7 +93,7 @@ refresh_watchdog_baseline() {
 # A malware path is moved aside when the class allows it and the path is safe.
 apply_watchdog_quarantine() {
     local phase="$1"
-    local state_dir="$2"
+    local state_directory="$2"
     local moment="$3"
     local deny="$4"
     local path="$5"
@@ -116,51 +101,58 @@ apply_watchdog_quarantine() {
     local class_id="$7"
     local action="" stored=""
     if [[ "${phase}" != "integrity" && "${path}" != "-" && "${deny}" != *"|${path}|"* ]] \
-        && watchdog_case_has "${tool}" "${class_id}" real quarantine; then
+        && check_watchdog_case "${tool}" "${class_id}" real quarantine; then
         if declare -F take_quarantine_file >/dev/null 2>&1; then
             take_quarantine_file "${path}" || true
             stored="${MOVE_STORED:-${path}}"
             action="$(get_text alert.mail.action.quarantine "${stored}")"
-            printf '%s - %s\n' "${moment}" "${action}" >>"${state_dir}/actions.txt"
+            printf '%s - %s\n' "${moment}" "${action}" >>"${state_directory}/actions.txt"
         fi
+    fi
+}
+
+# Only a real package name is installed again.
+read_reinstall_package() {
+    local kind="$1"
+    local name="$2"
+    if [[ "${kind}" == "package" && -n "${name}" && "${name}" != "-" ]]; then
+        printf '%s\n' "${name}"
     fi
 }
 
 # A package row is installed again. Other kinds stay unchanged.
 apply_watchdog_reinstall() {
     local phase="$1"
-    local state_dir="$2"
+    local state_directory="$2"
     local moment="$3"
     local kind="$4"
     local name="$5"
     local path="$6"
     local action="" package=""
-    if [[ "${kind}" == "package" && -n "${name}" && "${name}" != "-" ]]; then
-        package="${name}"
-    fi
+    package="$(read_reinstall_package "${kind}" "${name}")"
     if [[ -z "${package}" ]]; then
         return 0
     fi
-    if reinstall_watchdog_package "${package}"; then
+    if install_watchdog_package "${package}"; then
         if [[ "${phase}" == "integrity" ]]; then
             action="$(get_text alert.mail.action.debsums "${package}")"
         else
             action="$(get_text alert.mail.action.reinstall "${package}")"
         fi
-        printf '%s - %s\n' "${moment}" "${action}" >>"${state_dir}/actions.txt"
+        printf '%s - %s\n' "${moment}" "${action}" >>"${state_directory}/actions.txt"
         if [[ "${path}" != "-" ]]; then
-            printf '%s\n' "${path}" >>"${state_dir}/repaired.txt"
+            printf '%s\n' "${path}" >>"${state_directory}/repaired.txt"
         fi
         return 0
     fi
     action="$(get_text alert.mail.action.failed "${package}")"
-    printf '%s - %s\n' "${moment}" "${action}" >>"${state_dir}/actions.txt"
+    printf '%s - %s\n' "${moment}" "${action}" >>"${state_directory}/actions.txt"
 }
 
 # A real row is quarantined or installed again. An explained row is ignored.
 apply_watchdog_row() {
     local phase="$1"
-    local state_dir="$2"
+    local state_directory="$2"
     local moment="$3"
     local deny="$4"
     local explained="$5"
@@ -176,50 +168,62 @@ apply_watchdog_row() {
     [[ "${explained}" == "0" ]] || return 0
     if [[ "${class_id}" == "debsums.repair" ]]; then
         action="$(get_text alert.mail.action.debsums "${name}")"
-        printf '%s - %s\n' "${moment}" "${action}" >>"${state_dir}/actions.txt"
-        printf '%s\n' "${name}" >>"${state_dir}/repaired.txt"
+        printf '%s - %s\n' "${moment}" "${action}" >>"${state_directory}/actions.txt"
+        printf '%s\n' "${name}" >>"${state_directory}/repaired.txt"
         return 0
     fi
     if [[ "${kind}" == "jail" || "${kind}" == "scenario" ]]; then
         action="$(get_text alert.mail.action.ban "${name}")"
-        printf '%s - %s\n' "${moment}" "${action}" >>"${state_dir}/actions.txt"
+        printf '%s - %s\n' "${moment}" "${action}" >>"${state_directory}/actions.txt"
         return 0
     fi
     if [[ "${class_id}" == "crash" ]]; then
         action="$(get_text alert.mail.action.crash "${tool}")"
-        printf '%s - %s\n' "${moment}" "${action}" >>"${state_dir}/actions.txt"
+        printf '%s - %s\n' "${moment}" "${action}" >>"${state_directory}/actions.txt"
         return 0
     fi
-    apply_watchdog_quarantine "${phase}" "${state_dir}" "${moment}" "${deny}" "${path}" "${tool}" "${class_id}"
-    apply_watchdog_reinstall "${phase}" "${state_dir}" "${moment}" "${kind}" "${name}" "${path}"
+    apply_watchdog_quarantine "${phase}" "${state_directory}" "${moment}" "${deny}" "${path}" "${tool}" "${class_id}"
+    apply_watchdog_reinstall "${phase}" "${state_directory}" "${moment}" "${kind}" "${name}" "${path}"
 }
 
 apply_watchdog_remedy() {
     local phase="$1"
-    local state_dir="$2"
+    local state_directory="$2"
     local moment=""
     local explained="" hold="" kind="" name="" when="" path="" tool="" class_id=""
     local deny="|/etc/passwd|/etc/shadow|/etc/sudoers|/etc/ssh/sshd_config|/usr/bin/sudo|/usr/bin/passwd|/usr/sbin/sshd|"
-    : >"${state_dir}/actions.txt"
-    : >"${state_dir}/repaired.txt"
-    [[ -f "${state_dir}/rows.tsv" ]] || return 0
+    : >"${state_directory}/actions.txt"
+    : >"${state_directory}/repaired.txt"
+    [[ -f "${state_directory}/rows.tsv" ]] || return 0
     moment="$(date '+%Y-%m-%d %H:%M:%S')"
     while IFS=$'\t' read -r explained hold kind name when path tool class_id; do
-        apply_watchdog_row "${phase}" "${state_dir}" "${moment}" "${deny}" \
+        apply_watchdog_row "${phase}" "${state_directory}" "${moment}" "${deny}" \
             "${explained}" "${hold}" "${kind}" "${name}" \
             "${when}" "${path}" "${tool}" "${class_id}"
-    done <"${state_dir}/rows.tsv"
+    done <"${state_directory}/rows.tsv"
 }
 
 # The caller owns repaired. Each repaired path is stored between bars.
 collect_repaired_paths() {
     local path=""
     repaired="|"
-    [[ -f "${state_dir}/repaired.txt" ]] || return 0
+    [[ -f "${state_directory}/repaired.txt" ]] || return 0
     while IFS= read -r path; do
         [[ -n "${path}" ]] || continue
         repaired="${repaired}${path}|"
-    done <"${state_dir}/repaired.txt"
+    done <"${state_directory}/repaired.txt"
+}
+
+# The caller owns blocked. An open path that is not a ban is added.
+add_blocked_tool() {
+    local path="$1"
+    local tool="$2"
+    local kind="$3"
+    local repaired_paths="$4"
+    local -n blocked_tools="$5"
+    if [[ "${path}" != "-" && "${repaired_paths}" != *"|${path}|"* && "${kind}" != "jail" && "${kind}" != "scenario" ]]; then
+        blocked_tools="${blocked_tools}${tool}|"
+    fi
 }
 
 # The caller owns blocked and real_count. A crash or an open path blocks that tool.
@@ -234,10 +238,8 @@ collect_blocked_tools() {
         if [[ "${class_id}" == "crash" ]]; then
             blocked="${blocked}${tool}|"
         fi
-        if [[ "${path}" != "-" && "${repaired}" != *"|${path}|"* && "${row_kind}" != "jail" && "${row_kind}" != "scenario" ]]; then
-            blocked="${blocked}${tool}|"
-        fi
-    done <"${state_dir}/rows.tsv"
+        add_blocked_tool "${path}" "${tool}" "${row_kind}" "${repaired}" blocked
+    done <"${state_directory}/rows.tsv"
 }
 
 # The caller owns seen. A tool that is still blocked keeps its current baseline.
@@ -253,16 +255,16 @@ refresh_open_baselines() {
         seen="${seen}${tool}|"
         refresh_watchdog_baseline "${tool}" || continue
         action="$(get_text alert.mail.action.baseline "${tool}")"
-        printf '%s - %s\n' "${moment}" "${action}" >>"${state_dir}/actions.txt"
-    done <"${state_dir}/rows.tsv"
+        printf '%s - %s\n' "${moment}" "${action}" >>"${state_directory}/actions.txt"
+    done <"${state_directory}/rows.tsv"
 }
 
 refresh_watchdog_rows() {
-    local state_dir="$1"
+    local state_directory="$1"
     local moment=""
     local repaired="|" blocked="|" seen="|" real_count=0
     moment="$(date '+%Y-%m-%d %H:%M:%S')"
-    [[ -f "${state_dir}/rows.tsv" ]] || return 0
+    [[ -f "${state_directory}/rows.tsv" ]] || return 0
     collect_repaired_paths
     collect_blocked_tools
     refresh_open_baselines

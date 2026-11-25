@@ -80,8 +80,8 @@ CUPS bereinigt
 [log.date-2]
 Datum: {1}
 
-[log.dir-install-path-invalid]
-dir_install_path ungültig: '{1}'
+[log.directory-install-path-invalid]
+directory_install_path ungültig: '{1}'
 
 [log.directory]
 - **Verzeichnis**: `{1}`

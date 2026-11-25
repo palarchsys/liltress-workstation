@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/text/text.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -36,8 +36,17 @@ take_text_base() {
     text_base="/opt/liltress"
 }
 
-collect_text_dirs() {
-    local -n dir_dest="$2"
+# An empty or missing path is skipped. The canonical directory is printed.
+read_text_candidate() {
+    local candidate="$1"
+    local resolved=""
+    [[ -n "${candidate}" && -d "${candidate}" ]] || return 1
+    resolved="$(cd -- "${candidate}" && pwd -P)" || return 1
+    printf '%s\n' "${resolved}"
+}
+
+collect_text_directories() {
+    local -n directory_dest="$2"
     local lang="$1"
     local text_here="" text_product="" text_base="" candidate="" resolved="" seen="|"
     text_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -46,7 +55,7 @@ collect_text_dirs() {
         text_product="$(cd -- "${text_here}/../.." && pwd)"
     fi
     take_text_base
-    dir_dest=()
+    directory_dest=()
     local -a text_candidates=(
         "$(cd -- "${text_here}/../.." && pwd)/locale/${lang}"
         "${text_product}/locale/${lang}"
@@ -59,11 +68,10 @@ collect_text_dirs() {
         text_candidates+=("${TEXT_DIR}/${lang}")
     fi
     for candidate in "${text_candidates[@]}"; do
-        [[ -n "${candidate}" && -d "${candidate}" ]] || continue
-        resolved="$(cd -- "${candidate}" && pwd -P)" || continue
+        resolved="$(read_text_candidate "${candidate}")" || continue
         [[ "${seen}" == *"|${resolved}|"* ]] && continue
         seen+="${resolved}|"
-        dir_dest+=("${resolved}")
+        directory_dest+=("${resolved}")
     done
 }
 
@@ -110,26 +118,26 @@ skip_text_reload() {
 
 # Every phrase file in the directory is stored in the named array.
 read_text_catalog() {
-    local dir="$1"
+    local directory="$1"
     local array_name="$2"
     local file=""
-    for file in "${dir}"/*.txt; do
+    for file in "${directory}"/*.txt; do
         [[ -f "${file}" ]] || continue
         read_text_file "${file}" "${array_name}"
     done
 }
 
 # Directory lists are joined with a colon.
-record_text_dirs() {
+record_text_directories() {
     local joined=""
     joined="$(
         IFS=:
-        printf '%s' "${english_dirs[*]}"
+        printf '%s' "${english_directories[*]}"
     )"
     TEXT_EN_DIRS="${joined}"
     joined="$(
         IFS=:
-        printf '%s' "${selected_dirs[*]}"
+        printf '%s' "${selected_directories[*]}"
     )"
     TEXT_LANG_DIRS="${joined}"
 }
@@ -142,9 +150,23 @@ copy_english_text() {
     done
 }
 
+# English fills the selected catalog. Another language is read into it.
+load_selected_text() {
+    local lang="$1"
+    shift
+    local directory=""
+    if [[ "${lang}" == "en" ]]; then
+        copy_english_text
+        return 0
+    fi
+    for directory in "$@"; do
+        read_text_catalog "${directory}" TEXT_SELECTED
+    done
+}
+
 load_text() {
     local lang="${1:-${LANGUAGE:-en}}"
-    local dir=""
+    local directory=""
     if ! check_language "${lang}"; then
         lang="en"
     fi
@@ -154,24 +176,18 @@ load_text() {
     skip_text_reload && return 0
     declare -gA TEXT_ENGLISH=()
     declare -gA TEXT_SELECTED=()
-    local -a english_dirs=() selected_dirs=()
-    collect_text_dirs en english_dirs
+    local -a english_directories=() selected_directories=()
+    collect_text_directories en english_directories
     if [[ "${lang}" == "en" ]]; then
-        selected_dirs=("${english_dirs[@]}")
+        selected_directories=("${english_directories[@]}")
     else
-        collect_text_dirs "${lang}" selected_dirs
+        collect_text_directories "${lang}" selected_directories
     fi
-    for dir in "${english_dirs[@]}"; do
-        read_text_catalog "${dir}" TEXT_ENGLISH
+    for directory in "${english_directories[@]}"; do
+        read_text_catalog "${directory}" TEXT_ENGLISH
     done
-    if [[ "${lang}" == "en" ]]; then
-        copy_english_text
-    else
-        for dir in "${selected_dirs[@]}"; do
-            read_text_catalog "${dir}" TEXT_SELECTED
-        done
-    fi
-    record_text_dirs
+    load_selected_text "${lang}" "${selected_directories[@]}"
+    record_text_directories
     TEXT_LANGUAGE="${lang}"
     TEXT_DIR_LOADED="${TEXT_DIR:-}"
     TEXT_READY=1
@@ -204,6 +220,14 @@ apply_text() {
     printf '%s' "${text_out}${text_rest}"
 }
 
+# A stale catalog is loaded again for this language.
+ensure_text_language() {
+    local lang="$1"
+    if [[ "${TEXT_LANGUAGE:-}" != "${lang}" || "${TEXT_READY:-0}" != "1" || "${TEXT_DIR_LOADED:-}" != "${TEXT_DIR:-}" ]]; then
+        load_text "${lang}"
+    fi
+}
+
 get_text() {
     local key="$1"
     shift
@@ -211,9 +235,7 @@ get_text() {
     if ! check_language "${lang}"; then
         lang="en"
     fi
-    if [[ "${TEXT_LANGUAGE:-}" != "${lang}" || "${TEXT_READY:-0}" != "1" || "${TEXT_DIR_LOADED:-}" != "${TEXT_DIR:-}" ]]; then
-        load_text "${lang}"
-    fi
+    ensure_text_language "${lang}"
     if [[ -n "${TEXT_SELECTED[${key}]+x}" ]]; then
         text="${TEXT_SELECTED[${key}]}"
     elif [[ -n "${TEXT_ENGLISH[${key}]+x}" ]]; then
@@ -255,11 +277,11 @@ read_text_key_file() {
 
 read_text_record() {
     local lang="$1" key="$2"
-    local -a dirs=()
-    local dir="" file="" found=""
-    collect_text_dirs "${lang}" dirs
-    for dir in "${dirs[@]}"; do
-        for file in "${dir}"/*.txt; do
+    local -a directories=()
+    local directory="" file="" found=""
+    collect_text_directories "${lang}" directories
+    for directory in "${directories[@]}"; do
+        for file in "${directory}"/*.txt; do
             [[ -f "${file}" ]] || continue
             read_text_key_file "${file}" "${key}"
         done

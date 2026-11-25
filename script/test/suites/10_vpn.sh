@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/10_vpn.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,40 +12,15 @@
 
 
 
-read_python_candidate() {
-    local candidate="$1"
-    [[ -n "${candidate}" && -d "${candidate}" ]] || return 1
-    (cd -- "${candidate}" && pwd -P)
-}
+# shellcheck disable=SC1091
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/../../../core/boot/python.sh"
 
-locate_python_dir() {
-    local dir="" hops=0 candidate=""
-    for candidate in \
-        "${CONFIG_BASE_DIRECTORY:-}/python" \
-        "${BASE:-}/python" \
-        "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"; do
-        read_python_candidate "${candidate}" && return 0
-    done
-    dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-    while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        if [[ -d "${dir}/share/python" ]]; then
-            printf '%s\n' "${dir}/share/python"
-            return 0
-        fi
-        read_python_candidate "${dir}/python" && return 0
-        dir="$(dirname -- "${dir}")"
-        hops=$((hops + 1))
-    done
-    printf '%s\n' "dossier python introuvable" >&2
-    return 1
-}
 
 t_section "vpn"
 export VPN_SKIP_INTEGRITY=1
 
-vpn_dir="${T_ROOT}/service/vpn"
-cfg_dir="${T_ROOT}/config/service/vpn"
+vpn_directory="${T_ROOT}/service/vpn"
+cfg_directory="${T_ROOT}/config/service/vpn"
 
 while IFS= read -r file; do
     rel="${file#"${T_ROOT}/"}"
@@ -54,12 +29,12 @@ while IFS= read -r file; do
     else
         t_fail "vpn.syntax:${rel}" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-bash-n.err")"
     fi
-done < <(find "${vpn_dir}" -name '*.sh' -type f | sort)
+done < <(find "${vpn_directory}" -name '*.sh' -type f | sort)
 
-if grep -q 'wireguard' "${vpn_dir}/lib.sh" && grep -q 'openvpn' "${vpn_dir}/lib.sh" \
-    && grep -q 'clear_vpn_network' "${vpn_dir}/cli.sh" \
-    && grep -q 'list_vpn_profiles' "${vpn_dir}/cli.sh" \
-    && grep -q 'remove_vpn_profile' "${vpn_dir}/cli.sh"
+if grep -q 'wireguard' "${vpn_directory}/lib.sh" && grep -q 'openvpn' "${vpn_directory}/lib.sh" \
+    && grep -q 'clear_vpn_network' "${vpn_directory}/cli.sh" \
+    && grep -q 'list_vpn_profiles' "${vpn_directory}/cli.sh" \
+    && grep -q 'remove_vpn_profile' "${vpn_directory}/cli.sh"
 then
     t_pass "vpn.layout" "dossiers par protocole, liste, retrait, réseau direct"
 else
@@ -72,7 +47,7 @@ else
     t_fail "vpn.launch" "branche absente"
 fi
 
-if python3 "$(locate_python_dir)/install-plan.py" vpn-order "${T_ROOT}/config/schema/installation.json" > "${ARTIFACTS}/vpn-order.txt" 2>&1
+if python3 "$(locate_python_directory)/install-plan.py" vpn-order "${T_ROOT}/config/schema/installation.json" > "${ARTIFACTS}/vpn-order.txt" 2>&1
 then
     t_pass "vpn.order" "installation.json"
 else
@@ -80,46 +55,46 @@ else
 fi
 
 forbid_phrase="$(printf '%s%s%s%s' 'ufw ' 'default ' 'deny ' 'outgoing')"
-if grep -RInE -- "wg-quick|${forbid_phrase}|disable_ipv6|resolvconf" "${vpn_dir}" "${cfg_dir}" > "${ARTIFACTS}/vpn-forbid.txt"; then
+if grep -RInE -- "wg-quick|${forbid_phrase}|disable_ipv6|resolvconf" "${vpn_directory}" "${cfg_directory}" > "${ARTIFACTS}/vpn-forbid.txt"; then
     t_fail "vpn.forbid" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-forbid.txt" | head -c 400)"
 else
     t_pass "vpn.forbid" "mots absents"
 fi
 
-if python3 "$(locate_python_dir)/check-vpn-priority.py" "${cfg_dir}/vpn.conf" "${T_ROOT}/service/ufw/egress.sh" "${vpn_dir}/lib.sh" > "${ARTIFACTS}/vpn-prio.txt" 2>&1
+if python3 "$(locate_python_directory)/check-vpn-priority.py" "${cfg_directory}/vpn.conf" "${T_ROOT}/service/ufw/egress.sh" "${vpn_directory}/lib.sh" > "${ARTIFACTS}/vpn-prio.txt" 2>&1
 then
     t_pass "vpn.priority" "-150"
 else
     t_fail "vpn.priority" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-prio.txt")"
 fi
 
-if grep -RIn 'ct state established,related accept' "${vpn_dir}" "${cfg_dir}" > "${ARTIFACTS}/vpn-ct.txt"; then
+if grep -RIn 'ct state established,related accept' "${vpn_directory}" "${cfg_directory}" > "${ARTIFACTS}/vpn-ct.txt"; then
     t_fail "vpn.ct" "$(tr '\n' ' ' < "${ARTIFACTS}/vpn-ct.txt" | head -c 400)"
 else
     t_pass "vpn.ct" "pas d'accept established"
 fi
 
-if grep -vE '^[[:space:]]*(#|$)' "${cfg_dir}/bypass.cidrs" | grep -qE '[0-9]'; then
+if grep -vE '^[[:space:]]*(#|$)' "${cfg_directory}/bypass.cidrs" | grep -qE '[0-9]'; then
     t_fail "vpn.template" "CIDR active"
 else
     t_pass "vpn.template" "aucune CIDR active"
 fi
 
 # shellcheck disable=SC1091
-source "${vpn_dir}/lib.sh"
-parse_dir="${ARTIFACTS}/vpn-parse"
-mkdir -p "${parse_dir}"
-printf '192.168.1.0/24\n' > "${parse_dir}/lan"
-printf '200.200.200.0/24\n' > "${parse_dir}/public"
-printf '[192.168.1.0/24, 200.200.200.0/24]\n' > "${parse_dir}/bracket"
-printf '200.200.200.0\n' > "${parse_dir}/bare"
-printf '192.168.1.5/24\n' > "${parse_dir}/host"
+source "${vpn_directory}/lib.sh"
+parse_directory="${ARTIFACTS}/vpn-parse"
+mkdir -p "${parse_directory}"
+printf '192.168.1.0/24\n' > "${parse_directory}/lan"
+printf '200.200.200.0/24\n' > "${parse_directory}/public"
+printf '[192.168.1.0/24, 200.200.200.0/24]\n' > "${parse_directory}/bracket"
+printf '200.200.200.0\n' > "${parse_directory}/bare"
+printf '192.168.1.5/24\n' > "${parse_directory}/host"
 parse_ok=1
-got="$(read_vpn_bypass "${parse_dir}/lan")" || parse_ok=0
+got="$(read_vpn_bypass "${parse_directory}/lan")" || parse_ok=0
 [[ "${got}" == "192.168.1.0/24" ]] || parse_ok=0
-got="$(read_vpn_bypass "${parse_dir}/public")" || parse_ok=0
+got="$(read_vpn_bypass "${parse_directory}/public")" || parse_ok=0
 [[ "${got}" == "200.200.200.0/24" ]] || parse_ok=0
-got="$(read_vpn_bypass "${parse_dir}/bracket")" || parse_ok=0
+got="$(read_vpn_bypass "${parse_directory}/bracket")" || parse_ok=0
 [[ "${got}" == $'192.168.1.0/24\n200.200.200.0/24' ]] || parse_ok=0
 if (( parse_ok == 1 )); then
     t_pass "vpn.parse.accept" "trois formes"
@@ -127,15 +102,15 @@ else
     t_fail "vpn.parse.accept" "${got}"
 fi
 
-printf '192.168.1.0/24\n' > "${parse_dir}/src"
-write_vpn_bypass "${parse_dir}/src" "${parse_dir}/applied"
+printf '192.168.1.0/24\n' > "${parse_directory}/src"
+write_vpn_bypass "${parse_directory}/src" "${parse_directory}/applied"
 bare_state=0
-write_vpn_bypass "${parse_dir}/bare" "${parse_dir}/applied" 2>"${parse_dir}/bare.err" || bare_state=$?
+write_vpn_bypass "${parse_directory}/bare" "${parse_directory}/applied" 2>"${parse_directory}/bare.err" || bare_state=$?
 host_state=0
-write_vpn_bypass "${parse_dir}/host" "${parse_dir}/applied" 2>"${parse_dir}/host.err" || host_state=$?
-kept="$(cat "${parse_dir}/applied")"
+write_vpn_bypass "${parse_directory}/host" "${parse_directory}/applied" 2>"${parse_directory}/host.err" || host_state=$?
+kept="$(cat "${parse_directory}/applied")"
 if [[ "${bare_state}" -ne 0 && "${host_state}" -ne 0 && "${kept}" == "192.168.1.0/24" ]] \
-    && grep -q '200.200.200.0/24' "${parse_dir}/bare.err"
+    && grep -q '200.200.200.0/24' "${parse_directory}/bare.err"
 then
     t_pass "vpn.parse.refuse" "jeu précédent conservé"
 else
@@ -157,7 +132,7 @@ else
     t_pass "vpn.profiles" "aucun profil versionné"
 fi
 
-if python3 "$(locate_python_dir)/check-locale.py" vpn "${T_ROOT}/../share/locale" > "${ARTIFACTS}/vpn-keys.txt" 2>&1
+if python3 "$(locate_python_directory)/check-locale.py" vpn "${T_ROOT}/../share/locale" > "${ARTIFACTS}/vpn-keys.txt" 2>&1
 then
     t_pass "vpn.keys" "quatre langues"
 else
@@ -165,35 +140,35 @@ else
 fi
 
 mode_ok=1
-grep -q 'run_vpn_test' "${vpn_dir}/cli.sh" || mode_ok=0
-grep -q 'run_vpn_mode_on' "${vpn_dir}/cli.sh" || mode_ok=0
-grep -q 'run_vpn_mode_off' "${vpn_dir}/cli.sh" || mode_ok=0
-grep -q 'run_vpn_failover' "${vpn_dir}/cli.sh" || mode_ok=0
-grep -q 'clear_vpn_network' "${vpn_dir}/failover.sh" || mode_ok=0
-grep -q 'restart_vpn_services' "${vpn_dir}/failover.sh" || mode_ok=0
-grep -q 'restart_vpn_services' "${vpn_dir}/switch.sh" || mode_ok=0
-grep -q 'check_vpn_profile_valid' "${vpn_dir}/switch.sh" || mode_ok=0
-grep -q 'run_vpn_test' "${vpn_dir}/import.sh" || mode_ok=0
-grep -q 'VPN_FAILOVER_TRIES' "${vpn_dir}/failover.sh" || mode_ok=0
-grep -q 'VPN_FAILOVER_TIMEOUT' "${vpn_dir}/failover.sh" || mode_ok=0
-grep -q 'log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.none"' "${vpn_dir}/failover.sh" || mode_ok=0
-grep -q 'log_error .*vpn.failover.none' "${vpn_dir}/failover.sh" && mode_ok=0
-grep -q 'meta l4proto tcp th dport' "${vpn_dir}/killswitch.sh" || mode_ok=0
-grep -q 'meta l4proto tcp th sport' "${vpn_dir}/killswitch.sh" || mode_ok=0
-grep -q 'meta mark set' "${vpn_dir}/killswitch.sh" || mode_ok=0
-grep -q 'fwmark' "${vpn_dir}/routes.sh" || mode_ok=0
-grep -q 'VPN_RULE_PRIO_SSH=45' "${cfg_dir}/vpn.conf" || mode_ok=0
-grep -q 'VPN_RULE_PRIO_TUNNEL=100' "${cfg_dir}/vpn.conf" || mode_ok=0
-grep -q 'VPN_RULE_PRIO_LAN=52' "${cfg_dir}/vpn.conf" || mode_ok=0
-grep -q 'VPN_TUN_MTU=1200' "${cfg_dir}/vpn.conf" || mode_ok=0
-grep -q 'ip daddr 100.64.0.0/10 accept' "${vpn_dir}/killswitch.sh" || mode_ok=0
-grep -q 'lookup main' "${vpn_dir}/routes.sh" || mode_ok=0
-grep -q 'VPN_FAILOVER_TRIES=3' "${cfg_dir}/vpn.conf" || mode_ok=0
-grep -q 'VPN_FAILOVER_TIMEOUT=10' "${cfg_dir}/vpn.conf" || mode_ok=0
-grep -q 'TimeoutStartSec=300' "${cfg_dir}/w-vpn.service" || mode_ok=0
-grep -q 'w-vpn-watch.timer' "${vpn_dir}/configure.sh" || mode_ok=0
-grep -q 'default)' "${vpn_dir}/cli.sh" || mode_ok=0
-if grep -E '^[[:space:]]+up\)' "${vpn_dir}/cli.sh" || grep -E '^[[:space:]]+down\)' "${vpn_dir}/cli.sh" || grep -E '^[[:space:]]+boot\)' "${vpn_dir}/cli.sh"; then
+grep -q 'run_vpn_test' "${vpn_directory}/cli.sh" || mode_ok=0
+grep -q 'run_vpn_mode_on' "${vpn_directory}/cli.sh" || mode_ok=0
+grep -q 'run_vpn_mode_off' "${vpn_directory}/cli.sh" || mode_ok=0
+grep -q 'run_vpn_failover' "${vpn_directory}/cli.sh" || mode_ok=0
+grep -q 'clear_vpn_network' "${vpn_directory}/failover.sh" || mode_ok=0
+grep -q 'restart_vpn_services' "${vpn_directory}/failover.sh" || mode_ok=0
+grep -q 'restart_vpn_services' "${vpn_directory}/switch.sh" || mode_ok=0
+grep -q 'check_vpn_profile_valid' "${vpn_directory}/switch.sh" || mode_ok=0
+grep -q 'run_vpn_test' "${vpn_directory}/import.sh" || mode_ok=0
+grep -q 'VPN_FAILOVER_TRIES' "${vpn_directory}/failover.sh" || mode_ok=0
+grep -q 'VPN_FAILOVER_TIMEOUT' "${vpn_directory}/failover.sh" || mode_ok=0
+grep -q 'log_info "${INSTALL_WATCHER:-BASH}" "vpn.failover.none"' "${vpn_directory}/failover.sh" || mode_ok=0
+grep -q 'log_error .*vpn.failover.none' "${vpn_directory}/failover.sh" && mode_ok=0
+grep -q 'meta l4proto tcp th dport' "${vpn_directory}/killswitch.sh" || mode_ok=0
+grep -q 'meta l4proto tcp th sport' "${vpn_directory}/killswitch.sh" || mode_ok=0
+grep -q 'meta mark set' "${vpn_directory}/killswitch.sh" || mode_ok=0
+grep -q 'fwmark' "${vpn_directory}/routes.sh" || mode_ok=0
+grep -q 'VPN_RULE_PRIO_SSH=45' "${cfg_directory}/vpn.conf" || mode_ok=0
+grep -q 'VPN_RULE_PRIO_TUNNEL=100' "${cfg_directory}/vpn.conf" || mode_ok=0
+grep -q 'VPN_RULE_PRIO_LAN=52' "${cfg_directory}/vpn.conf" || mode_ok=0
+grep -q 'VPN_TUN_MTU=1200' "${cfg_directory}/vpn.conf" || mode_ok=0
+grep -q 'ip daddr 100.64.0.0/10 accept' "${vpn_directory}/killswitch.sh" || mode_ok=0
+grep -q 'lookup main' "${vpn_directory}/routes.sh" || mode_ok=0
+grep -q 'VPN_FAILOVER_TRIES=3' "${cfg_directory}/vpn.conf" || mode_ok=0
+grep -q 'VPN_FAILOVER_TIMEOUT=10' "${cfg_directory}/vpn.conf" || mode_ok=0
+grep -q 'TimeoutStartSec=300' "${cfg_directory}/w-vpn.service" || mode_ok=0
+grep -q 'w-vpn-watch.timer' "${vpn_directory}/configure.sh" || mode_ok=0
+grep -q 'default)' "${vpn_directory}/cli.sh" || mode_ok=0
+if grep -E '^[[:space:]]+up\)' "${vpn_directory}/cli.sh" || grep -E '^[[:space:]]+down\)' "${vpn_directory}/cli.sh" || grep -E '^[[:space:]]+boot\)' "${vpn_directory}/cli.sh"; then
     mode_ok=0
 fi
 if [[ "${mode_ok}" -eq 1 ]]; then
@@ -207,7 +182,7 @@ mkdir -p "${state_root}"
 saved_base="${CONFIG_BASE_DIRECTORY:-}"
 export CONFIG_BASE_DIRECTORY="${state_root}"
 # shellcheck disable=SC1091
-source "${vpn_dir}/state.sh"
+source "${vpn_directory}/state.sh"
 state_ok=1
 write_vpn_state || state_ok=0
 record_vpn_attempt "office" 0 || state_ok=0
@@ -243,7 +218,7 @@ else
 fi
 
 # shellcheck disable=SC1091
-source "${vpn_dir}/import.sh"
+source "${vpn_directory}/import.sh"
 import_root="${ARTIFACTS}/vpn-import-root"
 import_src="${ARTIFACTS}/vpn-import-src"
 rm -rf "${import_root}" "${import_src}"
@@ -412,24 +387,24 @@ log_error() {
     printf '%s\n' "$*" >> "${vpn_fault_log}"
     return 0
 }
-wrap_dir="${ARTIFACTS}/vpn-wrap"
-root_dir="${ARTIFACTS}/vpn-auth-root"
-short_dir="${ARTIFACTS}/vpn-auth-short"
-two_dir="${ARTIFACTS}/vpn-two-dir"
-rm -rf "${wrap_dir}" "${root_dir}" "${short_dir}" "${two_dir}"
-mkdir -p "${wrap_dir}/cgwrap" "${root_dir}/cgroot" "${short_dir}/cgshort" "${two_dir}/one" "${two_dir}/two"
+wrap_directory="${ARTIFACTS}/vpn-wrap"
+root_directory="${ARTIFACTS}/vpn-auth-root"
+short_directory="${ARTIFACTS}/vpn-auth-short"
+two_directory="${ARTIFACTS}/vpn-two-directory"
+rm -rf "${wrap_directory}" "${root_directory}" "${short_directory}" "${two_directory}"
+mkdir -p "${wrap_directory}/cgwrap" "${root_directory}/cgroot" "${short_directory}/cgshort" "${two_directory}/one" "${two_directory}/two"
 ovpn=$'client\nremote 203.0.113.10 443\nproto udp\nauth-user-pass password.txt\nredirect-gateway def1\nca ca.crt\ncert client.crt\nkey client.key\n'
-for tree in "${wrap_dir}/cgwrap" "${root_dir}/cgroot" "${short_dir}/cgshort"; do
+for tree in "${wrap_directory}/cgwrap" "${root_directory}/cgroot" "${short_directory}/cgshort"; do
     printf '%s\n' "${ovpn}" > "${tree}/openvpn.ovpn"
     printf 'ca-body\n' > "${tree}/ca.crt"
     printf 'cert-body\n' > "${tree}/client.crt"
     printf 'key-body\n' > "${tree}/client.key"
 done
-printf '%s\n' 'alice' 'bob' > "${wrap_dir}/cgwrap/auth.txt"
-printf '%s\n' 'alice' 'bob' > "${root_dir}/auth.txt"
-printf '%s\n' 'alice' > "${short_dir}/cgshort/auth.txt"
-printf '%s\n' 'remote 203.0.113.10 1194' > "${two_dir}/one/openvpn.ovpn"
-printf '%s\n' 'alice' 'bob' > "${two_dir}/two/auth.txt"
+printf '%s\n' 'alice' 'bob' > "${wrap_directory}/cgwrap/auth.txt"
+printf '%s\n' 'alice' 'bob' > "${root_directory}/auth.txt"
+printf '%s\n' 'alice' > "${short_directory}/cgshort/auth.txt"
+printf '%s\n' 'remote 203.0.113.10 1194' > "${two_directory}/one/openvpn.ovpn"
+printf '%s\n' 'alice' 'bob' > "${two_directory}/two/auth.txt"
 brand_extra="${ARTIFACTS}/vpn-brand-extra"
 brand_nokey="${ARTIFACTS}/vpn-brand-nokey"
 rm -rf "${brand_extra}" "${brand_nokey}"
@@ -445,7 +420,7 @@ printf 'note\n' > "${brand_extra}/readme.txt"
     printf '%s\n' 'AllowedIPs = 0.0.0.0/0'
 } > "${brand_nokey}/config.conf"
 detail_ok=1
-if ! install_vpn_bundle openvpn cyberghost cg-wrap "${wrap_dir}"; then
+if ! install_vpn_bundle openvpn cyberghost cg-wrap "${wrap_directory}"; then
     detail_ok=0
 fi
 grep -q 'auth-user-pass auth.txt' "${VPN_STAGE_DIR}/runtime" || detail_ok=0
@@ -454,13 +429,13 @@ grep -q 'password.txt' "${VPN_STAGE_DIR}/runtime" && detail_ok=0
 [[ -f "${VPN_STAGE_DIR}/ca.crt" && -f "${VPN_STAGE_DIR}/client.key" ]] || detail_ok=0
 grep -q 'brand=cyberghost' "${VPN_STAGE_DIR}/meta" || detail_ok=0
 [[ -d "${import_root}/vpn/openvpn/cg-wrap" ]] && detail_ok=0
-if ! install_vpn_bundle openvpn cyberghost cg-root "${root_dir}"; then
+if ! install_vpn_bundle openvpn cyberghost cg-root "${root_directory}"; then
     detail_ok=0
 fi
 grep -q 'auth-user-pass auth.txt' "${VPN_STAGE_DIR}/runtime" || detail_ok=0
 [[ -d "${import_root}/vpn/openvpn/cg-root" ]] && detail_ok=0
 : > "${vpn_fault_log}"
-if ( install_vpn_bundle openvpn cyberghost cg-short "${short_dir}" ); then
+if ( install_vpn_bundle openvpn cyberghost cg-short "${short_directory}" ); then
     detail_ok=0
 fi
 grep -q 'vpn.import.auth 1' "${vpn_fault_log}" || detail_ok=0
@@ -497,7 +472,7 @@ grep -q 'vpn.import.missing' "${vpn_fault_log}" || detail_ok=0
 grep -q 'PublicKey' "${vpn_fault_log}" || detail_ok=0
 [[ -d "${import_root}/vpn/wireguard/mu-nokey" ]] && detail_ok=0
 : > "${vpn_fault_log}"
-if ( install_vpn_bundle openvpn cyberghost cg-two "${two_dir}" ); then
+if ( install_vpn_bundle openvpn cyberghost cg-two "${two_directory}" ); then
     detail_ok=0
 fi
 grep -q 'vpn.import.zipdir' "${vpn_fault_log}" || detail_ok=0
@@ -556,7 +531,7 @@ else
 fi
 
 # shellcheck disable=SC1091
-source "${vpn_dir}/failover.sh"
+source "${vpn_directory}/failover.sh"
 
 apply_vpn_systemd() { return 0; }
 
@@ -601,7 +576,7 @@ solo="${life_root}/vpn/openvpn/solo"
 mkdir -p "${solo}"
 printf 'proto=openvpn\n' > "${solo}/meta"
 set_vpn_state_mode on
-forget_vpn_profile solo rm
+clear_vpn_profile solo rm
 [[ -d "${solo}" ]] && life_ok=0
 load_vpn_settings
 check_vpn_mode && life_ok=0
@@ -633,8 +608,8 @@ else
     t_fail "vpn.life" "trace ${VPN_TRACE}"
 fi
 
-cd_count="$(grep -c -- '--cd' "${vpn_dir}/up.sh" || true)"
-ipv6_count="$(grep -c -- 'route-ipv6' "${vpn_dir}/up.sh" || true)"
+cd_count="$(grep -c -- '--cd' "${vpn_directory}/up.sh" || true)"
+ipv6_count="$(grep -c -- 'route-ipv6' "${vpn_directory}/up.sh" || true)"
 if [[ "${cd_count}" -eq 1 ]]; then
     t_pass "vpn.cd" "la sonde garde --cd"
 else
@@ -647,7 +622,7 @@ else
 fi
 
 # shellcheck disable=SC1091
-source "${vpn_dir}/up.sh"
+source "${vpn_directory}/up.sh"
 reason_root="${ARTIFACTS}/vpn-reason"
 rm -rf "${reason_root}"
 mkdir -p "${reason_root}/vpn/openvpn/cg-reason" "${reason_root}/vpn/openvpn/cg-auth" "${reason_root}/log/vpn"
@@ -717,9 +692,9 @@ day_root="${ARTIFACTS}/vpn-day"
 rm -rf "${day_root}"
 mkdir -p "${day_root}"
 export INSTALL_DIRECTORY="${day_root}"
-note_vpn_log import "cg-day" ok "openvpn 203.0.113.10"
-note_vpn_log test "cg-day" fail "Options error: --ca fails with ca.crt"
-note_vpn_log watch "cg-day" ok "up"
+record_vpn_log import "cg-day" ok "openvpn 203.0.113.10"
+record_vpn_log test "cg-day" fail "Options error: --ca fails with ca.crt"
+record_vpn_log watch "cg-day" ok "up"
 day_file="${day_root}/log/vpn/$(date '+%Y-%m-%d').log"
 day_ok=1
 [[ -f "${day_file}" ]] || day_ok=0
@@ -729,7 +704,7 @@ day_ok=1
 grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{9}[+-][0-9]{4}' "${day_file}" || day_ok=0
 grep -q 'import' "${day_file}" || day_ok=0
 grep -q 'test' "${day_file}" || day_ok=0
-note_vpn_log import "cg-day" fail "BEGIN PRIVATE KEY abcdef"
+record_vpn_log import "cg-day" fail "BEGIN PRIVATE KEY abcdef"
 grep -q 'PRIVATE' "${day_file}" && day_ok=0
 grep -q 'BEGIN' "${day_file}" && day_ok=0
 grep -q 'auth.txt' "${day_file}" && day_ok=0
@@ -745,7 +720,7 @@ else
 fi
 
 # shellcheck disable=SC1091
-source "${vpn_dir}/routes.sh"
+source "${vpn_directory}/routes.sh"
 
 ensure_vpn_table() { return 0; }
 iface_root="${ARTIFACTS}/vpn-iface"
@@ -823,12 +798,12 @@ if awk '
     inside && /route replace/ { bad=1 }
     inside && /apply_vpn_profile/ { seen=1 }
     END { if (seen && !bad) exit 0; exit 1 }
-' "${vpn_dir}/failover.sh"; then
+' "${vpn_directory}/failover.sh"; then
     :
 else
     iface_ok=0
 fi
-grep -q 'wait_vpn_iface' "${vpn_dir}/up.sh" || iface_ok=0
+grep -q 'wait_vpn_iface' "${vpn_directory}/up.sh" || iface_ok=0
 export PATH="${saved_iface_path}"
 unset VPN_IP_LOG VPN_IP_READY VPN_IP_ARM
 if [[ -n "${saved_iface_base}" ]]; then
@@ -843,7 +818,7 @@ else
 fi
 
 # shellcheck disable=SC1091
-source "${vpn_dir}/nm.sh"
+source "${vpn_directory}/nm.sh"
 nm_root="${ARTIFACTS}/vpn-nm"
 rm -rf "${nm_root}"
 mkdir -p "${nm_root}/vpn/openvpn/cg-nm" "${nm_root}/vpn/wireguard/cg-wg" "${nm_root}/bin"
@@ -885,7 +860,7 @@ else
     nm_why="install"
 fi
 nm_file="${VPN_NM_DIR}/liltress-cg-nm.nmconnection"
-nm_ca="$(get_vpn_profile_dir cg-nm)/ca.crt"
+nm_ca="$(get_vpn_profile_directory cg-nm)/ca.crt"
 [[ -f "${nm_file}" ]] || { nm_ok=0; nm_why="fichier"; }
 if [[ -f "${nm_file}" ]]; then
     grep -q '^id=cg-nm$' "${nm_file}" || { nm_ok=0; nm_why="id"; }
@@ -897,7 +872,7 @@ if [[ -f "${nm_file}" ]]; then
     grep -q '^password-flags=0$' "${nm_file}" || { nm_ok=0; nm_why="flags"; }
     grep -qx 'liltress.profile=cg-nm' "${nm_file}" || { nm_ok=0; nm_why="marque"; }
     grep -q '^data=' "${nm_file}" && { nm_ok=0; nm_why="data"; }
-    [[ "$(vpn_nm_profile_mark "${nm_file}")" == "cg-nm" ]] || { nm_ok=0; nm_why="lecture"; }
+    [[ "$(record_vpn_nm_profile "${nm_file}")" == "cg-nm" ]] || { nm_ok=0; nm_why="lecture"; }
     [[ "$(stat -c '%a' "${nm_file}")" == "600" ]] || { nm_ok=0; nm_why="mode"; }
 fi
 grep -q 's3cret-line' "${nm_out}" && { nm_ok=0; nm_why="stdout"; }
@@ -942,9 +917,9 @@ else
 fi
 grep -q 'abcdef' "${nm_out}" && { nm_ok=0; nm_why="wg-stdout"; }
 rm -f "${nm_root}/vpn/direct.ok"
-[[ "$(vpn_route_lookup)" == "main" ]] || { nm_ok=0; nm_why="lookup-main"; }
+[[ "$(get_vpn_route_lookup)" == "main" ]] || { nm_ok=0; nm_why="lookup-main"; }
 printf '1\n' > "${nm_root}/vpn/direct.ok"
-[[ "$(vpn_route_lookup)" == "w_direct" ]] || { nm_ok=0; nm_why="lookup-direct"; }
+[[ "$(get_vpn_route_lookup)" == "w_direct" ]] || { nm_ok=0; nm_why="lookup-direct"; }
 cat > "${nm_root}/bin/ip" << 'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "${NM_IP_LOG}"
@@ -974,7 +949,7 @@ export PATH="${saved_nm_path}"
 write_vpn_state || { nm_ok=0; nm_why="etat"; }
 set_vpn_state_mode on || { nm_ok=0; nm_why="mode-on"; }
 NM_TRACE=""
-for nm_fn in set_vpn_state_mode clear_vpn_tunnel_routes set_vpn_state_active record_vpn_attempt apply_vpn_nft restart_vpn_services apply_vpn_systemd apply_vpn_endpoint_routes apply_vpn_bypass_routes apply_vpn_ssh apply_vpn_lan_routes remember_vpn_direct_route; do
+for nm_fn in set_vpn_state_mode clear_vpn_tunnel_routes set_vpn_state_active record_vpn_attempt apply_vpn_nft restart_vpn_services apply_vpn_systemd apply_vpn_endpoint_routes apply_vpn_bypass_routes apply_vpn_ssh apply_vpn_lan_routes record_vpn_direct_route; do
     if declare -F "${nm_fn}" >/dev/null 2>&1; then
         eval "$(declare -f "${nm_fn}" | sed "1s/^${nm_fn}/nm_saved_${nm_fn}/")"
     fi
@@ -1005,51 +980,51 @@ apply_vpn_ssh() { return 0; }
 
 apply_vpn_lan_routes() { return 0; }
 
-remember_vpn_direct_route() {
+record_vpn_direct_route() {
     NM_REMEMBER=1
     return 0
 }
 NM_REMEMBER=0
 unset CONNECTION_FILENAME
 NM_TRACE=""
-handle_vpn_nm_event eth0 vpn-up
+run_vpn_nm_event eth0 vpn-up
 [[ -z "${NM_TRACE}" ]] || { nm_ok=0; nm_why="sans-marque"; }
 printf '%s\n' '[connection]' 'id=other' > "${VPN_NM_DIR}/other.nmconnection"
 export CONNECTION_FILENAME="${VPN_NM_DIR}/other.nmconnection"
 NM_TRACE=""
-handle_vpn_nm_event eth0 vpn-up
+run_vpn_nm_event eth0 vpn-up
 [[ -z "${NM_TRACE}" ]] || { nm_ok=0; nm_why="etranger"; }
 export CONNECTION_FILENAME="${nm_file}"
-vpn_nm_hold_on
+set_vpn_nm_hold_on
 NM_TRACE=""
-handle_vpn_nm_event tun-liltress vpn-up
+run_vpn_nm_event tun-liltress vpn-up
 [[ -z "${NM_TRACE}" ]] || { nm_ok=0; nm_why="retenu"; }
-vpn_nm_hold_off
-vpn_nm_hold_on
-vpn_nm_hold_on
-vpn_nm_hold_off
-if vpn_nm_held; then
+set_vpn_nm_hold_off
+set_vpn_nm_hold_on
+set_vpn_nm_hold_on
+set_vpn_nm_hold_off
+if check_vpn_nm_held; then
     :
 else
     nm_ok=0
     nm_why="compte"
 fi
-vpn_nm_hold_off
-if vpn_nm_held; then
+set_vpn_nm_hold_off
+if check_vpn_nm_held; then
     nm_ok=0
     nm_why="compte-fin"
 fi
 NM_TRACE=""
-handle_vpn_nm_event tun-liltress vpn-up
+run_vpn_nm_event tun-liltress vpn-up
 [[ "${NM_TRACE}" == *"on"* ]] || { nm_ok=0; nm_why="mode"; }
 NM_REMEMBER=0
-handle_vpn_nm_event eth0 dhcp4-change
+run_vpn_nm_event eth0 dhcp4-change
 [[ "${NM_REMEMBER}" == "1" ]] || { nm_ok=0; nm_why="dhcp"; }
 NM_REMEMBER=0
-handle_vpn_nm_event tun-liltress dhcp4-change
+run_vpn_nm_event tun-liltress dhcp4-change
 [[ "${NM_REMEMBER}" == "0" ]] || { nm_ok=0; nm_why="dhcp-tun"; }
-grep -q 'network-manager-openvpn-gnome' "${vpn_dir}/install.sh" || { nm_ok=0; nm_why="paquet"; }
-for nm_fn in set_vpn_state_mode clear_vpn_tunnel_routes set_vpn_state_active record_vpn_attempt apply_vpn_nft restart_vpn_services apply_vpn_systemd apply_vpn_endpoint_routes apply_vpn_bypass_routes apply_vpn_ssh apply_vpn_lan_routes remember_vpn_direct_route; do
+grep -q 'network-manager-openvpn-gnome' "${vpn_directory}/install.sh" || { nm_ok=0; nm_why="paquet"; }
+for nm_fn in set_vpn_state_mode clear_vpn_tunnel_routes set_vpn_state_active record_vpn_attempt apply_vpn_nft restart_vpn_services apply_vpn_systemd apply_vpn_endpoint_routes apply_vpn_bypass_routes apply_vpn_ssh apply_vpn_lan_routes record_vpn_direct_route; do
     if declare -F "nm_saved_${nm_fn}" >/dev/null 2>&1; then
         eval "$(declare -f "nm_saved_${nm_fn}" | sed "1s/^nm_saved_${nm_fn}/${nm_fn}/")"
         unset -f "nm_saved_${nm_fn}"
@@ -1075,16 +1050,16 @@ else
 fi
 
 hook_ok=1
-import_hits="$(grep -c 'refresh_vpn_integrity' "${vpn_dir}/import.sh" || true)"
-forget_hits="$(awk '/^forget_vpn_profile\(\)/,/^}/' "${vpn_dir}/failover.sh" | grep -c 'refresh_vpn_integrity' || true)"
-watch_hits="$(awk '/^run_vpn_watch\(\)/,/^}/' "${vpn_dir}/failover.sh" | grep -c 'refresh_vpn_integrity' || true)"
+import_hits="$(grep -c 'refresh_vpn_integrity' "${vpn_directory}/import.sh" || true)"
+forget_hits="$(awk '/^clear_vpn_profile\(\)/,/^}/' "${vpn_directory}/failover.sh" | grep -c 'refresh_vpn_integrity' || true)"
+watch_hits="$(awk '/^run_vpn_watch\(\)/,/^}/' "${vpn_directory}/failover.sh" | grep -c 'refresh_vpn_integrity' || true)"
 [[ "${import_hits}" == "2" ]] || hook_ok=0
 [[ "${forget_hits}" == "3" ]] || hook_ok=0
 [[ "${watch_hits}" == "0" ]] || hook_ok=0
-grep -q 'refresh-integrity.sh' "${vpn_dir}/lib.sh" || hook_ok=0
-stage_line="$(grep -n 'VPN_IMPORT_STAGE_ONLY' "${vpn_dir}/import.sh" | head -n 1 | cut -d: -f1)"
-ok_line="$(grep -n 'vpn.import.ok' "${vpn_dir}/import.sh" | head -n 1 | cut -d: -f1)"
-hook_line="$(grep -n 'refresh_vpn_integrity' "${vpn_dir}/import.sh" | head -n 1 | cut -d: -f1)"
+grep -q 'refresh-integrity.sh' "${vpn_directory}/lib.sh" || hook_ok=0
+stage_line="$(grep -n 'VPN_IMPORT_STAGE_ONLY' "${vpn_directory}/import.sh" | head -n 1 | cut -d: -f1)"
+ok_line="$(grep -n 'vpn.import.ok' "${vpn_directory}/import.sh" | head -n 1 | cut -d: -f1)"
+hook_line="$(grep -n 'refresh_vpn_integrity' "${vpn_directory}/import.sh" | head -n 1 | cut -d: -f1)"
 [[ -n "${stage_line}" && -n "${ok_line}" && -n "${hook_line}" ]] || hook_ok=0
 [[ "${stage_line}" -lt "${ok_line}" && "${ok_line}" -lt "${hook_line}" ]] || hook_ok=0
 if [[ "${EUID}" -ne 0 && ! -f /etc/aide/aide.conf ]]; then
@@ -1102,8 +1077,8 @@ if [[ "${EUID}" -ne 0 && ! -f /etc/aide/aide.conf ]]; then
     unset VPN_SKIP_INTEGRITY
     export VPN_INTEGRITY_MARK="${mark}"
     # shellcheck disable=SC1091
-    source "${vpn_dir}/failover.sh"
-    forget_vpn_profile gone rm || hook_ok=0
+    source "${vpn_directory}/failover.sh"
+    clear_vpn_profile gone rm || hook_ok=0
     grep -qx 'ran' "${mark}" || hook_ok=0
     [[ -d "${mark_root}/vpn/openvpn/kept" ]] || hook_ok=0
     [[ -d "${mark_root}/vpn/openvpn/gone" ]] && hook_ok=0
@@ -1127,33 +1102,33 @@ else
 fi
 
 race_ok=1
-race_dir="${ARTIFACTS}/aide-race"
-rm -rf "${race_dir}"
-mkdir -p "${race_dir}/bin" "${race_dir}/db"
-printf 'out\n' > "${race_dir}/aide.conf"
-cat > "${race_dir}/bin/aide" << EOF
+race_directory="${ARTIFACTS}/aide-race"
+rm -rf "${race_directory}"
+mkdir -p "${race_directory}/bin" "${race_directory}/db"
+printf 'out\n' > "${race_directory}/aide.conf"
+cat > "${race_directory}/bin/aide" << EOF
 #!/usr/bin/env bash
-printf '1\n' >> "${race_dir}/calls"
+printf '1\n' >> "${race_directory}/calls"
 sleep 2
-printf 'db\n' > "${race_dir}/db/aide.db.new"
+printf 'db\n' > "${race_directory}/db/aide.db.new"
 exit 0
 EOF
-chmod 755 "${race_dir}/bin/aide"
+chmod 755 "${race_directory}/bin/aide"
 sed \
-    -e "s#/var/lib/aide#${race_dir}/db#g" \
-    -e "s#/etc/aide/aide.conf#${race_dir}/aide.conf#g" \
+    -e "s#/var/lib/aide#${race_directory}/db#g" \
+    -e "s#/etc/aide/aide.conf#${race_directory}/aide.conf#g" \
     -e 's/\[\[ "${EUID}" -ne 0 \]\]/false/' \
-    "${T_ROOT}/service/aide/refresh-db.sh" > "${race_dir}/refresh-db.sh"
-race_path="${race_dir}/bin:${PATH}"
-PATH="${race_path}" bash "${race_dir}/refresh-db.sh" >"${race_dir}/out-a" 2>"${race_dir}/err-a" &
+    "${T_ROOT}/service/aide/refresh-db.sh" > "${race_directory}/refresh-db.sh"
+race_path="${race_directory}/bin:${PATH}"
+PATH="${race_path}" bash "${race_directory}/refresh-db.sh" >"${race_directory}/out-a" 2>"${race_directory}/err-a" &
 race_pid_a=$!
-PATH="${race_path}" bash "${race_dir}/refresh-db.sh" >"${race_dir}/out-b" 2>"${race_dir}/err-b" &
+PATH="${race_path}" bash "${race_directory}/refresh-db.sh" >"${race_directory}/out-b" 2>"${race_directory}/err-b" &
 race_pid_b=$!
 wait "${race_pid_a}" || race_ok=0
 wait "${race_pid_b}" || race_ok=0
-[[ -f "${race_dir}/db/aide.db" ]] || race_ok=0
-grep -qx 'db' "${race_dir}/db/aide.db" 2>/dev/null || race_ok=0
-race_calls="$(wc -l < "${race_dir}/calls" 2>/dev/null | tr -d '[:space:]')"
+[[ -f "${race_directory}/db/aide.db" ]] || race_ok=0
+grep -qx 'db' "${race_directory}/db/aide.db" 2>/dev/null || race_ok=0
+race_calls="$(wc -l < "${race_directory}/calls" 2>/dev/null | tr -d '[:space:]')"
 [[ "${race_calls}" == "1" ]] || race_ok=0
 if [[ "${race_ok}" -eq 1 ]]; then
     t_pass "vpn.aide.refresh" "deux recalculs, une base, un seul aide"
@@ -1162,15 +1137,15 @@ else
 fi
 
 # shellcheck disable=SC1091
-source "${vpn_dir}/lib.sh"
+source "${vpn_directory}/lib.sh"
 # shellcheck disable=SC1091
-source "${vpn_dir}/state.sh"
+source "${vpn_directory}/state.sh"
 # shellcheck disable=SC1091
-source "${vpn_dir}/failover.sh"
+source "${vpn_directory}/failover.sh"
 apply_vpn_systemd() { return 0; }
 clear_vpn_network() { return 0; }
 restart_vpn_services() { return 0; }
-vpn_nm_apply_autoconnect() { return 0; }
+apply_vpn_nm_autoconnect() { return 0; }
 finish_vpn_open() { return 0; }
 arm_vpn_lockdown() {
     LOCK_TRACE="${LOCK_TRACE}lock"
@@ -1281,7 +1256,7 @@ after_beta="$(list_vpn_successors beta)"
 write_vpn_state || successor_ok=0
 set_vpn_state_default alpha || successor_ok=0
 set_vpn_state_mode off || successor_ok=0
-prove_vpn_profile() {
+check_vpn_profile() {
     [[ "$1" != "gamma" ]]
 }
 apply_vpn_profile() { return 0; }
@@ -1291,7 +1266,7 @@ load_vpn_settings
 [[ "${VPN_DEFAULT}" == "beta" ]] || successor_ok=0
 [[ "${VPN_MODE}" == "off" ]] || successor_ok=0
 [[ -d "${successor_root}/vpn/wireguard/gamma" ]] || successor_ok=0
-prove_vpn_profile() { return 1; }
+check_vpn_profile() { return 1; }
 successor_rc=0
 run_vpn_successor 0 gamma beta || successor_rc=$?
 [[ "${successor_rc}" -eq 1 ]] || successor_ok=0

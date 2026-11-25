@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/host/repository.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -18,25 +18,35 @@ check_repository_key() {
     gpg --batch --quiet --show-keys -- "${path}" >/dev/null 2>&1
 }
 
+# Clock skew is reported apart from a plain download failure.
+fail_repository_download() {
+    local dest="$1"
+    local body="$2"
+    local key_tmp="$3"
+    local err_file="$4"
+    local curl_err=""
+    curl_err="$(tr '\n' ' ' <"${err_file}" || true)"
+    rm -f -- "${body}" "${key_tmp}" "${err_file}"
+    if [[ "${curl_err}" == *[Nn]ot\ yet\ valid* || "${curl_err}" == *clock\ is\ incorrect* ]]; then
+        log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.2" "${dest}"
+    fi
+    log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error" "${dest}"
+}
+
 # The key is downloaded, stripped of armor, and stored.
 install_repository_key() {
     local url="$1"
     local dest="$2"
-    local body="" key_tmp="" err_file="" curl_err="" dest_dir="" staged=""
-    dest_dir="$(dirname -- "${dest}")"
-    if [[ ! -d "${dest_dir}" ]]; then
+    local body="" key_tmp="" err_file="" dest_directory="" staged=""
+    dest_directory="$(dirname -- "${dest}")"
+    if [[ ! -d "${dest_directory}" ]]; then
         log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error" "${dest}"
     fi
     body="$(mktemp)"
     key_tmp="$(mktemp)"
     err_file="$(mktemp)"
     if ! curl -fsSL -o "${body}" -- "${url}" 2>"${err_file}"; then
-        curl_err="$(tr '\n' ' ' <"${err_file}" || true)"
-        rm -f -- "${body}" "${key_tmp}" "${err_file}"
-        if [[ "${curl_err}" == *[Nn]ot\ yet\ valid* || "${curl_err}" == *clock\ is\ incorrect* ]]; then
-            log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.2" "${dest}"
-        fi
-        log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error" "${dest}"
+        fail_repository_download "${dest}" "${body}" "${key_tmp}" "${err_file}"
     fi
     if ! gpg --batch --yes --dearmor -o "${key_tmp}" -- "${body}" 2>"${err_file}"; then
         rm -f -- "${body}" "${key_tmp}" "${err_file}"
@@ -46,7 +56,7 @@ install_repository_key() {
         rm -f -- "${body}" "${key_tmp}" "${err_file}"
         log_error "${INSTALL_WATCHER:-BASH}" "install.lib.error.5" "${dest}"
     fi
-    staged="$(mktemp "${dest_dir}/key.XXXXXX")"
+    staged="$(mktemp "${dest_directory}/key.XXXXXX")"
     cp -f -- "${key_tmp}" "${staged}"
     chmod 644 "${staged}"
     if [[ "$(id -u)" -eq 0 ]]; then

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/load.sh
-# Updated at : 2026-11-15
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -14,15 +14,15 @@
 
 # The caller owns product. The walk stops at the first tree that holds the catalog and the journal.
 locate_text_product() {
-    local dir="$1"
+    local directory="$1"
     local hops=0
     product=""
-    while [[ -n "${dir}" && "${dir}" != "/" && "${hops}" -lt 16 ]]; do
-        if [[ -d "${dir}/locale/en" && -f "${dir}/core/log/log.sh" ]]; then
-            product="${dir}"
+    while [[ -n "${directory}" && "${directory}" != "/" && "${hops}" -lt 16 ]]; do
+        if [[ -d "${directory}/locale/en" && -f "${directory}/core/log/log.sh" ]]; then
+            product="${directory}"
             return 0
         fi
-        dir="$(dirname -- "${dir}")"
+        directory="$(dirname -- "${directory}")"
         hops=$((hops + 1))
     done
     return 0

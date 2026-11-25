@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : system/purge/cups.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 
 
-run_cups_part_01() {
+purge_cups_01_run_01_install() {
     INSTALL_WATCHER="${1:-BASH}"
     INSTALL_DIRECTORY="${2:-}"
     export INSTALL_WATCHER INSTALL_DIRECTORY
@@ -31,7 +31,7 @@ run_cups_part_01() {
     fi
 }
 
-run_cups_part_02() {
+purge_cups_01_run_02_install() {
     if [[ ${#cups_pkgs[@]} -gt 0 ]]; then
         log_info "${INSTALL_WATCHER}" "log.purge-of-cups" "${cups_pkgs[*]}"
         for local_unit in cups.socket cups.path cups-browsed.socket cups-browsed.service cups.service; do
@@ -47,9 +47,9 @@ run_cups_part_02() {
     fi
 }
 
-run_cups_part_03() {
-    run_cups_part_01 "$@"
-    run_cups_part_02 "$@"
+purge_cups_01_run_03_run() {
+    purge_cups_01_run_01_install "$@"
+    purge_cups_01_run_02_install "$@"
 }
 
-run_cups_part_03 "$@"
+purge_cups_01_run_03_run "$@"
