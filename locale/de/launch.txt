@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/de/launch.txt
-# Updated at : 2026-11-17
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -35,6 +35,7 @@ Prüfung:
   sudo "./liltress" verify boot
   sudo "./liltress" verify chkrootkit
   sudo "./liltress" maintain scan-skip list|add|del
+  sudo "./liltress" maintain exclude list|add|del|apply|review
   sudo "./liltress" vpn
 
 [launch.usage.extra.server]

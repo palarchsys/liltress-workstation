@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/watchdog/decide.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,6 +12,22 @@
 # Note       : An added product timer link under timers.target.wants is explained.
 # -----------------------------------------------------------------------------
 
+
+show_exclusion_alert() {
+    local seen="$1"
+    local extra="${BASE:-}/config/service/exclusions/generated/alert-exclude.list"
+    local line
+    [[ -n "${BASE:-}" && -f "${extra}" && "${extra}" != "${seen}" ]] || return 0
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+        case "${line}" in
+            "" | \#*) continue ;;
+            *)
+                printf '%s\n' "${extra}"
+                return 0
+                ;;
+        esac
+    done <"${extra}"
+}
 
 read_watchdog_exclude() {
     local here shared product seen=""
@@ -34,6 +50,7 @@ read_watchdog_exclude() {
             printf '%s\n' "${product}"
         fi
     fi
+    show_exclusion_alert "${seen}"
 }
 
 # Return 0 when a malware journal belongs to this phase.

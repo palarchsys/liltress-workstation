@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/rkhunter/configure.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -26,6 +26,7 @@ export ACCOUNT_USER
 log_info "${INSTALL_WATCHER}" "configure.configuration-of-rkhunter-2"
 envsubst '$ACCOUNT_USER' <"$(locate_config_file service/rkhunter/rkhunter.conf.local)" >/etc/rkhunter.conf.local
 chmod 644 /etc/rkhunter.conf.local
+python3 "$(locate_python_dir)/exclusions.py" splice /etc/rkhunter.conf.local "${CONFIG_BASE_DIRECTORY}/config/service/exclusions/generated/rkhunter-allow.conf"
 log_success "${INSTALL_WATCHER}" "configure.rkhunter-conf-local-installed"
 
 if grep -qE '^[[:space:]]*WEB_CMD=' /etc/rkhunter.conf; then

@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "id": "ex-0001",
+      "path": "/absolute/path",
+      "tools": ["clamav", "aide", "chkrootkit", "rkhunter", "alert"],
+      "reason": "text",
+      "added": "YYYY-MM-DD",
+      "expires": ""
+    }
+  ]
+}

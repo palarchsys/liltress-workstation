@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/apply-scan-skip.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -14,48 +14,19 @@
 # -----------------------------------------------------------------------------
 
 
-# The caller owns shown_python and reads it after this call.
-show_python_directory() {
-    local candidate="$1"
-    shown_python=0
-    [[ -n "${candidate}" && -d "${candidate}" ]] || return 0
-    (cd -- "${candidate}" && pwd -P)
-    shown_python=1
-    return 0
-}
-
-# The shared directory is printed as given, without resolving links.
-show_share_python() {
-    local dir="$1"
-    shown_python=0
-    if [[ ! -d "${dir}/share/python" ]]; then
-        return 0
-    fi
-    printf '%s\n' "${dir}/share/python"
-    shown_python=1
-    return 0
-}
-
-locate_python_dir() {
-    local dir="" hops=0 candidate="" shown_python=0
-    for candidate in \
-        "${CONFIG_BASE_DIRECTORY:-}/python" \
-        "${BASE:-}/python" \
-        "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"; do
-        show_python_directory "${candidate}"
-        if [[ "${shown_python}" -eq 1 ]]; then
-            return 0
-        fi
-    done
+source_python_boot() {
+    local dir hops
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    hops=0
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        show_share_python "${dir}"
-        if [[ "${shown_python}" -eq 1 ]]; then
+        if [[ -f "${dir}/core/boot/python.sh" ]]; then
+            # shellcheck disable=SC1090
+            source "${dir}/core/boot/python.sh"
             return 0
         fi
-        show_python_directory "${dir}/python"
-        if [[ "${shown_python}" -eq 1 ]]; then
+        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
+            # shellcheck disable=SC1090
+            source "${dir}/share/core/boot/python.sh"
             return 0
         fi
         dir="$(dirname -- "${dir}")"
@@ -65,6 +36,7 @@ locate_python_dir() {
     return 1
 }
 
+source_python_boot
 set -euo pipefail
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
@@ -116,6 +88,18 @@ load_onaccess_exclude() {
     ONACCESS_FIXED=("${kept[@]+"${kept[@]}"}")
 }
 
+read_generated_clamav() {
+    local file="${BASE}/config/service/exclusions/generated/clamav-skip.paths"
+    local line
+    [[ -f "${file}" ]] || return 0
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+        case "${line}" in
+            "" | \#*) continue ;;
+        esac
+        SCAN_SKIP_VALID+=("${line}")
+    done <"${file}"
+}
+
 read_scan_run_dir() {
     local candidate="" line=""
     for candidate in \
@@ -141,6 +125,7 @@ fi
 
 load_onaccess_exclude
 collect_scan_skip_path
+read_generated_clamav
 if [[ ${#SCAN_SKIP_BAD[@]} -gt 0 ]]; then
     if ! declare -F get_text >/dev/null 2>&1; then
         # shellcheck disable=SC1090
@@ -151,7 +136,6 @@ if [[ ${#SCAN_SKIP_BAD[@]} -gt 0 ]]; then
         printf "$(get_text watchdog.s-path-denied-s-n)" "$(date -Iseconds)" "${line}" | tee -a "${BASE}/cron/security_logs/scan-skip.log"
     done
 fi
-
 conf="/etc/clamav/clamd.conf"
 if [[ -f "${conf}" ]]; then
     run_dir="$(read_scan_run_dir)"

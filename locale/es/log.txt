@@ -1,6 +1,6 @@
 # =============================================================================
 # File       : locale/es/log.txt
-# Updated at : 2026-11-22
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -1468,3 +1468,34 @@ wg show wg0 a falló
 
 [log.http-check-line]
 {1}
+
+[log.exclusion-usage]
+sudo "./liltress" maintain exclude list [--tool TOOL]
+sudo "./liltress" maintain exclude add --path PATH --tools clamav,aide --reason TEXT
+sudo "./liltress" maintain exclude del ID
+sudo "./liltress" maintain exclude apply
+sudo "./liltress" maintain exclude review [--older-than 90d]
+
+[log.exclusion-added]
+Exclusión añadida: {1}
+
+[log.exclusion-removed]
+Exclusión retirada: {1}
+
+[log.exclusion-path]
+Ruta rechazada.
+
+[log.exclusion-tools]
+Herramienta rechazada.
+
+[log.exclusion-reason]
+Motivo rechazado.
+
+[log.exclusion-absent]
+Exclusión ausente.
+
+[log.exclusion-yaml]
+Lista de exclusión ilegible.
+
+[log.exclusion-applied]
+Exclusiones aplicadas.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/07_router.sh
-# Updated at : 2026-11-17
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -123,12 +123,12 @@ if [[ -n "${root}" ]]; then
 
     help_user="$(bash "${root}/workstation/liltress" help)"
     help_server="$(bash "${root}/server/liltress" help)"
-    if [[ "${help_user}" == *"verify workstation"* && "${help_user}" == *"maintain scan-skip"* && "${help_user}" != *"--basic"* ]]; then
+    if [[ "${help_user}" == *"verify workstation"* && "${help_user}" == *"maintain scan-skip"* && "${help_user}" == *"maintain exclude"* && "${help_user}" != *"--basic"* ]]; then
         t_pass "help.user" "commandes du poste"
     else
         t_fail "help.user" "écran poste incomplet"
     fi
-    if [[ "${help_server}" == *"--basic"* && "${help_server}" == *"--avance"* && "${help_server}" == *"verify matrix"* && "${help_server}" == *"scan-skip"* ]]; then
+    if [[ "${help_server}" == *"--basic"* && "${help_server}" == *"--avance"* && "${help_server}" == *"verify matrix"* && "${help_server}" == *"scan-skip"* && "${help_server}" != *"maintain exclude"* ]]; then
         t_pass "help.server" "commandes du serveur"
     else
         t_fail "help.server" "écran serveur incomplet"
@@ -230,4 +230,47 @@ PY
     else
         t_fail "sudoers.render" "poste $(tr '\n' ' ' < "${ARTIFACTS}/sudoers-ws.log" 2>/dev/null) serveur $(tr '\n' ' ' < "${ARTIFACTS}/sudoers-sv.log" 2>/dev/null)"
     fi
+fi
+
+t_section "exclusions du poste"
+exclude_work="$(mktemp -d)"
+exclude_src="${exclude_work}/entries.yaml"
+exclude_py="$(locate_python_dir)/exclusions.py"
+exclude_today="2026-11-23"
+printf 'entries: []\n' >"${exclude_src}"
+exclude_id="$(python3 "${exclude_py}" add "${exclude_src}" "/var/tmp/liltress-exclude" "clamav,aide" "cache" "${exclude_today}")"
+python3 "${exclude_py}" render "${exclude_src}" "${exclude_work}/out" "${exclude_today}"
+exclude_ok=1
+grep -qx '/var/tmp/liltress-exclude' "${exclude_work}/out/clamav-skip.paths" || exclude_ok=0
+grep -qx '!/var/tmp/liltress-exclude' "${exclude_work}/out/aide.rules" || exclude_ok=0
+python3 - "${exclude_src}" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+path.write_text(path.read_text(encoding="utf-8").replace("expires: \n", "expires: 2020-01-01\n", 1), encoding="utf-8")
+PY
+python3 "${exclude_py}" render "${exclude_src}" "${exclude_work}/out" "${exclude_today}"
+[[ ! -s "${exclude_work}/out/clamav-skip.paths" ]] || exclude_ok=0
+python3 "${exclude_py}" remove "${exclude_src}" "${exclude_id}" || exclude_ok=0
+printf 'entries: []\n' >"${exclude_src}"
+python3 "${exclude_py}" add "${exclude_src}" "/var/tmp/liltress-old" "alert" "old" "2020-01-01" >/dev/null
+python3 "${exclude_py}" review "${exclude_src}" "${exclude_today}" 90 | grep -q $'^old\t' || exclude_ok=0
+printf 'rule\n' >"${exclude_work}/aide.conf"
+exclude_before="$(cat "${exclude_work}/aide.conf")"
+python3 "${exclude_py}" splice "${exclude_work}/aide.conf" "${exclude_work}/missing"
+[[ "$(cat "${exclude_work}/aide.conf")" == "${exclude_before}" ]] || exclude_ok=0
+printf '!/var/tmp/liltress-exclude\n' >"${exclude_work}/rules"
+python3 "${exclude_py}" splice "${exclude_work}/aide.conf" "${exclude_work}/rules"
+grep -q 'BEGIN Liltress exclusions' "${exclude_work}/aide.conf" || exclude_ok=0
+printf '\n' >"${exclude_work}/rules"
+python3 "${exclude_py}" splice "${exclude_work}/aide.conf" "${exclude_work}/rules"
+[[ "$(cat "${exclude_work}/aide.conf")" == "${exclude_before}" ]] || exclude_ok=0
+grep -q 'script/exclusions.sh' "${T_ROOT}/../share/core/run/launch.sh" || exclude_ok=0
+[[ ! -e "${T_ROOT}/../server/script/exclusions.sh" ]] || exclude_ok=0
+rm -rf "${exclude_work}"
+if [[ "${exclude_ok}" -eq 1 ]]; then
+    t_pass "exclude.roundtrip" "fragment, échéance, retrait et bloc marqué"
+else
+    t_fail "exclude.roundtrip" "la liste unique n'alimente pas les fragments"
 fi

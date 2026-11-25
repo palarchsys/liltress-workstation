@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : service/cron/watchdogs/scan-chkrootkit.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -12,48 +12,19 @@
 # -----------------------------------------------------------------------------
 
 
-# The caller owns shown_python and reads it after this call.
-show_python_directory() {
-    local candidate="$1"
-    shown_python=0
-    [[ -n "${candidate}" && -d "${candidate}" ]] || return 0
-    (cd -- "${candidate}" && pwd -P)
-    shown_python=1
-    return 0
-}
-
-# The shared directory is printed as given, without resolving links.
-show_share_python() {
-    local dir="$1"
-    shown_python=0
-    if [[ ! -d "${dir}/share/python" ]]; then
-        return 0
-    fi
-    printf '%s\n' "${dir}/share/python"
-    shown_python=1
-    return 0
-}
-
-locate_python_dir() {
-    local dir="" hops=0 candidate="" shown_python=0
-    for candidate in \
-        "${CONFIG_BASE_DIRECTORY:-}/python" \
-        "${BASE:-}/python" \
-        "${INSTALL_DIRECTORY:-}/python" \
-        "${INSTALL_DIRECTORY:-}/../share/python"; do
-        show_python_directory "${candidate}"
-        if [[ "${shown_python}" -eq 1 ]]; then
-            return 0
-        fi
-    done
+source_python_boot() {
+    local dir hops
     dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    hops=0
     while [[ "${hops}" -lt 8 && "${dir}" != "/" ]]; do
-        show_share_python "${dir}"
-        if [[ "${shown_python}" -eq 1 ]]; then
+        if [[ -f "${dir}/core/boot/python.sh" ]]; then
+            # shellcheck disable=SC1090
+            source "${dir}/core/boot/python.sh"
             return 0
         fi
-        show_python_directory "${dir}/python"
-        if [[ "${shown_python}" -eq 1 ]]; then
+        if [[ -f "${dir}/share/core/boot/python.sh" ]]; then
+            # shellcheck disable=SC1090
+            source "${dir}/share/core/boot/python.sh"
             return 0
         fi
         dir="$(dirname -- "${dir}")"
@@ -62,6 +33,8 @@ locate_python_dir() {
     printf '%s\n' "dossier python introuvable" >&2
     return 1
 }
+
+source_python_boot
 
 read_host_mode() {
     local candidate="" line=""
@@ -146,13 +119,38 @@ run_scan_chkrootkit_part_02() {
     crashed=0
 }
 
+read_chkrootkit_fragment() {
+    local file="${BASE}/config/service/exclusions/generated/chkrootkit.ignore"
+    local line
+    [[ -f "${file}" ]] || return 0
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+        case "${line}" in
+            "" | \#*) continue ;;
+            *)
+                printf '%s\n' "${file}"
+                return 0
+                ;;
+        esac
+    done <"${file}"
+}
+
+run_chkrootkit_filter() {
+    if [[ -n "${1:-}" ]]; then
+        python3 "$(locate_python_dir)/chkrootkit-filter.py" workstation "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}" "$1"
+        return 0
+    fi
+    python3 "$(locate_python_dir)/chkrootkit-filter.py" workstation "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}"
+}
+
 run_scan_chkrootkit_part_03() {
+    local fragment=""
     if [[ "${rc}" -ge 128 ]]; then
         log_alert "$(get_crash_sentence "chkrootkit" "${rc}")"
         crashed=1
     fi
-    if [[ "${HOST_MODE}" != "server" && (-f "${IGNORE}" || -f "${LOCAL_IGNORE}") ]]; then
-        python3 "$(locate_python_dir)/chkrootkit-filter.py" workstation "${LOG_FILE}" "${IGNORE}" "${LOCAL_IGNORE}"
+    fragment="$(read_chkrootkit_fragment)"
+    if [[ "${HOST_MODE}" != "server" && (-f "${IGNORE}" || -f "${LOCAL_IGNORE}" || -n "${fragment}") ]]; then
+        run_chkrootkit_filter "${fragment}"
     fi
     CONFIRMED_COUNT=0
     confirmed_tmp="$(mktemp)"

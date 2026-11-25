@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : core/run/launch.sh
-# Updated at : 2026-11-21
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -169,6 +169,12 @@ launch_maintain_scan() {
             ;;
         scan-skip)
             launch_exec "${root}" "${root}/script/scan-skip.sh" "$@"
+            ;;
+        exclude)
+            if [[ ! -f "${root}/script/exclusions.sh" ]]; then
+                return 1
+            fi
+            launch_exec "${root}" "${root}/script/exclusions.sh" "$@"
             ;;
         *)
             return 1

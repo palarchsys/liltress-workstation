@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File       : script/test/suites/02_file_graph.sh
-# Updated at : 2026-11-23
+# Updated at : 2026-11-25
 # Creator    : palarchsys
 # =============================================================================
 
@@ -881,6 +881,10 @@ t_check_config_name() {
     esac
     if [[ "${rel}" =~ ^service/cron/w-[a-z][a-z0-9]*(-[a-z0-9]+)*\.(service|timer|path)$ ]]; then
         return 0
+    fi
+    if [[ "${rel}" == service/exclusions/generated/* ]]; then
+        t_check_config_parts "service" "generated" "${rel##*/}"
+        return
     fi
     IFS=/ read -r domain sub base <<< "${rel}"
     if [[ -z "${base}" ]]; then
