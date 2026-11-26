@@ -221,6 +221,7 @@ if [[ -f "${skip_lib}" && -f "${skip_tpl}" && -f "${skip_apply}" && -f "${skip_c
    && grep -q 'ClamAV :' "${T_ROOT}/../share/locale/fr/watchdog.txt" \
    && grep -q 'get_clamav_kind' "${skip_clam}" \
    && grep -q 'ALLOWDEVFILE=/dev/log' "${T_ROOT}/config/service/rkhunter/rkhunter.conf.local" \
+   && grep -qxF 'ALLOW_SSH_ROOT_USER=unset' "${T_ROOT}/config/service/rkhunter/rkhunter.conf.local" \
    && grep -qF "'/dev/log'" "${T_ROOT}/service/cron/watchdogs/scan-rkhunter.sh" \
    && grep -q 'systemctl disable --now w-idle-scan.timer' "${T_ROOT}/service/cron/configure.sh" \
    && [[ ! -e "${T_ROOT}/config/service/cron/w-idle-scan.timer" ]] \

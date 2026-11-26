@@ -1,12 +1,14 @@
 # =============================================================================
 # File       : config/service/rkhunter/rkhunter.conf.local
-# Updated at : 2026-11-21
+# Updated at : 2026-11-26
 # Creator    : palarchsys
 # =============================================================================
 
 UPDATE_MIRRORS=1
 MIRRORS_MODE=0
 WEB_CMD=""
+# rkhunter reads sshd_config only. PermitRootLogin is set in sshd_config.d.
+ALLOW_SSH_ROOT_USER=unset
 UPDATE_LANG="en"
 SCRIPTWHITELIST=/usr/bin/lwp-request
 ALLOWDEVFILE=/dev/shm/sem.haveged_sem

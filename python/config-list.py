@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/config-list.py
-# Updated at : 2026-11-23
+# Updated at : 2026-11-26
 # Creator    : palarchsys
 # =============================================================================
 
@@ -2256,7 +2256,7 @@ def product_documents(product):
     found[f"{product}/config/schema/{schema}"] = schema_text(product, variables)
     for list_mode in ("basic", "advanced"):
         rows = list_rows(product, variables, list_mode)
-        found[f"config-{product}-{list_mode}.csv"] = list_text(rows)
+        found[f"census/parameters/config-{product}-{list_mode}.csv"] = list_text(rows)
     return found
 
 

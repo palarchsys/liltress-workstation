@@ -160,7 +160,7 @@ allowed = {
     "workstation": {"liltress", "vpn", "verify", "maintain"},
     "server": {"liltress", "verify", "maintain"},
 }
-lines = (root / "commands.csv").read_text(encoding="utf-8").splitlines(keepends=True)
+lines = (root / "census" / "commands" / "commands.csv").read_text(encoding="utf-8").splitlines(keepends=True)
 for product, groups in allowed.items():
     expect = [lines[0]]
     for line in lines[1:]:

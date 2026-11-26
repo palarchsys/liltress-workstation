@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/name-list.py
-# Updated at : 2026-11-25
+# Updated at : 2026-11-26
 # Creator    : palarchsys
 # =============================================================================
 
 
 # -----------------------------------------------------------------------------
-# Purpose    : Record the four name inventories of this repository.
+# Purpose    : Record the four name inventories under census/names.
 # Note       : Shell files under a log directory are left out of the inventory.
 # -----------------------------------------------------------------------------
 
@@ -26,10 +26,10 @@ skip_directories = {".git", "logs", "node_modules", ".venv", "next_step", "__pyc
 skip_files = {
     "scripts/list-names.sh",
     "scripts/list-config.sh",
-    "name-variables.csv",
-    "name-functions.csv",
-    "name-comments.csv",
-    "name-references.csv",
+    "census/names/name-variables.csv",
+    "census/names/name-functions.csv",
+    "census/names/name-comments.csv",
+    "census/names/name-references.csv",
     "scripts/quality-baseline.txt",
 }
 prefix_var = {"W": "W_", "S": "S_", "T": "T_", "n": ""}
@@ -910,7 +910,9 @@ def files_of(row):
 
 
 def write_csv(name, header, rows):
-    dest = root / name
+    # The repository root stays free of descriptive tables.
+    dest = root / "census" / "names" / name
+    dest.parent.mkdir(parents=True, exist_ok=True)
     with dest.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(header)

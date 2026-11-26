@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # File       : python/alert-decide.py
-# Updated at : 2026-11-25
+# Updated at : 2026-11-26
 # Creator    : palarchsys
 # =============================================================================
 
@@ -48,7 +48,7 @@ PATH_TOKEN = re.compile(r"(?<![A-Za-z0-9])(/(?:[\w.+@=-]|\\x[0-9A-Fa-f]{2})+(?:/
 IP_TOKEN = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
 PKG_LINE = re.compile(r"\(from ([A-Za-z0-9][A-Za-z0-9.+-]*(?::[A-Za-z0-9]+)?) package\)")
 DEBSUM_PATH = re.compile(r"(?:changed|missing) file (\S+)")
-INTERESTING = ("infected", "warning", "rootkit", "suspect", "promisc", "preload")
+INTERESTING = ("infected", "warning", "rootkit", "suspect", "promisc", "promiscuous", "preload")
 
 
 def load_lines(path):
@@ -467,7 +467,8 @@ def actions_for(tool, class_id, explained):
 
 def line_interesting(line):
     low = line.lower()
-    return any(token in low for token in INTERESTING)
+    # The tool name chkrootkit contains the token rootkit. A whole word avoids that hit.
+    return any(re.search(rf"\b{re.escape(token)}\b", low) for token in INTERESTING)
 
 
 def with_blank(rows):

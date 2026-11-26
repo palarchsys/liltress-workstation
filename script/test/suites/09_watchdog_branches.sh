@@ -989,6 +989,28 @@ else
     t_fail "branch.usr.advice.catalog" "catalogue incomplet"
 fi
 
+t_section "chkrootkit silencieux"
+decide="${T_ROOT}/../share/python/alert-decide.py"
+if python3 -c '
+import importlib.util
+import sys
+spec = importlib.util.spec_from_file_location("alert_decide", sys.argv[1])
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+silent = "2026-11-26T09:59:12+01:00 chkrootkit silencieux (OK)"
+assert not mod.line_interesting(silent)
+assert mod.line_interesting("Warning: PermitRootLogin has not been set.")
+assert mod.line_interesting("INFECTED")
+assert mod.line_interesting("eth0: PROMISC")
+assert mod.line_interesting("/etc/ld.so.preload")
+assert mod.line_interesting("promiscuous mode")
+' "${decide}"
+then
+    t_pass "branch.usr.chk.silent" "une ligne silencieuse ne contient pas le jeton rootkit"
+else
+    t_fail "branch.usr.chk.silent" "chkrootkit silencieux est encore un constat"
+fi
+
 for id in usr.collect.install usr.base usr.integrity.bin usr.integrity.list usr.integrity.stamp usr.behavior.bin usr.behavior.stamp usr.egress.bin usr.egress.stamp usr.egress.table usr.isolate.state usr.net.ufw usr.boot.order usr.boot.timer usr.boot.scan-timer usr.periodic.timer usr.clamav.lock usr.clamav.deny usr.conf.order usr.conf.base; do
     if grep -q "${id}" "${probe}"; then
         t_pass "probe.id.${id}" "présent"
